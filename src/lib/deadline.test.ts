@@ -73,4 +73,35 @@ describe("deadlineState", () => {
     expect(state.status).toBe("seats-now");
     expect(state).toMatchObject({ count: 2, grade: "Cl. 4" });
   });
+
+  describe('date-only closesAt string ("YYYY-MM-DD", parsed by JS as UTC midnight)', () => {
+    // new Date("2026-10-31") = 2026-10-31T00:00:00.000Z = 2026-10-31 05:30 IST —
+    // since IST is UTC+5:30 (positive), UTC midnight of day D always lands within
+    // day D in IST, so this never silently rolls onto the wrong IST calendar day.
+    const closesAt = new Date("2026-10-31");
+
+    it("00:10 IST on the 31st → deadline-day", () => {
+      // 00:10 IST Oct 31 = 18:40 UTC Oct 30
+      const now = new Date("2026-10-30T18:40:00.000Z");
+      expect(deadlineState({ closesAt }, now).status).toBe("deadline-day");
+    });
+
+    it("12:00 IST on the 31st → deadline-day", () => {
+      // 12:00 IST Oct 31 = 06:30 UTC Oct 31
+      const now = new Date("2026-10-31T06:30:00.000Z");
+      expect(deadlineState({ closesAt }, now).status).toBe("deadline-day");
+    });
+
+    it("23:59 IST on the 31st → deadline-day", () => {
+      // 23:59 IST Oct 31 = 18:29 UTC Oct 31
+      const now = new Date("2026-10-31T18:29:00.000Z");
+      expect(deadlineState({ closesAt }, now).status).toBe("deadline-day");
+    });
+
+    it("00:01 IST on Nov 1 → closed", () => {
+      // 00:01 IST Nov 1 = 18:31 UTC Oct 31
+      const now = new Date("2026-10-31T18:31:00.000Z");
+      expect(deadlineState({ closesAt }, now).status).toBe("closed");
+    });
+  });
 });
