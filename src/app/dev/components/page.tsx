@@ -154,8 +154,13 @@ export default function ComponentsGalleryPage() {
       </Section>
 
       <Section title="Search bar — normal / error">
-        <SearchBar classOptions={["Nursery", "LKG", "UKG"]} boardOptions={["CBSE", "ICSE"]} />
         <SearchBar
+          id="search-normal"
+          classOptions={["Nursery", "LKG", "UKG"]}
+          boardOptions={["CBSE", "ICSE"]}
+        />
+        <SearchBar
+          id="search-error"
           classOptions={["Nursery", "LKG", "UKG"]}
           boardOptions={["CBSE", "ICSE"]}
           error="Enter a school name or area to search."

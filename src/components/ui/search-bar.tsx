@@ -1,14 +1,15 @@
+import Form from "next/form";
 import { FieldError, invalidFieldBorderClass } from "@/components/ui/field-error";
 import { cn } from "@/lib/utils";
 
 export function SearchBar({
-  id = "search",
+  id,
   classOptions,
   boardOptions,
-  action,
+  action = "",
   error,
 }: {
-  id?: string;
+  id: string;
   classOptions: string[];
   boardOptions: string[];
   action?: string;
@@ -18,7 +19,7 @@ export function SearchBar({
 
   return (
     <div>
-      <form
+      <Form
         action={action}
         className={cn(
           "flex h-14 items-stretch overflow-hidden rounded-md bg-copy-white",
@@ -67,7 +68,7 @@ export function SearchBar({
         >
           Search
         </button>
-      </form>
+      </Form>
       {error && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   );
