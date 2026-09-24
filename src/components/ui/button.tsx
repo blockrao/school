@@ -38,7 +38,7 @@ export function Button({ className, variant, size, asChild = false, ...props }: 
 export function TextLink({ className, ...props }: React.ComponentProps<"a">) {
   return (
     <a
-      className={cn("font-semibold text-ruled-blue underline-offset-2 hover:text-ink", className)}
+      className={cn("font-semibold text-ruled-blue underline-offset-3 hover:text-ink", className)}
       {...props}
     />
   );

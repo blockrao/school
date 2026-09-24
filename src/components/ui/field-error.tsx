@@ -4,7 +4,7 @@
  */
 
 /** Border to apply to an invalid field's own element, in place of its default border. */
-export const invalidFieldBorderClass = "border-4 border-ink";
+export const invalidFieldBorderClass = "border-3 border-ink";
 
 function ErrorIcon() {
   return (

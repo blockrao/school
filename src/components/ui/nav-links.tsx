@@ -65,7 +65,7 @@ export function ResultTabs({ items, className }: { items: LinkItem[]; className?
           href={item.href}
           aria-current={item.active ? "page" : undefined}
           className={cn(
-            "flex h-12 items-center whitespace-nowrap border-b-2 px-3",
+            "flex h-12 items-center whitespace-nowrap border-b-3 px-3",
             item.active
               ? "border-ruled-blue font-semibold text-ruled-blue"
               : "border-transparent font-medium text-ink",
