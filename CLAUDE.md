@@ -48,7 +48,13 @@ Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
 - `public/llms.txt` + `/school/[id]/index.md` route (markdown twin of the fact block).
 
 ## Performance budget (CI fails over budget)
-- School page: ≤100 KB client JS (gzipped), LCP ≤2.0 s and INP ≤200 ms on Moto G-class / 4G profile, CLS ≤0.05.
+- Two numbers, measured for real (`pnpm bundle-check` — real gzip network transfer via a
+  headless browser, not a `.next/` file-size sum): **total first-load JS** (informational —
+  React 19 + Next.js App Router's own runtime is ~131 KB gzip and out of our control) and
+  **app-owned JS above that framework baseline** (target ≤60 KB gzip on the school page —
+  this is the number CI actually fails the build on). See `scripts/README.md` for the
+  current baseline's module breakdown.
+- LCP ≤2.0 s and INP ≤200 ms on Moto G-class / 4G profile, CLS ≤0.05.
 - No client-side data fetching for first paint. Maps, galleries and the compare tray are lazy client islands.
 
 ## Trust rules (product law)
