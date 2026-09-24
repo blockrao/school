@@ -60,7 +60,7 @@
   /* Shape — design uses 6px for most surfaces, 4px for small controls, full for pills */
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-sheet: 20px;
+  --radius-sheet: 12px; /* ShareSheet top corners — the only real bottom-sheet spec in the design */
   --shadow-card: 0 1px 3px rgba(27, 34, 48, 0.12);
 
   /* Layout widths seen across screens */
