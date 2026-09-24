@@ -1,19 +1,13 @@
+import { type DeadlineInput, type DeadlineState, deadlineState } from "@/lib/deadline";
 import { cn } from "@/lib/utils";
 
-export type DeadlineMarginVariant =
-  | "closing-soon"
-  | "deadline-day"
-  | "open"
-  | "upcoming"
-  | "not-announced"
-  | "closed"
-  | "seats-now";
+export type DeadlineStatus = DeadlineState["status"];
 
 /**
- * Colour + rule-style are derived from `variant`, never passed in directly — this is
- * what guarantees margin red only ever appears for deadlines 0–7 days away.
+ * Colour + rule-style are derived from the computed status, never passed in directly —
+ * this is what guarantees margin red only ever appears for deadlines 0–7 days away.
  */
-export const deadlineMarginVariantClasses: Record<DeadlineMarginVariant, string> = {
+export const deadlineMarginStatusClasses: Record<DeadlineStatus, string> = {
   "closing-soon": "text-margin-red border-margin-red",
   "deadline-day": "text-margin-red border-margin-red",
   open: "text-ink border-ink",
@@ -24,18 +18,12 @@ export const deadlineMarginVariantClasses: Record<DeadlineMarginVariant, string>
 };
 
 export function DeadlineMargin({
-  variant,
-  top,
-  big,
-  bottom,
+  now = new Date(),
   className,
-}: {
-  variant: DeadlineMarginVariant;
-  top: string;
-  big: string;
-  bottom: string;
-  className?: string;
-}) {
+  ...input
+}: DeadlineInput & { now?: Date; className?: string }) {
+  const state = deadlineState(input, now);
+
   return (
     <div
       className={cn(
@@ -46,12 +34,12 @@ export function DeadlineMargin({
       <div
         className={cn(
           "flex w-20 flex-col justify-center gap-0.5 border-r-2 p-2.5 text-meta",
-          deadlineMarginVariantClasses[variant],
+          deadlineMarginStatusClasses[state.status],
         )}
       >
-        <span>{top}</span>
-        <span className="font-display font-bold text-margin-big">{big}</span>
-        <span>{bottom}</span>
+        <span>{state.top}</span>
+        <span className="font-display font-bold text-margin-big">{state.big}</span>
+        <span>{state.bottom}</span>
       </div>
       <div
         className="flex-1"

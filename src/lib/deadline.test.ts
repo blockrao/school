@@ -1,0 +1,76 @@
+import { describe, expect, it } from "vitest";
+import { deadlineState } from "@/lib/deadline";
+
+// All fixture dates are constructed as UTC instants; the function itself converts
+// to IST calendar days, so we reason about IST directly in each test's comment.
+
+describe("deadlineState", () => {
+  it("7 days away closes → closing-soon (red)", () => {
+    const now = new Date("2027-01-01T04:00:00.000Z"); // 2027-01-01 09:30 IST
+    const closesAt = new Date("2027-01-08T04:00:00.000Z"); // 2027-01-08 09:30 IST
+    const state = deadlineState({ closesAt }, now);
+    expect(state.status).toBe("closing-soon");
+    expect(state).toMatchObject({ daysUntilClose: 7 });
+  });
+
+  it("8 days away closes → open (ink)", () => {
+    const now = new Date("2027-01-01T04:00:00.000Z");
+    const closesAt = new Date("2027-01-09T04:00:00.000Z");
+    const state = deadlineState({ closesAt }, now);
+    expect(state.status).toBe("open");
+    expect(state).toMatchObject({ daysUntilClose: 8 });
+  });
+
+  it("0 days away (today) → deadline-day", () => {
+    const now = new Date("2027-01-01T04:00:00.000Z"); // 2027-01-01 09:30 IST
+    const closesAt = new Date("2027-01-01T18:00:00.000Z"); // 2027-01-01 23:30 IST, same IST day
+    const state = deadlineState({ closesAt }, now);
+    expect(state.status).toBe("deadline-day");
+  });
+
+  it("closesAt 23:59 IST today, evaluated at 18:40 UTC same UTC day (= 00:10 IST next day) → closed", () => {
+    // 2027-03-10 23:59 IST = 2027-03-10 18:29 UTC
+    const closesAt = new Date("2027-03-10T18:29:00.000Z");
+    // 2027-03-10 18:40 UTC = 2027-03-11 00:10 IST (next IST calendar day)
+    const now = new Date("2027-03-10T18:40:00.000Z");
+    const state = deadlineState({ closesAt }, now);
+    expect(state.status).toBe("closed");
+  });
+
+  it("closesAt 00:30 IST tomorrow, evaluated at 23:00 IST today → closing-soon, 1 day", () => {
+    // "today" in IST = 2027-03-10. now = 2027-03-10 23:00 IST = 2027-03-10 17:30 UTC
+    const now = new Date("2027-03-10T17:30:00.000Z");
+    // closesAt = 2027-03-11 00:30 IST (tomorrow) = 2027-03-10 19:00 UTC
+    const closesAt = new Date("2027-03-10T19:00:00.000Z");
+    const state = deadlineState({ closesAt }, now);
+    expect(state.status).toBe("closing-soon");
+    expect(state).toMatchObject({ daysUntilClose: 1 });
+  });
+
+  it("opensAt in the future → upcoming (dashed)", () => {
+    const now = new Date("2027-01-01T04:00:00.000Z");
+    const opensAt = new Date("2027-02-01T04:00:00.000Z");
+    const state = deadlineState({ opensAt }, now);
+    expect(state.status).toBe("upcoming");
+  });
+
+  it("no dates at all → not-announced", () => {
+    const now = new Date("2027-01-01T04:00:00.000Z");
+    const state = deadlineState({}, now);
+    expect(state.status).toBe("not-announced");
+  });
+
+  it("closesAt in the past → closed", () => {
+    const now = new Date("2027-01-10T04:00:00.000Z");
+    const closesAt = new Date("2027-01-01T04:00:00.000Z");
+    const state = deadlineState({ closesAt }, now);
+    expect(state.status).toBe("closed");
+  });
+
+  it("seatsNow present → seats-now, regardless of dates", () => {
+    const now = new Date("2027-01-01T04:00:00.000Z");
+    const state = deadlineState({ seatsNow: { count: 2, grade: "Cl. 4" } }, now);
+    expect(state.status).toBe("seats-now");
+    expect(state).toMatchObject({ count: 2, grade: "Cl. 4" });
+  });
+});

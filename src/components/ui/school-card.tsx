@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { SponsoredTag } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
-import {
-  type DeadlineMarginVariant,
-  deadlineMarginVariantClasses,
-} from "@/components/ui/deadline-margin";
+import { deadlineMarginStatusClasses } from "@/components/ui/deadline-margin";
+import type { DeadlineInput } from "@/lib/deadline";
+import { deadlineState } from "@/lib/deadline";
 import { cn } from "@/lib/utils";
 
 export function SchoolCard({
@@ -12,6 +11,7 @@ export function SchoolCard({
   meta,
   sponsored = false,
   deadline,
+  now = new Date(),
   status,
   fee,
   freshness,
@@ -21,13 +21,16 @@ export function SchoolCard({
   name: string;
   meta: string;
   sponsored?: boolean;
-  deadline: { variant: DeadlineMarginVariant; top: string; big: string; bottom: string };
+  deadline: DeadlineInput;
+  now?: Date;
   status: ReactNode;
   fee: ReactNode;
   freshness: ReactNode;
   actions?: ReactNode;
   className?: string;
 }) {
+  const state = deadlineState(deadline, now);
+
   return (
     <article
       className={cn(
@@ -39,12 +42,12 @@ export function SchoolCard({
       <div
         className={cn(
           "flex w-18 shrink-0 flex-col gap-0.5 border-r-2 py-2.5 pr-1.5 pl-2.5 text-meta",
-          deadlineMarginVariantClasses[deadline.variant],
+          deadlineMarginStatusClasses[state.status],
         )}
       >
-        <span>{deadline.top}</span>
-        <span className="font-display text-section font-bold leading-none">{deadline.big}</span>
-        <span>{deadline.bottom}</span>
+        <span>{state.top}</span>
+        <span className="font-display text-section font-bold leading-none">{state.big}</span>
+        <span>{state.bottom}</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3">
         {sponsored && <SponsoredTag className="self-start" />}
