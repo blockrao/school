@@ -16,7 +16,10 @@ export function ShareSheet({
   const [copied, setCopied] = useState(false);
 
   // Real anchor with a real href — works with JS disabled, unlike a share-API button.
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${schoolName} ${shareUrl}`)}`;
+  // Tagged with UTM params so WhatsApp-originated traffic is attributable; the copy-link
+  // and native-share paths below share the untagged canonical URL instead.
+  const whatsappShareUrl = `${shareUrl}${shareUrl.includes("?") ? "&" : "?"}utm_source=whatsapp&utm_medium=share`;
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${schoolName} ${whatsappShareUrl}`)}`;
 
   async function copyLink() {
     await navigator.clipboard.writeText(shareUrl);
@@ -25,15 +28,19 @@ export function ShareSheet({
   }
 
   async function shareOrCopy() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: schoolName, url: shareUrl });
-        return;
-      } catch {
-        // user cancelled the native share sheet — fall through to clipboard
-      }
+    if (!navigator.share) {
+      await copyLink();
+      return;
     }
-    await copyLink();
+    try {
+      await navigator.share({ title: schoolName, url: shareUrl });
+    } catch (err) {
+      // AbortError = the user closed the native share sheet themselves; that's not a
+      // failure, so do nothing. Any other error (no share target, permission denied,
+      // etc.) falls back to clipboard.
+      if (err instanceof Error && err.name === "AbortError") return;
+      await copyLink();
+    }
   }
 
   return (
