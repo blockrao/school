@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@600;700&family=Mukta:wght@400;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FCFCF8;font-family:Mukta,sans-serif;color:#1B2230}a{color:#2F4B9A;text-underline-offset:3px}a:hover{color:#1B2230}*{box-sizing:border-box}</style>
+</helmet>
+<main style="max-width:760px;margin:0 auto;padding:48px 24px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+    <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:39px;line-height:1.1">Screens</h1>
+  </div>
+  <div style="display:flex;flex-direction:column">
+    <sc-for list="{{ screens }}" as="s" hint-placeholder-count="8">
+      <a href="{{ s.file }}" style="display:flex;border-top:1px solid #D9DEEA;text-decoration:none;color:#1B2230;min-height:64px" style-hover="background:#F4F5EF">
+        <div style="width:64px;flex-shrink:0;border-right:2px solid #1B2230;padding:12px 0;font-family:'Anek Latin';font-weight:700;font-size:20px">{{ s.n }}</div>
+        <div style="flex:1;padding:12px 16px;display:flex;flex-direction:column;gap:2px">
+          <span style="font-weight:600;font-size:18px;color:#2F4B9A">{{ s.name }}</span>
+          <span style="font-size:14px;color:#4A5160">{{ s.views }}</span>
+        </div>
+      </a>
+    </sc-for>
+  </div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return { screens: [
+      { n: '1', name: 'School page (detail)', file: 'School Page.dc.html', views: 'Mobile + desktop' },
+      { n: '2', name: 'City list (Admissions open)', file: 'City List.dc.html', views: 'Mobile results + empty state' },
+      { n: '3', name: 'Home', file: 'Home.dc.html', views: 'Mobile + desktop' },
+      { n: '4', name: 'Age eligibility checker', file: 'Age Checker.dc.html', views: 'Mobile: eligible, edge case, Hindi' },
+      { n: '5', name: 'WhatsApp alerts', file: 'WhatsApp Alerts.dc.html', views: 'Phone, OTP, preferences, confirmation, manage' },
+      { n: '6', name: 'Delhi nursery hub', file: 'Delhi Nursery Hub.dc.html', views: 'Mobile + desktop' },
+      { n: '7', name: 'Application help', file: 'Application Help.dc.html', views: 'Landing to My Admissions, 6 screens' },
+      { n: '9', name: 'Seats available now (mid-session)', file: 'Seats Available Now.dc.html', views: 'List, seat alerts, school page block, enquiry' },
+      { n: '—', name: 'Platform shell', file: 'Platform Shell.dc.html', views: 'Header, nav, footer' },
+      { n: '—', name: 'Home v2 (discovery)', file: 'Home v2.dc.html', views: 'Mobile + desktop' },
+      { n: '—', name: 'Search results', file: 'Search Results.dc.html', views: 'List, filters, map, compare tray, empty' },
+      { n: '—', name: 'School page v2 (tabbed)', file: 'School Page v2.dc.html', views: 'Mobile + desktop' },
+      { n: '—', name: 'Compare schools', file: 'Compare Schools.dc.html', views: 'Mobile + desktop' },
+      { n: '—', name: 'Teacher profile', file: 'Teacher Profile.dc.html', views: 'Claimed + unclaimed' },
+      { n: '—', name: 'Teachers directory', file: 'Teachers Directory.dc.html', views: 'Mobile + desktop' },
+      { n: '—', name: 'Teacher of the Week', file: 'Teacher of the Week.dc.html', views: 'Feature, archive, nominate, accept' },
+      { n: '—', name: 'Components sheet', file: 'Components Sheet.dc.html', views: 'Tokens and components' },
+      { n: '—', name: 'School portal', file: 'School Portal.dc.html', views: 'Claim, dashboard, seats, post notice' },
+      { n: '8', name: 'Ops verification queue', file: 'Ops Verification Queue.dc.html', views: 'Desktop, internal' }
+    ] };
+  }
+}
+</script>
+</body>
+</html>

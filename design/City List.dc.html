@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">City list · Jaipur admissions open</div>
+    <div style="font-size:16px;color:#4A5160">Mockup date 16 Oct 2026. Tabs, Save and Get alert work in <a href="#2a">2a</a>. <a href="#2b">2b</a> is the empty state.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start">
+
+    <div id="2a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">2a</span><span style="font-size:14px;color:#4A5160">Mobile · 390 · results</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #D9DEEA;gap:8px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button style="height:44px;padding:0 10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px">Jaipur <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:44px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</button>
+              <button style="height:44px;min-width:44px;border:0;background:transparent;color:#1B2230;font:500 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+        <div style="padding:16px 16px 12px;display:flex;flex-direction:column;gap:2px">
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Jaipur · Admissions open</h1>
+          <div style="font-size:14px;color:#6B7280">2027–28 session · 11 schools for Nursery</div>
+        </div>
+
+        <div style="position:sticky;top:0;z-index:2;background:#FCFCF8;border-top:1px solid #D9DEEA;border-bottom:1px solid #D9DEEA;padding:8px 0 8px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;white-space:nowrap">Class: Nursery ▾</button>
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;white-space:nowrap">Board ▾</button>
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;white-space:nowrap">Form type ▾</button>
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;white-space:nowrap;margin-right:16px">Distance ▾</button>
+        </div>
+
+        <div style="padding:12px 16px 4px">
+          <div role="tablist" style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+              <button role="tab" onClick="{{ t.onClick }}" style="height:44px;border:0;border-right:{{ t.divider }};background:{{ t.bg }};color:{{ t.fg }};font:600 15px Mukta;cursor:pointer" style-focus="outline:3px solid #F0C04A;outline-offset:-3px">{{ t.label }} <span style="font-weight:400">{{ t.count }}</span></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:8px 16px 8px;font-size:14px;color:#6B7280">{{ tabNote }}</div>
+
+        <div style="padding:0 16px 20px;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ cards }}" as="s" hint-placeholder-count="8">
+            <article style="border:1px solid {{ s.border }};border-radius:6px;background:#FFFFFF;display:flex;overflow:hidden">
+              <div style="width:76px;flex-shrink:0;padding:12px 8px 12px 10px;border-right:2px solid {{ s.mColor }};display:flex;flex-direction:column;gap:1px">
+                <div style="font-size:14px;line-height:1.2;color:{{ s.mColor }}">{{ s.mTop }}</div>
+                <div style="font-family:'Anek Latin';font-weight:700;font-size:{{ s.mBigSize }};line-height:1.05;color:{{ s.mColor }}">{{ s.mBig }}</div>
+                <div style="font-size:14px;line-height:1.2;color:{{ s.mColor }}">{{ s.mBottom }}</div>
+                <div style="margin-top:6px;font-size:14px;line-height:1.2;color:#6B7280">{{ s.mDate }}</div>
+              </div>
+              <div style="flex:1;min-width:0;padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px">
+                <sc-if value="{{ s.sponsored }}" hint-placeholder-val="{{ false }}">
+                  <span style="align-self:flex-start;font-size:14px;font-weight:600;color:#1B2230;background:#F1F1EA;border:1px solid #C4C7CE;border-radius:4px;padding:0 8px">Sponsored</span>
+                </sc-if>
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+                  <a href="School Page.dc.html" style="font-family:'Anek Latin';font-weight:600;font-size:20px;line-height:1.15;color:#1B2230;text-decoration:none" style-hover="text-decoration:underline">{{ s.name }}</a>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font-size:14px;font-weight:600;padding:0 9px;border-radius:999px;background:{{ s.pBg }};color:{{ s.pFg }};border:1px solid {{ s.pBorder }}">{{ s.pLabel }}</span>
+                  <span style="font-size:14px;color:#1B2230">{{ s.board }} · {{ s.area }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:2px;font-size:14px">
+                  <span style="color:#6B7280">Form</span><span>{{ s.form }}</span>
+                  <span style="color:#6B7280">Registration</span><span style="color:{{ s.feeColor }}">{{ s.fee }}</span>
+                </div>
+                <div style="font-size:14px;color:#6B7280;display:flex;align-items:center;gap:6px">
+                  <sc-if value="{{ s.stale }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:#F0C04A;flex-shrink:0"></span></sc-if>
+                  <span style="color:{{ s.freshColor }}">{{ s.fresh }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+                  <button onClick="{{ s.onSave }}" style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:{{ s.saveBg }};color:#2F4B9A;font:600 15px Mukta;cursor:pointer" style-focus="outline:3px solid #2F4B9A;outline-offset:2px">{{ s.saveLabel }}</button>
+                  <button onClick="{{ s.onAlert }}" style="height:44px;border:1px solid #2F4B9A;border-radius:6px;background:{{ s.alertBg }};color:{{ s.alertFg }};font:600 15px Mukta;cursor:pointer" style-focus="outline:3px solid #F0C04A;outline-offset:2px">{{ s.alertLabel }}</button>
+                </div>
+                <sc-if value="{{ s.sponsored }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:14px;color:#6B7280;line-height:1.35">Paid placement. Dates are checked the same way as every other school.</div>
+                </sc-if>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+        <div style="padding:16px;border-top:1px solid #D9DEEA;background:#F4F5EF;font-size:14px;color:#4A5160">Every date is checked against the school's own notice.</div>
+      </div>
+    </div>
+
+    <div id="2b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">2b</span><span style="font-size:14px;color:#4A5160">Mobile · 390 · no matches</span></div>
+      <div style="width:390px;height:844px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #D9DEEA;gap:8px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button style="height:44px;padding:0 10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;white-space:nowrap;display:flex;align-items:center;gap:4px">Jaipur <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:44px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</button>
+              <button style="height:44px;min-width:44px;border:0;background:transparent;color:#1B2230;font:500 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+        <div style="padding:16px 16px 12px;display:flex;flex-direction:column;gap:2px">
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Jaipur · Admissions open</h1>
+          <div style="font-size:14px;color:#6B7280">2027–28 session · 0 schools match</div>
+        </div>
+        <div style="border-top:1px solid #D9DEEA;border-bottom:1px solid #D9DEEA;padding:8px 0 8px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;white-space:nowrap">Class: 11 ▾</button>
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;white-space:nowrap">Board: ICSE ▾</button>
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;white-space:nowrap">Offline ▾</button>
+          <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;white-space:nowrap;margin-right:16px">Within 2 km ▾</button>
+        </div>
+        <div style="margin:28px 16px 0;border-left:2px solid #6B7280;padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.15">No open schools match these filters</h2>
+          <div style="font-size:16px;line-height:1.5;text-wrap:pretty">Class 11 forms usually open after board results. Widen the distance, or get an alert when a matching school opens forms.</div>
+        </div>
+        <div style="padding:20px 16px 0;display:flex;flex-direction:column;gap:8px">
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Get an alert for Class 11 in Jaipur</button>
+          <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 16px Mukta">Widen to 5 km · 2 schools</button>
+          <button style="height:44px;border:0;background:transparent;color:#2F4B9A;font:600 16px Mukta;text-decoration:underline;text-underline-offset:3px">Clear all filters</button>
+        </div>
+        <div style="margin-top:auto;padding:16px;border-top:1px solid #D9DEEA;background:#F4F5EF;font-size:14px;color:#4A5160">Every date is checked against the school's own notice.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Open now&quot;,&quot;Closing soon&quot;,&quot;Upcoming&quot;],&quot;default&quot;:&quot;Open now&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { tab: null, saved: {}, alerts: {} };
+  data = [
+    { id: 'sa', name: 'St. Aarav Convent', board: 'ICSE', area: 'C-Scheme', form: 'Offline, at school office', fee: 500, days: 2, date: '18 Oct', checked: 1 },
+    { id: 'gv', name: 'Green Valley Public School', board: 'CBSE', area: 'Malviya Nagar', form: 'Online', fee: 1000, days: 4, date: '20 Oct', checked: 2 },
+    { id: 'ar', name: 'Aravali International School', board: 'CBSE', area: 'Jagatpura', form: 'Online', fee: 1500, days: 30, date: '15 Nov', checked: 1, sponsored: true },
+    { id: 'pc', name: 'Pink City Scholars School', board: 'CBSE', area: 'Vaishali Nagar', form: 'Online', fee: 800, days: 6, date: '22 Oct', checked: 3 },
+    { id: 'nb', name: 'Nav Bharti Academy', board: 'RBSE', area: 'Mansarovar', form: 'Online', fee: null, days: 15, date: '31 Oct', checked: 9, stale: true },
+    { id: 'mb', name: 'Meera Bal Niketan', board: 'RBSE', area: 'Sodala', form: 'Offline, at school office', fee: 200, days: 20, date: '5 Nov', checked: 4 },
+    { id: 'sg', name: 'Shri Gyan Vihar Vidyalaya', board: 'CBSE', area: 'Raja Park', form: 'Offline, at school office', fee: 300, days: 25, date: '10 Nov', checked: 2 },
+    { id: 'lo', name: 'Little Oaks Montessori', board: 'Cambridge', area: 'Tonk Road', form: 'Online', fee: null, days: 45, date: '30 Nov', checked: 5 },
+    { id: 'jh', name: 'Jai Hind Model School', board: 'CBSE', area: 'Pratap Nagar', form: 'Online', fee: 600, upcoming: true, opens: '1 Nov', checked: 3 },
+    { id: 'sv', name: 'Sunrise Vidya Mandir', board: 'RBSE', area: 'Jhotwara', form: 'Offline, at school office', fee: null, upcoming: true, opens: '15 Nov', checked: 6 },
+    { id: 'rw', name: 'Rosewood Senior Secondary', board: 'ICSE', area: 'Bani Park', form: 'Not yet published', fee: null, upcoming: true, opens: null, checked: 2 }
+  ];
+  card(s) {
+    const st = this.state, urgent = !s.upcoming && s.days <= 7;
+    let m;
+    if (s.upcoming) m = s.opens
+      ? { mTop: 'Opens', mBig: s.opens.split(' ')[0], mBigSize: '25px', mBottom: s.opens.split(' ')[1], mDate: 'Forms open', mColor: '#1B2230' }
+      : { mTop: 'Opening', mBig: '—', mBigSize: '25px', mBottom: 'date', mDate: 'Not yet published', mColor: '#6B7280' };
+    else m = { mTop: 'Closes in', mBig: String(s.days), mBigSize: '25px', mBottom: s.days === 1 ? 'day' : 'days', mDate: s.date, mColor: urgent ? '#C8372D' : '#1B2230' };
+    const pill = s.upcoming ? { pLabel: 'Upcoming', pBg: '#FBEFC9', pFg: '#1B2230', pBorder: '#F0C04A' }
+      : urgent ? { pLabel: 'Closing soon', pBg: '#FBEAE8', pFg: '#B3302A', pBorder: '#F1C9C5' }
+      : { pLabel: 'Open', pBg: '#E3EEE8', pFg: '#1F5A43', pBorder: '#BFD6C9' };
+    const saved = !!st.saved[s.id], alert = !!st.alerts[s.id];
+    return {
+      ...s, ...m, ...pill,
+      sponsored: !!s.sponsored, stale: !!s.stale,
+      border: s.sponsored ? '#B8BCC4' : '#D9DEEA',
+      fee: s.fee == null ? 'Not yet published' : '₹' + s.fee.toLocaleString('en-IN'),
+      feeColor: s.fee == null ? '#6B7280' : '#1B2230',
+      fresh: s.stale ? `Checked ${s.checked} days ago — rechecking` : `Checked ${s.checked === 1 ? 'yesterday' : s.checked + ' days ago'} · school notice`,
+      freshColor: s.stale ? '#1B2230' : '#6B7280',
+      saveLabel: saved ? 'Saved ✓' : 'Save', saveBg: saved ? '#EEF1F9' : '#FCFCF8',
+      alertLabel: alert ? 'Alert on ✓' : 'Get alert', alertBg: alert ? '#FCFCF8' : '#2F4B9A', alertFg: alert ? '#2F4B9A' : '#FCFCF8',
+      onSave: () => this.setState(p => ({ saved: { ...p.saved, [s.id]: !p.saved[s.id] } })),
+      onAlert: () => this.setState(p => ({ alerts: { ...p.alerts, [s.id]: !p.alerts[s.id] } }))
+    };
+  }
+  renderVals() {
+    const tab = this.state.tab ?? this.props.tab ?? 'Open now';
+    const open = this.data.filter(s => !s.upcoming);
+    const lists = {
+      'Open now': open,
+      'Closing soon': open.filter(s => s.days <= 7),
+      'Upcoming': this.data.filter(s => s.upcoming)
+    };
+    const notes = {
+      'Open now': 'Sorted by nearest deadline',
+      'Closing soon': 'Forms close within 7 days',
+      'Upcoming': 'Forms not open yet. Get an alert to hear the day they open.'
+    };
+    const names = Object.keys(lists);
+    return {
+      tabs: names.map((n, i) => ({
+        label: n, count: lists[n].length,
+        bg: n === tab ? '#2F4B9A' : '#FCFCF8', fg: n === tab ? '#FCFCF8' : '#1B2230',
+        divider: i < names.length - 1 ? '1px solid #C9D0E2' : '0',
+        onClick: () => this.setState({ tab: n })
+      })),
+      tabNote: notes[tab],
+      cards: lists[tab].map(s => this.card(s))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Age eligibility checker · Delhi</div>
+    <div style="font-size:16px;color:#4A5160"><a href="#4a">4a</a> standard result. <a href="#4b">4b</a> edge case: the child falls between Nursery and KG depending on the school. <a href="#4c">4c</a> is 4a in Hindi.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start">
+
+    <div id="4a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">4a</span><span style="font-size:14px;color:#4A5160">Mobile · eligible</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #D9DEEA;gap:8px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button style="height:44px;padding:0 10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;white-space:nowrap;display:flex;align-items:center;gap:4px">Delhi <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:44px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</button>
+              <button style="height:44px;min-width:44px;border:0;background:transparent;color:#1B2230;font:500 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+        <div style="padding:20px 16px 16px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid #D9DEEA">
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Check age eligibility</h1>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Child's date of birth</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px">
+              <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font-size:16px">14</div>
+              <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font-size:16px">Aug</div>
+              <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font-size:16px">2023</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">City</span>
+            <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:16px">Delhi <span style="font-size:12px;color:#6B7280">▾</span></div>
+          </div>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Check eligibility</button>
+        </div>
+
+        <div style="margin:20px 16px 0;border-left:2px solid #1F5A43;padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:8px">
+          <span style="align-self:flex-start;font-size:14px;font-weight:600;padding:0 9px;border-radius:999px;background:#E3EEE8;color:#1F5A43;border:1px solid #BFD6C9">Eligible</span>
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.15">Eligible for Nursery in 2027–28</h2>
+          <div style="font-size:16px;line-height:1.5;text-wrap:pretty">Most Delhi schools count age on 31 March 2027. Nursery needs 3 years or more and less than 4. Your child will be 3 years 7 months on that date.</div>
+          <div style="font-size:14px;color:#6B7280">Source: Directorate of Education notice · checked 3 days ago</div>
+        </div>
+
+        <div style="padding:24px 16px 0">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:8px;border-bottom:1px solid #D9DEEA;gap:8px">
+            <h3 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">34 schools in Delhi with published cut-offs</h3>
+          </div>
+          <sc-for list="{{ enStd }}" as="s" hint-placeholder-count="4">
+            <a href="School Page.dc.html" style="display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;border-bottom:1px solid #E3E7F0;text-decoration:none;color:#1B2230">
+              <span style="display:flex;flex-direction:column"><span style="font-weight:600">{{ s.name }}</span><span style="font-size:14px;color:#4A5160">{{ s.area }}</span></span>
+              <span style="font-size:14px;color:#1F5A43;font-weight:600;white-space:nowrap">Nursery ✓</span>
+            </a>
+          </sc-for>
+          <a href="City List.dc.html" style="display:flex;align-items:center;min-height:44px;font-weight:600">See all 34 schools</a>
+        </div>
+
+        <div style="margin:16px 16px 0;padding:14px;border:1px solid #F0C04A;border-radius:6px;background:#FDF7E4;display:flex;flex-direction:column;gap:6px">
+          <h3 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">3 schools use a different cut-off</h3>
+          <div style="font-size:14px;line-height:1.45">These schools count age on their own date. Your child's result at each:</div>
+          <sc-for list="{{ enDiff }}" as="s" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:1px;padding:8px 0;border-top:1px solid #EFDFAE">
+              <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:600">{{ s.name }}</span><span style="font-size:14px;font-weight:600;white-space:nowrap;color:{{ s.color }}">{{ s.result }}</span></div>
+              <span style="font-size:14px;color:#4A5160">{{ s.rule }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:20px 16px 24px;display:flex;flex-direction:column;gap:8px">
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Show open schools for Nursery</button>
+          <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 16px Mukta">Get Nursery alerts on WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="4b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">4b</span><span style="font-size:14px;color:#4A5160">Mobile · between two classes</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #D9DEEA;gap:8px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button style="height:44px;padding:0 10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;white-space:nowrap;display:flex;align-items:center;gap:4px">Delhi <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:44px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</button>
+              <button style="height:44px;min-width:44px;border:0;background:transparent;color:#1B2230;font:500 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+        <div style="padding:16px;border-bottom:1px solid #D9DEEA;display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div style="display:flex;flex-direction:column"><span style="font-size:14px;color:#6B7280">Date of birth · City</span><span style="font-weight:600">10 Mar 2023 · Delhi</span></div>
+          <button style="height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Change</button>
+        </div>
+
+        <div style="margin:20px 16px 0;border-left:2px solid #1B2230;padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:8px">
+          <span style="align-self:flex-start;font-size:14px;font-weight:600;padding:0 9px;border-radius:999px;background:#FBEFC9;color:#1B2230;border:1px solid #F0C04A">Depends on the school</span>
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.15">Nursery or KG, depending on the school</h2>
+          <div style="font-size:16px;line-height:1.5;text-wrap:pretty">On 31 March 2027 your child will be 4 years and 21 days old. That is just over the Nursery limit of less than 4. Schools may allow up to 30 days of age relaxation, so some will still take a Nursery form.</div>
+          <div style="font-size:14px;color:#6B7280">Source: Directorate of Education notice · checked 3 days ago</div>
+        </div>
+
+        <div style="margin:20px 16px 0;display:grid;grid-template-columns:1fr 1fr;border:1px solid #D9DEEA;border-radius:6px;overflow:hidden;background:#FFFFFF">
+          <div style="padding:14px;border-right:1px solid #D9DEEA;display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:14px;color:#4A5160">Nursery at</span>
+            <span style="font-family:'Anek Latin';font-weight:700;font-size:31px;line-height:1.05">12</span>
+            <span style="font-size:14px;color:#4A5160;line-height:1.35">schools that publish the 30-day relaxation</span>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:14px;color:#4A5160">KG at</span>
+            <span style="font-family:'Anek Latin';font-weight:700;font-size:31px;line-height:1.05">22</span>
+            <span style="font-size:14px;color:#4A5160;line-height:1.35">schools with a strict 31 March cut-off</span>
+          </div>
+        </div>
+
+        <div style="padding:20px 16px 0;display:flex;flex-direction:column;gap:6px">
+          <h3 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">What to do</h3>
+          <div style="font-size:16px;line-height:1.5">Apply for Nursery only where relaxation is published, and for KG everywhere else. Keep the birth certificate ready; schools check it at the form stage.</div>
+        </div>
+
+        <div style="padding:20px 16px 24px;display:flex;flex-direction:column;gap:8px">
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Show 12 open schools for Nursery</button>
+          <button style="height:48px;border:1px solid #2F4B9A;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 16px Mukta">Show 22 open schools for KG</button>
+          <button style="height:44px;border:0;background:transparent;color:#2F4B9A;font:600 16px Mukta;text-decoration:underline;text-underline-offset:3px">Get help applying</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="4c" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">4c</span><span style="font-size:14px;color:#4A5160">Mobile · Hindi</span></div>
+      <div lang="hi" style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #D9DEEA;gap:8px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button style="height:44px;padding:0 10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;white-space:nowrap;display:flex;align-items:center;gap:4px">दिल्ली <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:44px;border:0;background:transparent;color:#1B2230;font:500 14px Mukta">EN</button>
+              <button style="height:44px;min-width:44px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+        <div style="padding:20px 16px 16px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid #D9DEEA">
+          <h1 style="margin:0;font-family:'Anek Devanagari';font-weight:600;font-size:31px;line-height:1.2">उम्र के हिसाब से पात्रता देखें</h1>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">बच्चे की जन्म तिथि</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px">
+              <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font-size:16px">14</div>
+              <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font-size:16px">अगस्त</div>
+              <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;font-size:16px">2023</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">शहर</span>
+            <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:16px">दिल्ली <span style="font-size:12px;color:#6B7280">▾</span></div>
+          </div>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">पात्रता देखें</button>
+        </div>
+
+        <div style="margin:20px 16px 0;border-left:2px solid #1F5A43;padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:8px">
+          <span style="align-self:flex-start;font-size:14px;font-weight:600;padding:0 9px;border-radius:999px;background:#E3EEE8;color:#1F5A43;border:1px solid #BFD6C9">पात्र</span>
+          <h2 style="margin:0;font-family:'Anek Devanagari';font-weight:600;font-size:25px;line-height:1.25">2027–28 में नर्सरी के लिए पात्र</h2>
+          <div style="font-size:16px;line-height:1.6;text-wrap:pretty">दिल्ली के ज़्यादातर स्कूल 31 मार्च 2027 को उम्र गिनते हैं। नर्सरी के लिए उम्र 3 साल या उससे ज़्यादा और 4 साल से कम होनी चाहिए। उस दिन आपका बच्चा 3 साल 7 महीने का होगा।</div>
+          <div style="font-size:14px;color:#6B7280">स्रोत: शिक्षा निदेशालय की सूचना · 3 दिन पहले जाँचा गया</div>
+        </div>
+
+        <div style="padding:24px 16px 0">
+          <div style="padding-bottom:8px;border-bottom:1px solid #D9DEEA">
+            <h3 style="margin:0;font-family:'Anek Devanagari';font-weight:600;font-size:20px;line-height:1.3">दिल्ली के 34 स्कूल जिनकी कट-ऑफ़ प्रकाशित है</h3>
+          </div>
+          <sc-for list="{{ hiStd }}" as="s" hint-placeholder-count="4">
+            <a href="School Page.dc.html" style="display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;border-bottom:1px solid #E3E7F0;text-decoration:none;color:#1B2230">
+              <span style="display:flex;flex-direction:column"><span style="font-weight:600">{{ s.name }}</span><span style="font-size:14px;color:#4A5160">{{ s.area }}</span></span>
+              <span style="font-size:14px;color:#1F5A43;font-weight:600;white-space:nowrap">नर्सरी ✓</span>
+            </a>
+          </sc-for>
+          <a href="City List.dc.html" style="display:flex;align-items:center;min-height:44px;font-weight:600">सभी 34 स्कूल देखें</a>
+        </div>
+
+        <div style="margin:16px 16px 0;padding:14px;border:1px solid #F0C04A;border-radius:6px;background:#FDF7E4;display:flex;flex-direction:column;gap:6px">
+          <h3 style="margin:0;font-family:'Anek Devanagari';font-weight:600;font-size:20px">3 स्कूलों की कट-ऑफ़ अलग है</h3>
+          <div style="font-size:14px;line-height:1.5">ये स्कूल अपनी तारीख़ पर उम्र गिनते हैं। हर स्कूल में आपके बच्चे का नतीजा:</div>
+          <sc-for list="{{ hiDiff }}" as="s" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:1px;padding:8px 0;border-top:1px solid #EFDFAE">
+              <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:600">{{ s.name }}</span><span style="font-size:14px;font-weight:600;white-space:nowrap;color:{{ s.color }}">{{ s.result }}</span></div>
+              <span style="font-size:14px;color:#4A5160">{{ s.rule }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:20px 16px 24px;display:flex;flex-direction:column;gap:8px">
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">नर्सरी के लिए खुले स्कूल देखें</button>
+          <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 16px Mukta">WhatsApp पर नर्सरी अलर्ट पाएँ</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = '#1F5A43', ink = '#1B2230';
+    return {
+      enStd: [
+        { name: 'Green Valley Public School', area: 'Dwarka Sector 10' },
+        { name: 'St. Aarav Convent', area: 'Mayur Vihar Phase 1' },
+        { name: 'Nav Bharti Academy', area: 'Rohini Sector 9' },
+        { name: 'Yamuna Vidya Niketan', area: 'Lajpat Nagar' }
+      ],
+      enDiff: [
+        { name: 'Qutub Heritage School', rule: 'Age on 31 Dec 2026 · 3+ needed', result: 'Nursery ✓', color: ok },
+        { name: 'Lotus Valley Montessori', rule: 'Age on 30 Sept 2027 · under 4 for Nursery', result: 'KG', color: ink },
+        { name: 'Shanti Niketan Bal Vidyalaya', rule: 'Age on 31 July 2027 · 3+ needed', result: 'Nursery ✓', color: ok }
+      ],
+      hiStd: [
+        { name: 'ग्रीन वैली पब्लिक स्कूल', area: 'द्वारका सेक्टर 10' },
+        { name: 'सेंट आरव कॉन्वेंट', area: 'मयूर विहार फ़ेज़ 1' },
+        { name: 'नव भारती अकादमी', area: 'रोहिणी सेक्टर 9' },
+        { name: 'यमुना विद्या निकेतन', area: 'लाजपत नगर' }
+      ],
+      hiDiff: [
+        { name: 'कुतुब हेरिटेज स्कूल', rule: '31 दिसंबर 2026 को उम्र · 3+ ज़रूरी', result: 'नर्सरी ✓', color: ok },
+        { name: 'लोटस वैली मोंटेसरी', rule: '30 सितंबर 2027 को उम्र · नर्सरी के लिए 4 से कम', result: 'केजी', color: ink },
+        { name: 'शांति निकेतन बाल विद्यालय', rule: '31 जुलाई 2027 को उम्र · 3+ ज़रूरी', result: 'नर्सरी ✓', color: ok }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

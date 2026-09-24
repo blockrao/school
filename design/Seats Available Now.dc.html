@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:920px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Seats available now · mid-session vacancies</div>
+    <div style="font-size:16px;color:#4A5160;line-height:1.55">For parents who need a seat in the current session (2026–27): families moving to the city on a job transfer, or switching schools during the year. Schools report open seats per class through the school portal. Mockup date 16 Oct 2026.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:4px">
+      <div style="padding:12px 14px;border-left:2px solid #1B2230;background:#FCFCF8;font-size:14px;line-height:1.5"><b style="font-weight:600">Two sessions, never mixed.</b> "This session 2026–27" is for seats now. "Next session 2027–28" is for regular admissions. Every screen labels which one it shows.</div>
+      <div style="padding:12px 14px;border-left:2px solid #1B2230;background:#FCFCF8;font-size:14px;line-height:1.5"><b style="font-weight:600">Seat statuses:</b> Seats available (3 or more), Few seats (1–2), Waitlist, Full. Each comes from the school, never estimated by us. Red stays reserved for deadlines.</div>
+      <div style="padding:12px 14px;border-left:2px solid #1B2230;background:#FCFCF8;font-size:14px;line-height:1.5"><b style="font-weight:600">Seats change fast.</b> Reports older than 7 days show "May have changed — call to confirm". After 30 days they're hidden.</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="15a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">15a</span><span style="font-size:14px;color:#4A5160">Mobile · seats list</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;align-items:center"><button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button><div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div></div>
+          <div style="display:flex;align-items:center;gap:4px"><span style="font-size:16px;font-weight:500;padding:0 8px">Jaipur ▾</span><div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</span><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;font:500 15px 'Anek Devanagari'">हिं</span></div></div>
+        </header>
+        <div style="padding:16px 16px 10px;display:flex;flex-direction:column;gap:6px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;color:#1B2230;border:1px solid #1B2230;border-radius:4px;padding:0 8px">This session · 2026–27</span>
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Seats available now</h1>
+          <div style="font-size:15px;color:#4A5160;line-height:1.45">For joining mid-year, such as after a job transfer or a change of school.</div>
+        </div>
+        <div style="padding:4px 0 10px 16px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px">Class</div>
+          <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-right:16px">
+            <sc-for list="{{ classChips }}" as="c" hint-placeholder-count="10">
+              <button onClick="{{ c.onClick }}" style="flex-shrink:0;height:44px;min-width:48px;padding:0 12px;border:1px solid {{ c.border }};border-radius:22px;background:{{ c.bg }};color:{{ c.fg }};font:{{ c.w }} 15px Mukta;cursor:pointer;white-space:nowrap">{{ c.t }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="padding:6px 16px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #E3E7F0">
+          <span style="font-size:14px;color:#4A5160">{{ resultLine }}</span>
+          <button style="height:40px;padding:0 12px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 14px Mukta">Within 5 km ▾</button>
+        </div>
+
+        <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ cards }}" as="s" hint-placeholder-count="4">
+            <article style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+              <div style="width:72px;flex-shrink:0;padding:10px 6px 10px 10px;border-right:2px solid {{ s.mColor }};display:flex;flex-direction:column;gap:1px">
+                <span style="font-size:13px;color:{{ s.mColor }}">{{ s.mTop }}</span>
+                <span style="font-family:'Anek Latin';font-weight:700;font-size:{{ s.mSize }};line-height:1.05;color:{{ s.mColor }}">{{ s.mBig }}</span>
+                <span style="font-size:13px;color:{{ s.mColor }}">{{ s.mBottom }}</span>
+              </div>
+              <div style="flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:5px">
+                <a href="School Page v2.dc.html" style="font-family:'Anek Latin';font-weight:600;font-size:18px;line-height:1.15;color:#1B2230;text-decoration:none">{{ s.name }}</a>
+                <span style="font-size:14px;color:#4A5160">{{ s.board }} · {{ s.area }} · {{ s.km }} km</span>
+                <span style="align-self:flex-start;font-size:13px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ s.pBg }};color:{{ s.pFg }};border:1px solid {{ s.pBorder }}">{{ s.pLabel }}</span>
+                <span style="font-size:14px;line-height:1.4">{{ s.note }}</span>
+                <span style="font-size:13px;color:{{ s.freshColor }};font-weight:{{ s.freshW }};display:flex;align-items:center;gap:6px"><sc-if value="{{ s.stale }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:#F0C04A;flex-shrink:0"></span></sc-if>{{ s.fresh }}</span>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px">
+                  <button style="height:44px;border:1px solid #2F4B9A;border-radius:6px;background:{{ s.askBg }};color:{{ s.askFg }};font:600 14px Mukta">{{ s.ask }}</button>
+                  <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 14px Mukta">Save</button>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+          <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="border-left:2px solid #6B7280;padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:8px;margin:8px 0">
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px;line-height:1.2">No seats reported in {{ cls }} within 5 km</h2>
+              <span style="font-size:15px;line-height:1.5;color:#4A5160">Seats open up through the year as families move. Get a WhatsApp message the day a school reports one.</span>
+              <a href="#15b" style="align-self:flex-start;height:44px;padding:0 16px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font-weight:600;display:flex;align-items:center;text-decoration:none">Get seat alerts for {{ cls }}</a>
+              <a href="#" style="font-weight:600;min-height:44px;display:flex;align-items:center">Widen to 10 km</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="margin:0 16px 16px;padding:14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:8px">
+          <span style="font-family:'Anek Latin';font-weight:600;font-size:18px">Didn't find a seat?</span>
+          <span style="font-size:14px;line-height:1.45;color:#4A5160">Get a WhatsApp message the day a school near you reports a seat in {{ cls }}.</span>
+          <a href="#15b" style="align-self:flex-start;height:44px;padding:0 16px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font-weight:600;display:flex;align-items:center;text-decoration:none">Get seat alerts</a>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid #D9DEEA;background:#F4F5EF;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45;color:#4A5160">
+          <span>Only schools that report seats appear here: 38 of 1,240 in Jaipur.</span>
+          <a href="#" style="font-weight:600">Guide: changing schools mid-year (documents, TC, fees)</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="15b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">15b</span><span style="font-size:14px;color:#4A5160">Mobile · seat alert sheet</span></div>
+      <div style="width:390px;height:844px;background:#1B2230;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;position:relative">
+        <div style="position:absolute;inset:0;background:rgba(27,34,48,.5)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:#FCFCF8;border-radius:12px 12px 0 0;padding:8px 16px 16px;display:flex;flex-direction:column;gap:14px">
+          <span style="align-self:center;width:40px;height:4px;border-radius:2px;background:#C4C7CE"></span>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="align-self:flex-start;font-size:13px;font-weight:600;border:1px solid #1B2230;border-radius:4px;padding:0 8px">This session · 2026–27</span>
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.15">Tell me when a seat opens</h2>
+            </div>
+            <button aria-label="Close" style="width:44px;height:44px;border:0;background:transparent;font:500 22px Mukta">×</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">Class</span><div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px">Class 4 <span style="font-size:12px;color:#6B7280">▾</span></div></div>
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">Near</span><div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px">Vaishali Nagar <span style="font-size:12px;color:#6B7280">▾</span></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Distance</span>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <span style="height:44px;display:flex;align-items:center;justify-content:center;border-right:1px solid #C9D0E2">3 km</span>
+              <span style="height:44px;display:flex;align-items:center;justify-content:center;border-right:1px solid #C9D0E2;background:#2F4B9A;color:#FCFCF8;font-weight:600">5 km</span>
+              <span style="height:44px;display:flex;align-items:center;justify-content:center">10 km</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Board <span style="font-weight:400;color:#4A5160">(optional)</span></span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #2F4B9A;background:#EEF1F9;color:#2F4B9A;font-weight:600;display:flex;align-items:center">CBSE ✓</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">ICSE</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">RBSE</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #2F4B9A;border-radius:6px;background:#FFFFFF;font-size:14px;line-height:1.45">
+            <span style="flex-shrink:0;width:24px;height:24px;border:2px solid #2F4B9A;border-radius:4px;background:#2F4B9A;color:#FCFCF8;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>
+            <span>Send seat alerts on WhatsApp to +91 98290 41736. At most one message a day. Stops automatically when the session ends.</span>
+          </div>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Start seat alerts</button>
+          <div style="background:#ECE8E1;border-radius:6px;padding:10px 10px 12px">
+            <div style="font-size:13px;color:#4A5160;margin-bottom:6px">What you'll get</div>
+            <div style="max-width:300px;background:#FFFFFF;border-radius:0 8px 8px 8px;padding:8px 10px 6px;font-size:14px;line-height:1.4;display:flex;flex-direction:column;gap:3px">
+              <b style="font-weight:600">SchoolOye</b>
+              <span>Seat reported in Class 4: Green Valley Public School, Malviya Nagar (4.2 km). 2 seats, reported today.</span>
+              <span style="color:#2F4B9A">schooloye.in/s/gv-class4</span>
+              <span style="align-self:flex-end;font-size:11px;color:#6B7280">11:20 am</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="15c" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">15c</span><span style="font-size:14px;color:#4A5160">Mobile · School page, Admissions tab</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <div style="padding:14px 16px;border-bottom:1px solid #D9DEEA;display:flex;flex-direction:column;gap:2px">
+          <span style="font-family:'Anek Latin';font-weight:600;font-size:22px">Green Valley Public School</span>
+          <span style="font-size:14px;color:#4A5160">CBSE · Malviya Nagar</span>
+        </div>
+        <div style="display:flex;border-bottom:1px solid #D9DEEA;padding:0 8px;overflow:hidden">
+          <span style="height:48px;padding:0 12px;display:flex;align-items:center;color:#1B2230">Overview</span>
+          <span style="height:48px;padding:0 12px;display:flex;align-items:center;color:#2F4B9A;font-weight:600;border-bottom:3px solid #2F4B9A">Admissions</span>
+          <span style="height:48px;padding:0 12px;display:flex;align-items:center;color:#1B2230">Fees</span>
+          <span style="height:48px;padding:0 12px;display:flex;align-items:center;color:#1B2230">Facilities</span>
+        </div>
+        <div style="padding:14px 16px 0">
+          <div role="tablist" style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+            <button onClick="{{ sesNow }}" style="height:48px;border:0;border-right:1px solid #C9D0E2;background:{{ nowBg }};color:{{ nowFg }};font:600 15px Mukta;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;cursor:pointer">This session<span style="font-weight:400;font-size:13px">2026–27 · seats now</span></button>
+            <button onClick="{{ sesNext }}" style="height:48px;border:0;background:{{ nextBg }};color:{{ nextFg }};font:600 15px Mukta;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;cursor:pointer">Next session<span style="font-weight:400;font-size:13px">2027–28 · admissions</span></button>
+          </div>
+        </div>
+        <sc-if value="{{ showNow }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Seats by class</h2><span style="font-size:13px;color:#4A5160">Reported by school · yesterday</span></div>
+            <div style="display:flex;flex-direction:column;border-top:1px solid #E3E7F0">
+              <sc-for list="{{ seatRows }}" as="r" hint-placeholder-count="7">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:48px;border-bottom:1px solid #E3E7F0">
+                  <span style="font-weight:600">{{ r.c }}</span>
+                  <span style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;color:#4A5160">{{ r.n }}</span><span style="font-size:13px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ r.bg }};color:{{ r.fg }};border:1px solid {{ r.bd }}">{{ r.s }}</span></span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:12px 14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+              <span style="font-weight:600">Joining mid-year here</span>
+              <sc-for list="{{ midRules }}" as="m" hint-placeholder-count="4"><span style="font-size:14px;line-height:1.45;display:flex;gap:8px"><span style="color:#4A5160">·</span>{{ m }}</span></sc-for>
+              <span style="font-size:13px;color:#6B7280">Source: school, via SchoolOye school portal · 15 Oct 2026</span>
+            </div>
+            <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Ask about a seat</button>
+            <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Get seat alerts for this school</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showNext }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+              <div style="width:76px;flex-shrink:0;padding:10px;border-right:2px solid #C8372D;color:#C8372D;display:flex;flex-direction:column"><span style="font-size:13px">Closes in</span><span style="font-family:'Anek Latin';font-weight:700;font-size:28px;line-height:1">4</span><span style="font-size:13px">days</span></div>
+              <div style="padding:10px 12px;display:flex;flex-direction:column;justify-content:center"><span style="font-weight:600">Nursery forms close 20 Oct</span><span style="font-size:14px;color:#4A5160">Class 1–9: Upcoming · Class 11: Not yet published</span></div>
+            </div>
+            <span style="font-size:14px;color:#4A5160">Same content as the Admissions tab in <a href="School Page v2.dc.html">School page v2</a>.</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div id="15d" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">15d</span><span style="font-size:14px;color:#4A5160">Mobile · ask about a seat</span></div>
+      <div style="width:390px;height:844px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button><span style="font-weight:600">Ask about a seat</span><span style="width:44px"></span>
+        </header>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Anek Latin';font-weight:600;font-size:22px">Green Valley Public School</span><span style="font-size:14px;color:#4A5160">Class 4 · 2 seats · reported yesterday</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">Child's current class and school</span><div style="min-height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px">Class 4 · Kendriya-pattern school, Pune</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">Reason for the move</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #2F4B9A;background:#EEF1F9;color:#2F4B9A;font-weight:600;display:flex;align-items:center">Job transfer ✓</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Moved house</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Other</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">When can your child join?</span><div style="min-height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px">From 1 Nov 2026 <span style="font-size:12px;color:#6B7280">▾</span></div></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Keep ready</span>
+            <sc-for list="{{ keepReady }}" as="k" hint-placeholder-count="4"><span style="font-size:15px;display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #EEF0F5"><span style="color:#4A5160">{{ k.n }}</span>{{ k.t }}</span></sc-for>
+          </div>
+        </div>
+        <div style="margin-top:auto;padding:16px;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:6px">
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Send to the school</button>
+          <span style="font-size:13px;color:#4A5160;text-align:center;line-height:1.4">The school gets your name and message, not your number, until you choose to share it. Seats aren't held until the school confirms.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { cls: 'Class 4', ses: 'now' };
+  data = {
+    'Class 4': [
+      { name: 'Green Valley Public School', board: 'CBSE', area: 'Malviya Nagar', km: '4.2', seats: 2, days: 1, note: 'Joining from Nov. Admission test for maths and English.' },
+      { name: 'Shri Gyan Vihar Vidyalaya', board: 'CBSE', area: 'Raja Park', km: '4.8', seats: 5, days: 3, note: 'No test for Class 4. Fees charged from month of joining.' },
+      { name: 'St. Aarav Convent', board: 'ICSE', area: 'C-Scheme', km: '3.9', wait: 4, days: 2, note: '4 children ahead on the waitlist.' },
+      { name: 'Pink City Scholars School', board: 'CBSE', area: 'Vaishali Nagar', km: '0.6', seats: 1, days: 9, note: 'Transfer certificate must be countersigned.' }
+    ],
+    'Class 9': [
+      { name: 'Green Valley Public School', board: 'CBSE', area: 'Malviya Nagar', km: '4.2', seats: 3, days: 1, note: 'CBSE board registration transfer needed.' }
+    ]
+  };
+  renderVals() {
+    const cls = this.state.cls;
+    const list = this.data[cls] || [];
+    const classes = ['Nursery', 'KG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 11'];
+    const pill = s => s.wait ? { pLabel: 'Waitlist', pBg: '#FFFFFF', pFg: '#4A5160', pBorder: '#C4C7CE' }
+      : s.seats <= 2 ? { pLabel: s.seats === 1 ? 'Few seats · 1' : 'Few seats · 2', pBg: '#FBEFC9', pFg: '#1B2230', pBorder: '#F0C04A' }
+      : { pLabel: `Seats available · ${s.seats}`, pBg: '#E3EEE8', pFg: '#1F5A43', pBorder: '#BFD6C9' };
+    const cards = list.map(s => {
+      const stale = s.days > 7;
+      return { ...s, ...pill(s), stale,
+        mTop: s.wait ? 'Waitlist' : 'Seats', mBig: s.wait ? String(s.wait) : String(s.seats), mSize: '28px', mBottom: s.wait ? 'ahead' : 'in ' + cls.replace('Class ', 'Cl. '),
+        mColor: s.wait ? '#6B7280' : '#1B2230',
+        fresh: stale ? `Reported ${s.days} days ago — may have changed, call to confirm` : `Reported by school ${s.days === 1 ? 'yesterday' : s.days + ' days ago'}`,
+        freshColor: stale ? '#1B2230' : '#4A5160', freshW: stale ? 600 : 400,
+        ask: s.wait ? 'Join waitlist' : 'Ask about a seat', askBg: s.wait ? '#FCFCF8' : '#2F4B9A', askFg: s.wait ? '#2F4B9A' : '#FCFCF8' };
+    });
+    const seat = (c, s, n) => {
+      const m = { avail: ['Seats available', '#E3EEE8', '#1F5A43', '#BFD6C9'], few: ['Few seats', '#FBEFC9', '#1B2230', '#F0C04A'], wait: ['Waitlist', '#FFFFFF', '#4A5160', '#C4C7CE'], full: ['Full', '#F1F1EC', '#4A5160', '#D5D7DC'] }[s];
+      return { c, n, s: m[0], bg: m[1], fg: m[2], bd: m[3] };
+    };
+    const now = this.state.ses === 'now';
+    return {
+      cls, cards, isEmpty: cards.length === 0,
+      resultLine: cards.length ? `${cards.length} schools reported seats in ${cls}` : `0 schools in ${cls}`,
+      classChips: classes.map(t => ({ t, onClick: () => this.setState({ cls: t }), border: t === cls ? '#2F4B9A' : '#C9D0E2', bg: t === cls ? '#2F4B9A' : '#FCFCF8', fg: t === cls ? '#FCFCF8' : '#1B2230', w: t === cls ? 600 : 500 })),
+      showNow: now, showNext: !now,
+      nowBg: now ? '#2F4B9A' : '#FCFCF8', nowFg: now ? '#FCFCF8' : '#1B2230', nextBg: now ? '#FCFCF8' : '#2F4B9A', nextFg: now ? '#1B2230' : '#FCFCF8',
+      sesNow: () => this.setState({ ses: 'now' }), sesNext: () => this.setState({ ses: 'next' }),
+      seatRows: [seat('Nursery–KG', 'full', ''), seat('Class 1–3', 'full', ''), seat('Class 4', 'few', '2 seats'), seat('Class 5', 'avail', '4 seats'), seat('Class 6–8', 'wait', '6 waiting'), seat('Class 9', 'avail', '3 seats'), seat('Class 11 Science', 'full', '')],
+      midRules: ['Admission test for Class 4 and above (maths, English)', 'Fees charged from the month of joining', 'Transfer certificate and last report card needed', 'Seats are given in the order enquiries are confirmed'],
+      keepReady: [{ n: '1', t: 'Transfer certificate (TC) from current school' }, { n: '2', t: 'Latest report card' }, { n: '3', t: 'Birth certificate' }, { n: '4', t: 'Transfer or relocation letter, if any' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

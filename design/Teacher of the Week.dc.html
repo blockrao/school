@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Teacher of the Week</div>
+    <div style="font-size:16px;color:#4A5160;line-height:1.5">Feature page on mobile (<a href="#17a">17a</a>) and desktop with the archive (<a href="#17b">17b</a>), the nomination form (<a href="#17c">17c</a>), and the teacher's acceptance screen (<a href="#17d">17d</a>). The privacy choices in 17d work. Selection is editorial and never paid.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="17a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">17a</span><span style="font-size:14px;color:#4A5160">Mobile · feature</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;align-items:center"><button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button><div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div></div>
+          <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</span><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;font:500 15px 'Anek Devanagari'">हिं</span></div>
+        </header>
+        <div style="aspect-ratio:4/3;background:repeating-linear-gradient(135deg,#E9EAE3 0 10px,#F4F5EF 10px 20px);display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B7280">Teacher photo, taken in her classroom</div>
+        <div style="padding:18px 16px 0;display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:14px;color:#4A5160">Teacher of the week · Jaipur · 12 Oct 2026</span>
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Meenakshi Rathore</h1>
+          <span style="font-size:16px">Mathematics, TGT · <a href="School Page v2.dc.html" style="font-weight:600">Nav Bharti Academy</a>, Mansarovar</span>
+        </div>
+        <article style="padding:16px 16px 0;display:flex;flex-direction:column;gap:14px;font-size:17px;line-height:1.65">
+          <sc-for list="{{ story }}" as="p" hint-placeholder-count="3"><p style="margin:0;text-wrap:pretty">{{ p }}</p></sc-for>
+          <blockquote style="margin:4px 0;padding:4px 0 4px 16px;border-left:2px solid #1B2230;font-family:'Anek Latin';font-weight:500;font-size:20px;line-height:1.4">“{{ quote }}”<div style="font-family:Mukta;font-size:14px;color:#4A5160;margin-top:6px">{{ quoteBy }}</div></blockquote>
+        </article>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:14px;color:#4A5160;line-height:1.45;padding:10px 12px;background:#F4F5EF;border-radius:4px">Selected by SchoolOye editors from parent and colleague nominations. Recognition is never paid for. Meenakshi approved this story before it was published.</div>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Share on WhatsApp</button>
+          <a href="Teacher Profile.dc.html" style="height:44px;border:1px solid #C9D0E2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:600;text-decoration:none">See her profile</a>
+          <a href="#17c" style="min-height:44px;display:flex;align-items:center;justify-content:center;font-weight:600">Nominate a teacher</a>
+        </div>
+        <div style="padding:8px 16px 20px;border-top:1px solid #D9DEEA">
+          <h2 style="margin:12px 0 6px;font-family:'Anek Latin';font-weight:600;font-size:20px">Earlier in Jaipur</h2>
+          <sc-for list="{{ archive }}" as="a" hint-placeholder-count="3">
+            <a href="#" style="display:flex;border-top:1px solid #E3E7F0;text-decoration:none;color:#1B2230;min-height:60px">
+              <div style="width:68px;flex-shrink:0;border-right:2px solid #1B2230;padding:10px 8px 10px 0;font-size:14px;font-weight:600">{{ a.d }}</div>
+              <div style="padding:10px 0 10px 12px;display:flex;flex-direction:column"><span style="font-weight:600">{{ a.n }}</span><span style="font-size:14px;color:#4A5160">{{ a.s }}</span></div>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div id="17c" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">17c</span><span style="font-size:14px;color:#4A5160">Mobile · nominate</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button><span style="font-weight:600">Nominate a teacher</span><span style="width:44px"></span>
+        </header>
+        <div style="padding:18px 16px;display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:16px;line-height:1.5">Tell us about a teacher who makes a difference. It takes 2 minutes.</div>
+          <sc-for list="{{ fields }}" as="f" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:14px;font-weight:600">{{ f.l }}</span>
+              <div style="min-height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px;color:{{ f.c }}">{{ f.v }}<sc-if value="{{ f.sel }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#6B7280">▾</span></sc-if></div>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Why do they deserve recognition?</span>
+            <div style="min-height:120px;border:2px solid #2F4B9A;border-radius:6px;background:#FFFFFF;padding:10px 12px;font-size:15px;line-height:1.5">She stays after school every Thursday to help children who are behind, and never charges for it. My daughter went from failing to 78% in maths this year.</div>
+            <span style="font-size:13px;color:#4A5160;text-align:right">164 / 600</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Your relationship to the teacher</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #2F4B9A;background:#EEF1F9;color:#2F4B9A;font-weight:600;display:flex;align-items:center">Parent ✓</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Student</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Colleague</span>
+              <span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Other</span>
+            </div>
+          </div>
+          <div style="padding:12px 14px;border-left:2px solid #1B2230;background:#F4F5EF;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45">
+            <span><b style="font-weight:600">What happens next:</b> our editors read every nomination. If selected, we ask the teacher first. Nothing is published without their yes.</span>
+            <span>Recognition is never paid for, by anyone.</span>
+          </div>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Send nomination</button>
+          <span style="font-size:13px;color:#4A5160;text-align:center">Your name stays private unless you allow us to show it with a quote.</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="17d" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">17d</span><span style="font-size:14px;color:#4A5160">Mobile · teacher accepts</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <header style="display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid #D9DEEA;min-height:61px"><div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div></header>
+        <div style="padding:20px 16px;display:flex;flex-direction:column;gap:14px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;border:1px solid #1B2230;border-radius:4px;padding:0 8px">Only you can see this</span>
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:28px;line-height:1.15">You've been nominated for Teacher of the Week</h1>
+          <div style="font-size:16px;line-height:1.55">Three parents and a colleague nominated you. Our editors would like to feature you in Jaipur on 12 Oct 2026. Accept to appear publicly.</div>
+          <div style="padding:12px 14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:14px;color:#4A5160">From a nomination</span>
+            <span style="font-size:15px;line-height:1.5">“She stays after school every Thursday to help children who are behind, and never charges for it.”</span>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <span style="font-weight:600;margin-bottom:4px">Choose what's shown</span>
+            <sc-for list="{{ privacy }}" as="p" hint-placeholder-count="4">
+              <button onClick="{{ p.onClick }}" role="switch" aria-checked="{{ p.aria }}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:56px;border:0;border-bottom:1px solid #E3E7F0;background:transparent;padding:0;text-align:left;cursor:pointer;font:400 15px Mukta;color:#1B2230">
+                <span style="display:flex;flex-direction:column"><span style="font-weight:600">{{ p.t }}</span><span style="font-size:13px;color:#4A5160">{{ p.d }}</span></span>
+                <span style="width:48px;height:28px;border-radius:14px;background:{{ p.bg }};position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:{{ p.left }};width:22px;height:22px;border-radius:50%;background:#FFFFFF"></span></span>
+              </button>
+            </sc-for>
+          </div>
+          <span style="font-size:14px;color:#4A5160;line-height:1.45">You'll see and approve the full story before it goes live. You can remove it any time.</span>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Accept and review my story</button>
+          <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#1B2230;font:600 15px Mukta">No thanks, keep me private</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="17b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">17b</span><span style="font-size:14px;color:#4A5160">Desktop · 1280 · feature and archive</span></div>
+      <div style="width:1280px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12)">
+        <header style="display:flex;align-items:center;gap:28px;padding:8px 40px;border-bottom:1px solid #D9DEEA;height:68px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+          <nav style="display:flex;align-items:stretch;height:100%;gap:2px">
+            <sc-for list="{{ primary }}" as="p" hint-placeholder-count="5"><a href="#" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;font-size:16px;font-weight:{{ p.w }};color:{{ p.c }};border-bottom:3px solid {{ p.l }};margin-bottom:-9px">{{ p.t }}</a></sc-for>
+          </nav>
+          <div style="flex:1"></div>
+          <span style="font-size:16px;font-weight:500">Jaipur ▾</span>
+          <span style="height:44px;padding:0 18px;border:1px solid #2F4B9A;border-radius:6px;color:#2F4B9A;font:600 16px Mukta;display:flex;align-items:center">Sign in</span>
+        </header>
+        <div style="padding:40px 40px 0;display:grid;grid-template-columns:520px minmax(0,1fr);gap:48px;align-items:start">
+          <div style="aspect-ratio:4/5;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 10px,#F4F5EF 10px 20px);display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B7280">Teacher photo, taken in her classroom</div>
+          <div style="display:flex;flex-direction:column;gap:16px;max-width:620px">
+            <span style="font-size:15px;color:#4A5160">Teacher of the week · Jaipur · 12 Oct 2026</span>
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:49px;line-height:1.05">Meenakshi Rathore</h1>
+            <span style="font-size:18px">Mathematics, TGT · <a href="School Page v2.dc.html" style="font-weight:600">Nav Bharti Academy</a>, Mansarovar</span>
+            <article style="display:flex;flex-direction:column;gap:14px;font-size:18px;line-height:1.7;margin-top:8px">
+              <sc-for list="{{ story }}" as="p" hint-placeholder-count="3"><p style="margin:0;text-wrap:pretty">{{ p }}</p></sc-for>
+              <blockquote style="margin:6px 0;padding:4px 0 4px 20px;border-left:2px solid #1B2230;font-family:'Anek Latin';font-weight:500;font-size:25px;line-height:1.4">“{{ quote }}”<div style="font-family:Mukta;font-size:15px;color:#4A5160;margin-top:8px">{{ quoteBy }}</div></blockquote>
+            </article>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button style="height:48px;padding:0 20px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Share on WhatsApp</button>
+              <a href="Teacher Profile.dc.html" style="height:48px;padding:0 18px;border:1px solid #C9D0E2;border-radius:6px;display:flex;align-items:center;font-weight:600;text-decoration:none">See her profile</a>
+              <a href="#17c" style="font-weight:600;padding:0 8px">Nominate a teacher</a>
+            </div>
+            <div style="font-size:14px;color:#4A5160;line-height:1.45;padding:10px 14px;background:#F4F5EF;border-radius:4px">Selected by SchoolOye editors from parent and colleague nominations. Recognition is never paid for. Meenakshi approved this story before it was published.</div>
+          </div>
+        </div>
+        <div style="padding:48px 40px 40px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #D9DEEA;padding-bottom:10px">
+            <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Archive</h2>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <sc-for list="{{ cities }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.onClick }}" style="height:40px;padding:0 14px;border:0;border-right:1px solid #C9D0E2;background:{{ c.bg }};color:{{ c.fg }};font:600 14px Mukta;cursor:pointer">{{ c.t }}</button></sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+            <sc-for list="{{ archiveD }}" as="a" hint-placeholder-count="4">
+              <a href="#" style="display:flex;flex-direction:column;gap:6px;text-decoration:none;color:#1B2230">
+                <div style="aspect-ratio:4/3;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:12px;color:#6B7280">Photo</div>
+                <span style="font-size:14px;color:#4A5160">{{ a.d }}</span>
+                <span style="font-family:'Anek Latin';font-weight:600;font-size:19px;color:#2F4B9A">{{ a.n }}</span>
+                <span style="font-size:14px;color:#4A5160">{{ a.s }}</span>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { city: 'Jaipur', priv: { photo: true, school: true, quotes: true, contact: false } };
+  renderVals() {
+    const A = {
+      Jaipur: [
+        { d: '5 Oct', n: 'Rohit Saini', s: 'Physics · Green Valley Public School' },
+        { d: '28 Sep', n: 'Kavita Choudhary', s: 'Hindi · Meera Bal Niketan' },
+        { d: '21 Sep', n: 'Vikram Shekhawat', s: 'Social science · St. Aarav Convent' },
+        { d: '14 Sep', n: 'Neha Agarwal', s: 'Science · Pink City Scholars School' }
+      ],
+      Delhi: [
+        { d: '5 Oct', n: 'Harpreet Kaur', s: 'English · Yamuna Vidya Niketan' },
+        { d: '28 Sep', n: 'Imran Siddiqui', s: 'Mathematics · Qutub Heritage School' },
+        { d: '21 Sep', n: 'Leela Menon', s: 'Nursery · Lotus Valley Montessori' },
+        { d: '14 Sep', n: 'Arun Bhatia', s: 'Chemistry · Green Valley Public School' }
+      ],
+      Gurugram: [
+        { d: '5 Oct', n: 'Swati Yadav', s: 'Computer science · Aravali International' },
+        { d: '28 Sep', n: 'Manoj Dahiya', s: 'Physical education · Sector 14 Public School' },
+        { d: '21 Sep', n: 'Ritu Malik', s: 'EVS · Little Oaks Montessori' },
+        { d: '14 Sep', n: 'Deepak Rao', s: 'Hindi · Nav Bharti Academy' }
+      ]
+    };
+    const P = this.state.priv;
+    const pv = (k, t, d) => ({ t, d, aria: P[k] ? 'true' : 'false', bg: P[k] ? '#2F4B9A' : '#C9D0E2', left: P[k] ? '23px' : '3px', onClick: () => this.setState(s => ({ priv: { ...s.priv, [k]: !s.priv[k] } })) });
+    return {
+      story: [
+        'Meenakshi Rathore has taught maths at Nav Bharti Academy for seven years. Her Class 7 students learn ratio and scale by mapping their own mohalla, street by street, on chart paper that ends up covering a classroom wall.',
+        'What parents mention most is her Thursday hour. She stays after school for any child who is behind, from any section, and has never charged for it. Last year 31 students came at least once.',
+        'She also built the department\u2019s activity bank, now used by every maths teacher in the school.'
+      ],
+      quote: 'My daughter went from failing to 78% in maths this year. She says Ma\u2019am never makes anyone feel slow.',
+      quoteBy: 'Parent of a Class 8 student, shared with permission',
+      archive: A.Jaipur.slice(0, 3),
+      archiveD: A[this.state.city],
+      cities: ['Jaipur', 'Delhi', 'Gurugram'].map(t => ({ t, bg: t === this.state.city ? '#2F4B9A' : '#FCFCF8', fg: t === this.state.city ? '#FCFCF8' : '#1B2230', onClick: () => this.setState({ city: t }) })),
+      fields: [
+        { l: "Teacher's name", v: 'Farah Qureshi', c: '#1B2230' },
+        { l: 'School', v: 'Green Valley Public School', c: '#1B2230', sel: true },
+        { l: 'Subject', v: 'Mathematics', c: '#1B2230', sel: true },
+        { l: 'City', v: 'Jaipur', c: '#1B2230', sel: true }
+      ],
+      privacy: [
+        pv('photo', 'Show my photo', 'You can upload one you like'),
+        pv('school', 'Show my school name', 'Your school will be told'),
+        pv('quotes', 'Show nomination quotes', 'Only ones you approve'),
+        pv('contact', 'Let parents request contact', 'Through SchoolOye, never your number')
+      ],
+      primary: ['Schools', 'Admissions', 'Teachers', 'Guides', 'For schools'].map((t, i) => ({ t, w: i === 2 ? 600 : 500, c: i === 2 ? '#2F4B9A' : '#1B2230', l: i === 2 ? '#2F4B9A' : 'transparent' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

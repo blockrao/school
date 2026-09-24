@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Compare schools</div>
+    <div style="font-size:16px;color:#4A5160;line-height:1.5">Facts only, with no scores or "winner". "Show only differences" and Remove work. In <a href="#13a">13a</a>, scroll the table sideways: row labels stay pinned on the left.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="13a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">13a</span><span style="font-size:14px;color:#4A5160">Mobile · 390</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button>
+          <span style="font-weight:600">Compare {{ count }} schools</span>
+          <span style="width:44px"></span>
+        </header>
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #E3E7F0">
+          <button onClick="{{ toggleDiff }}" role="switch" aria-checked="{{ diffAria }}" style="display:flex;align-items:center;gap:10px;border:0;background:transparent;font:500 15px Mukta;color:#1B2230;cursor:pointer;min-height:44px;padding:0">
+            <span style="width:44px;height:26px;border-radius:13px;background:{{ swBg }};position:relative;flex-shrink:0"><span style="position:absolute;top:3px;left:{{ swLeft }};width:20px;height:20px;border-radius:50%;background:#FFFFFF"></span></span>Show only differences
+          </button>
+          <button style="height:44px;padding:0 12px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 14px Mukta;white-space:nowrap">Share on WhatsApp</button>
+        </div>
+        <div style="overflow-x:auto;scrollbar-width:thin">
+          <div style="display:grid;grid-template-columns:{{ colsM }};width:max-content">
+            <div style="position:sticky;left:0;z-index:3;background:#F4F5EF;border-right:1px solid #D9DEEA;border-bottom:1px solid #D9DEEA;padding:10px;font-size:13px;color:#4A5160;display:flex;align-items:flex-end">{{ count }} of 4</div>
+            <sc-for list="{{ schools }}" as="s" hint-placeholder-count="3">
+              <div style="border-bottom:1px solid #D9DEEA;border-right:1px solid #E3E7F0;padding:10px;display:flex;flex-direction:column;gap:6px;background:#FFFFFF">
+                <a href="School Page v2.dc.html" style="font-family:'Anek Latin';font-weight:600;font-size:16px;line-height:1.15;color:#1B2230;text-decoration:none">{{ s.name }}</a>
+                <button onClick="{{ s.remove }}" style="align-self:flex-start;border:0;background:transparent;padding:0;min-height:32px;color:#2F4B9A;font:600 14px Mukta;cursor:pointer">Remove</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ canAdd }}" hint-placeholder-val="{{ true }}">
+              <div style="border-bottom:1px solid #D9DEEA;padding:10px;display:flex;align-items:center;justify-content:center"><button style="width:100%;height:56px;border:1px dashed #9AA6C8;border-radius:6px;background:transparent;color:#2F4B9A;font:600 14px Mukta">+ Add school</button></div>
+            </sc-if>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="15">
+              <div style="position:sticky;left:0;z-index:2;background:#F4F5EF;border-right:1px solid #D9DEEA;border-bottom:1px solid #E3E7F0;padding:10px;font-size:14px;font-weight:600;line-height:1.3">{{ r.label }}</div>
+              <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="3">
+                <div style="border-bottom:1px solid #E3E7F0;border-right:1px solid #EEF0F5;padding:10px;font-size:14px;line-height:1.35;color:{{ c.color }};background:#FFFFFF;border-left:{{ c.margin }};font-weight:{{ c.w }}">{{ c.v }}<sc-if value="{{ c.hasSub }}" hint-placeholder-val="{{ false }}"><div style="font-weight:400;color:#4A5160;font-size:13px">{{ c.sub }}</div></sc-if></div>
+              </sc-for>
+              <sc-if value="{{ canAdd }}" hint-placeholder-val="{{ true }}"><div style="border-bottom:1px solid #E3E7F0"></div></sc-if>
+            </sc-for>
+          </div>
+        </div>
+        <div style="padding:16px;font-size:14px;color:#4A5160;line-height:1.45;background:#F4F5EF;border-top:1px solid #D9DEEA">Every value comes from the school's own notice or page. "Not yet published" means the school hasn't shared it.</div>
+      </div>
+    </div>
+
+    <div id="13b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">13b</span><span style="font-size:14px;color:#4A5160">Desktop · 1280</span></div>
+      <div style="width:1280px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12)">
+        <header style="display:flex;align-items:center;gap:28px;padding:8px 40px;border-bottom:1px solid #D9DEEA;height:68px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+          <nav style="display:flex;gap:2px">
+            <sc-for list="{{ primary }}" as="p" hint-placeholder-count="5"><a href="#" style="display:flex;align-items:center;min-height:44px;padding:0 12px;text-decoration:none;font-size:16px;font-weight:500;color:#1B2230">{{ p }}</a></sc-for>
+          </nav>
+          <div style="flex:1;height:44px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;color:#6B7280">School, area or teacher</div>
+          <span style="height:44px;padding:0 18px;border:1px solid #2F4B9A;border-radius:6px;color:#2F4B9A;font:600 16px Mukta;display:flex;align-items:center">Sign in</span>
+        </header>
+        <div style="padding:24px 40px 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <a href="Search Results.dc.html" style="font-size:14px">← Back to results</a>
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:39px;line-height:1.1">Compare {{ count }} schools</h1>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <button onClick="{{ toggleDiff }}" role="switch" aria-checked="{{ diffAria }}" style="display:flex;align-items:center;gap:10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;cursor:pointer;min-height:44px">
+              <span style="width:44px;height:26px;border-radius:13px;background:{{ swBg }};position:relative"><span style="position:absolute;top:3px;left:{{ swLeft }};width:20px;height:20px;border-radius:50%;background:#FFFFFF"></span></span>Show only differences
+            </button>
+            <button style="height:44px;padding:0 16px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Share on WhatsApp</button>
+            <button style="height:44px;padding:0 16px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Print</button>
+          </div>
+        </div>
+        <div style="padding:0 40px 32px">
+          <div style="border:1px solid #D9DEEA;border-radius:6px;overflow:hidden;background:#FFFFFF">
+            <div style="display:grid;grid-template-columns:{{ colsD }}">
+              <div style="position:sticky;top:0;background:#F4F5EF;border-bottom:1px solid #D9DEEA;border-right:1px solid #D9DEEA;padding:14px 16px;font-size:14px;color:#4A5160;display:flex;align-items:flex-end">{{ count }} of 4 schools</div>
+              <sc-for list="{{ schools }}" as="s" hint-placeholder-count="3">
+                <div style="position:sticky;top:0;background:#FFFFFF;border-bottom:1px solid #D9DEEA;border-right:1px solid #E3E7F0;padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+                  <a href="School Page v2.dc.html" style="font-family:'Anek Latin';font-weight:600;font-size:20px;line-height:1.15;color:#1B2230;text-decoration:none" style-hover="text-decoration:underline">{{ s.name }}</a>
+                  <span style="font-size:14px;color:#4A5160">{{ s.area }}</span>
+                  <div style="display:flex;gap:14px"><a href="#" style="font-size:14px;font-weight:600">Get alerts</a><button onClick="{{ s.remove }}" style="border:0;background:transparent;padding:0;color:#2F4B9A;font:600 14px Mukta;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Remove</button></div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ canAdd }}" hint-placeholder-val="{{ true }}">
+                <div style="border-bottom:1px solid #D9DEEA;padding:14px 16px;display:flex;align-items:center"><button style="width:100%;height:64px;border:1px dashed #9AA6C8;border-radius:6px;background:transparent;color:#2F4B9A;font:600 15px Mukta">+ Add a school</button></div>
+              </sc-if>
+              <sc-for list="{{ rows }}" as="r" hint-placeholder-count="15">
+                <div style="background:#F4F5EF;border-right:1px solid #D9DEEA;border-bottom:1px solid #E3E7F0;padding:12px 16px;font-size:15px;font-weight:600">{{ r.label }}</div>
+                <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="3">
+                  <div style="border-bottom:1px solid #E3E7F0;border-right:1px solid #EEF0F5;padding:12px 16px;font-size:15px;line-height:1.4;color:{{ c.color }};border-left:{{ c.margin }};font-weight:{{ c.w }}">{{ c.v }}<sc-if value="{{ c.hasSub }}" hint-placeholder-val="{{ false }}"><div style="font-weight:400;color:#4A5160;font-size:14px">{{ c.sub }}</div></sc-if></div>
+                </sc-for>
+                <sc-if value="{{ canAdd }}" hint-placeholder-val="{{ true }}"><div style="border-bottom:1px solid #E3E7F0"></div></sc-if>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:14px;color:#4A5160">Every value comes from the school's own notice or page. "Not yet published" means the school hasn't shared it. SchoolOye doesn't score or rank schools.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ids: ['gv', 'sa', 'nb'], diff: false };
+  S = {
+    gv: { name: 'Green Valley Public School', area: 'Malviya Nagar', board: 'CBSE', classes: 'Nursery–12', type: 'Private, unaided', coed: 'Co-ed', dist: '4.2 km', adm: { days: 4, date: '20 Oct' }, reg: '₹1,000', annual: '₹45,000–78,000', form: 'Online', transport: 'Yes · 14 areas', hostel: 'No', fac: 'Labs, library, smart classrooms, day care', medium: 'English', verified: 'Verified by school', checked: '2 days ago' },
+    sa: { name: 'St. Aarav Convent', area: 'C-Scheme', board: 'ICSE', classes: 'Nursery–12', type: 'Private, unaided', coed: 'Co-ed', dist: '5.6 km', adm: { days: 2, date: '18 Oct' }, reg: '₹500', annual: '₹38,000–62,000', form: 'Offline, at school office', transport: 'Yes · 9 areas', hostel: 'No', fac: 'Labs, library, chapel, music room', medium: 'English', verified: 'Verified by school', checked: 'yesterday' },
+    nb: { name: 'Nav Bharti Academy', area: 'Mansarovar', board: 'RBSE', classes: 'Nursery–12', type: 'Private, unaided', coed: 'Co-ed', dist: '3.1 km', adm: { days: 15, date: '31 Oct' }, reg: null, annual: null, form: 'Online', transport: null, hostel: 'No', fac: 'Smart classrooms, playground', medium: 'English and Hindi', verified: 'Not yet verified', checked: '9 days ago — rechecking' }
+  };
+  renderVals() {
+    const ids = this.state.ids, n = ids.length, canAdd = n < 4;
+    const NP = 'Not yet published';
+    const defs = [
+      ['Board', 'board'], ['Classes', 'classes'], ['School type', 'type'], ['Co-ed / Girls / Boys', 'coed'], ['Distance from you', 'dist'],
+      ['Admission status', 'adm'], ['Registration fee', 'reg'], ['Annual fee', 'annual'], ['Form type', 'form'], ['Transport', 'transport'],
+      ['Hostel', 'hostel'], ['Key facilities', 'fac'], ['Medium', 'medium'], ['Verified status', 'verified'], ['Last checked', 'checked']
+    ];
+    let rows = defs.map(([label, k]) => {
+      const cells = ids.map(id => {
+        const v = this.S[id][k];
+        if (k === 'adm') {
+          const u = v.days <= 7;
+          return { v: u ? `Closing soon · ${v.days} days` : `Open · ${v.days} days left`, sub: 'Nursery · last date ' + v.date, hasSub: true, color: u ? '#B3302A' : '#1F5A43', margin: `3px solid ${u ? '#C8372D' : '#1B2230'}`, w: 600 };
+        }
+        const missing = v == null;
+        const stale = k === 'checked' && /rechecking/.test(v);
+        return { v: missing ? NP : v, hasSub: false, color: missing ? '#6B7280' : '#1B2230', margin: '0', w: k === 'verified' && v === 'Verified by school' ? 600 : (stale ? 600 : 400) };
+      });
+      const same = cells.every(c => c.v === cells[0].v);
+      return { label, cells, same };
+    });
+    if (this.state.diff) rows = rows.filter(r => !r.same);
+    const on = this.state.diff;
+    return {
+      count: n, canAdd, rows,
+      schools: ids.map(id => ({ ...this.S[id], remove: () => this.setState(s => ({ ids: s.ids.length > 2 ? s.ids.filter(x => x !== id) : s.ids })) })),
+      colsM: `112px repeat(${n}, 156px)${canAdd ? ' 132px' : ''}`,
+      colsD: `220px repeat(${n}, minmax(0,1fr))${canAdd ? ' 200px' : ''}`,
+      toggleDiff: () => this.setState(s => ({ diff: !s.diff })),
+      diffAria: on ? 'true' : 'false', swBg: on ? '#2F4B9A' : '#C9D0E2', swLeft: on ? '21px' : '3px',
+      primary: ['Schools', 'Admissions', 'Teachers', 'Guides', 'For schools']
+    };
+  }
+}
+</script>
+</body>
+</html>

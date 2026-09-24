@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:0;font-family:Mukta,sans-serif;color:#1B2230">
+
+<sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">At a glance</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));border-top:1px solid #E3E7F0">
+        <sc-for list="{{ glance }}" as="g" hint-placeholder-count="8">
+          <div style="padding:10px 12px 10px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:1px">
+            <span style="font-size:14px;color:#4A5160">{{ g.k }}</span>
+            <span style="font-size:16px;font-weight:600;color:{{ g.c }}">{{ g.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <span style="font-size:14px;color:#6B7280">Source: CBSE affiliation page and school fee circular · checked 2 days ago</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">About</h2>
+      <p style="margin:0;font-size:16px;line-height:1.6;text-wrap:pretty;max-width:680px">A day school founded in 1998, affiliated to CBSE. Classes run from Nursery to Class 12, with Science and Commerce in senior secondary. The pre-primary wing has its own building and play area.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Contact and visits</h2>
+      <div style="font-size:16px;line-height:1.5">Admission office open 10 am–1 pm, Monday to Saturday. Campus visits by appointment.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button style="height:44px;padding:0 16px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Call the school</button>
+        <button style="height:44px;padding:0 16px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">School website ↗</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isAdmissions }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <div style="padding:12px 14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600;border:1px solid #1B2230;border-radius:4px;padding:0 8px">This session · 2026–27</span><span style="font-size:13px;color:#4A5160">Reported by school · yesterday</span></div>
+      <span style="font-weight:600;line-height:1.45">Seats now in Class 4 (2), Class 5 (4) and Class 9 (3). Waitlist for Class 6–8.</span>
+      <a href="Seats Available Now.dc.html#15c" style="font-weight:600;min-height:40px;display:flex;align-items:center">All classes and how to join mid-year</a>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <h2 style="margin:0 0 8px;font-family:'Anek Latin';font-weight:600;font-size:20px">Next session 2027–28 · classes</h2>
+      <sc-for list="{{ classes }}" as="r" hint-placeholder-count="3">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #E3E7F0;flex-wrap:wrap">
+          <span style="display:flex;flex-direction:column"><span style="font-weight:600">{{ r.c }}</span><span style="font-size:14px;color:{{ r.noteColor }}">{{ r.note }}</span></span>
+          <span style="font-size:14px;font-weight:600;padding:0 9px;border-radius:999px;background:{{ r.bg }};color:{{ r.fg }};border:1px solid {{ r.bd }}">{{ r.s }}</span>
+        </div>
+      </sc-for>
+      <div style="padding-top:10px;border-top:1px solid #E3E7F0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:14px;color:#6B7280">Source: school admission notice, 2 Oct 2026 · checked 2 days ago</span>
+        <a href="#" style="font-weight:600;min-height:44px;display:flex;align-items:center">Open official form ↗</a>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Age criteria</h2>
+        <div style="line-height:1.5">Nursery: 3 years or older on 31 March 2027. Born between 1 April 2023 and 31 March 2024.</div>
+        <a href="Age Checker.dc.html" style="font-weight:600">Check your child's eligibility</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Seats</h2>
+        <div style="line-height:1.5">Nursery: 120 seats, including 30 under EWS/DG.</div>
+        <span style="font-size:14px;color:#6B7280">Reported by the school · checked 2 days ago</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h2 style="margin:0 0 4px;font-family:'Anek Latin';font-weight:600;font-size:20px">Documents needed</h2>
+      <sc-for list="{{ docs }}" as="d" hint-placeholder-count="5">
+        <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF0F5"><span style="color:#6B7280;min-width:18px">{{ d.n }}</span><span>{{ d.t }}</span></div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isFees }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Fees for 2026–27</h2>
+    <div style="overflow-x:auto;scrollbar-width:thin">
+      <div style="min-width:480px;display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;font-size:15px">
+        <span style="padding:8px 8px 8px 0;border-bottom:1px solid #D9DEEA;font-size:14px;color:#4A5160">Class</span><span style="padding:8px;border-bottom:1px solid #D9DEEA;font-size:14px;color:#4A5160">Admission (once)</span><span style="padding:8px;border-bottom:1px solid #D9DEEA;font-size:14px;color:#4A5160">Annual charges</span><span style="padding:8px;border-bottom:1px solid #D9DEEA;font-size:14px;color:#4A5160">Monthly tuition</span>
+        <sc-for list="{{ fees }}" as="f" hint-placeholder-count="5">
+          <span style="padding:10px 8px 10px 0;border-bottom:1px solid #EEF0F5;font-weight:600">{{ f.c }}</span>
+          <span style="padding:10px 8px;border-bottom:1px solid #EEF0F5;color:{{ f.col }}">{{ f.a }}</span>
+          <span style="padding:10px 8px;border-bottom:1px solid #EEF0F5;color:{{ f.col }}">{{ f.y }}</span>
+          <span style="padding:10px 8px;border-bottom:1px solid #EEF0F5;color:{{ f.col }}">{{ f.m }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="font-size:15px;line-height:1.5">School bus is extra: ₹1,800–2,600 a month depending on distance.</div>
+    <span style="font-size:14px;color:#6B7280">Only fees confirmed by the school are shown. Source: fee circular 2026–27 · checked 2 days ago. 2027–28 fees not yet published.</span>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isFacilities }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px">
+      <sc-for list="{{ facGroups }}" as="g" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column">
+          <h2 style="margin:0 0 6px;font-family:'Anek Latin';font-weight:600;font-size:20px">{{ g.t }}</h2>
+          <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="4">
+            <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF0F5"><span style="color:#1F5A43;font-weight:700">✓</span><span>{{ i }}</span></div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">School bus covers 14 areas</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ busAreas }}" as="a" hint-placeholder-count="8">
+          <span style="font-size:14px;padding:4px 10px;border:1px solid #D9DEEA;border-radius:4px;background:#FFFFFF">{{ a }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <span style="font-size:14px;color:#6B7280">Listed by the school · checked 12 days ago</span>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isTeachers }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <sc-if value="{{ hasTeachers }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">4 teachers on SchoolOye</h2>
+          <span style="font-size:14px;color:#4A5160">Only teachers who claimed their profile appear here</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+          <sc-for list="{{ teachers }}" as="t" hint-placeholder-count="4">
+            <a href="#" style="display:flex;flex-direction:column;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden;text-decoration:none;color:#1B2230" style-hover="border-color:#2F4B9A">
+              <div style="aspect-ratio:4/3;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:12px;color:#6B7280">Photo</div>
+              <div style="padding:10px 12px;display:flex;flex-direction:column;gap:1px">
+                <span style="font-weight:600;font-size:16px">{{ t.n }}</span>
+                <span style="font-size:14px;color:#4A5160">{{ t.s }}</span>
+                <span style="font-size:13px;color:#4A5160">{{ t.l }}</span>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+        <a href="#" style="font-weight:600;min-height:44px;display:flex;align-items:center">Teach here? Create your profile</a>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noTeachers }}" hint-placeholder-val="{{ false }}">
+      <div style="border-left:2px solid #6B7280;padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">No teachers have joined yet</h2>
+        <span style="font-size:16px;line-height:1.5;color:#4A5160">Teachers appear here only after they create or claim their own profile.</span>
+        <a href="#" style="align-self:flex-start;height:44px;padding:0 16px;border:1px solid #2F4B9A;border-radius:6px;display:flex;align-items:center;font-weight:600;text-decoration:none">Are you a teacher here? Create your profile</a>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isLocation }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;align-items:start">
+    <div style="aspect-ratio:4/3;border:1px solid #D9DEEA;border-radius:6px;background:repeating-linear-gradient(135deg,#F1F2EC 0 10px,#FCFCF8 10px 20px);display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B7280">Map · Malviya Nagar</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Location</h2>
+      <div style="line-height:1.5">Plot 14, Sector 7, Malviya Nagar, Jaipur 302017<br><span style="color:#4A5160">Near Gaurav Tower</span></div>
+      <div style="display:flex;flex-direction:column;border-top:1px solid #E3E7F0">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #EEF0F5"><span>From Vaishali Nagar (your area)</span><b style="font-weight:600">4.2 km</b></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #EEF0F5"><span>School bus</span><b style="font-weight:600">Covers your area</b></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #EEF0F5"><span>School hours</span><b style="font-weight:600">7:45 am–1:45 pm</b></div>
+      </div>
+      <a href="#" style="font-weight:600;min-height:44px;display:flex;align-items:center">Get directions ↗</a>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isPhotos }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Photos</h2>
+      <span style="font-size:14px;color:#4A5160">Photos provided by the school · added Sep 2026</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+      <sc-for list="{{ photos }}" as="p" hint-placeholder-count="6">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="aspect-ratio:4/3;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:12px;color:#6B7280">School photo</div>
+          <span style="font-size:14px;color:#4A5160">{{ p }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:720,&quot;height&quot;:700},&quot;tab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Overview&quot;,&quot;Admissions&quot;,&quot;Fees&quot;,&quot;Facilities&quot;,&quot;Teachers&quot;,&quot;Location&quot;,&quot;Photos&quot;],&quot;default&quot;:&quot;Overview&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;teachersJoined&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;daysLeft&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const t = this.props.tab ?? 'Overview';
+    const joined = this.props.teachersJoined ?? true;
+    const nr = '#6B7280', ink = '#1B2230';
+    const urgent = (this.props.daysLeft ?? 4) <= 7;
+    return {
+      isOverview: t === 'Overview', isAdmissions: t === 'Admissions', isFees: t === 'Fees', isFacilities: t === 'Facilities',
+      isTeachers: t === 'Teachers', isLocation: t === 'Location', isPhotos: t === 'Photos',
+      hasTeachers: joined, noTeachers: !joined,
+      glance: [
+        { k: 'Board', v: 'CBSE · 1731245', c: ink }, { k: 'Classes', v: 'Nursery to 12', c: ink },
+        { k: 'Type', v: 'Private, unaided', c: ink }, { k: 'Students', v: 'Co-ed', c: ink },
+        { k: 'Medium', v: 'English', c: ink }, { k: 'School hours', v: '7:45 am–1:45 pm', c: ink },
+        { k: 'Annual fee', v: '₹45,000–78,000', c: ink }, { k: 'Student–teacher ratio', v: 'Not yet published', c: nr }
+      ],
+      classes: [
+        { c: 'Nursery', note: 'Open until 20 Oct 2026', noteColor: ink, s: urgent ? 'Closing soon' : 'Open', bg: urgent ? '#FBEAE8' : '#E3EEE8', fg: urgent ? '#B3302A' : '#1F5A43', bd: urgent ? '#F1C9C5' : '#BFD6C9' },
+        { c: 'Class 1–9', note: 'Opening date not yet published', noteColor: nr, s: 'Upcoming', bg: '#FBEFC9', fg: ink, bd: '#F0C04A' },
+        { c: 'Class 11', note: 'Not yet published', noteColor: nr, s: 'Not announced', bg: '#FFFFFF', fg: '#4A5160', bd: '#C4C7CE' }
+      ],
+      docs: [
+        { n: '1', t: "Child's birth certificate" }, { n: '2', t: 'Address proof (Aadhaar, electricity bill or rent agreement)' },
+        { n: '3', t: "Child's Aadhaar card" }, { n: '4', t: '2 passport-size photos of the child' }, { n: '5', t: 'EWS/DG certificate, if applying under that quota' }
+      ],
+      fees: [
+        { c: 'Nursery–KG', a: '₹25,000', y: '₹12,000', m: '₹3,800', col: ink },
+        { c: 'Class 1–5', a: '₹25,000', y: '₹14,000', m: '₹4,600', col: ink },
+        { c: 'Class 6–8', a: '₹25,000', y: '₹15,000', m: '₹5,200', col: ink },
+        { c: 'Class 9–10', a: '₹25,000', y: '₹16,000', m: '₹5,900', col: ink },
+        { c: 'Class 11–12', a: 'Not yet published', y: 'Not yet published', m: 'Not yet published', col: nr }
+      ],
+      facGroups: [
+        { t: 'Learning', items: ['Science labs', 'Computer lab', 'Library, about 8,000 books', 'Smart classrooms'] },
+        { t: 'Sports and activities', items: ['Playground', 'Basketball court', 'Skating rink', 'Music and dance rooms'] },
+        { t: 'Care and safety', items: ['CCTV on campus', 'Female attendant on every bus', 'Nurse on campus', 'Day care until 4 pm'] }
+      ],
+      busAreas: ['Malviya Nagar', 'Vaishali Nagar', 'Mansarovar', 'Jagatpura', 'Raja Park', 'Tonk Road', 'Durgapura', 'Sanganer', 'Bapu Nagar', 'Lal Kothi', 'C-Scheme', 'Gopalpura', 'Pratap Nagar', 'Sitapura'],
+      teachers: [
+        { n: 'Anjali Mehta', s: 'English', l: 'Primary (PRT)' },
+        { n: 'Rohit Saini', s: 'Physics', l: 'Senior (PGT)' },
+        { n: 'Farah Qureshi', s: 'Mathematics', l: 'Middle (TGT)' },
+        { n: 'Devendra Joshi', s: 'Physical education', l: 'All classes' }
+      ],
+      photos: ['Main building', 'Pre-primary play area', 'Science lab', 'Library', 'Assembly ground', 'School bus']
+    };
+  }
+}
+</script>
+</body>
+</html>

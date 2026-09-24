@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:860px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Ops verification queue · internal</div>
+    <div style="font-size:16px;color:#4A5160">Click a field, or press 1–7, to highlight its evidence in the notice. J/K moves between notices. A, E, R and C trigger the actions.</div>
+  </div>
+
+  <div id="8a" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">8a</span><span style="font-size:14px;color:#4A5160">Desktop · 1440 × 900</span></div>
+    <div style="width:1440px;height:900px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+
+      <header style="height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#1B2230;color:#FCFCF8">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Anek Latin';font-weight:700;font-size:20px">SchoolOye</span><span style="font-size:14px;color:#C9CED8">Ops · Verification</span></div>
+        <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:#C9CED8"><span>Today: 38 approved · 4 rejected</span><span style="width:32px;height:32px;border-radius:50%;background:#2F4B9A;color:#FCFCF8;display:flex;align-items:center;justify-content:center;font-weight:600">PK</span></div>
+      </header>
+
+      <nav style="height:48px;flex-shrink:0;display:flex;align-items:stretch;gap:4px;padding:0 20px;border-bottom:1px solid #D9DEEA;background:#FFFFFF">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button style="border:0;border-bottom:3px solid {{ t.line }};background:transparent;padding:0 14px;font:{{ t.weight }} 15px Mukta;color:#1B2230;display:flex;align-items:center;gap:8px;cursor:pointer">{{ t.label }} <span style="font-size:14px;font-weight:600;padding:0 7px;border-radius:10px;background:{{ t.cBg }};color:{{ t.cFg }}">{{ t.count }}</span></button>
+        </sc-for>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:14px;color:#4A5160">
+          <span>Filter</span>
+          <span style="height:32px;display:flex;align-items:center;padding:0 10px;border:1px solid #C9D0E2;border-radius:4px;background:#FCFCF8">City: All ▾</span>
+          <span style="height:32px;display:flex;align-items:center;padding:0 10px;border:1px solid #C9D0E2;border-radius:4px;background:#FCFCF8">Oldest first ▾</span>
+        </div>
+      </nav>
+
+      <div style="height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #D9DEEA">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;border:1px solid #C9D0E2;border-radius:4px;overflow:hidden">
+            <button onClick="{{ prev }}" style="height:32px;width:36px;border:0;border-right:1px solid #C9D0E2;background:#FCFCF8;cursor:pointer;font:600 14px Mukta">‹</button>
+            <button onClick="{{ next }}" style="height:32px;width:36px;border:0;background:#FCFCF8;cursor:pointer;font:600 14px Mukta">›</button>
+          </div>
+          <span style="font-size:14px;color:#4A5160">Notice {{ pos }} of 42</span>
+          <span style="font-family:'Anek Latin';font-weight:600;font-size:20px">Nav Bharti Academy</span>
+          <span style="font-size:14px;color:#4A5160">RBSE · Mansarovar, Jaipur · last verified 9 days ago</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#4A5160">
+          <span>Found by crawler 2 h ago on school website</span>
+          <a href="#" style="font-weight:600">Open source ↗</a>
+        </div>
+      </div>
+
+      <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 640px">
+        <div style="background:#E4E5DE;padding:20px;overflow:hidden;display:flex;flex-direction:column;gap:10px;border-right:1px solid #D9DEEA">
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:#4A5160"><span>admission-notice-2027-28.pdf · page 1 of 1</span><span>100% ▾</span></div>
+          <div style="flex:1;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.12);padding:40px 48px;font-family:Georgia,serif;font-size:15px;line-height:1.75;color:#222;overflow:hidden">
+            <div style="text-align:center;display:flex;flex-direction:column;gap:2px;padding-bottom:14px;border-bottom:1px solid #999;margin-bottom:14px">
+              <span style="font-size:20px;font-weight:700;letter-spacing:.5px">NAV BHARTI ACADEMY</span>
+              <span style="font-size:14px">Sector 5, Mansarovar, Jaipur (Raj.) · Affiliated to RBSE</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:14px"><span>Ref: NBA/ADM/2027-28/07</span><span>Date: 06.10.2026</span></div>
+            <div style="text-align:center;font-weight:700;text-decoration:underline;margin-bottom:14px">ADMISSION NOTICE — SESSION 2027–28</div>
+            <p style="margin:0 0 12px">Registration for admission to Pre-Nursery, <span style="background:{{ h1 }};padding:1px 2px">Nursery<sup style="font:600 11px Mukta;color:#1B2230"> 1</sup></span> and KG is <span style="background:{{ h2 }};padding:1px 2px">open<sup style="font:600 11px Mukta"> 2</sup></span> from <span style="background:{{ h3 }};padding:1px 2px">07 October 2026<sup style="font:600 11px Mukta"> 3</sup></span> to <span style="background:{{ h4 }};padding:1px 2px">31 October 2026<sup style="font:600 11px Mukta"> 4</sup></span>.</p>
+            <p style="margin:0 0 12px">Forms are available <span style="background:{{ h6 }};padding:1px 2px">online at www.navbharti-jaipur.example/admission and at the school office<sup style="font:600 11px Mukta"> 6</sup></span> between 10 a.m. and 1 p.m. on working days.</p>
+            <p style="margin:0 0 12px"><span style="background:{{ h5 }};padding:1px 2px">Registration fee: Rs. 750/- (non-refundable)<sup style="font:600 11px Mukta"> 5</sup></span>.</p>
+            <p style="margin:0 0 12px">Age as on 31 March 2027: Pre-Nursery 2+, Nursery 3+, KG 4+ years.</p>
+            <p style="margin:0 0 12px">Documents to be attached: <span style="background:{{ h7 }};padding:1px 2px">copy of birth certificate, Aadhaar card of child and parents, two recent photographs, and proof of residence<sup style="font:600 11px Mukta"> 7</sup></span>.</p>
+            <p style="margin:0 0 28px">Admission to Class I to IX will be notified separately.</p>
+            <div style="text-align:right">Principal</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#FCFCF8">
+          <div style="padding:12px 20px 8px;display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-family:'Anek Latin';font-weight:600;font-size:18px">Extracted fields</span>
+            <span style="font-size:14px;color:#4A5160">Also found: Pre-Nursery, KG · <a href="#">Add rows</a></span>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:0 20px">
+            <sc-for list="{{ fields }}" as="f" hint-placeholder-count="7">
+              <div onClick="{{ f.onSelect }}" style="display:grid;grid-template-columns:24px 96px minmax(0,1fr) 110px;column-gap:10px;row-gap:2px;padding:8px 10px;margin:0 -10px;border-radius:4px;background:{{ f.rowBg }};border-left:3px solid {{ f.rowLine }};cursor:pointer">
+                <span style="font-size:14px;font-weight:600;color:#6B7280;padding-top:7px">{{ f.n }}</span>
+                <span style="font-size:14px;font-weight:600;padding-top:7px">{{ f.label }}</span>
+                <input defaultValue="{{ f.value }}" style="height:34px;border:1px solid #C9D0E2;border-radius:4px;padding:0 8px;font:500 15px Mukta;color:#1B2230;background:#FFFFFF;min-width:0" style-focus="outline:2px solid #2F4B9A;outline-offset:0"></input>
+                <span style="display:flex;flex-direction:column;gap:3px;padding-top:4px">
+                  <span style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:48px"><span style="height:5px;border-radius:1px;background:{{ f.c1 }}"></span><span style="height:5px;border-radius:1px;background:{{ f.c2 }}"></span><span style="height:5px;border-radius:1px;background:{{ f.c3 }}"></span></span>
+                  <span style="font-size:14px;color:{{ f.confColor }};font-weight:600">{{ f.conf }}</span>
+                </span>
+                <span></span><span></span>
+                <span style="grid-column:3 / 5;font-size:14px;color:#4A5160;line-height:1.35">“{{ f.quote }}”</span>
+                <sc-if value="{{ f.hasDiff }}" hint-placeholder-val="{{ false }}">
+                  <span></span><span></span>
+                  <span style="grid-column:3 / 5;font-size:14px;line-height:1.35;color:#1B2230"><span style="background:#FBEFC9;padding:0 4px;border-radius:2px">Live now: {{ f.diff }}</span></span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex-shrink:0;border-top:1px solid #D9DEEA;padding:12px 20px;display:flex;flex-direction:column;gap:10px;background:#FFFFFF">
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#4A5160"><span style="width:8px;height:8px;border-radius:50%;background:#F0C04A"></span>2 fields below high confidence · 2 changes from the live page</div>
+            <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1fr 1fr;gap:8px">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="4">
+                <button onClick="{{ a.onClick }}" style="height:44px;border:{{ a.border }};border-radius:4px;background:{{ a.bg }};color:{{ a.fg }};font:600 15px Mukta;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer" style-focus="outline:3px solid #F0C04A;outline-offset:2px">{{ a.label }}<span style="font-size:14px;font-weight:600;min-width:22px;padding:0 5px;border-radius:3px;background:{{ a.kBg }};color:{{ a.kFg }}">{{ a.key }}</span></button>
+              </sc-for>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#6B7280"><span>1–7 field · J / K notice · Tab next input · ? all shortcuts</span><span style="color:#1F5A43;font-weight:600">{{ toast }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { active: 0, pos: 3, toast: '' };
+  componentDidMount() {
+    this.onKey = e => {
+      if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      const k = e.key.toLowerCase();
+      if (k >= '1' && k <= '7') this.setState({ active: +k - 1 });
+      else if (k === 'j') this.move(1);
+      else if (k === 'k') this.move(-1);
+      else if ('aerc'.includes(k) && k.length === 1) this.act(k);
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+  move(d) { this.setState(s => ({ pos: Math.min(42, Math.max(1, s.pos + d)), toast: '' })); }
+  act(k) {
+    const m = { a: 'Approved · page updated', e: 'Edits saved and approved', r: 'Rejected · reason needed', c: 'Added to Calls due' };
+    this.setState({ toast: m[k] });
+  }
+  renderVals() {
+    const a = this.state.active;
+    const conf = {
+      High: { c: ['#1F5A43', '#1F5A43', '#1F5A43'], col: '#1F5A43' },
+      Medium: { c: ['#B08A1E', '#B08A1E', '#D9DEEA'], col: '#7A5E0F' },
+      Low: { c: ['#C8372D', '#D9DEEA', '#D9DEEA'], col: '#B3302A' }
+    };
+    const raw = [
+      ['Class', 'Nursery', 'High', 'Registration for admission to Pre-Nursery, Nursery and KG'],
+      ['Status', 'Open', 'Medium', 'is open from 07 October 2026 — inferred from today\u2019s date'],
+      ['Opens', '07 Oct 2026', 'High', 'from 07 October 2026'],
+      ['Closes', '31 Oct 2026', 'High', 'to 31 October 2026'],
+      ['Fee', '₹750', 'High', 'Registration fee: Rs. 750/- (non-refundable)', 'Not yet published'],
+      ['Form type', 'Online + Offline', 'High', 'online at www.navbharti-jaipur.example/admission and at the school office'],
+      ['Documents', 'Birth cert., Aadhaar (child + parents), 2 photos, address proof', 'Low', 'proof of residence — type of proof not specified', '4 items, no Aadhaar']
+    ];
+    const hl = {};
+    raw.forEach((_, i) => { hl['h' + (i + 1)] = i === a ? '#F0C04A' : '#FBEFC9'; });
+    const tabs = [['Notices', 42], ['Updates', 17], ['New records', 9], ['Calls due', 60]];
+    const acts = [
+      { label: 'Approve', key: 'A', k: 'a', bg: '#1F5A43', fg: '#FCFCF8', border: '0', kBg: 'rgba(255,255,255,.18)', kFg: '#FCFCF8' },
+      { label: 'Edit & approve', key: 'E', k: 'e', bg: '#2F4B9A', fg: '#FCFCF8', border: '0', kBg: 'rgba(255,255,255,.18)', kFg: '#FCFCF8' },
+      { label: 'Reject', key: 'R', k: 'r', bg: '#FFFFFF', fg: '#B3302A', border: '1px solid #C8372D', kBg: '#FBEAE8', kFg: '#B3302A' },
+      { label: 'Needs call', key: 'C', k: 'c', bg: '#FFFFFF', fg: '#1B2230', border: '1px solid #9AA6C8', kBg: '#EEF0F5', kFg: '#1B2230' }
+    ];
+    return {
+      ...hl,
+      pos: this.state.pos, toast: this.state.toast,
+      prev: () => this.move(-1), next: () => this.move(1),
+      tabs: tabs.map(([label, count], i) => ({ label, count, line: i === 0 ? '#2F4B9A' : 'transparent', weight: i === 0 ? 600 : 500, cBg: i === 0 ? '#2F4B9A' : '#EEF0F5', cFg: i === 0 ? '#FCFCF8' : '#1B2230' })),
+      fields: raw.map(([label, value, c, quote, diff], i) => ({
+        n: i + 1, label, value, quote, conf: c,
+        c1: conf[c].c[0], c2: conf[c].c[1], c3: conf[c].c[2], confColor: conf[c].col,
+        hasDiff: !!diff, diff,
+        rowBg: i === a ? '#FFFFFF' : 'transparent', rowLine: i === a ? '#F0C04A' : 'transparent',
+        onSelect: () => this.setState({ active: i })
+      })),
+      actions: acts.map(x => ({ ...x, onClick: () => this.act(x.k) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+input::placeholder{color:#6B7280}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Teachers directory · Jaipur</div>
+    <div style="font-size:16px;color:#4A5160;line-height:1.5">Only teachers who claimed their profile appear. Subject chips filter in both artboards; pick Sanskrit to see the empty state. All teachers are fictional.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="16a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">16a</span><span style="font-size:14px;color:#4A5160">Mobile · 390</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;align-items:center"><button aria-label="Menu" style="width:44px;height:44px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:#1B2230"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button><div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div></div>
+          <div style="display:flex;align-items:center;gap:4px"><span style="font-size:16px;font-weight:500;padding:0 8px">Jaipur ▾</span><div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</span><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;font:500 15px 'Anek Devanagari'">हिं</span></div></div>
+        </header>
+        <div style="padding:20px 16px 12px;display:flex;flex-direction:column;gap:12px">
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Find teachers in Jaipur</h1>
+          <label style="display:flex;align-items:center;gap:10px;height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;padding:0 12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l5 5"></path></svg>
+            <input placeholder="Name, subject or school" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 16px Mukta;color:#1B2230"></input>
+          </label>
+        </div>
+        <div style="padding:0 0 8px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">
+          <sc-for list="{{ subjects }}" as="c" hint-placeholder-count="8">
+            <button onClick="{{ c.onClick }}" style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid {{ c.border }};border-radius:22px;background:{{ c.bg }};color:{{ c.fg }};font:{{ c.w }} 15px Mukta;white-space:nowrap;cursor:pointer">{{ c.t }}</button>
+          </sc-for>
+          <span style="flex-shrink:0;width:8px"></span>
+        </div>
+        <div style="padding:0 16px 10px;display:flex;gap:8px;border-bottom:1px solid #E3E7F0">
+          <button style="height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;display:flex;align-items:center;gap:6px">More filters</button>
+          <button style="height:44px;padding:0 12px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta">Level ▾</button>
+          <button style="height:44px;padding:0 12px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta">Open to ▾</button>
+        </div>
+        <div style="padding:10px 16px 4px;font-size:14px;color:#4A5160">{{ countLine }}</div>
+        <div style="padding:6px 16px 16px;display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ list }}" as="t" hint-placeholder-count="6">
+            <a href="Teacher Profile.dc.html" style="display:flex;gap:12px;padding:12px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;text-decoration:none;color:#1B2230" style-hover="border-color:#2F4B9A">
+              <div style="width:64px;height:76px;flex-shrink:0;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280">Photo</div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                <span style="font-family:'Anek Latin';font-weight:600;font-size:18px;line-height:1.15">{{ t.n }}</span>
+                <span style="font-size:14px">{{ t.s }} · {{ t.l }}</span>
+                <span style="font-size:14px;color:#4A5160">{{ t.school }}</span>
+                <span style="font-size:14px;line-height:1.4;margin-top:2px">{{ t.h }}</span>
+                <sc-if value="{{ t.hasAward }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;margin-top:4px;font-size:13px;font-weight:600;padding:0 8px;border-left:2px solid #1B2230;background:#F4F5EF">{{ t.award }}</span></sc-if>
+              </div>
+            </a>
+          </sc-for>
+          <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="border-left:2px solid #6B7280;padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:8px;margin:8px 0">
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px;line-height:1.2">No {{ subj }} teachers have joined yet</h2>
+              <span style="font-size:15px;line-height:1.5;color:#4A5160">Teachers appear here only after they create or claim their own profile and choose to be listed. We don't list anyone without their consent.</span>
+              <a href="#" style="align-self:flex-start;height:44px;padding:0 16px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font-weight:600;display:flex;align-items:center;text-decoration:none">I'm a teacher: create my profile</a>
+              <a href="#" style="font-weight:600;min-height:44px;display:flex;align-items:center">Know a great teacher? Nominate them</a>
+            </div>
+          </sc-if>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid #D9DEEA;background:#F4F5EF;font-size:14px;color:#4A5160;line-height:1.45">No ratings or rankings. Order is by relevance to your search, then alphabetical.</div>
+      </div>
+    </div>
+
+    <div id="16b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">16b</span><span style="font-size:14px;color:#4A5160">Desktop · 1280</span></div>
+      <div style="width:1280px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12)">
+        <header style="display:flex;align-items:center;gap:28px;padding:8px 40px;border-bottom:1px solid #D9DEEA;height:68px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+          <nav style="display:flex;align-items:stretch;height:100%;gap:2px">
+            <sc-for list="{{ primary }}" as="p" hint-placeholder-count="5"><a href="#" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;font-size:16px;font-weight:{{ p.w }};color:{{ p.c }};border-bottom:3px solid {{ p.l }};margin-bottom:-9px">{{ p.t }}</a></sc-for>
+          </nav>
+          <div style="flex:1"></div>
+          <span style="font-size:16px;font-weight:500">Jaipur ▾</span>
+          <span style="height:44px;padding:0 18px;border:1px solid #2F4B9A;border-radius:6px;color:#2F4B9A;font:600 16px Mukta;display:flex;align-items:center">Sign in</span>
+        </header>
+        <div style="padding:28px 40px 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;flex-direction:column;gap:12px;flex:1;max-width:720px">
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:39px;line-height:1.1">Find teachers in Jaipur</h1>
+            <label style="display:flex;align-items:center;gap:10px;height:52px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;padding:0 14px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l5 5"></path></svg>
+              <input placeholder="Name, subject or school" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 17px Mukta;color:#1B2230"></input>
+            </label>
+          </div>
+          <a href="Teacher of the Week.dc.html" style="display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-left:2px solid #1B2230;text-decoration:none;color:#1B2230;max-width:320px">
+            <span style="font-size:14px;color:#4A5160">Teacher of the week · Jaipur</span>
+            <span style="font-weight:600;color:#2F4B9A">Meenakshi Rathore, Mathematics</span>
+          </a>
+        </div>
+        <div style="display:grid;grid-template-columns:260px minmax(0,1fr);align-items:start">
+          <aside style="padding:16px 24px 24px 40px;border-right:1px solid #D9DEEA;display:flex;flex-direction:column">
+            <div style="padding-bottom:12px;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:6px">
+              <span style="font-weight:600">Subject</span>
+              <sc-for list="{{ subjects }}" as="c" hint-placeholder-count="8">
+                <button onClick="{{ c.onClick }}" style="display:flex;align-items:center;gap:10px;min-height:32px;border:0;background:transparent;padding:0;font:{{ c.w }} 15px Mukta;color:#1B2230;cursor:pointer;text-align:left">
+                  <span style="width:18px;height:18px;border-radius:50%;border:2px solid #2F4B9A;display:flex;align-items:center;justify-content:center"><span style="width:8px;height:8px;border-radius:50%;background:{{ c.dot }}"></span></span>{{ c.t }}
+                </button>
+              </sc-for>
+            </div>
+            <sc-for list="{{ rail }}" as="g" hint-placeholder-count="4">
+              <div style="padding:12px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:2px">
+                <span style="font-weight:600;margin-bottom:4px">{{ g.t }}</span>
+                <sc-for list="{{ g.o }}" as="o" hint-placeholder-count="3">
+                  <span style="display:flex;align-items:center;gap:10px;min-height:32px;font-size:15px"><span style="width:18px;height:18px;border:2px solid #2F4B9A;border-radius:3px;background:#FFFFFF"></span>{{ o }}</span>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">Verified only</span><span style="width:44px;height:26px;border-radius:13px;background:#C9D0E2;position:relative"><span style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF"></span></span></div>
+          </aside>
+          <div style="padding:16px 40px 32px 24px;display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:15px;color:#4A5160">{{ countLine }}</div>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+              <sc-for list="{{ list }}" as="t" hint-placeholder-count="6">
+                <a href="Teacher Profile.dc.html" style="display:flex;flex-direction:column;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;text-decoration:none;color:#1B2230;overflow:hidden" style-hover="border-color:#2F4B9A">
+                  <div style="display:flex;gap:12px;padding:14px">
+                    <div style="width:72px;height:88px;flex-shrink:0;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280">Photo</div>
+                    <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                      <span style="font-family:'Anek Latin';font-weight:600;font-size:19px;line-height:1.15">{{ t.n }}</span>
+                      <span style="font-size:14px">{{ t.s }} · {{ t.l }}</span>
+                      <span style="font-size:14px;color:#4A5160">{{ t.school }}</span>
+                    </div>
+                  </div>
+                  <div style="padding:0 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1">
+                    <span style="font-size:15px;line-height:1.45">{{ t.h }}</span>
+                    <sc-if value="{{ t.hasAward }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;margin-top:auto;font-size:13px;font-weight:600;padding:0 8px;border-left:2px solid #1B2230;background:#F4F5EF">{{ t.award }}</span></sc-if>
+                  </div>
+                </a>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="border-left:2px solid #6B7280;padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:8px;max-width:620px;margin-top:12px">
+                <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">No {{ subj }} teachers have joined yet</h2>
+                <span style="font-size:16px;line-height:1.5;color:#4A5160">Teachers appear here only after they create or claim their own profile and choose to be listed. We don't list anyone without their consent.</span>
+                <div style="display:flex;gap:16px;align-items:center;margin-top:4px">
+                  <a href="#" style="height:44px;padding:0 16px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font-weight:600;display:flex;align-items:center;text-decoration:none">I'm a teacher: create my profile</a>
+                  <a href="#" style="font-weight:600">Nominate a teacher</a>
+                </div>
+              </div>
+            </sc-if>
+            <div style="margin-top:8px;padding:16px 18px;border:1px solid #D9DEEA;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:16px">
+              <span style="display:flex;flex-direction:column"><span style="font-family:'Anek Latin';font-weight:600;font-size:20px">Teach in Jaipur?</span><span style="font-size:15px;color:#4A5160">Create a free profile. You choose what's public, and parents contact you only through SchoolOye.</span></span>
+              <a href="#" style="height:44px;padding:0 16px;border:1px solid #2F4B9A;border-radius:6px;display:flex;align-items:center;font-weight:600;text-decoration:none;white-space:nowrap">Create your profile</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { subj: 'All' };
+  T = [
+    { n: 'Meenakshi Rathore', s: 'Mathematics', l: 'TGT', school: 'Nav Bharti Academy, Mansarovar', h: 'Students map their own mohalla to scale to learn ratios.', award: 'Teacher of the Week · Oct 2026' },
+    { n: 'Anjali Mehta', s: 'English', l: 'PRT', school: 'Green Valley Public School, Malviya Nagar', h: 'Runs a class library where every child writes one book a term.' },
+    { n: 'Rohit Saini', s: 'Science', l: 'PGT Physics', school: 'Green Valley Public School, Malviya Nagar', h: 'Builds lab kits from scrap for schools without labs.', award: 'District innovation award · 2025' },
+    { n: 'Kavita Choudhary', s: 'Hindi', l: 'TGT', school: 'Meera Bal Niketan, Sodala', h: 'Uses Rajasthani folk tales to teach grammar and diction.' },
+    { n: 'Farah Qureshi', s: 'Mathematics', l: 'TGT', school: 'Green Valley Public School, Malviya Nagar', h: 'Weekly doubt hour open to every student in the school.' },
+    { n: 'Vikram Shekhawat', s: 'Social science', l: 'TGT', school: 'St. Aarav Convent, C-Scheme', h: 'Takes Class 8 on heritage walks through the walled city.' },
+    { n: 'Neha Agarwal', s: 'Science', l: 'PRT', school: 'Pink City Scholars School, Vaishali Nagar', h: 'Nature journal project with the school garden.' },
+    { n: 'Sunil Verma', s: 'Mathematics', l: 'PGT', school: 'Nav Bharti Academy, Mansarovar', h: 'Prepares Class 12 for boards with past-paper clinics.' }
+  ];
+  renderVals() {
+    const subj = this.state.subj;
+    const names = ['All', 'Mathematics', 'English', 'Science', 'Hindi', 'Social science', 'Sanskrit'];
+    const list = this.T.filter(t => subj === 'All' || t.s === subj).map(t => ({ ...t, hasAward: !!t.award }));
+    return {
+      subj, list, isEmpty: list.length === 0,
+      countLine: list.length ? `${list.length} teachers${subj === 'All' ? '' : ' · ' + subj} · all profiles claimed by the teacher` : '0 teachers',
+      subjects: names.map(t => ({ t, onClick: () => this.setState({ subj: t }), border: t === subj ? '#2F4B9A' : '#C9D0E2', bg: t === subj ? '#2F4B9A' : '#FCFCF8', fg: t === subj ? '#FCFCF8' : '#1B2230', w: t === subj ? 600 : 500, dot: t === subj ? '#2F4B9A' : 'transparent' })),
+      rail: [
+        { t: 'Level', o: ['Primary (PRT)', 'Middle (TGT)', 'Senior (PGT)'] },
+        { t: 'Board experience', o: ['CBSE', 'ICSE', 'RBSE'] },
+        { t: 'Locality', o: ['Malviya Nagar', 'Mansarovar', 'Vaishali Nagar', 'C-Scheme'] },
+        { t: 'Open to', o: ['Tutoring', 'Online classes', 'Workshops'] }
+      ],
+      primary: ['Schools', 'Admissions', 'Teachers', 'Guides', 'For schools'].map((t, i) => ({ t, w: i === 2 ? 600 : 500, c: i === 2 ? '#2F4B9A' : '#1B2230', l: i === 2 ? '#2F4B9A' : 'transparent' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

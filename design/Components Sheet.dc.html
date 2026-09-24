@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FCFCF8;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<main style="max-width:1320px;margin:0 auto;padding:48px 32px 96px;display:flex;flex-direction:column;gap:48px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+    <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:49px;line-height:1.05">Components</h1>
+    <div style="font-size:18px;color:#4A5160;max-width:760px;line-height:1.5">A well-kept school notebook: calm, ruled, dependable. The deadline margin is the one bold element. Red only for deadlines within 7 days. Status colour always comes with a text label.</div>
+  </div>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:40px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Colour tokens</h2>
+      <div style="display:grid;grid-template-columns:44px 1.2fr 90px 1.6fr;font-size:15px;border-top:1px solid #D9DEEA">
+        <sc-for list="{{ colours }}" as="c" hint-placeholder-count="10">
+          <span style="padding:8px 0;border-bottom:1px solid #E3E7F0;display:flex;align-items:center"><span style="width:28px;height:28px;border-radius:4px;background:{{ c.hex }};border:1px solid #D9DEEA"></span></span>
+          <span style="padding:8px 8px 8px 0;border-bottom:1px solid #E3E7F0;font-weight:600;display:flex;align-items:center">{{ c.name }}</span>
+          <span style="padding:8px 8px 8px 0;border-bottom:1px solid #E3E7F0;font-family:ui-monospace,monospace;font-size:13px;display:flex;align-items:center">{{ c.hex }}</span>
+          <span style="padding:8px 0;border-bottom:1px solid #E3E7F0;color:#4A5160;font-size:14px;display:flex;align-items:center">{{ c.use }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Type tokens</h2>
+      <div style="display:flex;flex-direction:column;border-top:1px solid #D9DEEA">
+        <sc-for list="{{ types }}" as="t" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:64px 1fr 170px;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid #E3E7F0">
+            <span style="font-family:ui-monospace,monospace;font-size:13px;color:#4A5160">{{ t.size }}px</span>
+            <span style="font-family:{{ t.fam }};font-weight:{{ t.w }};font-size:{{ t.px }};line-height:1.15">{{ t.sample }}</span>
+            <span style="font-size:13px;color:#4A5160">{{ t.use }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:14px;color:#4A5160;line-height:1.5">Headings: Anek Latin / Anek Devanagari. Body and UI: Mukta. Sentence case, no all-caps. Tap targets 44px or more. Focus: 3px outline, ruled blue on light, pencil yellow on blue.</div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <button style="height:48px;padding:0 20px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Primary</button>
+        <button style="height:48px;padding:0 20px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta;outline:3px solid #F0C04A;outline-offset:2px">Focused</button>
+        <button style="height:44px;padding:0 16px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 16px Mukta">Secondary</button>
+        <button style="height:44px;padding:0 16px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 16px Mukta;outline:3px solid #2F4B9A;outline-offset:2px">Focused</button>
+        <a href="#" style="font-weight:600">Text link</a>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Deadline margin</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
+      <sc-for list="{{ margins }}" as="m" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;height:104px;overflow:hidden">
+            <div style="width:80px;padding:10px;border-right:2px {{ m.ls }} {{ m.c }};color:{{ m.c }};display:flex;flex-direction:column">
+              <span style="font-size:13px">{{ m.top }}</span>
+              <span style="font-family:'Anek Latin';font-weight:700;font-size:28px;line-height:1.05">{{ m.big }}</span>
+              <span style="font-size:13px">{{ m.bot }}</span>
+            </div>
+            <div style="flex:1;background:repeating-linear-gradient(#FFFFFF 0 19px,#EEF0F5 19px 20px)"></div>
+          </div>
+          <span style="font-size:14px;font-weight:600">{{ m.label }}</span>
+          <span style="font-size:13px;color:#4A5160;line-height:1.35">{{ m.rule }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:40px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Status pills · next session</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ pills }}" as="p" hint-placeholder-count="6"><span style="font-size:14px;font-weight:600;padding:1px 10px;border-radius:999px;background:{{ p.bg }};color:{{ p.fg }};border:1px solid {{ p.bd }}">{{ p.t }}</span></sc-for>
+      </div>
+      <h2 style="margin:12px 0 0;font-family:'Anek Latin';font-weight:600;font-size:25px">Seat pills · this session</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ seatPills }}" as="p" hint-placeholder-count="4"><span style="font-size:14px;font-weight:600;padding:1px 10px;border-radius:999px;background:{{ p.bg }};color:{{ p.fg }};border:1px solid {{ p.bd }}">{{ p.t }}</span></sc-for>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <span style="font-size:13px;font-weight:600;border:1px solid #1B2230;border-radius:4px;padding:0 8px">This session · 2026–27</span>
+        <span style="font-size:13px;font-weight:600;border:1px solid #1B2230;border-radius:4px;padding:0 8px">Next session · 2027–28</span>
+        <span style="font-size:13px;font-weight:600;background:#F1F1EA;border:1px solid #C4C7CE;border-radius:4px;padding:0 8px">Sponsored</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Freshness and verification</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+        <span style="color:#6B7280">Source: school admission notice · checked 2 days ago</span>
+        <span style="display:flex;align-items:center;gap:6px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#F0C04A"></span>Checked 9 days ago — rechecking</span>
+        <span style="display:flex;align-items:center;gap:6px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#F0C04A"></span>Seats reported 9 days ago — may have changed, call to confirm</span>
+        <span style="color:#6B7280">Not yet published</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span style="font-size:14px;font-weight:500;color:#1F5A43;border:1px solid #B9D1C4;border-radius:4px;padding:2px 8px">✓ Verified by school</span>
+        <span style="font-size:14px;font-weight:500;color:#4A5160;border:1px dashed #B8BCC4;border-radius:4px;padding:2px 8px">Not yet verified</span>
+        <span style="font-size:13px;font-weight:600;color:#2F4B9A;background:#EEF1F9;border:1px solid #C9D0E2;border-radius:4px;padding:1px 8px">Profile claimed by teacher</span>
+        <span style="font-size:13px;font-weight:600;color:#1F5A43;border:1px solid #B9D1C4;border-radius:4px;padding:1px 8px">✓ Identity verified</span>
+        <span style="font-size:13px;font-weight:600;color:#1F5A43;border:1px solid #B9D1C4;border-radius:4px;padding:1px 8px">✓ Qualification verified</span>
+        <span style="font-size:13px;font-weight:600;color:#1F5A43;border:1px solid #B9D1C4;border-radius:4px;padding:1px 8px">✓ School employment verified</span>
+        <span style="font-size:13px;font-weight:600;color:#4A5160;border:1px dashed #B8BCC4;border-radius:4px;padding:1px 8px">Not claimed</span>
+      </div>
+      <span style="font-size:13px;color:#4A5160">Verification chips appear only for checks that passed. Never show a failed or pending check as a chip.</span>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">School card</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <sc-for list="{{ cards }}" as="s" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:14px;font-weight:600">{{ s.label }}</span>
+          <article style="display:flex;border:1px solid {{ s.border }};border-radius:6px;background:#FFFFFF;overflow:hidden">
+            <div style="width:72px;flex-shrink:0;padding:10px 6px 10px 10px;border-right:2px solid {{ s.mc }};color:{{ s.mc }};display:flex;flex-direction:column">
+              <span style="font-size:13px">{{ s.mt }}</span><span style="font-family:'Anek Latin';font-weight:700;font-size:25px;line-height:1.05">{{ s.mb }}</span><span style="font-size:13px">{{ s.mu }}</span>
+            </div>
+            <div style="flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:5px">
+              <sc-if value="{{ s.sp }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#F1F1EA;border:1px solid #C4C7CE;border-radius:4px;padding:0 7px">Sponsored</span></sc-if>
+              <span style="font-family:'Anek Latin';font-weight:600;font-size:18px;line-height:1.15">{{ s.name }}</span>
+              <span style="font-size:14px;color:#4A5160">{{ s.meta }}</span>
+              <span style="align-self:flex-start;font-size:13px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ s.pbg }};color:{{ s.pfg }};border:1px solid {{ s.pbd }}">{{ s.pl }}</span>
+              <span style="font-size:14px;color:{{ s.feeC }}">{{ s.fee }}</span>
+              <span style="font-size:13px;color:{{ s.frC }};font-weight:{{ s.frW }}">{{ s.fr }}</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px">
+                <span style="height:40px;border:1px solid #C9D0E2;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#2F4B9A;font-weight:600;font-size:14px">Save</span>
+                <span style="height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#2F4B9A;color:#FCFCF8;font-weight:600;font-size:14px">Get alert</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Search and filters</h2>
+      <div style="display:flex;align-items:stretch;height:56px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;overflow:hidden">
+        <span style="flex:1.4;min-width:0;display:flex;align-items:center;padding:0 12px;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">⌕  School name or area</span>
+        <span style="flex:0 0 88px;border-left:1px solid #D9DEEA;padding:0 10px;display:flex;flex-direction:column;justify-content:center"><span style="font-size:13px;color:#4A5160;font-weight:600">Class</span><span style="font-size:14px">Any ▾</span></span>
+        <span style="flex:0 0 88px;border-left:1px solid #D9DEEA;padding:0 10px;display:flex;flex-direction:column;justify-content:center"><span style="font-size:13px;color:#4A5160;font-weight:600">Board</span><span style="font-size:14px">Any ▾</span></span>
+        <span style="background:#2F4B9A;color:#FCFCF8;font-weight:600;display:flex;align-items:center;padding:0 16px">Search</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font-weight:600;display:flex;align-items:center">Class: Nursery ▾</span>
+        <span style="height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;display:flex;align-items:center">Board ▾</span>
+        <span style="display:inline-flex;align-items:center;height:36px;padding:0 2px 0 12px;border:1px solid #C9D0E2;border-radius:18px;background:#FFFFFF;font-size:14px">Within 5 km<span style="width:30px;text-align:center;color:#4A5160">×</span></span>
+        <a href="#" style="font-size:14px;font-weight:600">Clear all</a>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:40px;padding:0 14px;display:flex;align-items:center;background:#2F4B9A;color:#FCFCF8;font-weight:600;font-size:14px">List</span><span style="height:40px;padding:0 14px;display:flex;align-items:center;font-size:14px">Map</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,auto);border:1px solid #C9D0E2;border-radius:6px;overflow:hidden;font-size:14px;font-weight:600"><span style="height:40px;padding:0 12px;display:flex;align-items:center;background:#2F4B9A;color:#FCFCF8">Open now 8</span><span style="height:40px;padding:0 12px;display:flex;align-items:center;border-left:1px solid #C9D0E2">Closing soon 3</span><span style="height:40px;padding:0 12px;display:flex;align-items:center;border-left:1px solid #C9D0E2">Upcoming 3</span></div>
+      </div>
+      <div style="display:flex;border-bottom:1px solid #D9DEEA;overflow-x:auto;scrollbar-width:none">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5"><span style="height:48px;padding:0 12px;display:flex;align-items:center;border-bottom:3px solid {{ t.l }};color:{{ t.c }};font-weight:{{ t.w }};white-space:nowrap">{{ t.t }}</span></sc-for>
+      </div>
+      <span style="font-size:13px;color:#4A5160">Filter drawer (mobile) and filter rail (desktop): see <a href="Search Results.dc.html#11b">Search results 11b</a> and <a href="Search Results.dc.html#11d">11d</a>.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Map pins and compare tray</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding:16px;border-radius:6px;background:#EEEEE7">
+        <sc-for list="{{ pins }}" as="p" hint-placeholder-count="4">
+          <span style="display:flex;align-items:center;gap:5px;height:30px;padding:0 10px 0 7px;border-radius:15px;background:#FFFFFF;color:{{ p.fg }};border:{{ p.bd }};font-size:13px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.18)"><span style="width:10px;height:10px;border-radius:50%;background:{{ p.dot }};border:{{ p.dotBd }}"></span>{{ p.t }}</span>
+        </sc-for>
+      </div>
+      <div style="background:#1B2230;color:#FCFCF8;border-radius:6px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span><b>3 of 4</b> selected</span>
+        <span style="display:flex;gap:6px"><span style="height:40px;padding:0 12px;border:1px solid #6B7280;border-radius:6px;display:flex;align-items:center">Clear</span><span style="height:40px;padding:0 16px;border-radius:6px;background:#FCFCF8;color:#1B2230;font-weight:600;display:flex;align-items:center">Compare</span></span>
+      </div>
+      <div style="display:grid;grid-template-columns:120px 1fr 1fr;border:1px solid #D9DEEA;border-radius:6px;overflow:hidden;font-size:14px;background:#FFFFFF">
+        <span style="padding:8px;background:#F4F5EF;font-weight:600;border-bottom:1px solid #E3E7F0">Registration fee</span><span style="padding:8px;border-bottom:1px solid #E3E7F0">₹1,000</span><span style="padding:8px;border-bottom:1px solid #E3E7F0;color:#6B7280">Not yet published</span>
+        <span style="padding:8px;background:#F4F5EF;font-weight:600">Admission</span><span style="padding:8px;border-left:3px solid #C8372D;color:#B3302A;font-weight:600">Closing soon · 4 days</span><span style="padding:8px;border-left:3px solid #1B2230;color:#1F5A43;font-weight:600">Open · 15 days left</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Share sheet</h2>
+      <div style="border:1px solid #D9DEEA;border-radius:12px 12px 6px 6px;background:#FFFFFF;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+        <span style="font-weight:600">Share Green Valley Public School</span>
+        <span style="height:48px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font-weight:600;display:flex;align-items:center;justify-content:center">Share on WhatsApp</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span style="height:44px;border:1px solid #C9D0E2;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#2F4B9A;font-weight:600">Copy link</span><span style="height:44px;border:1px solid #C9D0E2;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#2F4B9A;font-weight:600">More options</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Document checklist item</h2>
+      <sc-for list="{{ docs }}" as="d" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #E3E7F0">
+          <span style="width:28px;height:28px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:{{ d.bg }};color:{{ d.fg }};border:{{ d.bd }}">{{ d.i }}</span>
+          <span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:600">{{ d.t }}</span><span style="font-size:14px;color:{{ d.sc }}">{{ d.s }}</span></span>
+          <span style="height:40px;padding:0 12px;border-radius:6px;display:flex;align-items:center;font-weight:600;font-size:14px;background:{{ d.bb }};color:{{ d.bf }};border:{{ d.bbd }}">{{ d.b }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Application status row</h2>
+      <div style="display:flex;border:1px solid #E6CF8A;border-radius:6px;background:#FFFFFF;overflow:hidden">
+        <div style="width:6px;background:#F0C04A"></div>
+        <div style="flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:600">Green Valley Public School</span><span style="font-size:13px;font-weight:600;padding:0 8px;border-radius:999px;background:#FBEFC9;border:1px solid #F0C04A">Waiting for your approval</span></div>
+          <span style="font-size:14px;color:#4A5160">Form is ready. Check before we submit.</span>
+          <span style="align-self:flex-start;height:40px;padding:0 14px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font-weight:600;font-size:14px;display:flex;align-items:center">Review and approve</span>
+        </div>
+      </div>
+      <span style="font-size:13px;color:#4A5160">Statuses: Preparing · Waiting for your approval · Submitted (application no.) · Interview on date</span>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">OTP input</h2>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-width:340px">
+        <sc-for list="{{ otp }}" as="o" hint-placeholder-count="6"><span style="height:56px;border:{{ o.bd }};border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Anek Latin';font-weight:600;font-size:25px">{{ o.v }}</span></sc-for>
+      </div>
+      <span style="font-size:14px;color:#1B2230;font-weight:600">That code didn't match. 2 tries left.</span><span style="font-size:13px;color:#4A5160">Errors use ink and a clear sentence, not red. Red stays for deadlines.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Consent checkbox</h2>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #2F4B9A;border-radius:6px;background:#FFFFFF;font-size:15px;line-height:1.45">
+        <span style="flex-shrink:0;width:24px;height:24px;border:2px solid #2F4B9A;border-radius:4px;background:#2F4B9A;color:#FCFCF8;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>
+        <span>I agree to get admission alerts from SchoolOye on WhatsApp at +91 98290 41736.</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #C9D0E2;border-radius:6px;background:#FFFFFF;font-size:15px;line-height:1.45">
+        <span style="flex-shrink:0;width:24px;height:24px;border:2px solid #2F4B9A;border-radius:4px;background:#FFFFFF"></span>
+        <span>Unchecked: the primary button stays disabled, with a hint under it.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Empty and error states</h2>
+      <div style="border-left:2px solid #6B7280;padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'Anek Latin';font-weight:600;font-size:20px">No open schools match these filters</span>
+        <span style="font-size:14px;color:#4A5160">Always offer a next step: widen, remove a filter, or get an alert.</span>
+        <a href="#" style="font-weight:600">Widen to 5 km · 2 schools</a>
+      </div>
+      <div style="border-left:2px solid #1B2230;padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'Anek Latin';font-weight:600;font-size:20px">We couldn't load schools</span>
+        <span style="font-size:14px;color:#4A5160">Your connection dropped. Saved schools still work offline.</span>
+        <span style="align-self:flex-start;height:40px;padding:0 14px;border:1px solid #C9D0E2;border-radius:6px;display:flex;align-items:center;color:#2F4B9A;font-weight:600">Try again</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Teacher card</h2>
+      <div style="display:flex;gap:12px;padding:12px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF">
+        <div style="width:64px;height:76px;flex-shrink:0;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px)"></div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-family:'Anek Latin';font-weight:600;font-size:18px">Meenakshi Rathore</span>
+          <span style="font-size:14px">Mathematics · TGT</span>
+          <span style="font-size:14px;color:#4A5160">Nav Bharti Academy</span>
+          <span style="align-self:flex-start;margin-top:4px;font-size:13px;font-weight:600;padding:0 8px;border-left:2px solid #1B2230;background:#F4F5EF">Teacher of the Week · Oct 2026</span>
+        </div>
+      </div>
+      <h2 style="margin:8px 0 0;font-family:'Anek Latin';font-weight:600;font-size:22px">Unclaimed profile</h2>
+      <div style="display:flex;gap:12px;align-items:center;padding:12px;border:1px dashed #9AA6C8;border-radius:6px">
+        <span style="width:48px;height:48px;border-radius:50%;background:#EEF0F5;display:flex;align-items:center;justify-content:center;font-weight:600;color:#4A5160">RS</span>
+        <span style="display:flex;flex-direction:column"><span style="font-weight:600">R. Sharma · Science</span><a href="#" style="font-size:14px;font-weight:600">Are you this teacher? Claim your profile</a></span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Recommendation quote</h2>
+      <figure style="margin:0;padding:12px 14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+        <blockquote style="margin:0;font-size:15px;line-height:1.55">“She explains every step and never makes children feel slow.”</blockquote>
+        <figcaption style="font-size:14px;color:#4A5160"><b style="color:#1B2230;font-weight:600">Priya K.</b> · Parent of a Class 8 student</figcaption>
+      </figure>
+      <span style="font-size:13px;color:#4A5160">Moderated before publishing. Relationship always shown. No stars.</span>
+      <h2 style="margin:8px 0 0;font-family:'Anek Latin';font-weight:600;font-size:22px">Nomination fields</h2>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">Your relationship to the teacher</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #2F4B9A;background:#EEF1F9;color:#2F4B9A;font-weight:600;display:flex;align-items:center">Parent ✓</span><span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Student</span><span style="height:40px;padding:0 14px;border-radius:20px;border:1px solid #C9D0E2;display:flex;align-items:center">Colleague</span></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:22px">Feature card</h2>
+      <div style="border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #E3E7F0;display:flex;justify-content:space-between"><span style="font-family:'Anek Latin';font-weight:600;font-size:18px">Teacher of the week</span><span style="font-size:14px;color:#4A5160">Jaipur · 12 Oct</span></div>
+        <div style="padding:14px;display:flex;gap:12px">
+          <div style="width:72px;height:88px;flex-shrink:0;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px)"></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:17px">Meenakshi Rathore</span><span style="font-size:14px;color:#4A5160">Mathematics · Nav Bharti Academy</span><span style="font-size:14px;line-height:1.4;margin-top:4px">Runs a Saturday maths club where students map their mohalla.</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #E3E7F0"><span style="min-height:44px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#2F4B9A;border-right:1px solid #E3E7F0">Read their story</span><span style="min-height:44px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#2F4B9A">Nominate a teacher</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const pill = (t, bg, fg, bd) => ({ t, bg, fg, bd });
+    const mk = (label, sp, mt, mb, mu, mc, pl, pbg, pfg, pbd, fee, fr, stale) => ({ label, sp, mt, mb, mu, mc, pl, pbg, pfg, pbd, fee, feeC: /Not yet/.test(fee) ? '#6B7280' : '#1B2230', fr, frC: stale ? '#1B2230' : '#6B7280', frW: stale ? 600 : 400, border: sp ? '#B8BCC4' : '#D9DEEA', meta: 'CBSE · Nursery–12 · Malviya Nagar · 1.2 km', name: sp ? 'Aravali International School' : 'Green Valley Public School' });
+    return {
+      colours: [
+        { name: 'Copy white', hex: '#FCFCF8', use: 'Page background' },
+        { name: 'Ruled blue', hex: '#2F4B9A', use: 'Brand, links, primary buttons, selected' },
+        { name: 'Ink', hex: '#1B2230', use: 'Text, default margin line' },
+        { name: 'Margin red', hex: '#C8372D', use: 'Deadlines within 7 days only' },
+        { name: 'Board green', hex: '#1F5A43', use: '"Open", "Seats available", verified' },
+        { name: 'Pencil yellow', hex: '#F0C04A', use: '"Upcoming", "Few seats", stale marker' },
+        { name: 'Slate', hex: '#6B7280', use: 'Secondary text, "Closed", unknown' },
+        { name: 'Muted ink', hex: '#4A5160', use: 'Body secondary (AA on white)' },
+        { name: 'Rule', hex: '#D9DEEA', use: 'Card borders, ruled lines' },
+        { name: 'Margin paper', hex: '#F4F5EF', use: 'Footers, label columns' }
+      ],
+      types: [
+        { size: 39, px: '39px', fam: "'Anek Latin'", w: 600, sample: 'Admissions 2027–28', use: 'Page title (desktop)' },
+        { size: 31, px: '31px', fam: "'Anek Latin'", w: 600, sample: 'Green Valley Public School', use: 'Page title (mobile)' },
+        { size: 25, px: '25px', fam: "'Anek Latin'", w: 600, sample: 'Section heading', use: 'Section heading' },
+        { size: 20, px: '20px', fam: "'Anek Latin'", w: 600, sample: 'Card title · दाख़िला', use: 'Card title, sub-heading' },
+        { size: 16, px: '16px', fam: 'Mukta', w: 400, sample: 'Body text for explanations. हिंदी पाठ।', use: 'Body, UI' },
+        { size: 14, px: '14px', fam: 'Mukta', w: 400, sample: 'Source: school notice · checked 2 days ago', use: 'Meta, freshness (minimum)' }
+      ],
+      margins: [
+        { top: 'Closes in', big: '4', bot: 'days', c: '#C8372D', ls: 'solid', label: 'Closing soon', rule: '0–7 days. The only red.' },
+        { top: 'Closes', big: '0', bot: 'days · today', c: '#C8372D', ls: 'solid', label: 'Deadline day', rule: 'Last day to apply' },
+        { top: 'Closes in', big: '15', bot: 'days', c: '#1B2230', ls: 'solid', label: 'Open', rule: 'More than 7 days' },
+        { top: 'Opens', big: '1', bot: 'Nov', c: '#1B2230', ls: 'dashed', label: 'Upcoming', rule: 'Dashed until forms open' },
+        { top: 'Dates', big: '—', bot: 'not out', c: '#6B7280', ls: 'solid', label: 'Not announced', rule: 'Slate, no number' },
+        { top: 'Closed', big: '31', bot: 'Oct', c: '#6B7280', ls: 'solid', label: 'Closed', rule: 'Slate, past date' },
+        { top: 'Seats', big: '2', bot: 'in Cl. 4', c: '#1B2230', ls: 'solid', label: 'Seats now', rule: 'This session, ink' }
+      ],
+      pills: [
+        pill('Not announced', '#FFFFFF', '#4A5160', '#C4C7CE'), pill('Upcoming', '#FBEFC9', '#1B2230', '#F0C04A'),
+        pill('Open', '#E3EEE8', '#1F5A43', '#BFD6C9'), pill('Closing soon', '#FBEAE8', '#B3302A', '#F1C9C5'),
+        pill('Closed', '#F1F1EC', '#4A5160', '#D5D7DC'), pill('Results out', '#EEF1F9', '#2F4B9A', '#C9D0E2')
+      ],
+      seatPills: [pill('Seats available · 4', '#E3EEE8', '#1F5A43', '#BFD6C9'), pill('Few seats · 2', '#FBEFC9', '#1B2230', '#F0C04A'), pill('Waitlist', '#FFFFFF', '#4A5160', '#C4C7CE'), pill('Full', '#F1F1EC', '#4A5160', '#D5D7DC')],
+      cards: [
+        mk('Default', false, 'Closes in', '4', 'days', '#C8372D', 'Closing soon', '#FBEAE8', '#B3302A', '#F1C9C5', 'Registration ₹1,000', 'Checked 2 days ago · school notice', false),
+        mk('Sponsored', true, 'Closes in', '30', 'days', '#1B2230', 'Open', '#E3EEE8', '#1F5A43', '#BFD6C9', 'Registration ₹1,500', 'Checked yesterday · school notice', false),
+        mk('Stale', false, 'Closes in', '15', 'days', '#1B2230', 'Open', '#E3EEE8', '#1F5A43', '#BFD6C9', 'Registration ₹750', 'Checked 9 days ago — rechecking', true),
+        mk('Unknown data', false, 'Dates', '—', 'not out', '#6B7280', 'Not announced', '#FFFFFF', '#4A5160', '#C4C7CE', 'Registration fee not yet published', 'Checked 4 days ago · school website', false)
+      ],
+      tabs: ['Overview', 'Admissions', 'Fees', 'Facilities', 'Teachers'].map((t, i) => ({ t, l: i === 1 ? '#2F4B9A' : 'transparent', c: i === 1 ? '#2F4B9A' : '#1B2230', w: i === 1 ? 600 : 500 })),
+      pins: [
+        { t: 'Closes in 4 days', fg: '#B3302A', bd: '2px solid #C8372D', dot: '#C8372D', dotBd: '0' },
+        { t: 'Open', fg: '#1F5A43', bd: '1px solid #1F5A43', dot: '#1F5A43', dotBd: '0' },
+        { t: 'Opens 1 Nov', fg: '#1B2230', bd: '1px solid #B08A1E', dot: '#F0C04A', dotBd: '1px solid #B08A1E' },
+        { t: 'Not announced', fg: '#4A5160', bd: '1px solid #9AA0AA', dot: '#FFFFFF', dotBd: '2px solid #6B7280' }
+      ],
+      docs: [
+        { t: 'Birth certificate', s: 'Ready · checked by us', sc: '#1F5A43', i: '✓', bg: '#E3EEE8', fg: '#1F5A43', bd: '1px solid #BFD6C9', b: 'Replace', bb: '#FCFCF8', bf: '#2F4B9A', bbd: '1px solid #C9D0E2' },
+        { t: "Parent's ID proof", s: 'Missing · needed by all schools', sc: '#4A5160', i: '', bg: '#FCFCF8', fg: '#4A5160', bd: '1px dashed #9AA6C8', b: 'Upload', bb: '#2F4B9A', bf: '#FCFCF8', bbd: '0' }
+      ],
+      otp: ['4', '7', '1', '9', '2', '6'].map(v => ({ v, bd: '2px solid #1B2230' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

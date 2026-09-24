@@ -1,0 +1,60 @@
+/* SchoolOye design tokens — ported from Claude Design "Components Sheet".
+   Tailwind v4: tokens in @theme become utilities (bg-ruled-blue, text-ink, font-display, ...).
+   Brief: a well-kept school notebook — calm, ruled, dependable. The deadline margin is the one bold element. */
+@import "tailwindcss";
+
+@theme {
+  /* Core palette */
+  --color-copy-white:   #FCFCF8; /* page background */
+  --color-ruled-blue:   #2F4B9A; /* brand, links, primary buttons, selected */
+  --color-ink:          #1B2230; /* text, default margin line */
+  --color-margin-red:   #C8372D; /* deadlines within 7 days ONLY */
+  --color-board-green:  #1F5A43; /* open, seats available, verified */
+  --color-pencil-yellow:#F0C04A; /* upcoming, few seats, stale marker */
+  --color-slate:        #6B7280; /* secondary text, closed, unknown */
+  --color-muted-ink:    #4A5160; /* body secondary (AA on white) */
+  --color-rule:         #D9DEEA; /* card borders, ruled lines */
+  --color-rule-soft:    #E3E7F0; /* row dividers */
+  --color-margin-paper: #F4F5EF; /* footers, label columns, hover */
+  --color-sponsored-border: #B8BCC4;
+
+  /* Status pill surfaces (bg / fg / border) */
+  --color-pill-open-bg: #E3EEE8;    --color-pill-open-fg: #1F5A43;    --color-pill-open-bd: #BFD6C9;
+  --color-pill-soon-bg: #FBEAE8;    --color-pill-soon-fg: #B3302A;    --color-pill-soon-bd: #F1C9C5;
+  --color-pill-upcoming-bg: #FBEFC9;                                 --color-pill-upcoming-bd: #F0C04A;
+  --color-pill-closed-bg: #F1F1EC;                                   --color-pill-closed-bd: #D5D7DC;
+  --color-pill-results-bg: #EEF1F9;                                  --color-pill-results-bd: #C9D0E2;
+  --color-pill-none-bd: #C4C7CE;
+  --color-pencil-yellow-deep: #B08A1E; /* map pin border for upcoming */
+
+  /* Type — fonts wired via next/font in layout.tsx (variables below) */
+  --font-display: var(--font-anek-latin), var(--font-anek-devanagari), system-ui, sans-serif;
+  --font-body:    var(--font-mukta), system-ui, sans-serif;
+
+  --text-title-d: 39px;  --text-title-d--line-height: 1.1;   /* page title desktop */
+  --text-title-m: 31px;  --text-title-m--line-height: 1.15;  /* page title mobile */
+  --text-section: 25px;  --text-section--line-height: 1.2;
+  --text-card:    20px;  --text-card--line-height: 1.25;
+  --text-body:    16px;  --text-body--line-height: 1.5;
+  --text-meta:    14px;  --text-meta--line-height: 1.4;      /* minimum size anywhere */
+
+  /* Shape — design uses 6px for most surfaces, 4px for small controls, full for pills */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-sheet: 20px;
+  --shadow-card: 0 1px 3px rgba(27, 34, 48, .12);
+
+  /* Layout widths seen across screens */
+  --container-read: 760px;
+  --container-page: 1320px;
+}
+
+@layer base {
+  html { background: var(--color-copy-white); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--font-body); font-size: var(--text-body); line-height: 1.5; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; }
+  a { color: var(--color-ruled-blue); text-underline-offset: 3px; }
+  a:hover { color: var(--color-ink); }
+  :focus-visible { outline: 2px solid var(--color-ruled-blue); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+}

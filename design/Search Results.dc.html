@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+input::placeholder{color:#6B7280}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Search results · Schools in Jaipur</div>
+    <div style="font-size:16px;color:#4A5160;line-height:1.5">Mockup date 16 Oct 2026. Compare checkboxes and Save work in <a href="#11a">11a</a> and <a href="#11d">11d</a>. The compare tray appears at 2–4 schools and blocks a 5th. <a href="#11b">11b</a> filter drawer, <a href="#11c">11c</a> map view, <a href="#11e">11e</a> empty state.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="11a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">11a</span><span style="font-size:14px;color:#4A5160">Mobile · list</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;position:relative">
+        <header style="display:flex;align-items:center;gap:4px;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button>
+          <label style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:44px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;padding:0 10px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l5 5"></path></svg>
+            <input placeholder="Schools in Jaipur" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 16px Mukta;color:#1B2230"></input>
+          </label>
+        </header>
+        <div style="padding:12px 16px 8px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.1">Schools in Jaipur</h1>
+            <div role="tablist" style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:40px;padding:0 14px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">List</button>
+              <a href="#11c" style="height:40px;padding:0 14px;display:flex;align-items:center;background:#FCFCF8;color:#1B2230;font:500 14px Mukta;text-decoration:none">Map</a>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <a href="#11b" style="height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:6px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;display:flex;align-items:center;gap:6px;text-decoration:none">Filters <span style="min-width:22px;height:22px;border-radius:11px;background:#2F4B9A;color:#FCFCF8;font-size:13px;display:flex;align-items:center;justify-content:center">2</span></a>
+            <button style="flex:1;height:44px;padding:0 12px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;text-align:left;display:flex;justify-content:space-between;align-items:center">Sort: Relevance <span style="font-size:12px;color:#6B7280">▾</span></button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <sc-for list="{{ applied }}" as="c" hint-placeholder-count="2">
+              <span style="display:inline-flex;align-items:center;height:36px;padding:0 2px 0 12px;border:1px solid #C9D0E2;border-radius:18px;background:#FFFFFF;font-size:14px;font-weight:500">{{ c }}<button aria-label="Remove" style="width:32px;height:32px;border:0;background:transparent;font:500 16px Mukta;color:#4A5160">×</button></span>
+            </sc-for>
+            <a href="#" style="font-size:14px;font-weight:600;min-height:36px;display:flex;align-items:center;padding:0 4px">Clear all</a>
+          </div>
+          <div style="font-size:14px;color:#4A5160">214 schools · open admissions first</div>
+        </div>
+
+        <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ cards }}" as="s" hint-placeholder-count="8">
+            <article style="display:flex;border:1px solid {{ s.border }};border-radius:6px;background:#FFFFFF;overflow:hidden">
+              <div style="width:70px;flex-shrink:0;padding:10px 6px 10px 10px;border-right:2px solid {{ s.mColor }};color:{{ s.mColor }};display:flex;flex-direction:column;gap:1px">
+                <span style="font-size:13px;line-height:1.2">{{ s.mTop }}</span>
+                <span style="font-family:'Anek Latin';font-weight:700;font-size:22px;line-height:1.05">{{ s.mBig }}</span>
+                <span style="font-size:13px;line-height:1.2">{{ s.mBottom }}</span>
+              </div>
+              <div style="flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:5px">
+                <sc-if value="{{ s.sponsored }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#F1F1EA;border:1px solid #C4C7CE;border-radius:4px;padding:0 7px">Sponsored</span></sc-if>
+                <a href="School Page.dc.html" style="font-family:'Anek Latin';font-weight:600;font-size:18px;line-height:1.15;color:#1B2230;text-decoration:none">{{ s.name }}</a>
+                <span style="font-size:14px;color:#1B2230">{{ s.board }} · {{ s.classes }} · {{ s.type }}</span>
+                <span style="font-size:14px;color:#4A5160">{{ s.area }} · {{ s.km }} km</span>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font-size:13px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ s.pBg }};color:{{ s.pFg }};border:1px solid {{ s.pBorder }}">{{ s.pLabel }}</span>
+                  <span style="font-size:14px;color:{{ s.feeColor }}">{{ s.fee }}</span>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <sc-for list="{{ s.fac }}" as="f" hint-placeholder-count="2">
+                    <span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#4A5160"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ f.d }}"></path></svg>{{ f.t }}</span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:2px">
+                  <button onClick="{{ s.onSave }}" style="flex:1;height:44px;border:1px solid #C9D0E2;border-radius:6px;background:{{ s.saveBg }};color:#2F4B9A;font:600 15px Mukta;cursor:pointer">{{ s.saveLabel }}</button>
+                  <button onClick="{{ s.onCompare }}" role="checkbox" aria-checked="{{ s.cmpAria }}" style="flex:1;height:44px;border:1px solid {{ s.cmpBorder }};border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;opacity:{{ s.cmpOpacity }}">
+                    <span style="width:20px;height:20px;border:2px solid #2F4B9A;border-radius:3px;background:{{ s.cmpBox }};color:#FCFCF8;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ s.cmpTick }}</span>Compare</button>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+        <div style="height:{{ traySpace }}"></div>
+        <sc-if value="{{ showTray }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#1B2230;color:#FCFCF8;padding:10px 12px 12px 16px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <span style="font-size:15px"><b>{{ cmpCount }} of 4</b> selected</span>
+              <div style="display:flex;gap:6px">
+                <button onClick="{{ clearCmp }}" style="height:44px;padding:0 12px;border:1px solid #6B7280;border-radius:6px;background:transparent;color:#FCFCF8;font:500 15px Mukta">Clear</button>
+                <button style="height:44px;padding:0 18px;border:0;border-radius:6px;background:#FCFCF8;color:#1B2230;font:600 15px Mukta">Compare</button>
+              </div>
+            </div>
+            <div style="font-size:13px;color:#C9CED8;line-height:1.35">{{ cmpNames }}</div>
+            <sc-if value="{{ cmpFull }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#F0C04A">4 is the limit. Remove one to add another.</div></sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div id="11b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">11b</span><span style="font-size:14px;color:#4A5160">Mobile · filter drawer</span></div>
+      <div style="width:390px;height:844px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 16px;border-bottom:1px solid #D9DEEA">
+          <span style="font-family:'Anek Latin';font-weight:600;font-size:22px">Filters</span>
+          <div style="display:flex;align-items:center"><a href="#" style="font-size:15px;font-weight:600;padding:0 8px;min-height:44px;display:flex;align-items:center">Clear all</a><button aria-label="Close" style="width:44px;height:44px;border:0;background:transparent;font:500 22px Mukta">×</button></div>
+        </div>
+        <div style="flex:1;min-height:0;overflow:hidden;padding:0 16px">
+          <div style="padding:14px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:8px">
+            <span style="font-weight:600">Class</span>
+            <div style="height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 12px">Nursery <span style="font-size:12px;color:#6B7280">▾</span></div>
+          </div>
+          <div style="padding:14px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:8px">
+            <span style="font-weight:600">Board</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ boards }}" as="b" hint-placeholder-count="6">
+                <span style="display:flex;align-items:center;height:40px;padding:0 14px;border-radius:20px;border:1px solid {{ b.border }};background:{{ b.bg }};color:{{ b.fg }};font-size:15px;font-weight:{{ b.w }}">{{ b.t }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:14px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between"><span style="font-weight:600">Distance from Vaishali Nagar</span><span style="font-size:15px;font-weight:600;color:#2F4B9A">Within 5 km</span></div>
+            <div style="position:relative;height:28px;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:#D9DEEA"></div><div style="position:absolute;left:0;width:33%;height:4px;border-radius:2px;background:#2F4B9A"></div><div style="position:absolute;left:calc(33% - 12px);width:24px;height:24px;border-radius:50%;background:#FFFFFF;border:2px solid #2F4B9A"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#6B7280"><span>1 km</span><span>15 km</span></div>
+          </div>
+          <div style="padding:14px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between"><span style="font-weight:600">Annual fee</span><span style="font-size:15px;font-weight:600;color:#1B2230">Any</span></div>
+            <div style="position:relative;height:28px;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:#2F4B9A"></div><div style="position:absolute;left:-2px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;border:2px solid #2F4B9A"></div><div style="position:absolute;right:-2px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;border:2px solid #2F4B9A"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#6B7280"><span>Free</span><span>₹3 lakh+</span></div>
+          </div>
+          <div style="padding:14px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:8px">
+            <span style="font-weight:600">Admission status</span>
+            <sc-for list="{{ statusOpts }}" as="o" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;min-height:40px">
+                <span style="width:22px;height:22px;border:2px solid #2F4B9A;border-radius:3px;background:{{ o.box }};color:#FCFCF8;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ o.tick }}</span>
+                <span style="flex:1">{{ o.t }}</span><span style="font-size:14px;color:#6B7280">{{ o.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-for list="{{ collapsed }}" as="g" hint-placeholder-count="6">
+            <div style="min-height:52px;border-bottom:1px solid #E3E7F0;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">{{ g }}</span><span style="color:#6B7280">+</span></div>
+          </sc-for>
+        </div>
+        <div style="padding:12px 16px 16px;border-top:1px solid #D9DEEA">
+          <button style="width:100%;height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Show 86 schools</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="11c" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">11c</span><span style="font-size:14px;color:#4A5160">Mobile · map, pin tapped</span></div>
+      <div style="width:390px;height:844px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;position:relative">
+        <div style="position:absolute;inset:0;background:#EEEEE7;background-image:linear-gradient(#E2E2DA 2px,transparent 2px),linear-gradient(90deg,#E2E2DA 2px,transparent 2px);background-size:84px 84px"></div>
+        <div style="position:absolute;left:0;right:0;top:300px;height:10px;background:#FFFFFF;transform:rotate(-8deg)"></div>
+        <div style="position:absolute;top:0;bottom:0;left:190px;width:10px;background:#FFFFFF;transform:rotate(12deg)"></div>
+        <div style="position:absolute;top:210px;left:40px;font-size:13px;color:#6B7280">Vaishali Nagar</div>
+        <div style="position:absolute;top:470px;left:220px;font-size:13px;color:#6B7280">Malviya Nagar</div>
+        <div style="position:absolute;top:0;left:0;right:0;padding:8px 12px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;height:48px;border-radius:6px;background:#FFFFFF;border:1px solid #C9D0E2;display:flex;align-items:center;padding:0 12px;gap:8px;font-size:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)">← <span>Schools in Jaipur</span></div>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden;background:#FFFFFF"><a href="#11a" style="height:46px;padding:0 12px;display:flex;align-items:center;color:#1B2230;font:500 14px Mukta;text-decoration:none">List</a><span style="height:46px;padding:0 12px;display:flex;align-items:center;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">Map</span></div>
+          </div>
+          <div style="align-self:flex-start;display:flex;gap:10px;flex-wrap:wrap;padding:6px 10px;border-radius:6px;background:#FFFFFF;border:1px solid #D9DEEA;font-size:13px">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#C8372D"></span>Closing soon</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1F5A43"></span>Open</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#F0C04A;border:1px solid #B08A1E"></span>Upcoming</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#FFFFFF;border:2px solid #6B7280"></span>Not announced</span>
+          </div>
+        </div>
+        <sc-for list="{{ pins }}" as="p" hint-placeholder-count="7">
+          <div style="position:absolute;left:{{ p.x }};top:{{ p.y }};display:flex;flex-direction:column;align-items:center">
+            <span style="display:flex;align-items:center;gap:5px;height:30px;padding:0 10px 0 7px;border-radius:15px;background:{{ p.bg }};color:{{ p.fg }};border:{{ p.border }};font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.18)"><span style="width:10px;height:10px;border-radius:50%;background:{{ p.dot }};border:{{ p.dotBorder }}"></span>{{ p.label }}</span>
+            <span style="width:2px;height:8px;background:{{ p.stem }}"></span>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:180px;top:420px;width:18px;height:18px;border-radius:50%;background:#2F4B9A;border:3px solid #FFFFFF;box-shadow:0 0 0 6px rgba(47,75,154,.18)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:#FCFCF8;border-radius:12px 12px 0 0;box-shadow:0 -2px 12px rgba(0,0,0,.14);padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px">
+          <span style="align-self:center;width:40px;height:4px;border-radius:2px;background:#C4C7CE"></span>
+          <div style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+            <div style="width:70px;flex-shrink:0;padding:10px;border-right:2px solid #C8372D;color:#C8372D;display:flex;flex-direction:column"><span style="font-size:13px">Closes in</span><span style="font-family:'Anek Latin';font-weight:700;font-size:25px;line-height:1">4</span><span style="font-size:13px">days</span></div>
+            <div style="flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:3px">
+              <span style="font-family:'Anek Latin';font-weight:600;font-size:18px">Green Valley Public School</span>
+              <span style="font-size:14px">CBSE · Nursery–12 · Private</span>
+              <span style="font-size:14px;color:#4A5160">Malviya Nagar · 1.2 km · ₹45,000–78,000 a year</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <a href="School Page.dc.html" style="height:44px;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 15px Mukta;display:flex;align-items:center;justify-content:center;text-decoration:none">View school</a>
+            <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Save</button>
+            <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Directions</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="11e" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">11e</span><span style="font-size:14px;color:#4A5160">Mobile · no results</span></div>
+      <div style="width:390px;height:844px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <header style="display:flex;align-items:center;gap:4px;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <button style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button>
+          <div style="flex:1;height:44px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 10px;font-size:16px">Schools in Jaipur</div>
+        </header>
+        <div style="padding:12px 16px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #E3E7F0">
+          <sc-for list="{{ emptyChips }}" as="c" hint-placeholder-count="4">
+            <span style="display:inline-flex;align-items:center;height:36px;padding:0 2px 0 12px;border:1px solid #C9D0E2;border-radius:18px;background:#FFFFFF;font-size:14px;font-weight:500">{{ c }}<span style="width:32px;text-align:center;color:#4A5160">×</span></span>
+          </sc-for>
+        </div>
+        <div style="margin:28px 16px 0;border-left:2px solid #6B7280;padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.15">No schools match all four filters</h2>
+          <div style="font-size:16px;line-height:1.5;color:#4A5160">Hostel with IB board narrows it a lot within 2 km. Try one of these:</div>
+        </div>
+        <div style="padding:20px 16px;display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ emptySteps }}" as="e" hint-placeholder-count="3">
+            <button style="display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;min-height:60px;padding:10px 14px;border:1px solid #C9D0E2;border-radius:6px;background:#FFFFFF;cursor:pointer">
+              <span style="display:flex;flex-direction:column"><span style="font:600 16px Mukta;color:#2F4B9A">{{ e.t }}</span><span style="font:400 14px Mukta;color:#4A5160">{{ e.d }}</span></span><span style="color:#2F4B9A;font-size:18px">→</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div id="11d" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">11d</span><span style="font-size:14px;color:#4A5160">Desktop · 1280 · list with filter rail</span></div>
+      <div style="width:1280px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;position:relative">
+        <header style="display:flex;align-items:center;gap:28px;padding:8px 40px;border-bottom:1px solid #D9DEEA;height:68px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+          <nav style="display:flex;align-items:stretch;height:100%;gap:2px">
+            <sc-for list="{{ primary }}" as="p" hint-placeholder-count="5">
+              <a href="#" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;font-size:16px;font-weight:{{ p.w }};color:{{ p.c }};border-bottom:3px solid {{ p.l }};margin-bottom:-9px">{{ p.t }}</a>
+            </sc-for>
+          </nav>
+          <label style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:44px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;padding:0 12px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l5 5"></path></svg>
+            <input placeholder="School, area or teacher" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 16px Mukta;color:#1B2230"></input>
+          </label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px;font-weight:500">Jaipur ▾</span>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:44px;min-width:46px;display:flex;align-items:center;justify-content:center;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</span><span style="height:44px;min-width:46px;display:flex;align-items:center;justify-content:center;font:500 15px 'Anek Devanagari'">हिं</span></div>
+            <span style="height:44px;padding:0 18px;border:1px solid #2F4B9A;border-radius:6px;color:#2F4B9A;font:600 16px Mukta;display:flex;align-items:center">Sign in</span>
+          </div>
+        </header>
+
+        <div style="padding:20px 40px 12px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Schools in Jaipur</h1>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <span style="font-size:15px;color:#4A5160;margin-right:6px">214 schools</span>
+              <sc-for list="{{ applied }}" as="c" hint-placeholder-count="2">
+                <span style="display:inline-flex;align-items:center;height:34px;padding:0 2px 0 12px;border:1px solid #C9D0E2;border-radius:17px;background:#FFFFFF;font-size:14px;font-weight:500">{{ c }}<button aria-label="Remove" style="width:30px;height:30px;border:0;background:transparent;font:500 16px Mukta;color:#4A5160;cursor:pointer">×</button></span>
+              </sc-for>
+              <a href="#" style="font-size:14px;font-weight:600;padding:0 4px">Clear all</a>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border:1px solid #C9D0E2;border-radius:6px;background:#FFFFFF;font-size:15px"><span style="color:#4A5160">Sort</span><b style="font-weight:600">Relevance, open admissions first</b><span style="font-size:12px;color:#6B7280">▾</span></div>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:42px;padding:0 16px;display:flex;align-items:center;background:#2F4B9A;color:#FCFCF8;font:600 15px Mukta">List</span><span style="height:42px;padding:0 16px;display:flex;align-items:center;font:500 15px Mukta">Map</span></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:280px minmax(0,1fr);align-items:start">
+          <aside style="padding:8px 24px 24px 40px;border-right:1px solid #D9DEEA;display:flex;flex-direction:column">
+            <div style="padding:12px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:6px">
+              <span style="font-weight:600">Class</span>
+              <div style="height:40px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:15px">Nursery <span style="font-size:12px;color:#6B7280">▾</span></div>
+            </div>
+            <sc-for list="{{ rail }}" as="g" hint-placeholder-count="6">
+              <div style="padding:12px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:2px">
+                <span style="font-weight:600;margin-bottom:4px">{{ g.title }}</span>
+                <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3">
+                  <label style="display:flex;align-items:center;gap:10px;min-height:32px;font-size:15px;cursor:pointer">
+                    <span style="width:18px;height:18px;flex-shrink:0;border:2px solid #2F4B9A;border-radius:3px;background:{{ o.box }};color:#FCFCF8;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ o.tick }}</span>
+                    <span style="flex:1">{{ o.t }}</span><span style="font-size:13px;color:#6B7280">{{ o.n }}</span>
+                  </label>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="padding:12px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between"><span style="font-weight:600">Distance</span><span style="font-size:14px;font-weight:600;color:#2F4B9A">5 km</span></div>
+              <div style="position:relative;height:22px;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:#D9DEEA"></div><div style="position:absolute;left:0;width:33%;height:4px;background:#2F4B9A;border-radius:2px"></div><div style="position:absolute;left:calc(33% - 10px);width:20px;height:20px;border-radius:50%;background:#FFFFFF;border:2px solid #2F4B9A"></div></div>
+            </div>
+            <div style="padding:12px 0;border-bottom:1px solid #E3E7F0;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between"><span style="font-weight:600">Annual fee</span><span style="font-size:14px;color:#4A5160">Any</span></div>
+              <div style="position:relative;height:22px;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:#2F4B9A"></div><div style="position:absolute;left:-2px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;border:2px solid #2F4B9A"></div><div style="position:absolute;right:-2px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;border:2px solid #2F4B9A"></div></div>
+            </div>
+            <div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">Verified by school only</span><span style="width:44px;height:26px;border-radius:13px;background:#C9D0E2;position:relative"><span style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF"></span></span></div>
+            <div style="font-size:14px;color:#4A5160">More: Co-ed / Girls / Boys, Form type, Medium, Facilities</div>
+          </aside>
+
+          <div style="padding:16px 40px 24px 24px;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ cards }}" as="s" hint-placeholder-count="8">
+              <article style="display:grid;grid-template-columns:104px minmax(0,1fr) 200px;border:1px solid {{ s.border }};border-radius:6px;background:#FFFFFF;overflow:hidden">
+                <div style="padding:14px 12px;border-right:2px solid {{ s.mColor }};color:{{ s.mColor }};display:flex;flex-direction:column;gap:1px">
+                  <span style="font-size:14px">{{ s.mTop }}</span>
+                  <span style="font-family:'Anek Latin';font-weight:700;font-size:28px;line-height:1.05">{{ s.mBig }}</span>
+                  <span style="font-size:14px">{{ s.mBottom }}</span>
+                  <span style="font-size:13px;color:#6B7280;margin-top:4px">{{ s.mDate }}</span>
+                </div>
+                <div style="padding:14px 18px;display:flex;flex-direction:column;gap:5px;min-width:0">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <a href="School Page.dc.html" style="font-family:'Anek Latin';font-weight:600;font-size:20px;line-height:1.15;color:#1B2230;text-decoration:none" style-hover="text-decoration:underline">{{ s.name }}</a>
+                    <sc-if value="{{ s.sponsored }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;font-weight:600;background:#F1F1EA;border:1px solid #C4C7CE;border-radius:4px;padding:0 7px">Sponsored</span></sc-if>
+                    <span style="font-size:13px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ s.pBg }};color:{{ s.pFg }};border:1px solid {{ s.pBorder }}">{{ s.pLabel }}</span>
+                  </div>
+                  <span style="font-size:15px">{{ s.board }} · {{ s.classes }} · {{ s.type }} · <span style="color:#4A5160">{{ s.area }}, {{ s.km }} km</span></span>
+                  <span style="font-size:15px;color:{{ s.feeColor }}">{{ s.fee }}</span>
+                  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:2px">
+                    <sc-for list="{{ s.fac }}" as="f" hint-placeholder-count="2">
+                      <span style="display:inline-flex;align-items:center;gap:5px;font-size:14px;color:#4A5160"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ f.d }}"></path></svg>{{ f.t }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="padding:14px 16px;border-left:1px solid #EEF0F5;display:flex;flex-direction:column;gap:8px;justify-content:center">
+                  <button onClick="{{ s.onSave }}" style="height:40px;border:1px solid #C9D0E2;border-radius:6px;background:{{ s.saveBg }};color:#2F4B9A;font:600 15px Mukta;cursor:pointer">{{ s.saveLabel }}</button>
+                  <button onClick="{{ s.onCompare }}" role="checkbox" aria-checked="{{ s.cmpAria }}" style="height:40px;border:1px solid {{ s.cmpBorder }};border-radius:6px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;opacity:{{ s.cmpOpacity }}">
+                    <span style="width:18px;height:18px;border:2px solid #2F4B9A;border-radius:3px;background:{{ s.cmpBox }};color:#FCFCF8;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ s.cmpTick }}</span>Compare</button>
+                  <span style="font-size:13px;color:{{ s.freshColor }};text-align:center">{{ s.fresh }}</span>
+                </div>
+              </article>
+            </sc-for>
+            <div style="height:{{ traySpaceD }}"></div>
+          </div>
+        </div>
+
+        <sc-if value="{{ showTray }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#1B2230;color:#FCFCF8;padding:14px 40px;display:flex;align-items:center;gap:16px">
+            <span style="font-size:16px;white-space:nowrap"><b>{{ cmpCount }} of 4</b> selected</span>
+            <div style="flex:1;display:flex;gap:8px;flex-wrap:wrap;min-width:0">
+              <sc-for list="{{ cmpList }}" as="c" hint-placeholder-count="2">
+                <span style="display:inline-flex;align-items:center;height:36px;padding:0 2px 0 12px;border:1px solid #4A5160;border-radius:18px;font-size:14px">{{ c.name }}<button onClick="{{ c.remove }}" aria-label="Remove" style="width:30px;height:30px;border:0;background:transparent;color:#C9CED8;font:500 16px Mukta;cursor:pointer">×</button></span>
+              </sc-for>
+            </div>
+            <sc-if value="{{ cmpFull }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#F0C04A;white-space:nowrap">4 is the limit</span></sc-if>
+            <button onClick="{{ clearCmp }}" style="height:44px;padding:0 14px;border:1px solid #6B7280;border-radius:6px;background:transparent;color:#FCFCF8;font:500 15px Mukta;cursor:pointer">Clear</button>
+            <button style="height:44px;padding:0 22px;border:0;border-radius:6px;background:#FCFCF8;color:#1B2230;font:600 16px Mukta;cursor:pointer">Compare {{ cmpCount }} schools</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { cmp: ['gv', 'sa'], saved: {} };
+  ICON = {
+    transport: ['Transport', 'M5 4h14a1 1 0 0 1 1 1v11H4V5a1 1 0 0 1 1-1zM4 11h16M7 19v-3M17 19v-3'],
+    hostel: ['Hostel', 'M3 18V8M3 14h18v4M21 14v-2a2 2 0 0 0-2-2h-8v4'],
+    smart: ['Smart class', 'M3 5h18v11H3zM8 20h8M12 16v4'],
+    labs: ['Labs', 'M9 3h6M10 3v6l-5 9a1.5 1.5 0 0 0 1.3 2h11.4A1.5 1.5 0 0 0 19 18l-5-9V3'],
+    swim: ['Swimming', 'M2 17c2 0 2-1.5 4-1.5S8 17 10 17s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5M8 13V6a2 2 0 0 1 4 0M16 13V6']
+  };
+  data = [
+    { id: 'sa', name: 'St. Aarav Convent', board: 'ICSE', classes: 'Nursery–12', type: 'Private', area: 'C-Scheme', km: '2.1', fee: [38, 62], st: 'open', days: 2, date: '18 Oct', fac: ['transport', 'smart'], checked: 1 },
+    { id: 'gv', name: 'Green Valley Public School', board: 'CBSE', classes: 'Nursery–12', type: 'Private', area: 'Malviya Nagar', km: '1.2', fee: [45, 78], st: 'open', days: 4, date: '20 Oct', fac: ['transport', 'smart', 'labs'], checked: 2 },
+    { id: 'ar', name: 'Aravali International School', board: 'CBSE', classes: 'Nursery–12', type: 'Private', area: 'Jagatpura', km: '4.8', fee: [110, 160], st: 'open', days: 30, date: '15 Nov', fac: ['transport', 'hostel', 'swim'], checked: 1, sponsored: true },
+    { id: 'pc', name: 'Pink City Scholars School', board: 'CBSE', classes: 'Nursery–10', type: 'Private', area: 'Vaishali Nagar', km: '0.6', fee: [32, 48], st: 'open', days: 6, date: '22 Oct', fac: ['transport'], checked: 3 },
+    { id: 'nb', name: 'Nav Bharti Academy', board: 'RBSE', classes: 'Nursery–12', type: 'Private', area: 'Mansarovar', km: '4.0', fee: null, st: 'open', days: 15, date: '31 Oct', fac: ['smart'], checked: 9, stale: true },
+    { id: 'mb', name: 'Meera Bal Niketan', board: 'RBSE', classes: 'Nursery–10', type: 'Private · Girls', area: 'Sodala', km: '3.1', fee: [18, 26], st: 'open', days: 20, date: '5 Nov', fac: ['transport'], checked: 4 },
+    { id: 'jh', name: 'Jai Hind Model School', board: 'CBSE', classes: 'Nursery–8', type: 'Private', area: 'Pratap Nagar', km: '4.6', fee: [24, 36], st: 'upcoming', opens: '1 Nov', fac: ['smart'], checked: 3 },
+    { id: 'rs', name: 'Rajkiya Uchch Madhyamik Vidyalaya', board: 'RBSE', classes: 'Class 1–12', type: 'Government', area: 'Vaishali Nagar', km: '0.9', fee: 'free', st: 'none', fac: ['labs'], checked: 6 }
+  ];
+  toggleCmp(id) {
+    this.setState(s => {
+      const has = s.cmp.includes(id);
+      if (!has && s.cmp.length >= 4) return null;
+      return { cmp: has ? s.cmp.filter(x => x !== id) : [...s.cmp, id] };
+    });
+  }
+  renderVals() {
+    const { cmp, saved } = this.state, full = cmp.length >= 4;
+    const cards = this.data.map(s => {
+      const urgent = s.st === 'open' && s.days <= 7;
+      let m, p;
+      if (s.st === 'open') { m = { mTop: 'Closes in', mBig: String(s.days), mBottom: 'days', mDate: s.date, mColor: urgent ? '#C8372D' : '#1B2230' };
+        p = urgent ? { pLabel: 'Closing soon', pBg: '#FBEAE8', pFg: '#B3302A', pBorder: '#F1C9C5' } : { pLabel: 'Open', pBg: '#E3EEE8', pFg: '#1F5A43', pBorder: '#BFD6C9' }; }
+      else if (s.st === 'upcoming') { m = { mTop: 'Opens', mBig: s.opens.split(' ')[0], mBottom: s.opens.split(' ')[1], mDate: 'Forms open', mColor: '#1B2230' }; p = { pLabel: 'Upcoming', pBg: '#FBEFC9', pFg: '#1B2230', pBorder: '#F0C04A' }; }
+      else { m = { mTop: 'Dates', mBig: '—', mBottom: 'not out', mDate: '', mColor: '#6B7280' }; p = { pLabel: 'Not announced', pBg: '#FFFFFF', pFg: '#4A5160', pBorder: '#C4C7CE' }; }
+      const inCmp = cmp.includes(s.id), sv = !!saved[s.id];
+      const fee = s.fee === 'free' ? 'No tuition fee (government)' : s.fee ? `₹${s.fee[0] >= 100 ? (s.fee[0] / 100).toFixed(1) + ' lakh' : s.fee[0] + ',000'}–${s.fee[1] >= 100 ? (s.fee[1] / 100).toFixed(1) + ' lakh' : s.fee[1] + ',000'} a year` : 'Fees not yet published';
+      return { ...s, ...m, ...p, fee, feeColor: s.fee ? '#1B2230' : '#6B7280', sponsored: !!s.sponsored,
+        border: s.sponsored ? '#B8BCC4' : '#D9DEEA',
+        fac: s.fac.map(k => ({ t: this.ICON[k][0], d: this.ICON[k][1] })),
+        fresh: s.stale ? `Checked ${s.checked} days ago — rechecking` : `Checked ${s.checked === 1 ? 'yesterday' : s.checked + ' days ago'}`,
+        freshColor: s.stale ? '#1B2230' : '#6B7280',
+        saveLabel: sv ? 'Saved ✓' : 'Save', saveBg: sv ? '#EEF1F9' : '#FCFCF8',
+        cmpTick: inCmp ? '✓' : '', cmpBox: inCmp ? '#2F4B9A' : '#FFFFFF', cmpAria: inCmp ? 'true' : 'false',
+        cmpBorder: inCmp ? '#2F4B9A' : '#C9D0E2', cmpOpacity: !inCmp && full ? 0.5 : 1,
+        onSave: () => this.setState(st => ({ saved: { ...st.saved, [s.id]: !st.saved[s.id] } })),
+        onCompare: () => this.toggleCmp(s.id) };
+    });
+    const names = cmp.map(id => this.data.find(d => d.id === id).name);
+    const chk = (t, n, on) => ({ t, n, box: on ? '#2F4B9A' : '#FFFFFF', tick: on ? '✓' : '' });
+    return {
+      cards, showTray: cmp.length >= 2, cmpCount: cmp.length, cmpFull: full, cmpNames: names.join(' · '),
+      cmpList: cmp.map(id => ({ name: this.data.find(d => d.id === id).name, remove: () => this.toggleCmp(id) })),
+      clearCmp: () => this.setState({ cmp: [] }),
+      traySpace: cmp.length >= 2 ? (full ? '118px' : '96px') : '0px', traySpaceD: cmp.length >= 2 ? '64px' : '0px',
+      applied: ['Nursery', 'Within 5 km'],
+      boards: ['CBSE', 'ICSE', 'RBSE', 'HBSE', 'IB', 'Cambridge'].map(t => ({ t, border: '#C9D0E2', bg: '#FCFCF8', fg: '#1B2230', w: 500 })),
+      statusOpts: [chk('Seats available now (2026–27)', 38, false), chk('Open now', 11, false), chk('Closing soon', 3, false), chk('Upcoming', 6, false), chk('Not announced', 66, false)],
+      collapsed: ['School type', 'Co-ed / Girls / Boys', 'Form type', 'Medium', 'Facilities', 'Verified by school only'],
+      rail: [
+        { title: 'Board', opts: [chk('CBSE', 48, false), chk('ICSE', 9, false), chk('RBSE', 24, false), chk('IB', 2, false), chk('Cambridge', 3, false)] },
+        { title: 'School type', opts: [chk('Private', 71, false), chk('Government', 13, false), chk('Aided', 2, false)] },
+        { title: 'Admission status', opts: [chk('Seats now · 2026–27', 38, false), chk('Open now', 11, false), chk('Upcoming', 6, false), chk('Not announced', 66, false)] },
+        { title: 'Form type', opts: [chk('Online', 7, false), chk('Offline', 4, false)] }
+      ],
+      pins: [
+        { x: '150px', y: '446px', label: 'Closes in 4 days', ...this.pin('red'), stem: '#C8372D' },
+        { x: '36px', y: '250px', label: 'Pink City · 6 days', ...this.pin('red'), stem: '#C8372D' },
+        { x: '236px', y: '170px', label: 'St. Aarav · 2 days', ...this.pin('red'), stem: '#C8372D' },
+        { x: '40px', y: '360px', label: 'Meera Bal · Open', ...this.pin('green'), stem: '#1F5A43' },
+        { x: '240px', y: '300px', label: 'Nav Bharti · Open', ...this.pin('green'), stem: '#1F5A43' },
+        { x: '230px', y: '540px', label: 'Jai Hind · Opens 1 Nov', ...this.pin('yellow'), stem: '#B08A1E' },
+        { x: '60px', y: '520px', label: 'Rajkiya UMV', ...this.pin('none'), stem: '#6B7280' }
+      ],
+      emptyChips: ['Nursery', 'IB', 'Hostel', 'Within 2 km'],
+      emptySteps: [
+        { t: 'Widen to 10 km', d: '2 IB schools with hostel' },
+        { t: 'Remove "Hostel"', d: '3 IB schools within 2 km' },
+        { t: 'Get an alert', d: "We'll tell you if a match is listed" }
+      ],
+      primary: ['Schools', 'Admissions', 'Teachers', 'Guides', 'For schools'].map((t, i) => ({ t, w: i === 0 ? 600 : 500, c: i === 0 ? '#2F4B9A' : '#1B2230', l: i === 0 ? '#2F4B9A' : 'transparent' }))
+    };
+  }
+  pin(k) {
+    return {
+      red: { bg: '#FFFFFF', fg: '#B3302A', border: '2px solid #C8372D', dot: '#C8372D', dotBorder: '0' },
+      green: { bg: '#FFFFFF', fg: '#1F5A43', border: '1px solid #1F5A43', dot: '#1F5A43', dotBorder: '0' },
+      yellow: { bg: '#FFFFFF', fg: '#1B2230', border: '1px solid #B08A1E', dot: '#F0C04A', dotBorder: '1px solid #B08A1E' },
+      none: { bg: '#FFFFFF', fg: '#4A5160', border: '1px solid #9AA0AA', dot: '#FFFFFF', dotBorder: '2px solid #6B7280' }
+    }[k];
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Teacher profile</div>
+    <div style="font-size:16px;color:#4A5160;line-height:1.5"><a href="#14a">14a</a> mobile and <a href="#14b">14b</a> desktop show a claimed profile. <a href="#14c">14c</a> is the unclaimed state. Verification chips appear only for checks that passed: here school employment is still pending, so it isn't shown. The teacher is fictional.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="14a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">14a</span><span style="font-size:14px;color:#4A5160">Mobile · claimed</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;align-items:center"><button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button><div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div></div>
+          <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden"><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</span><span style="height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;font:500 15px 'Anek Devanagari'">हिं</span></div>
+        </header>
+        <div style="padding:20px 16px 16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:96px;height:112px;flex-shrink:0;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:12px;color:#6B7280">Photo</div>
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+              <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.1">Meenakshi Rathore</h1>
+              <span style="font-size:15px">Mathematics · TGT (Classes 6–10)</span>
+              <a href="School Page v2.dc.html" style="font-size:15px;font-weight:600">Nav Bharti Academy</a>
+              <span style="font-size:14px;color:#4A5160">Mansarovar, Jaipur</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="font-size:13px;font-weight:600;color:#2F4B9A;background:#EEF1F9;border:1px solid #C9D0E2;border-radius:4px;padding:1px 8px">Profile claimed by teacher</span>
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="2"><span style="font-size:13px;font-weight:600;color:#1F5A43;border:1px solid #B9D1C4;border-radius:4px;padding:1px 8px">✓ {{ c }}</span></sc-for>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button style="flex:1;height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Request contact</button>
+            <button style="height:48px;padding:0 14px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Share</button>
+          </div>
+          <span style="font-size:13px;color:#4A5160;line-height:1.4">SchoolOye passes your message on. The teacher decides whether to reply.</span>
+        </div>
+
+        <div style="padding:0 16px">
+          <div style="padding:18px 0;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:8px">
+            <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Recognition</h2>
+            <sc-for list="{{ awards }}" as="a" hint-placeholder-count="2">
+              <div style="display:flex;border-left:2px solid #1B2230;padding:2px 0 2px 12px;flex-direction:column"><span style="font-weight:600">{{ a.t }}</span><span style="font-size:14px;color:#4A5160">{{ a.d }}</span></div>
+            </sc-for>
+          </div>
+          <div style="padding:18px 0;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:8px">
+            <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">About my teaching</h2>
+            <p style="margin:0;line-height:1.6;text-wrap:pretty">{{ about }}</p>
+          </div>
+          <div style="padding:18px 0;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:8px">
+            <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">In 60 seconds</h2>
+            <div style="aspect-ratio:16/9;border-radius:6px;background:repeating-linear-gradient(135deg,#E9EAE3 0 10px,#F4F5EF 10px 20px);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:#4A5160"><span style="width:44px;height:44px;border-radius:50%;background:#1B2230;color:#FCFCF8;display:flex;align-items:center;justify-content:center">▶</span>Intro video · 0:58</div>
+          </div>
+          <div style="padding:18px 0;border-top:1px solid #D9DEEA;display:flex;flex-direction:column">
+            <h2 style="margin:0 0 8px;font-family:'Anek Latin';font-weight:600;font-size:20px">Experience</h2>
+            <sc-for list="{{ exp }}" as="e" hint-placeholder-count="3">
+              <div style="display:flex">
+                <div style="width:76px;flex-shrink:0;border-right:2px {{ e.ls }} #1B2230;padding:6px 10px 14px 0;font-size:14px;font-weight:600">{{ e.y }}</div>
+                <div style="padding:6px 0 14px 14px;display:flex;flex-direction:column"><span style="font-weight:600">{{ e.r }}</span><span style="font-size:14px;color:#4A5160">{{ e.s }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:18px 0;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:4px">
+            <h2 style="margin:0 0 4px;font-family:'Anek Latin';font-weight:600;font-size:20px">Qualifications</h2>
+            <sc-for list="{{ quals }}" as="q" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #EEF0F5"><span style="display:flex;flex-direction:column"><span style="font-weight:600">{{ q.t }}</span><span style="font-size:14px;color:#4A5160">{{ q.d }}</span></span><span style="font-size:13px;color:{{ q.c }};font-weight:600;white-space:nowrap">{{ q.v }}</span></div>
+            </sc-for>
+          </div>
+          <div style="padding:18px 0;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Recommendations</h2><span style="font-size:14px;color:#4A5160">3</span></div>
+            <sc-for list="{{ recs }}" as="r" hint-placeholder-count="3">
+              <figure style="margin:0;padding:12px 14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px">
+                <blockquote style="margin:0;font-size:15px;line-height:1.55">“{{ r.q }}”</blockquote>
+                <figcaption style="font-size:14px;color:#4A5160"><b style="color:#1B2230;font-weight:600">{{ r.who }}</b> · {{ r.rel }}</figcaption>
+              </figure>
+            </sc-for>
+            <span style="font-size:13px;color:#4A5160">Recommendations are reviewed by SchoolOye before they appear. The teacher can hide any of them.</span>
+            <a href="#" style="font-weight:600;min-height:44px;display:flex;align-items:center">Write a recommendation</a>
+          </div>
+          <div style="padding:18px 0 24px;border-top:1px solid #D9DEEA;display:flex;flex-direction:column;gap:8px">
+            <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Open to</h2>
+            <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ openTo }}" as="o" hint-placeholder-count="3"><span style="font-size:14px;padding:4px 12px;border:1px solid #C9D0E2;border-radius:16px;background:#FFFFFF">{{ o }}</span></sc-for></div>
+          </div>
+        </div>
+        <footer style="padding:12px 16px;border-top:1px solid #D9DEEA;background:#F4F5EF"><a href="#" style="font-size:15px;font-weight:600;min-height:44px;display:flex;align-items:center">Report this profile</a></footer>
+      </div>
+    </div>
+
+    <div id="14c" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">14c</span><span style="font-size:14px;color:#4A5160">Mobile · unclaimed</span></div>
+      <div style="width:390px;height:844px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden;display:flex;flex-direction:column">
+        <header style="display:flex;align-items:center;padding:8px 8px 8px 4px;border-bottom:1px solid #D9DEEA">
+          <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;font:500 20px Mukta;color:#2F4B9A">←</button><div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+        </header>
+        <div style="padding:24px 16px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;gap:14px;align-items:center">
+            <div style="width:72px;height:72px;border-radius:50%;background:#EEF0F5;border:1px dashed #9AA6C8;display:flex;align-items:center;justify-content:center;font-family:'Anek Latin';font-weight:600;font-size:25px;color:#4A5160">RS</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px;line-height:1.1">R. Sharma</h1>
+              <span style="font-size:15px">Science teacher</span>
+              <a href="School Page v2.dc.html" style="font-size:15px">Green Valley Public School</a>
+            </div>
+          </div>
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;color:#4A5160;border:1px dashed #B8BCC4;border-radius:4px;padding:1px 8px">Not claimed</span>
+          <div style="font-size:15px;line-height:1.5;color:#4A5160">This entry is taken from the school's published staff list. It shows only name, subject and school until the teacher claims it.</div>
+          <span style="font-size:14px;color:#6B7280">Source: school website staff page · checked 12 days ago</span>
+        </div>
+        <div style="margin:0 16px;padding:16px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:10px">
+          <span style="font-family:'Anek Latin';font-weight:600;font-size:20px">Are you this teacher?</span>
+          <span style="font-size:15px;line-height:1.5">Claim your profile to add your experience, get recommendations and choose what's public. It's free.</span>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Claim your profile</button>
+          <a href="#" style="font-size:15px;min-height:44px;display:flex;align-items:center;justify-content:center">Not you? Ask us to remove this</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="14b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">14b</span><span style="font-size:14px;color:#4A5160">Desktop · 1280 · claimed</span></div>
+      <div style="width:1280px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12)">
+        <header style="display:flex;align-items:center;gap:28px;padding:8px 40px;border-bottom:1px solid #D9DEEA;height:68px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+          <nav style="display:flex;align-items:stretch;height:100%;gap:2px">
+            <sc-for list="{{ primary }}" as="p" hint-placeholder-count="5"><a href="#" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;font-size:16px;font-weight:{{ p.w }};color:{{ p.c }};border-bottom:3px solid {{ p.l }};margin-bottom:-9px">{{ p.t }}</a></sc-for>
+          </nav>
+          <div style="flex:1;height:44px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;padding:0 12px;color:#6B7280">School, area or teacher</div>
+          <span style="height:44px;padding:0 18px;border:1px solid #2F4B9A;border-radius:6px;color:#2F4B9A;font:600 16px Mukta;display:flex;align-items:center">Sign in</span>
+        </header>
+        <div style="padding:12px 40px 0;font-size:14px;color:#4A5160;display:flex;gap:6px"><a href="#">Teachers in Jaipur</a><span>›</span><a href="#">Mathematics</a><span>›</span><span>Meenakshi Rathore</span></div>
+
+        <div style="padding:20px 40px 32px;display:grid;grid-template-columns:200px minmax(0,1fr) 320px;gap:32px;align-items:start;border-bottom:1px solid #D9DEEA">
+          <div style="aspect-ratio:5/6;border-radius:4px;background:repeating-linear-gradient(135deg,#E9EAE3 0 8px,#F4F5EF 8px 16px);display:flex;align-items:center;justify-content:center;font-size:13px;color:#6B7280">Teacher photo</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:39px;line-height:1.1">Meenakshi Rathore</h1>
+            <span style="font-size:18px">Mathematics · TGT (Classes 6–10)</span>
+            <span style="font-size:16px"><a href="School Page v2.dc.html" style="font-weight:600">Nav Bharti Academy</a> <span style="color:#4A5160">· Mansarovar, Jaipur · 11 years teaching</span></span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <span style="font-size:14px;font-weight:600;color:#2F4B9A;background:#EEF1F9;border:1px solid #C9D0E2;border-radius:4px;padding:1px 8px">Profile claimed by teacher</span>
+              <sc-for list="{{ chips }}" as="c" hint-placeholder-count="2"><span style="font-size:14px;font-weight:600;color:#1F5A43;border:1px solid #B9D1C4;border-radius:4px;padding:1px 8px">✓ {{ c }}</span></sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center"><span style="font-size:14px;color:#4A5160">Open to</span><sc-for list="{{ openTo }}" as="o" hint-placeholder-count="3"><span style="font-size:14px;padding:3px 12px;border:1px solid #C9D0E2;border-radius:16px;background:#FFFFFF">{{ o }}</span></sc-for></div>
+          </div>
+          <div style="border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Request contact</button>
+            <button style="height:44px;border:1px solid #C9D0E2;border-radius:6px;background:#FCFCF8;color:#2F4B9A;font:600 15px Mukta">Share on WhatsApp</button>
+            <span style="font-size:14px;color:#4A5160;line-height:1.45">SchoolOye passes your message on. Phone numbers are never shown. The teacher decides whether to reply.</span>
+          </div>
+        </div>
+
+        <div style="padding:28px 40px 40px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:48px;align-items:start">
+          <div style="display:flex;flex-direction:column;gap:28px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">About my teaching</h2>
+              <p style="margin:0;font-size:17px;line-height:1.65;max-width:680px;text-wrap:pretty">{{ about }}</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Recommendations</h2><a href="#" style="font-weight:600">Write a recommendation</a></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <sc-for list="{{ recs }}" as="r" hint-placeholder-count="3">
+                  <figure style="margin:0;padding:14px 16px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;display:flex;flex-direction:column;gap:8px">
+                    <blockquote style="margin:0;font-size:16px;line-height:1.55">“{{ r.q }}”</blockquote>
+                    <figcaption style="font-size:14px;color:#4A5160"><b style="color:#1B2230;font-weight:600">{{ r.who }}</b> · {{ r.rel }}</figcaption>
+                  </figure>
+                </sc-for>
+              </div>
+              <span style="font-size:14px;color:#4A5160">Reviewed by SchoolOye before they appear. No star ratings.</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+              <div style="display:flex;flex-direction:column">
+                <h2 style="margin:0 0 8px;font-family:'Anek Latin';font-weight:600;font-size:20px">Experience</h2>
+                <sc-for list="{{ exp }}" as="e" hint-placeholder-count="3">
+                  <div style="display:flex">
+                    <div style="width:88px;flex-shrink:0;border-right:2px {{ e.ls }} #1B2230;padding:6px 10px 14px 0;font-size:14px;font-weight:600">{{ e.y }}</div>
+                    <div style="padding:6px 0 14px 14px;display:flex;flex-direction:column"><span style="font-weight:600">{{ e.r }}</span><span style="font-size:14px;color:#4A5160">{{ e.s }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column">
+                <h2 style="margin:0 0 8px;font-family:'Anek Latin';font-weight:600;font-size:20px">Qualifications</h2>
+                <sc-for list="{{ quals }}" as="q" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #EEF0F5"><span style="display:flex;flex-direction:column"><span style="font-weight:600">{{ q.t }}</span><span style="font-size:14px;color:#4A5160">{{ q.d }}</span></span><span style="font-size:13px;color:{{ q.c }};font-weight:600;white-space:nowrap">{{ q.v }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:24px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">In 60 seconds</h2>
+              <div style="aspect-ratio:16/9;border-radius:6px;background:repeating-linear-gradient(135deg,#E9EAE3 0 10px,#F4F5EF 10px 20px);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:#4A5160"><span style="width:48px;height:48px;border-radius:50%;background:#1B2230;color:#FCFCF8;display:flex;align-items:center;justify-content:center">▶</span>Intro video · 0:58</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:20px">Recognition</h2>
+              <sc-for list="{{ awards }}" as="a" hint-placeholder-count="2">
+                <div style="display:flex;border-left:2px solid #1B2230;padding:2px 0 2px 12px;flex-direction:column"><span style="font-weight:600">{{ a.t }}</span><span style="font-size:14px;color:#4A5160">{{ a.d }}</span></div>
+              </sc-for>
+            </div>
+            <a href="#" style="font-size:15px">Report this profile</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = '#1F5A43', pend = '#4A5160';
+    return {
+      chips: ['Identity verified', 'Qualification verified'],
+      about: 'I teach maths through things students can touch and measure. My Class 7 students map their own mohalla to scale, and Class 9 learns statistics from the school canteen\u2019s sales. I keep a weekly doubt hour open to any student, not just my sections.',
+      awards: [
+        { t: 'Teacher of the Week, Jaipur', d: 'SchoolOye · Oct 2026 · read the story' },
+        { t: 'Best Innovative Practice', d: 'District education office, Jaipur · 2024' }
+      ],
+      exp: [
+        { y: '2019–now', r: 'TGT Mathematics', s: 'Nav Bharti Academy, Mansarovar', ls: 'solid' },
+        { y: '2015–2019', r: 'PRT Mathematics', s: 'Meera Bal Niketan, Sodala', ls: 'solid' },
+        { y: '2014–2015', r: 'Maths tutor', s: 'Self-employed, Jaipur', ls: 'dashed' }
+      ],
+      quals: [
+        { t: 'M.Sc. Mathematics', d: 'University of Rajasthan · 2012', v: '✓ Verified', c: ok },
+        { t: 'B.Ed.', d: 'University of Rajasthan · 2014', v: '✓ Verified', c: ok },
+        { t: 'CTET Paper II', d: '2014', v: 'Not checked yet', c: pend }
+      ],
+      recs: [
+        { q: 'My son was scared of maths till Class 6. Now he asks for extra worksheets. She explains every step and never makes children feel slow.', who: 'Priya K.', rel: 'Parent of a Class 8 student' },
+        { q: 'The mohalla map project was the first time I understood ratios. We still have it on the classroom wall.', who: 'Aarav S.', rel: 'Former student, now in Class 11' },
+        { q: 'She built our department\u2019s activity bank that every maths teacher now uses.', who: 'Sunil Verma', rel: 'Colleague, Nav Bharti Academy' }
+      ],
+      openTo: ['Tutoring', 'Online classes', 'Teacher workshops'],
+      primary: ['Schools', 'Admissions', 'Teachers', 'Guides', 'For schools'].map((t, i) => ({ t, w: i === 2 ? 600 : 500, c: i === 2 ? '#2F4B9A' : '#1B2230', l: i === 2 ? '#2F4B9A' : 'transparent' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

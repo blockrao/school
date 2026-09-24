@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=Anek+Devanagari:wght@500;600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E9E2;font-family:Mukta,sans-serif;color:#1B2230;-webkit-font-smoothing:antialiased}
+a{color:#2F4B9A;text-underline-offset:3px}
+a:hover{color:#1B2230}
+*{box-sizing:border-box}
+input::placeholder{color:#6B7280}
+</style>
+</helmet>
+<section style="padding:56px 56px 96px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+    <div style="font-family:'Anek Latin';font-weight:600;font-size:25px">Delhi nursery admission hub</div>
+    <div style="font-size:16px;color:#4A5160">Mockup date 16 Dec 2026, mid-registration. The schedule dates and school points shown are fictional. Use Tweaks to change days left and see the red state.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start">
+
+    <div id="6a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">6a</span><span style="font-size:14px;color:#4A5160">Mobile · 390</span></div>
+      <div style="width:390px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #D9DEEA;gap:8px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:22px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button style="height:44px;padding:0 10px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;white-space:nowrap;display:flex;align-items:center;gap:4px">Delhi <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:44px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</button>
+              <button style="height:44px;min-width:44px;border:0;background:transparent;color:#1B2230;font:500 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+
+        <div style="padding:24px 16px 20px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #D9DEEA">
+          <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:31px;line-height:1.1">Delhi nursery admissions 2027–28</h1>
+          <div style="font-size:16px;line-height:1.5;color:#4A5160;text-wrap:pretty">One schedule for all private unaided schools, set by the Directorate of Education. Each school sets its own points.</div>
+          <div style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+            <div style="width:84px;flex-shrink:0;padding:10px;border-right:2px solid {{ mColor }};color:{{ mColor }};display:flex;flex-direction:column">
+              <span style="font-size:14px;line-height:1.2">Closes in</span>
+              <span style="font-family:'Anek Latin';font-weight:700;font-size:31px;line-height:1">{{ days }}</span>
+              <span style="font-size:14px;line-height:1.2">{{ dayWord }}</span>
+            </div>
+            <div style="padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+              <span style="font-weight:600">Registration is open</span>
+              <span style="font-size:14px;color:#4A5160">Last date 27 Dec 2026, for every school</span>
+            </div>
+          </div>
+          <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Get Delhi nursery alerts</button>
+        </div>
+
+        <div style="padding:20px 16px;border-bottom:1px solid #D9DEEA;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Timeline</h2>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ steps }}" as="t" hint-placeholder-count="7">
+              <div style="display:flex">
+                <div style="width:84px;flex-shrink:0;padding:10px 10px 14px 0;border-right:2px {{ t.lineStyle }} {{ t.line }};display:flex;flex-direction:column">
+                  <span style="font-size:14px;font-weight:600;color:{{ t.dateColor }}">{{ t.date }}</span>
+                  <span style="font-size:14px;color:#6B7280">{{ t.year }}</span>
+                </div>
+                <div style="flex:1;min-width:0;padding:10px 0 14px 14px;display:flex;flex-direction:column;gap:3px">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span style="font-weight:600;color:{{ t.titleColor }}">{{ t.title }}</span>
+                    <span style="font-size:14px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ t.pBg }};color:{{ t.pFg }};border:1px solid {{ t.pBorder }}">{{ t.pLabel }}</span>
+                  </div>
+                  <span style="font-size:14px;color:#4A5160;line-height:1.4">{{ t.note }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:14px;color:#6B7280">Source: Directorate of Education schedule, 20 Nov 2026 · checked yesterday</div>
+        </div>
+
+        <div style="padding:20px 16px;border-bottom:1px solid #D9DEEA;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">How points work</h2>
+          <div style="font-size:16px;line-height:1.5;text-wrap:pretty">Each school gives points out of 100. Children are listed from highest to lowest. There are no interviews or tests for nursery.</div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ criteria }}" as="c" hint-placeholder-count="5">
+              <div style="padding:10px 0;border-top:1px solid #E3E7F0;display:flex;flex-direction:column;gap:2px">
+                <span style="font-weight:600">{{ c.t }}</span>
+                <span style="font-size:14px;color:#4A5160;line-height:1.45">{{ c.d }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:14px;line-height:1.45;padding:10px 12px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF">25% of seats are for EWS/DG children. Those go through a separate government lottery, not school points.</div>
+        </div>
+
+        <div style="padding:20px 16px 8px;display:flex;flex-direction:column;gap:10px">
+          <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Find a school's points</h2>
+          <label style="display:flex;align-items:center;gap:10px;height:48px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;padding:0 12px">
+            <span style="color:#6B7280">⌕</span><input placeholder="School name or area" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 16px Mukta;color:#1B2230"></input>
+          </label>
+          <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+            <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta;white-space:nowrap">Within 3 km ▾</button>
+            <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;white-space:nowrap">Zone ▾</button>
+            <button style="flex-shrink:0;height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta;white-space:nowrap">Sibling points</button>
+          </div>
+        </div>
+        <div style="padding:0 16px 8px;display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ schools }}" as="s" hint-placeholder-count="4">
+            <a href="School Page.dc.html" style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;text-decoration:none;color:#1B2230;overflow:hidden">
+              <div style="width:72px;flex-shrink:0;padding:10px 8px;border-right:2px solid {{ mColor }};color:{{ mColor }};display:flex;flex-direction:column">
+                <span style="font-size:14px;line-height:1.2">Closes in</span>
+                <span style="font-family:'Anek Latin';font-weight:700;font-size:25px;line-height:1.05">{{ days }}</span>
+                <span style="font-size:14px;line-height:1.2">{{ dayWord }}</span>
+              </div>
+              <div style="flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:4px">
+                <span style="font-family:'Anek Latin';font-weight:600;font-size:18px;line-height:1.15">{{ s.name }}</span>
+                <span style="font-size:14px;color:#4A5160">{{ s.area }} · {{ s.km }} km</span>
+                <span style="font-size:14px;color:{{ s.cColor }};line-height:1.4">{{ s.summary }}</span>
+              </div>
+            </a>
+          </sc-for>
+          <a href="City List.dc.html" style="display:flex;align-items:center;min-height:44px;font-weight:600">See all 214 schools</a>
+        </div>
+        <div style="padding:8px 16px 24px">
+          <button style="width:100%;height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Get Delhi nursery alerts</button>
+        </div>
+        <div style="padding:16px;border-top:1px solid #D9DEEA;background:#F4F5EF;font-size:14px;color:#4A5160">Every date is checked against the Directorate's and each school's own notice.</div>
+      </div>
+    </div>
+
+    <div id="6b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center"><span style="background:#1B2230;color:#FCFCF8;font-weight:600;font-size:14px;padding:2px 10px;border-radius:4px">6b</span><span style="font-size:14px;color:#4A5160">Desktop · 1280</span></div>
+      <div style="width:1280px;background:#FCFCF8;border-radius:4px;box-shadow:0 1px 3px rgba(27,34,48,.12);overflow:hidden">
+        <header style="display:flex;align-items:center;justify-content:space-between;padding:10px 48px;border-bottom:1px solid #D9DEEA;gap:24px">
+          <div style="font-family:'Anek Latin';font-weight:700;font-size:25px;color:#2F4B9A">SchoolOye</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button style="height:44px;padding:0 12px;border:0;background:transparent;font:500 16px Mukta;color:#1B2230;white-space:nowrap;display:flex;align-items:center;gap:4px">Delhi <span style="font-size:12px;color:#6B7280">▾</span></button>
+            <div style="display:flex;border:1px solid #C9D0E2;border-radius:6px;overflow:hidden">
+              <button style="height:44px;min-width:48px;border:0;background:#2F4B9A;color:#FCFCF8;font:600 14px Mukta">EN</button>
+              <button style="height:44px;min-width:48px;border:0;background:transparent;color:#1B2230;font:500 15px 'Anek Devanagari'">हिं</button>
+            </div>
+          </div>
+        </header>
+
+        <div style="padding:40px 48px 32px;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:56px;align-items:end;border-bottom:1px solid #D9DEEA">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <h1 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:49px;line-height:1.05">Delhi nursery admissions 2027–28</h1>
+            <div style="font-size:20px;line-height:1.5;color:#4A5160;max-width:640px">One schedule for all private unaided schools, set by the Directorate of Education. Each school sets its own points.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+              <div style="width:100px;flex-shrink:0;padding:12px;border-right:2px solid {{ mColor }};color:{{ mColor }};display:flex;flex-direction:column">
+                <span style="font-size:14px">Closes in</span>
+                <span style="font-family:'Anek Latin';font-weight:700;font-size:39px;line-height:1">{{ days }}</span>
+                <span style="font-size:14px">{{ dayWord }}</span>
+              </div>
+              <div style="padding:12px 16px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+                <span style="font-weight:600;font-size:18px">Registration is open</span>
+                <span style="font-size:14px;color:#4A5160">Last date 27 Dec 2026, for every school</span>
+              </div>
+            </div>
+            <button style="height:48px;border:0;border-radius:6px;background:#2F4B9A;color:#FCFCF8;font:600 16px Mukta">Get Delhi nursery alerts</button>
+          </div>
+        </div>
+
+        <div style="padding:32px 48px 48px;display:grid;grid-template-columns:400px minmax(0,1fr);gap:56px;align-items:start">
+          <div style="position:sticky;top:24px;display:flex;flex-direction:column;gap:10px">
+            <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Timeline</h2>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ steps }}" as="t" hint-placeholder-count="7">
+                <div style="display:flex">
+                  <div style="width:96px;flex-shrink:0;padding:10px 12px 14px 0;border-right:2px {{ t.lineStyle }} {{ t.line }};display:flex;flex-direction:column">
+                    <span style="font-size:14px;font-weight:600;color:{{ t.dateColor }}">{{ t.date }}</span>
+                    <span style="font-size:14px;color:#6B7280">{{ t.year }}</span>
+                  </div>
+                  <div style="flex:1;min-width:0;padding:10px 0 14px 16px;display:flex;flex-direction:column;gap:3px">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <span style="font-weight:600;color:{{ t.titleColor }}">{{ t.title }}</span>
+                      <span style="font-size:14px;font-weight:600;padding:0 8px;border-radius:999px;background:{{ t.pBg }};color:{{ t.pFg }};border:1px solid {{ t.pBorder }}">{{ t.pLabel }}</span>
+                    </div>
+                    <span style="font-size:14px;color:#4A5160;line-height:1.4">{{ t.note }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:14px;color:#6B7280">Source: Directorate of Education schedule, 20 Nov 2026 · checked yesterday</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:40px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">How points work</h2>
+              <div style="font-size:18px;line-height:1.5;max-width:640px">Each school gives points out of 100. Children are listed from highest to lowest. There are no interviews or tests for nursery.</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:32px">
+                <sc-for list="{{ criteria }}" as="c" hint-placeholder-count="6">
+                  <div style="padding:12px 0;border-top:1px solid #E3E7F0;display:flex;flex-direction:column;gap:2px">
+                    <span style="font-weight:600">{{ c.t }}</span>
+                    <span style="font-size:14px;color:#4A5160;line-height:1.45">{{ c.d }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:14px;line-height:1.45;padding:10px 14px;border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF">25% of seats are for EWS/DG children. Those go through a separate government lottery, not school points.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px">
+                <h2 style="margin:0;font-family:'Anek Latin';font-weight:600;font-size:25px">Find a school's points</h2>
+                <span style="font-size:14px;color:#6B7280">214 schools · 4 shown within 3 km of Lajpat Nagar</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:10px;height:44px;width:320px;border:1px solid #9AA6C8;border-radius:6px;background:#FFFFFF;padding:0 12px">
+                  <span style="color:#6B7280">⌕</span><input placeholder="School name or area" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font:400 16px Mukta;color:#1B2230"></input>
+                </label>
+                <button style="height:44px;padding:0 14px;border:1px solid #2F4B9A;border-radius:22px;background:#EEF1F9;color:#2F4B9A;font:600 15px Mukta">Within 3 km ▾</button>
+                <button style="height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta">Zone ▾</button>
+                <button style="height:44px;padding:0 14px;border:1px solid #C9D0E2;border-radius:22px;background:#FCFCF8;color:#1B2230;font:500 15px Mukta">Sibling points</button>
+              </div>
+              <div style="border:1px solid #D9DEEA;border-radius:6px;background:#FFFFFF;overflow:hidden">
+                <div style="display:grid;grid-template-columns:96px minmax(0,1.2fr) minmax(0,1.6fr) 90px;gap:0;padding:8px 0;border-bottom:1px solid #D9DEEA;font-size:14px;color:#4A5160">
+                  <span style="padding:0 12px">Deadline</span><span style="padding:0 16px">School</span><span style="padding:0 16px">Points (out of 100)</span><span style="padding:0 12px">Distance</span>
+                </div>
+                <sc-for list="{{ schools }}" as="s" hint-placeholder-count="4">
+                  <a href="School Page.dc.html" style="display:grid;grid-template-columns:96px minmax(0,1.2fr) minmax(0,1.6fr) 90px;align-items:center;border-bottom:1px solid #E3E7F0;text-decoration:none;color:#1B2230;min-height:68px" style-hover="background:#F4F5EF">
+                    <div style="align-self:stretch;padding:10px 12px;border-right:2px solid {{ mColor }};color:{{ mColor }};display:flex;flex-direction:column;justify-content:center">
+                      <span style="font-family:'Anek Latin';font-weight:700;font-size:20px;line-height:1.05">{{ days }} {{ dayWord }}</span>
+                      <span style="font-size:14px;color:#6B7280">27 Dec</span>
+                    </div>
+                    <div style="padding:10px 16px;display:flex;flex-direction:column"><span style="font-family:'Anek Latin';font-weight:600;font-size:18px;line-height:1.15">{{ s.name }}</span><span style="font-size:14px;color:#4A5160">{{ s.area }}</span></div>
+                    <span style="padding:10px 16px;font-size:14px;line-height:1.45;color:{{ s.cColor }}">{{ s.summary }}</span>
+                    <span style="padding:0 12px;font-size:14px">{{ s.km }} km</span>
+                  </a>
+                </sc-for>
+              </div>
+              <a href="City List.dc.html" style="font-weight:600">See all 214 schools</a>
+            </div>
+          </div>
+        </div>
+        <div style="padding:18px 48px;border-top:1px solid #D9DEEA;background:#F4F5EF;font-size:14px;color:#4A5160">Every date is checked against the Directorate's and each school's own notice.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;daysLeft&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:11,&quot;min&quot;:0,&quot;max&quot;:30,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const d = Math.max(0, this.props.daysLeft ?? 11);
+    const urgent = d <= 7;
+    const mColor = urgent ? '#C8372D' : '#1B2230';
+    const P = {
+      done: { pLabel: 'Done', pBg: '#F1F1EC', pFg: '#4A5160', pBorder: '#D5D7DC', line: '#B8BCC4', lineStyle: 'solid', dateColor: '#4A5160', titleColor: '#4A5160' },
+      now: { pLabel: urgent ? 'Closing soon' : 'Open now', pBg: urgent ? '#FBEAE8' : '#E3EEE8', pFg: urgent ? '#B3302A' : '#1F5A43', pBorder: urgent ? '#F1C9C5' : '#BFD6C9', line: mColor, lineStyle: 'solid', dateColor: mColor, titleColor: '#1B2230' },
+      next: { pLabel: 'Upcoming', pBg: '#FBEFC9', pFg: '#1B2230', pBorder: '#F0C04A', line: '#1B2230', lineStyle: 'dashed', dateColor: '#1B2230', titleColor: '#1B2230' }
+    };
+    const steps = [
+      ['20 Nov', '2026', 'Schedule announced', 'Directorate of Education publishes dates for all schools.', 'done'],
+      ['26 Nov', '2026', 'Schools publish points', 'Each school uploads its criteria and points out of 100.', 'done'],
+      ['27 Dec', '2026', 'Registration closes', 'Forms open since 27 Nov. Apply to as many schools as you like.', 'now'],
+      ['10 Jan', '2027', 'Points of each child uploaded', 'Check your child\u2019s points at each school. Raise an objection if one is wrong.', 'next'],
+      ['17 Jan', '2027', 'First list', 'Selected and waitlisted children, with points.', 'next'],
+      ['3 Feb', '2027', 'Second list', 'Filled from the waitlist if seats remain.', 'next'],
+      ['13 Mar', '2027', 'Admissions close', 'Last date to confirm a seat and pay fees.', 'next']
+    ].map(([date, year, title, note, k]) => ({ date, year, title, note, ...P[k] }));
+    return {
+      days: String(d), dayWord: d === 1 ? 'day' : 'days', mColor,
+      steps,
+      criteria: [
+        { t: 'Distance from home', d: 'Usually the biggest share. Closer homes score higher, measured by the school\u2019s own method.' },
+        { t: 'Sibling in the school', d: 'Points if an older brother or sister studies there now.' },
+        { t: 'Parent is an alumnus', d: 'Points if a parent studied at the school. Proof is needed.' },
+        { t: 'First child', d: 'Some schools give points if this is your first child.' },
+        { t: 'Girl child', d: 'Some schools give extra points for a girl.' },
+        { t: 'Transfer case', d: 'For parents moving to Delhi for work, with a transfer letter.' }
+      ],
+      schools: [
+        { name: 'Yamuna Vidya Niketan', area: 'Lajpat Nagar', km: '0.8', summary: 'Distance 70 · Sibling 20 · Alumni 10', cColor: '#1B2230' },
+        { name: 'Green Valley Public School', area: 'Defence Colony', km: '1.9', summary: 'Distance 60 · Sibling 20 · Alumni 10 · Girl child 10', cColor: '#1B2230' },
+        { name: 'St. Aarav Convent', area: 'Jangpura', km: '2.4', summary: 'Distance 50 · Sibling 30 · First child 10 · Transfer 10', cColor: '#1B2230' },
+        { name: 'Nav Bharti Academy', area: 'Kalkaji', km: '2.9', summary: 'Points not yet published — rechecking', cColor: '#6B7280' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
