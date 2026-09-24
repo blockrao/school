@@ -1,21 +1,27 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Class/board style filter opener. Selected state shows the current value inline. */
+/**
+ * Class/board style filter opener. `href` points at the page state this chip leads
+ * to (e.g. opening the class picker via a query param or drawer route) — selection
+ * is a navigation, not client state, same as ViewToggle/ResultTabs/CountToggleGroup.
+ */
 export function FilterChip({
+  href,
   selected = false,
   children,
   className,
-  ...props
 }: {
+  href: string;
   selected?: boolean;
   children: ReactNode;
   className?: string;
-} & ComponentProps<"button">) {
+}) {
   return (
-    <button
-      type="button"
+    <Link
+      href={href}
+      aria-current={selected ? "true" : undefined}
       className={cn(
         "flex h-11 items-center rounded-full border px-3.5 font-semibold text-body",
         selected
@@ -23,10 +29,9 @@ export function FilterChip({
           : "border-line-blue text-ink",
         className,
       )}
-      {...props}
     >
       {children}
-    </button>
+    </Link>
   );
 }
 

@@ -4,18 +4,21 @@ import { cn } from "@/lib/utils";
 
 /**
  * Native checkbox styled as a custom box via `peer` + `peer-checked` — no JS needed
- * for the checked/unchecked visual, only the browser's own form state.
+ * for the checked/unchecked visual, only the browser's own form state. Always starts
+ * unchecked — WhatsApp/SMS consent is opt-in, never pre-ticked.
+ *
+ * TODO(consent-record): the Server Action that handles this form's submission must
+ * persist a consent record — purpose, notice version, timestamp, phone — before
+ * relying on this checkbox as proof of consent. That table doesn't exist yet.
  */
 export function ConsentCheckbox({
   name,
-  defaultChecked,
   required,
   error,
   children,
   className,
 }: {
   name: string;
-  defaultChecked?: boolean;
   required?: boolean;
   error?: string;
   children: ReactNode;
@@ -36,7 +39,6 @@ export function ConsentCheckbox({
         <input
           type="checkbox"
           name={name}
-          defaultChecked={defaultChecked}
           required={required}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}

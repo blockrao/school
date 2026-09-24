@@ -1,4 +1,10 @@
-/** Native radio group styled as chips — the selected look comes from :checked, no JS. */
+/**
+ * Native radio group styled as chips — the selected look comes from :checked, no JS.
+ *
+ * @status post-launch — Teacher of the Week nomination flow ships after the Delhi/
+ * Gurugram launch scope (see docs/screen-map.md). Keep the component, but do not
+ * import it from any route yet.
+ */
 export function NominationRelationshipChips({
   legend,
   name,
