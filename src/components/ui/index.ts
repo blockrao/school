@@ -7,6 +7,7 @@ export * from "@/components/ui/consent-checkbox";
 export * from "@/components/ui/deadline-margin";
 export * from "@/components/ui/document-checklist-item";
 export * from "@/components/ui/feature-card";
+export * from "@/components/ui/field-error";
 export * from "@/components/ui/filter-chip";
 export * from "@/components/ui/freshness-line";
 export * from "@/components/ui/map-pin";

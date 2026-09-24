@@ -1,6 +1,7 @@
 "use client";
 
-import { type ChangeEvent, type ComponentProps, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useId, useRef, useState } from "react";
+import { FieldError, invalidFieldBorderClass } from "@/components/ui/field-error";
 import { cn } from "@/lib/utils";
 
 const OTP_LENGTH = 6;
@@ -18,17 +19,18 @@ function stripToDigits(value: string) {
 export function OtpInput({
   name = "otp",
   autoSubmit = false,
+  error,
   className,
-  ...ariaProps
 }: {
   name?: string;
   autoSubmit?: boolean;
+  error?: string;
   className?: string;
-} & Pick<ComponentProps<"input">, "aria-invalid" | "aria-describedby">) {
+}) {
   const [digits, setDigits] = useState("");
   const [focused, setFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
+  const errorId = useId();
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     setDigits(stripToDigits(event.target.value));
@@ -40,42 +42,48 @@ export function OtpInput({
   }, [autoSubmit, digits]);
 
   return (
-    <div className={cn("relative grid max-w-85 grid-cols-6 gap-2", className)}>
-      {Array.from({ length: OTP_LENGTH }, (_, index) => {
-        const isCaret = focused && index === digits.length;
-        return (
-          <div
-            key={
-              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length OTP boxes, position is the identity
-              index
-            }
-            aria-hidden="true"
-            className="flex h-14 items-center justify-center rounded-md border-2 border-ink font-display font-semibold text-section"
-          >
-            {digits[index] ??
-              (isCaret ? <span className="h-6 w-0.5 animate-pulse bg-ink" /> : null)}
-          </div>
-        );
-      })}
-      <input
-        ref={(el) => {
-          inputRef.current = el;
-          formRef.current = el?.form ?? null;
-        }}
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        pattern="\d{6}"
-        maxLength={OTP_LENGTH}
-        name={name}
-        value={digits}
-        onChange={handleChange}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        aria-label="6-digit code"
-        className="absolute inset-0 h-full w-full cursor-text border-0 bg-transparent text-transparent caret-transparent"
-        {...ariaProps}
-      />
+    <div className={cn("flex flex-col", className)}>
+      <div className="relative grid max-w-85 grid-cols-6 gap-2">
+        {Array.from({ length: OTP_LENGTH }, (_, index) => {
+          const isCaret = focused && index === digits.length;
+          return (
+            <div
+              key={
+                // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length OTP boxes, position is the identity
+                index
+              }
+              aria-hidden="true"
+              className={cn(
+                "flex h-14 items-center justify-center rounded-md font-display font-semibold text-section",
+                error ? invalidFieldBorderClass : "border-2 border-ink",
+              )}
+            >
+              {digits[index] ??
+                (isCaret ? <span className="h-6 w-0.5 animate-pulse bg-ink" /> : null)}
+            </div>
+          );
+        })}
+        <input
+          ref={(el) => {
+            formRef.current = el?.form ?? null;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="\d{6}"
+          maxLength={OTP_LENGTH}
+          name={name}
+          value={digits}
+          onChange={handleChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          aria-label="6-digit code"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className="absolute inset-0 h-full w-full cursor-text border-0 bg-transparent text-transparent caret-transparent"
+        />
+      </div>
+      {error && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   );
 }
