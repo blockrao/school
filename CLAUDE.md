@@ -15,7 +15,9 @@ Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
 - Zod + Server Actions for all mutations; react-hook-form only where a form needs client state
 - MapLibre GL (lazy, client island) for maps; no Google Maps JS
 - Biome (lint/format), Vitest (unit), Playwright (e2e + a11y smoke)
-- Vercel region `bom1`; Supabase region ap-south-1
+- Database: Supabase ap-southeast-1 (Singapore); Vercel functions: sin1. Region move to
+  ap-south-1 deferred — must be decided before the first real user signup, while
+  auth/profile/children tables are empty.
 - Next.js 16.x API reference: `AGENTS.md` — prefer it over training knowledge for Cache
   Components, `cacheTag`, instant navigation, `next/form`.
 

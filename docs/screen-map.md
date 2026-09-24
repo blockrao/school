@@ -37,3 +37,8 @@ Use v1 only for blocks v2 lacks (e.g. v1 school page's untabbed long-form layout
 - Shell city list includes Noida, Jaipur and Kota. Show only cities with live data; others appear when ingested.
 - No `<img>` in the designs yet. School photos need `next/image` with explicit dimensions and a no-photo state.
 - DeadlineMargin depends on `now`. On cached pages it must render in a dynamic/streamed segment or the page must revalidate at IST midnight; never bake a countdown into a long-lived cache. Store deadlines as Postgres `date`.
+
+## Infrastructure
+- Database: Supabase ap-southeast-1 (Singapore); Vercel functions: sin1. Region move to
+  ap-south-1 deferred — must be decided before the first real user signup, while
+  auth/profile/children tables are empty.
