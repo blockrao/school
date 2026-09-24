@@ -59,3 +59,6 @@ Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
 ## Working style
 - Small PRs, one screen or component per PR. Run `pnpm typecheck && pnpm lint && pnpm test` before committing.
 - Seed fixtures: real Delhi/Gurugram schools from public data only.
+- Requires `gitleaks` on PATH (`brew install gitleaks`) — the lefthook pre-commit hook runs
+  `gitleaks protect --staged` and blocks the commit if it's missing. CI runs the same scanner
+  on push/PR as a backstop.
