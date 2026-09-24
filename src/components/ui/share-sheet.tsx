@@ -44,6 +44,13 @@ export function ShareSheet({
   }
 
   return (
+    // NOTE: the mockup specs 12px top corners here, not 20px. --radius-sheet is
+    // reserved for the 18–22px range (matches the mobile filter drawer mentioned in
+    // the Components Sheet, not yet built) — using it here is a size mismatch, but
+    // there's no existing token for 12px and Tailwind v4's radius scale is
+    // theme-based, not dynamic-integer, so an arbitrary [12px] isn't an option
+    // either without a token. Flagging rather than picking a value unilaterally —
+    // see the design-token audit for the alternatives (rounded-md, or a new token).
     <div
       className={cn(
         "flex flex-col gap-2 rounded-t-sheet rounded-b-md border border-rule bg-copy-white p-3.5",
