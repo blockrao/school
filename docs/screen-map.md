@@ -36,3 +36,4 @@ Use v1 only for blocks v2 lacks (e.g. v1 school page's untabbed long-form layout
 - Mock data uses Jaipur localities (Vaishali Nagar, Raja Park, C-Scheme). Seed fixtures must be Delhi/Gurugram schools.
 - Shell city list includes Noida, Jaipur and Kota. Show only cities with live data; others appear when ingested.
 - No `<img>` in the designs yet. School photos need `next/image` with explicit dimensions and a no-photo state.
+- DeadlineMargin depends on `now`. On cached pages it must render in a dynamic/streamed segment or the page must revalidate at IST midnight; never bake a countdown into a long-lived cache. Store deadlines as Postgres `date`.
