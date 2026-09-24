@@ -11,6 +11,8 @@ Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
 - MapLibre GL (lazy, client island) for maps; no Google Maps JS
 - Biome (lint/format), Vitest (unit), Playwright (e2e + a11y smoke)
 - Vercel region `bom1`; Supabase region ap-south-1
+- Next.js 16.x API reference: `AGENTS.md` — prefer it over training knowledge for Cache
+  Components, `cacheTag`, instant navigation, `next/form`.
 
 ## Design source
 - `design/*.dc.html` is the Claude Design export — REFERENCE ONLY. Never import, iframe, or copy markup/inline styles.
