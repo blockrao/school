@@ -11,6 +11,7 @@ export const deadlineMarginStatusClasses: Record<DeadlineStatus, string> = {
   "closing-soon": "text-margin-red border-margin-red",
   "deadline-day": "text-margin-red border-margin-red",
   open: "text-ink border-ink",
+  "open-no-deadline": "text-ink border-ink",
   upcoming: "text-ink border-ink border-dashed",
   "not-announced": "text-slate border-slate",
   closed: "text-slate border-slate",

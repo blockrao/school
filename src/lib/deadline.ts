@@ -37,7 +37,8 @@ function istDayMonthLabel(date: Date): { day: string; month: string } {
 export type DeadlineState =
   | { status: "closing-soon"; daysUntilClose: number; top: string; big: string; bottom: string }
   | { status: "deadline-day"; top: string; big: string; bottom: string }
-  | { status: "open"; daysUntilClose: number | null; top: string; big: string; bottom: string }
+  | { status: "open"; daysUntilClose: number; top: string; big: string; bottom: string }
+  | { status: "open-no-deadline"; top: string; big: string; bottom: string }
   | { status: "upcoming"; daysUntilOpen: number; top: string; big: string; bottom: string }
   | { status: "not-announced"; top: string; big: string; bottom: string }
   | { status: "closed"; top: string; big: string; bottom: string }
@@ -107,5 +108,10 @@ export function deadlineState(input: DeadlineInput, now: Date): DeadlineState {
   }
 
   // opensAt is today or in the past, and there's no closesAt to count down to.
-  return { status: "open", daysUntilClose: null, top: "Admissions", big: "Open", bottom: "" };
+  return {
+    status: "open-no-deadline",
+    top: "Open",
+    big: "—",
+    bottom: "last date not announced",
+  };
 }

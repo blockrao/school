@@ -91,7 +91,7 @@ export default function ComponentsGalleryPage() {
         <VerificationChip variant="not-claimed">Not claimed</VerificationChip>
       </Section>
 
-      <Section title="Deadline margin — all 7 states (fixed now = 2027-01-15 09:30 IST)">
+      <Section title="Deadline margin — all 8 states (fixed now = 2027-01-15 09:30 IST)">
         <DeadlineMargin now={NOW} closesAt={new Date(NOW.getTime() + 4 * DAY)} />
         <DeadlineMargin now={NOW} closesAt={NOW} />
         <DeadlineMargin now={NOW} closesAt={new Date(NOW.getTime() + 15 * DAY)} />
@@ -99,6 +99,7 @@ export default function ComponentsGalleryPage() {
         <DeadlineMargin now={NOW} />
         <DeadlineMargin now={NOW} closesAt={new Date(NOW.getTime() - 3 * DAY)} />
         <DeadlineMargin now={NOW} seatsNow={{ count: 2, grade: "Cl. 4" }} />
+        <DeadlineMargin now={NOW} opensAt={new Date(NOW.getTime() - 10 * DAY)} />
       </Section>
 
       <Section title="Freshness line">

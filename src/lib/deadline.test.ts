@@ -74,6 +74,31 @@ describe("deadlineState", () => {
     expect(state).toMatchObject({ count: 2, grade: "Cl. 4" });
   });
 
+  describe("opensAt past/today with no closesAt → open-no-deadline", () => {
+    it("opensAt yesterday, no closesAt", () => {
+      const now = new Date("2027-01-10T04:00:00.000Z");
+      const opensAt = new Date("2027-01-09T04:00:00.000Z");
+      const state = deadlineState({ opensAt }, now);
+      expect(state.status).toBe("open-no-deadline");
+      expect(state).toMatchObject({ big: "—" });
+    });
+
+    it("opensAt today, no closesAt", () => {
+      const now = new Date("2027-01-10T04:00:00.000Z");
+      const opensAt = new Date("2027-01-10T04:00:00.000Z");
+      const state = deadlineState({ opensAt }, now);
+      expect(state.status).toBe("open-no-deadline");
+    });
+
+    it("opensAt in the past AND closesAt in the past → still closed, not open-no-deadline", () => {
+      const now = new Date("2027-01-10T04:00:00.000Z");
+      const opensAt = new Date("2026-12-01T04:00:00.000Z");
+      const closesAt = new Date("2027-01-01T04:00:00.000Z");
+      const state = deadlineState({ opensAt, closesAt }, now);
+      expect(state.status).toBe("closed");
+    });
+  });
+
   describe('date-only closesAt string ("YYYY-MM-DD", parsed by JS as UTC midnight)', () => {
     // new Date("2026-10-31") = 2026-10-31T00:00:00.000Z = 2026-10-31 05:30 IST —
     // since IST is UTC+5:30 (positive), UTC midnight of day D always lands within
