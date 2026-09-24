@@ -80,7 +80,7 @@ export function OtpInput({
           aria-label="6-digit code"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="absolute inset-0 h-full w-full cursor-text border-0 bg-transparent text-transparent caret-transparent"
+          className="absolute inset-0 h-full w-full cursor-text border-0 bg-transparent text-body text-transparent caret-transparent"
         />
       </div>
       {error && <FieldError id={errorId}>{error}</FieldError>}
