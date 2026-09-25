@@ -420,6 +420,19 @@ export async function getPublicCityBySlug(slug: string): Promise<PublicCity | nu
     : null;
 }
 
+/** The city inside a district — used to resolve locality/town pages nested under a district route. */
+export async function getPublicCityByDistrictId(districtId: number): Promise<PublicCity | null> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("cities")
+    .select("id, name_en, slug, district_id")
+    .eq("district_id", districtId)
+    .maybeSingle();
+  return data
+    ? { id: data.id, name_en: data.name_en, slug: data.slug, districtId: data.district_id }
+    : null;
+}
+
 export type PublicLocality = {
   id: number;
   slug: string;

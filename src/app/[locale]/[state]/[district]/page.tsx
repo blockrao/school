@@ -10,9 +10,11 @@ import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
   getPublicAreaBySlug,
+  getPublicCityByDistrictId,
   getPublicDistrictBySlug,
   getPublicStateBySlug,
   listDistrictFilterOptions,
+  listPublicLocalitiesByCity,
   listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
@@ -88,7 +90,9 @@ export default async function DistrictPage({
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
   const districtLabel = area.name;
 
-  const [{ schools, total }, filterOptions] = await Promise.all([
+  const city = await getPublicCityByDistrictId(district.id);
+
+  const [{ schools, total }, filterOptions, localities] = await Promise.all([
     listPublicSchoolsByDistrict(district.id, {
       boardId,
       maxClass,
@@ -97,6 +101,7 @@ export default async function DistrictPage({
       pageSize: PAGE_SIZE,
     }),
     listDistrictFilterOptions(district.id),
+    city ? listPublicLocalitiesByCity(city.id) : Promise.resolve([]),
   ]);
 
   const schoolIds = schools.map((s) => s.id);
@@ -148,6 +153,24 @@ export default async function DistrictPage({
         {total} school{total === 1 ? "" : "s"}
         {filtersActive ? " matching your filters" : ""}
       </p>
+
+      {localities.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-meta font-semibold text-muted-ink">Browse by area</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {localities.map((locality) => (
+              <Link
+                key={locality.slug}
+                href={`${basePath}/${locality.slug}`}
+                className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
+              >
+                {locality.isTown ? `Near ${locality.name}` : locality.name}
+                <span className="text-meta text-muted-ink">({locality.schoolCount})</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
