@@ -19,6 +19,13 @@ type Copy = {
   signOutCurrent: string;
   signOutAll: string;
   errorInvalidName: string;
+  consentHeading: string;
+  consentGranted: string;
+  consentWithdrawn: string;
+  noConsents: string;
+  dataHeading: string;
+  exportLink: string;
+  deleteLink: string;
 };
 
 const COPY: Record<string, Copy> = {
@@ -32,6 +39,13 @@ const COPY: Record<string, Copy> = {
     signOutCurrent: "Sign out of this device",
     signOutAll: "Sign out of all devices",
     errorInvalidName: "Enter your name.",
+    consentHeading: "Consent history",
+    consentGranted: "Agreed",
+    consentWithdrawn: "Withdrawn",
+    noConsents: "No consent history yet.",
+    dataHeading: "Your data",
+    exportLink: "Download a copy of your data (JSON)",
+    deleteLink: "Delete my account",
   },
   hi: {
     title: "खाता",
@@ -43,7 +57,23 @@ const COPY: Record<string, Copy> = {
     signOutCurrent: "इस डिवाइस से साइन आउट करें",
     signOutAll: "सभी डिवाइस से साइन आउट करें",
     errorInvalidName: "अपना नाम डालें।",
+    consentHeading: "सहमति इतिहास",
+    consentGranted: "सहमत",
+    consentWithdrawn: "वापस ली गई",
+    noConsents: "अभी तक कोई सहमति इतिहास नहीं है।",
+    dataHeading: "आपका डेटा",
+    exportLink: "अपने डेटा की एक प्रति डाउनलोड करें (JSON)",
+    deleteLink: "मेरा खाता हटाएं",
   },
+};
+
+const PURPOSE_LABELS: Record<string, string> = {
+  account: "Account terms & privacy",
+  child_profile: "Child profile",
+  whatsapp_alerts: "WhatsApp alerts",
+  application_help: "Application Help",
+  document_storage: "Document storage",
+  marketing: "Marketing updates",
 };
 
 function first(value: string | string[] | undefined) {
@@ -85,6 +115,12 @@ export default async function AccountPage({
     .select("full_name")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  const { data: consents } = await supabase
+    .from("consents")
+    .select("purpose, notice_version, granted_at, withdrawn_at")
+    .eq("user_id", user.id)
+    .order("granted_at", { ascending: false });
 
   const identity = user.phone ? formatIndianPhone(user.phone) : (user.email ?? "");
 
@@ -162,6 +198,58 @@ export default async function AccountPage({
               {copy.signOutAll}
             </button>
           </form>
+        </div>
+      </div>
+
+      <div className="mt-8 border-t border-rule pt-6">
+        <h2 className="font-display text-card font-semibold" lang={isHi ? "hi" : undefined}>
+          {copy.consentHeading}
+        </h2>
+        {consents && consents.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {consents.map((c) => (
+              <li
+                key={`${c.purpose}-${c.granted_at}`}
+                className="flex flex-col gap-0.5 rounded-md border border-rule p-3"
+              >
+                <span className="font-semibold">{PURPOSE_LABELS[c.purpose] ?? c.purpose}</span>
+                <span className="text-meta text-muted-ink">
+                  {c.withdrawn_at ? copy.consentWithdrawn : copy.consentGranted} ·{" "}
+                  {new Date(c.withdrawn_at ?? c.granted_at).toLocaleDateString(
+                    isHi ? "hi-IN" : "en-IN",
+                    { year: "numeric", month: "short", day: "numeric" },
+                  )}{" "}
+                  · {c.notice_version}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-body text-muted-ink" lang={isHi ? "hi" : undefined}>
+            {copy.noConsents}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-8 border-t border-rule pt-6">
+        <h2 className="font-display text-card font-semibold" lang={isHi ? "hi" : undefined}>
+          {copy.dataHeading}
+        </h2>
+        <div className="mt-3 flex flex-col gap-2">
+          <a
+            href={`/${locale}/my/account/export`}
+            className="w-fit font-semibold text-ruled-blue"
+            lang={isHi ? "hi" : undefined}
+          >
+            {copy.exportLink}
+          </a>
+          <Link
+            href={`/${locale}/my/account/delete`}
+            className="w-fit font-semibold text-ink underline"
+            lang={isHi ? "hi" : undefined}
+          >
+            {copy.deleteLink}
+          </Link>
         </div>
       </div>
 
