@@ -8,3 +8,4 @@ row here once one exists — see "NEW DESIGNS ROUTINE" in CLAUDE.md working styl
 | Screen | Flow | What it needs to do | Built from | Route |
 |---|---|---|---|---|
 | Guides | 1 — Discover (Platform Shell nav item) | Index of admission-process/documents/board explainer articles. Platform Shell's design names it as one of 5 primary nav items but no guide-content screen exists anywhere in `design/`. | page tokens only (`border-rule`, `text-card`/`text-body`, `rounded-md`) — no existing card component fit an article-topic list | `/[locale]/guides` |
+| Sign-in | 2 — Engage (phone OTP) | Phone-number entry → 6-digit code verify → session cookie via Supabase Auth phone OTP. Screen 9 (WhatsApp Alerts) names OTP as its auth mechanism but ships no sign-in screen of its own. | existing `OtpInput` (Components Sheet, already designed) + page tokens for the phone-entry form | `/[locale]/sign-in` |

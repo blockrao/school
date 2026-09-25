@@ -37,5 +37,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/my/:path*", "/portal/:path*", "/ops/:path*"],
+  // Routes are locale-prefixed (/[locale]/my/...), so the matcher needs the leading
+  // segment too — a bare "/my/:path*" never matches "/en/my/...".
+  matcher: [
+    "/:locale/my/:path*",
+    "/:locale/portal/:path*",
+    "/:locale/ops/:path*",
+    "/:locale/sign-in",
+  ],
 };

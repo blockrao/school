@@ -29,6 +29,7 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
 | 7 | Compare Schools | `/[locale]/compare?ids=` | dynamic, noindex | pending | |
 | 8 | Seats Available Now | `/[locale]/[city]/seats-available` + block on school page | ISR, short revalidate | pending | OpenSeat |
 | 9 | WhatsApp Alerts | `/[locale]/alerts` | client flow | pending | OTP via Supabase Auth phone; WhatsApp sending is backend, out of frontend scope |
+| — | Sign-in (phone OTP) | `/[locale]/sign-in` | dynamic, noindex | built-from-components | No matching design file — see `docs/design-gaps.md`. Shared auth gate for Alerts/Shortlist/Enquiry via `?next=` |
 | 10 | Application Help | `/[locale]/admissions/help` → `/my/admissions` | auth, dynamic | pending | Concierge + Document Vault. `/my/*` noindex |
 | 11 | School Portal | `/for-schools` (public), `/portal/*` (auth) | dynamic | pending | Claim → dashboard → seats → post notice |
 | 12 | Teacher Profile | `/[locale]/teacher/[id]-[slug]` | ISR | pending | Claimed + unclaimed states |

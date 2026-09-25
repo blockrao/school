@@ -77,7 +77,7 @@ export function SiteHeader({ locale }: { locale: string }) {
           <span className="whitespace-nowrap px-2.5 text-body font-medium text-ink">Jaipur</span>
           <LocaleSwitcher />
           <Button asChild variant="secondary" className="h-11 border-ruled-blue">
-            <Link href={`/${locale}/my`}>Sign in</Link>
+            <Link href={`/${locale}/sign-in`}>Sign in</Link>
           </Button>
         </div>
       </div>

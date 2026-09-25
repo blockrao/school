@@ -1,0 +1,85 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { createSessionClient } from "@/lib/db/session";
+import { normalizeIndianPhone } from "@/lib/phone";
+
+/** Only allow same-origin relative paths as a post-sign-in redirect target (no open redirect). */
+function safeNext(next: FormDataEntryValue | null, locale: string): string {
+  const value = typeof next === "string" ? next : "";
+  return value.startsWith("/") && !value.startsWith("//") ? value : `/${locale}`;
+}
+
+const requestSchema = z.object({
+  phone: z.string().min(1),
+  locale: z.string().min(1),
+});
+
+export async function requestOtp(formData: FormData) {
+  const locale = typeof formData.get("locale") === "string" ? String(formData.get("locale")) : "en";
+  const next = safeNext(formData.get("next"), locale);
+  const parsed = requestSchema.safeParse({
+    phone: formData.get("phone"),
+    locale,
+  });
+
+  const phone = parsed.success ? normalizeIndianPhone(parsed.data.phone) : null;
+  if (!phone) {
+    redirect(`/${locale}/sign-in?error=invalid_phone&next=${encodeURIComponent(next)}`);
+  }
+
+  const supabase = await createSessionClient();
+  const { error } = await supabase.auth.signInWithOtp({ phone });
+  if (error) {
+    redirect(`/${locale}/sign-in?error=send_failed&next=${encodeURIComponent(next)}`);
+  }
+
+  redirect(
+    `/${locale}/sign-in?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}`,
+  );
+}
+
+const verifySchema = z.object({
+  phone: z.string().min(1),
+  otp: z.string().length(6),
+  locale: z.string().min(1),
+});
+
+export async function verifySignInOtp(formData: FormData) {
+  const locale = typeof formData.get("locale") === "string" ? String(formData.get("locale")) : "en";
+  const next = safeNext(formData.get("next"), locale);
+  const phoneParam = typeof formData.get("phone") === "string" ? String(formData.get("phone")) : "";
+  const parsed = verifySchema.safeParse({
+    phone: phoneParam,
+    otp: formData.get("otp"),
+    locale,
+  });
+
+  if (!parsed.success) {
+    redirect(
+      `/${locale}/sign-in?phone=${encodeURIComponent(phoneParam)}&error=invalid_code&next=${encodeURIComponent(next)}`,
+    );
+  }
+
+  const supabase = await createSessionClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    phone: parsed.data.phone,
+    token: parsed.data.otp,
+    type: "sms",
+  });
+
+  if (error || !data.user) {
+    redirect(
+      `/${locale}/sign-in?phone=${encodeURIComponent(parsed.data.phone)}&error=invalid_code&next=${encodeURIComponent(next)}`,
+    );
+  }
+
+  // Ensures a profile row exists from first sign-in; RLS (profiles_self_insert) already
+  // scopes this to the caller's own uid and defaults role to 'parent'.
+  await supabase
+    .from("profiles")
+    .upsert({ user_id: data.user.id }, { onConflict: "user_id", ignoreDuplicates: true });
+
+  redirect(next);
+}
