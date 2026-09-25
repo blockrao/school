@@ -35,6 +35,9 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
 | 12 | Teacher Profile | `/[locale]/teacher/[id]-[slug]` | ISR | pending | Claimed + unclaimed states |
 | 13 | Teachers Directory | `/[locale]/teachers` | ISR | pending | |
 | — | Ops Verification Queue | `/ops/*` | auth, internal | pending | Separate route group, noindex, role-gated via RLS |
+| — | Onboarding | `/[locale]/onboarding` | auth, noindex | built-from-components | Name + terms/privacy consent, gates every first sign-in. No design file. See `docs/design-gaps.md` |
+| — | Terms / Privacy | `/[locale]/terms`, `/[locale]/privacy` | static | built-from-components | Placeholder legal content, pending legal review. No design file |
+| — | Account settings | `/[locale]/my/account` | auth, noindex | built-from-components | Name edit, sign-out (device/all). No design file. See `docs/design-gaps.md` |
 
 ## Post-launch (designed, do not build yet)
 - **Teacher of the Week** (feature, archive, nominate, accept): nominations/voting are a "test later" item. Keep the design and don't wire it up. Remove the "Teacher of the Week" mention from the shell's Teachers nav note until it ships. Status: **deferred**.

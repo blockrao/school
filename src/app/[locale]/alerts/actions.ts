@@ -2,10 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { ALERTS_NOTICE_VERSION } from "@/lib/consent";
 import { getPublicCityBySlug } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
-
-const ALERTS_NOTICE_VERSION = "whatsapp-alerts-2026-09";
 
 const subscribeSchema = z.object({
   locale: z.string().min(1),

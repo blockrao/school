@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient } from "@/lib/db/session";
 import { normalizeIndianPhone } from "@/lib/phone";
 
@@ -97,7 +98,8 @@ export async function verifySignInOtp(formData: FormData) {
     .from("profiles")
     .upsert({ user_id: data.user.id }, { onConflict: "user_id", ignoreDuplicates: true });
 
-  redirect(next);
+  const pending = await needsOnboarding(supabase, data.user.id);
+  redirect(postSignInPath(pending, locale, next));
 }
 
 const emailSchema = z.object({
