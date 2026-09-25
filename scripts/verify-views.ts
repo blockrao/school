@@ -7,9 +7,7 @@
  *    move on; a contract drift is a bug to fix, not a release blocker).
  * 2. Security checks DO determine process.exitCode: SET ROLE anon and confirm
  *    anon can read every granted api.* view, cannot read staging.schools_with_level,
- *    and cannot read any raw table directly (the reference-table allowlist in
- *    src/lib/db/public-adapter.ts's header is the one intentional exception —
- *    RAW_TABLES below excludes exactly that allowlist).
+ *    and cannot read any raw table directly — no allowlist exceptions.
  *
  * Uses DATABASE_URL (not DATABASE_URL_RO) because SET ROLE anon requires a
  * privileged connection to switch into — this script performs no writes.
@@ -29,7 +27,7 @@ import {
   publicLocalityContract,
   publicLocalityNeighborContract,
   publicSchoolAdmissionContract,
-  publicSchoolAffiliationContract,
+  publicSchoolBoardContract,
   publicSchoolContract,
   publicSeatStatusContract,
   publicStateContract,
@@ -71,7 +69,7 @@ const VIEWS: {
   { name: "api.public_states", contract: publicStateContract },
   { name: "api.public_cities", contract: publicCityContract },
   { name: "api.public_boards", contract: publicBoardContract },
-  { name: "api.public_school_affiliations", contract: publicSchoolAffiliationContract },
+  { name: "api.public_school_boards", contract: publicSchoolBoardContract },
 ];
 
 const RAW_TABLES = [

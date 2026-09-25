@@ -1771,44 +1771,7 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      public_school_admissions: {
-        Row: {
-          school_id: string | null;
-          slug: string | null;
-          city_id: number | null;
-          name_en: string | null;
-          name_hi: string | null;
-          tier: Database["public"]["Enums"]["school_tier"] | null;
-          academic_year: string | null;
-          class_code: string | null;
-          status: Database["public"]["Enums"]["admission_status"] | null;
-          form_mode: Database["public"]["Enums"]["form_mode"] | null;
-          opens_on: string | null;
-          closes_on: string | null;
-          registration_fee: number | null;
-          form_url: string | null;
-          last_checked_at: string | null;
-          verification: Database["public"]["Enums"]["verification_status"] | null;
-          days_to_close: number | null;
-        };
-        Relationships: [];
-      };
-      public_seat_status: {
-        Row: {
-          school_id: string | null;
-          academic_year: string | null;
-          class_code: string | null;
-          public_status: Database["public"]["Enums"]["seat_public_status"] | null;
-          range_label: string | null;
-          confidence: Database["public"]["Enums"]["seat_confidence"] | null;
-          mid_session_accepted: boolean | null;
-          reported_at: string | null;
-          confirmed_at: string | null;
-        };
-        Relationships: [];
-      };
-    };
+    Views: Record<string, never>;
     Functions: {
       current_role_is: {
         Args: Record<string, unknown>; // r user_role

@@ -2,6 +2,7 @@ import "server-only";
 import {
   type PublicSchool,
   type PublicSchoolAdmission,
+  type PublicSchoolBoard,
   publicAreaContract,
   publicBoardContract,
   publicCityContract,
@@ -9,7 +10,7 @@ import {
   publicLocalityContract,
   publicLocalityNeighborContract,
   publicSchoolAdmissionContract,
-  publicSchoolAffiliationContract,
+  publicSchoolBoardContract,
   publicSchoolContract,
   publicStateContract,
 } from "@/contracts";
@@ -25,27 +26,21 @@ import { titleCase } from "@/lib/text";
  * Reads ONLY `api.*` views (via createApiSchemaClient()) — the curated,
  * source-redacted, owner-run surface (see docs/DATA_ACCESS.md), including small
  * passthrough views for pure reference data that has no redaction rules of its
- * own (public_districts/public_states/public_cities/public_boards/
- * public_school_affiliations — db/views/045_reference_views.sql). Every row read
- * this way is validated against its Zod contract in src/contracts (the same
- * contracts scripts/verify-views.ts checks against live data) since
- * createApiSchemaClient() is intentionally untyped — see its doc comment in
- * src/lib/db/public.ts.
+ * own (public_districts/public_states/public_cities/public_boards —
+ * db/views/045_reference_views.sql) and api.public_school_boards
+ * (db/views/046_public_school_boards.sql, source-gated like public_schools'
+ * other official facts). Every row read this way is validated against its Zod
+ * contract in src/contracts (the same contracts scripts/verify-views.ts checks
+ * against live data) since createApiSchemaClient() is intentionally untyped —
+ * see its doc comment in src/lib/db/public.ts.
  *
- * `school_identifiers` and `field_provenance` have no api.* view yet —
- * `getPublicSchoolByIdSlug`'s identifiers/facts sub-queries are unused today
- * (School Page v2 isn't built) and stay as a documented TODO, returning empty.
+ * No raw-table allowlist exceptions. `school_identifiers` and `field_provenance`
+ * have no api.* view yet — `getPublicSchoolByIdSlug`'s identifiers/facts
+ * sub-queries are unused today (nothing in School Page v2's Overview needs them)
+ * and stay as a documented TODO, returning empty once the grants migration lands.
  */
 
-export type { PublicSchool };
-
-export type PublicSchoolAffiliation = {
-  board_id: number;
-  affiliation_no: string | null;
-  level: string | null;
-  valid_from: string | null;
-  valid_to: string | null;
-};
+export type { PublicSchool, PublicSchoolBoard };
 
 export type PublicSchoolIdentifier = { scheme: string; value: string };
 
@@ -61,7 +56,7 @@ export type PublicSchoolFact = {
 /** Overview page data for one school. Null if not found. */
 export async function getPublicSchoolByIdSlug(id: string): Promise<{
   school: PublicSchool;
-  affiliations: PublicSchoolAffiliation[];
+  board: PublicSchoolBoard | null;
   identifiers: PublicSchoolIdentifier[];
   facts: PublicSchoolFact[];
 } | null> {
@@ -76,18 +71,11 @@ export async function getPublicSchoolByIdSlug(id: string): Promise<{
   if (error || !schoolRow) return null;
   const school = publicSchoolContract.parse(schoolRow);
 
-  // TODO: api.public_school_affiliations exists but is deliberately minimal
-  // (school_id, board_id only — see db/views/045_reference_views.sql), not
-  // enough for this type's affiliation_no/level/valid_from/valid_to. No view
-  // exists at all yet for identifiers/facts. All three raw tables lose their
-  // anon grant once the grants-hardening migration lands, so these return empty
-  // until proper views exist. Unused today (School Page v2 isn't built), so
-  // left as a documented gap rather than removed.
-  const [affiliationsResult, identifiersResult, factsResult] = await Promise.all([
-    publicClient
-      .from("school_affiliations")
-      .select("board_id, affiliation_no, level, valid_from, valid_to")
-      .eq("school_id", id),
+  // TODO: school_identifiers/field_provenance have no api.* view yet, and no
+  // raw-table grant after the grants-hardening migration — these return empty
+  // until proper views exist. Unused today (nothing in Overview needs them).
+  const [boardResult, identifiersResult, factsResult] = await Promise.all([
+    api.from("public_school_boards").select("*").eq("school_id", id).maybeSingle(),
     publicClient.from("school_identifiers").select("scheme, value").eq("school_id", id),
     publicClient
       .from("field_provenance")
@@ -98,7 +86,7 @@ export async function getPublicSchoolByIdSlug(id: string): Promise<{
 
   return {
     school,
-    affiliations: affiliationsResult.data ?? [],
+    board: boardResult.data ? publicSchoolBoardContract.parse(boardResult.data) : null,
     identifiers: identifiersResult.data ?? [],
     facts: factsResult.data ?? [],
   };
@@ -216,10 +204,10 @@ export async function listPublicSchoolsByDistrict(
 
   if (boardId) {
     const { data: affiliated } = await api
-      .from("public_school_affiliations")
-      .select("school_id, board_id")
+      .from("public_school_boards")
+      .select("*")
       .eq("board_id", boardId);
-    const ids = (affiliated ?? []).map((a) => publicSchoolAffiliationContract.parse(a).school_id);
+    const ids = (affiliated ?? []).map((a) => publicSchoolBoardContract.parse(a).school_id);
     query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
   }
 
@@ -264,17 +252,16 @@ export async function listDistrictFilterOptions(
 
   if (schoolIds.length === 0) return { boards: [], maxClasses };
 
-  const { data: affiliations } = await api
-    .from("public_school_affiliations")
-    .select("school_id, board_id")
+  const { data: schoolBoards } = await api
+    .from("public_school_boards")
+    .select("*")
     .in("school_id", schoolIds);
-  const boardIds = [
-    ...new Set((affiliations ?? []).map((a) => publicSchoolAffiliationContract.parse(a).board_id)),
-  ];
-  if (boardIds.length === 0) return { boards: [], maxClasses };
-
-  const { data: boards } = await api.from("public_boards").select("*").in("id", boardIds);
-  return { boards: (boards ?? []).map((row) => publicBoardContract.parse(row)), maxClasses };
+  const byId = new Map(
+    (schoolBoards ?? [])
+      .map((row) => publicSchoolBoardContract.parse(row))
+      .map((b) => [b.board_id, { id: b.board_id, name_en: b.board_name }]),
+  );
+  return { boards: [...byId.values()], maxClasses };
 }
 
 export type PublicBoard = { id: number; name_en: string };
@@ -337,26 +324,16 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
   if (schoolIds.length === 0) return new Map();
 
   const api = createApiSchemaClient();
-  const { data: affiliationRows } = await api
-    .from("public_school_affiliations")
-    .select("school_id, board_id")
+  const { data: schoolBoardRows } = await api
+    .from("public_school_boards")
+    .select("*")
     .in("school_id", schoolIds);
-  const affiliations = (affiliationRows ?? []).map((row) =>
-    publicSchoolAffiliationContract.parse(row),
-  );
-
-  const boardIds = [...new Set(affiliations.map((a) => a.board_id))];
-  if (boardIds.length === 0) return new Map();
-
-  const { data: boardRows } = await api.from("public_boards").select("*").in("id", boardIds);
-  const boards = (boardRows ?? []).map((row) => publicBoardContract.parse(row));
-  const boardNameById = new Map(boards.map((b) => [b.id, b.name_en]));
+  const schoolBoards = (schoolBoardRows ?? []).map((row) => publicSchoolBoardContract.parse(row));
 
   const result = new Map<string, string>();
-  for (const row of affiliations) {
-    const boardName = boardNameById.get(row.board_id);
-    if (boardName && !result.has(row.school_id)) {
-      result.set(row.school_id, boardName);
+  for (const row of schoolBoards) {
+    if (!result.has(row.school_id)) {
+      result.set(row.school_id, row.board_name);
     }
   }
   return result;

@@ -13,7 +13,6 @@ import {
   getPublicDistrictById,
   getPublicSchoolByIdSlug,
   getPublicStateById,
-  listPublicBoards,
 } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
@@ -40,8 +39,7 @@ async function resolveSchoolPage(idSlug: string) {
     return { redirectTo: `${parsed.id}-${result.school.slug}` as const };
   }
 
-  const [boards, admissions, city] = await Promise.all([
-    listPublicBoards(),
+  const [admissions, city] = await Promise.all([
     getPublicAdmissionsBySchoolId(parsed.id),
     result.school.district_id ? getPublicCityByDistrictId(result.school.district_id) : null,
   ]);
@@ -55,11 +53,13 @@ async function resolveSchoolPage(idSlug: string) {
     }
   }
 
-  const boardId = result.affiliations[0]?.board_id;
-  const board = boardId ? (boards.find((b) => b.id === boardId) ?? null) : null;
-  const affiliationNo = result.affiliations[0]?.affiliation_no ?? null;
-
-  return { ...result, admissions, city, state: stateInfo, board, affiliationNo };
+  return {
+    ...result,
+    admissions,
+    city,
+    state: stateInfo,
+    affiliationNo: result.board?.affiliation_no ?? null,
+  };
 }
 
 function schoolOrgType(maxClass: string | null): string {
@@ -211,8 +211,9 @@ export default async function SchoolPage({ params }: PageProps<"/[locale]/school
       <div className="flex flex-col gap-2 border-b border-rule pb-6">
         <h1 className="font-display text-title-m md:text-title-d">{name}</h1>
         <p className="text-body text-muted-ink">
-          {[board?.name_en, grades, school.management, school.gender].filter(Boolean).join(" · ") ||
-            "Not yet published"}
+          {[board?.board_name, grades, school.management, school.gender]
+            .filter(Boolean)
+            .join(" · ") || "Not yet published"}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <StatusPill status={pill.status}>{pill.label}</StatusPill>
@@ -229,7 +230,8 @@ export default async function SchoolPage({ params }: PageProps<"/[locale]/school
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-body">
               <div>
                 <dt className="text-meta font-semibold text-muted-ink">Board</dt>
-                <dd>{board?.name_en ?? <NotYetPublished />}</dd>
+                <dd>{board?.board_name ?? <NotYetPublished />}</dd>
+                {board?.source && <p className="text-meta text-slate">Source: {board.source}</p>}
               </div>
               <div>
                 <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>

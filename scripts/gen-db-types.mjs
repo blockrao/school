@@ -217,9 +217,7 @@ export type Database = {
     Tables: {
 ${tablesTs}
     };
-    Views: {
-${viewsTs}
-    };
+    Views: ${viewNames.length > 0 ? `{\n${viewsTs}\n    }` : "Record<string, never>"};
     Functions: {
 ${functionsTs}
     };

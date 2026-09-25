@@ -13,4 +13,4 @@ grant select on api.public_districts to anon, authenticated;
 grant select on api.public_states to anon, authenticated;
 grant select on api.public_cities to anon, authenticated;
 grant select on api.public_boards to anon, authenticated;
-grant select on api.public_school_affiliations to anon, authenticated;
+grant select on api.public_school_boards to anon, authenticated;

@@ -19,11 +19,3 @@ from cities;
 create or replace view api.public_boards as
 select id, name_en
 from boards;
-
--- Minimal: only what the board-name lookups in public-adapter.ts need
--- (school_id -> board_id). affiliation_no/level/valid_from/valid_to aren't
--- consumed by any built page yet (School Page v2 isn't built) and stay
--- unexposed until they are and a proper source-gated view is designed for them.
-create or replace view api.public_school_affiliations as
-select school_id, board_id
-from school_affiliations;

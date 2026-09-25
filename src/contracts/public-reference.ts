@@ -33,9 +33,14 @@ export const publicBoardContract = z.object({
 });
 export type PublicBoardRow = z.infer<typeof publicBoardContract>;
 
-/** Mirrors db/views/045_reference_views.sql — api.public_school_affiliations. */
-export const publicSchoolAffiliationContract = z.object({
+/** Mirrors db/views/046_public_school_boards.sql — api.public_school_boards. */
+export const publicSchoolBoardContract = z.object({
   school_id: z.string(),
   board_id: z.number(),
+  board_name: z.string(),
+  board_code: z.string(),
+  affiliation_no: z.string().nullable(),
+  source: z.string().nullable(),
+  checked_at: z.string().nullable(),
 });
-export type PublicSchoolAffiliationRow = z.infer<typeof publicSchoolAffiliationContract>;
+export type PublicSchoolBoard = z.infer<typeof publicSchoolBoardContract>;
