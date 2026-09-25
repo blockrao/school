@@ -168,3 +168,51 @@ export async function listPublicBoards(): Promise<PublicBoard[]> {
   const { data } = await supabase.from("boards").select("id, name_en");
   return data ?? [];
 }
+
+export type PublicOpenAdmission = {
+  schoolId: string;
+  slug: string;
+  nameEn: string;
+  status: string;
+  closesOn: string | null;
+};
+
+/** Published schools in a district with a currently-open admission cycle, soonest deadline first. */
+export async function listOpenAdmissionsByDistrict(
+  districtId: number,
+  limit = 3,
+): Promise<PublicOpenAdmission[]> {
+  const supabase = createPublicClient();
+
+  const { data: schools } = await supabase
+    .from("schools")
+    .select("id, slug, name_en")
+    .eq("district_id", districtId)
+    .eq("status", "published");
+
+  const schoolIds = (schools ?? []).map((s) => s.id);
+  if (schoolIds.length === 0) return [];
+
+  const { data: cycles } = await supabase
+    .from("admission_cycles")
+    .select("school_id, status, closes_on")
+    .in("school_id", schoolIds)
+    .in("status", ["open", "closing_soon"])
+    .order("closes_on", { ascending: true })
+    .limit(limit);
+
+  const bySchoolId = new Map((schools ?? []).map((s) => [s.id, s]));
+  return (cycles ?? []).flatMap((cycle) => {
+    const school = bySchoolId.get(cycle.school_id);
+    if (!school) return [];
+    return [
+      {
+        schoolId: school.id,
+        slug: school.slug,
+        nameEn: school.name_en,
+        status: cycle.status,
+        closesOn: cycle.closes_on,
+      },
+    ];
+  });
+}
