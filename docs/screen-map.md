@@ -20,16 +20,16 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
 | 0 | Components Sheet | `src/components/ui/*` | — | designed+built | DeadlineMargin, StatusPill, SeatPill, SchoolCard (default/sponsored/stale/unknown), Tabs, MapPin, DocRow, OtpInput |
 | 0 | Platform Shell | `src/app/[locale]/layout.tsx` | static | designed+built | Header, 5 primary nav items, mobile bottom tab bar, EN/हिं toggle = locale route switch (not client state), footer incl. Grievance officer |
 | — | Guides | `/[locale]/guides` | static | built-from-components | No design file — primary nav item with no designed content screen. See `docs/design-gaps.md` |
-| 1 | School Page v2 + SchoolTabContent | `/[locale]/school/[id]-[slug]` (+ `/admissions`, `/fees`, `/facilities`, `/teachers`, `/location`, `/photos`) | cached static shell, deadline/seats streamed | pending | Tabs are **real links to sub-routes**, not setState. Overview must contain the fact block + JSON-LD. Sub-routes self-canonical only if content is substantial; else canonical → overview |
-| 2 | Home v2 | `/[locale]` | static | pending | |
-| 3 | Search Results | `/[locale]/schools` (filters in searchParams) | dynamic, noindex for filter combos | pending | Map lazy-loaded (MapLibre). Compare tray = client island |
+| 1 | School Page v2 + SchoolTabContent | `/[locale]/school/[id]-[slug]` (+ `/admissions`, `/fees`, `/facilities`, `/teachers`, `/location`, `/photos`) | cached static shell, deadline/seats streamed | designed+built | Tabs are **real links to sub-routes**, not setState. Overview contains the fact block + JSON-LD |
+| 2 | Home v2 | `/[locale]` | static | designed+built | Scoped to Jaipur |
+| 3 | Search Results | `/[locale]/schools` (filters in searchParams) | dynamic, noindex for filter combos | designed+built | Map lazy-loaded (MapLibre), List/Map toggle. Compare tray = client island |
 | 4 | City List | `/[locale]/[city]/admissions` | ISR per city | pending | Indexable. Empty state designed |
 | 5 | Delhi Nursery Hub | `/[locale]/delhi/nursery-admission` | ISR | pending | High-intent seasonal SEO page |
-| 6 | Age Checker | `/[locale]/tools/age-eligibility` | static + client island | pending | Hindi variant designed — test under `/hi` |
-| 7 | Compare Schools | `/[locale]/compare?ids=` | dynamic, noindex | pending | |
+| 6 | Age Checker | `/[locale]/tools/age-eligibility` | static + client island | designed+built | Deliberate deviation from the design's fabricated verdict — see top-of-file comment. Hindi variant done |
+| 7 | Compare Schools | `/[locale]/compare?ids=` | dynamic, noindex | designed+built | |
 | 8 | Seats Available Now | `/[locale]/[city]/seats-available` + block on school page | ISR, short revalidate | pending | OpenSeat |
-| 9 | WhatsApp Alerts | `/[locale]/alerts` | client flow | pending | OTP via Supabase Auth phone; WhatsApp sending is backend, out of frontend scope |
-| — | Sign-in (phone OTP) | `/[locale]/sign-in` | dynamic, noindex | built-from-components | No matching design file — see `docs/design-gaps.md`. Shared auth gate for Alerts/Shortlist/Enquiry via `?next=` |
+| 9 | WhatsApp Alerts | `/[locale]/alerts` | client flow | designed+built | Steps 5a/5b (phone entry, OTP verify) factored into the shared `/sign-in` gate instead of embedded here — see top-of-file comment. Consent recorded in `consents`, subscription in `alert_subscriptions`. Step 5e's per-toggle delivery timing has no backing column, not built. WhatsApp sending is backend, out of frontend scope |
+| — | Sign-in (phone OTP) | `/[locale]/sign-in` | dynamic, noindex | designed+built | Adapted from WhatsApp Alerts steps 5a/5b as a standalone, reusable gate for Alerts/Shortlist/Enquiry via `?next=` |
 | 10 | Application Help | `/[locale]/admissions/help` → `/my/admissions` | auth, dynamic | pending | Concierge + Document Vault. `/my/*` noindex |
 | 11 | School Portal | `/for-schools` (public), `/portal/*` (auth) | dynamic | pending | Claim → dashboard → seats → post notice |
 | 12 | Teacher Profile | `/[locale]/teacher/[id]-[slug]` | ISR | pending | Claimed + unclaimed states |

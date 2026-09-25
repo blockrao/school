@@ -4,10 +4,10 @@ import { OtpInput } from "@/components/ui/otp-input";
 import { formatIndianPhone } from "@/lib/phone";
 import { requestOtp, verifySignInOtp } from "./actions";
 
-// design-pending: no matching file in design/ (see docs/screen-map.md row 9, "WhatsApp
-// Alerts", names phone OTP as the auth mechanism but ships no sign-in screen of its own).
-// Built from existing tokens + the already-designed OtpInput component only — logged in
-// docs/design-gaps.md.
+// Adapted from design/WhatsApp Alerts.dc.html (steps 5a "Your WhatsApp number" / 5b
+// "Enter the code") as a standalone, reusable route rather than steps embedded in the
+// Alerts flow — Shortlist and Enquiry need the same OTP step and shouldn't each
+// re-implement it. `?next=` carries the caller back to wherever it came from.
 
 type Copy = {
   title: string;
