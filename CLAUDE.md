@@ -2,6 +2,15 @@
 
 India K-12 school discovery: school graph + claim flow, OpenSeat vacancies, admission help, teacher profiles.
 Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
+Current MVP build district: **South West Delhi** (golden school: Shreeram World School). Other launch-scope
+districts come later; the hierarchy is built so they can be added without changing school URLs.
+
+## Scope
+This repo owns UI, features, user flows, and wiring. The database is owned and built by a separate
+agent and is assumed to be filling up. Never assess, report on, or comment on data quality or
+coverage in this repo's work. If the UI needs a table, column, view, policy, or RPC that doesn't
+exist, add a one-line request to `docs/handoff/db-agent-requests.md` and continue with the designed
+empty/fallback state ("Not yet published", "Dates not announced", etc.). Never block on data.
 
 ## Stack (do not substitute)
 - Next.js 16.3.x (latest patch), App Router, React 19, TypeScript `strict`, Turbopack, pnpm
@@ -70,6 +79,22 @@ Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
 - No paid ranking, no "best" badges for sale, no star ratings, no sold votes.
 - Sponsored cards use the sponsored border AND a visible "Sponsored" label. Never just styling.
 - No fabricated data, including in seed/demo fixtures shown in production. SchoolOye does not sell admissions.
+- The app never uses the Supabase service-role/secret key. Elevated access goes through RLS
+  (`is_staff`, `is_school_member`) or scoped Postgres functions.
+
+## Iterative build process
+- Build and complete every screen in `design/`; a screen counts as done only once its states,
+  wiring, e2e coverage, and screenshots are all in place.
+- A flow step with no matching design file gets a minimal functional version built only from
+  existing `src/components/ui` primitives and tokens (no new visual patterns), marked
+  `// design-pending` at its entry point, and logged in `docs/design-gaps.md` (screen, flow,
+  what it needs to do, which components it uses). Never block a flow on a missing design.
+- `docs/screen-map.md` is the live tracker — every screen carries a status: designed+built /
+  built-from-components / pending / deferred.
+- When new files land in `design/`: diff against `docs/screen-map.md` for new/changed screens;
+  port new components into `src/components/ui` first (tokens, gallery entries, states); replace
+  any matching `design-pending` screen with the real one and remove its `docs/design-gaps.md`
+  row; build new screens in flow order with the same checklist.
 
 ## Working style
 - Small PRs, one screen or component per PR. Run `pnpm typecheck && pnpm lint && pnpm test` before committing.
