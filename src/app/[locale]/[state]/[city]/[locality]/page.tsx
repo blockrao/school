@@ -15,14 +15,13 @@ import {
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
-import { parseGeographyPoint } from "@/lib/geo";
 import { formatGradeRange } from "@/lib/grades";
 
 async function resolveLocalityPage(stateSlug: string, citySlug: string, localitySlug: string) {
   const city = await getPublicCityAreaBySlug(citySlug);
   if (!city?.isLaunch || city.stateSlug !== stateSlug) return null;
 
-  const locality = await getPublicLocalityBySlug(city.cityId, localitySlug);
+  const locality = await getPublicLocalityBySlug(city.citySlug, localitySlug);
   if (!locality) return null;
 
   // Towns are peer-level in the URL (/[state]/[town], not nested under a
@@ -62,7 +61,7 @@ export default async function LocalityPage({
 
   const [schools, neighbors] = await Promise.all([
     listPublicSchoolsByLocality(locality.id),
-    listLocalityNeighbors(locality.id),
+    listLocalityNeighbors(locality.slug),
   ]);
 
   const schoolIds = schools.map((s) => s.id);
@@ -76,14 +75,13 @@ export default async function LocalityPage({
   const heading = `Schools in ${locality.name}`;
 
   const mapPoints = schools.flatMap((school) => {
-    const point = parseGeographyPoint(school.location);
-    if (!point) return [];
+    if (school.lat == null || school.lng == null) return [];
     return [
       {
         id: school.id,
-        lat: point.lat,
-        lng: point.lng,
-        label: school.name_en,
+        lat: school.lat,
+        lng: school.lng,
+        label: school.name_en ?? "Name not yet published",
         href: `/${locale}/school/${school.id}-${school.slug}`,
         precision: school.geocode_precision ?? "pincode",
       },
@@ -161,7 +159,7 @@ export default async function LocalityPage({
               return (
                 <SchoolCard
                   key={school.id}
-                  name={school.name_en}
+                  name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}
                   deadline={deadline}

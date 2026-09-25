@@ -9,3 +9,8 @@ grant select on api.public_areas to anon, authenticated;
 grant select on api.public_localities to anon, authenticated;
 grant select on api.public_corridors to anon, authenticated;
 grant select on api.public_locality_neighbors to anon, authenticated;
+grant select on api.public_districts to anon, authenticated;
+grant select on api.public_states to anon, authenticated;
+grant select on api.public_cities to anon, authenticated;
+grant select on api.public_boards to anon, authenticated;
+grant select on api.public_school_affiliations to anon, authenticated;

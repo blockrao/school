@@ -18,3 +18,24 @@ export function createPublicClient() {
     },
   );
 }
+
+/**
+ * Anon-key client scoped to the `api` schema (db/views/*.sql) — same anon key,
+ * same RLS exposure, just pointed at the curated views instead of `public`.
+ * `scripts/gen-db-types.mjs` only introspects `public` (see its own header), so
+ * `Database` has no `api` key to type this client against — deliberately
+ * untyped here; every caller validates rows against the matching Zod contract in
+ * src/contracts immediately after fetching (the same contracts
+ * scripts/verify-views.ts checks against live data), so correctness is enforced
+ * at runtime instead of compile time for this one client.
+ */
+export function createApiSchemaClient() {
+  return createClient(
+    publicEnv.NEXT_PUBLIC_SUPABASE_URL,
+    publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: { persistSession: false },
+      db: { schema: "api" },
+    },
+  );
+}

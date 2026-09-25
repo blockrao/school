@@ -240,7 +240,7 @@ export default async function SchoolsPage({
               return (
                 <SchoolCard
                   key={school.id}
-                  name={school.name_en}
+                  name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}
                   deadline={deadline}

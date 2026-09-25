@@ -20,7 +20,6 @@ import {
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
-import { parseGeographyPoint } from "@/lib/geo";
 import { formatGradeRange } from "@/lib/grades";
 
 const PAGE_SIZE = 24;
@@ -118,14 +117,13 @@ function TownPageBody({
   const townPath = `/${locale}/${stateSlug}/${town.townSlug}`;
 
   const mapPoints = schools.flatMap((school) => {
-    const point = parseGeographyPoint(school.location);
-    if (!point) return [];
+    if (school.lat == null || school.lng == null) return [];
     return [
       {
         id: school.id,
-        lat: point.lat,
-        lng: point.lng,
-        label: school.name_en,
+        lat: school.lat,
+        lng: school.lng,
+        label: school.name_en ?? "Name not yet published",
         href: `/${locale}/school/${school.id}-${school.slug}`,
         precision: school.geocode_precision ?? "pincode",
       },
@@ -191,7 +189,7 @@ function TownPageBody({
               return (
                 <SchoolCard
                   key={school.id}
-                  name={school.name_en}
+                  name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}
                   deadline={deadline}
@@ -255,7 +253,7 @@ export default async function CityOrTownPage({
 
     const [schools, neighbors] = await Promise.all([
       listPublicSchoolsByLocality(town.localityId),
-      listLocalityNeighbors(town.localityId),
+      listLocalityNeighbors(town.townSlug),
     ]);
     const schoolIds = schools.map((s) => s.id);
     const [boardNames, admissionDeadlines] = await Promise.all([
@@ -294,7 +292,7 @@ export default async function CityOrTownPage({
       pageSize: PAGE_SIZE,
     }),
     listDistrictFilterOptions(city.districtId),
-    listPublicLocalitiesByCity(city.cityId),
+    listPublicLocalitiesByCity(city.citySlug),
   ]);
 
   const schoolIds = schools.map((s) => s.id);
@@ -441,7 +439,7 @@ export default async function CityOrTownPage({
               return (
                 <SchoolCard
                   key={school.id}
-                  name={school.name_en}
+                  name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}
                   deadline={deadline}

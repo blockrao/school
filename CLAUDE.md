@@ -2,8 +2,10 @@
 
 India K-12 school discovery: school graph + claim flow, OpenSeat vacancies, admission help, teacher profiles.
 Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
-Current MVP build district: **South West Delhi** (golden school: Shreeram World School). Other launch-scope
-districts come later; the hierarchy is built so they can be added without changing school URLs.
+Current launch city: **Jaipur, Rajasthan** (see `docs/DATA_ACCESS.md`'s routing note — district is
+internal-only, never in a URL or visible label; the app routes on city/town). South West Delhi stays
+fully built but unlinked. Other launch-scope cities come later; the hierarchy is built so they can be
+added without changing school URLs.
 
 ## Scope
 This repo owns UI, features, user flows, and wiring — and, as of the views/publishing-rules work,
@@ -14,14 +16,23 @@ views/publishing-rules ownership. Never block on data.
 
 Full data access architecture: `docs/DATA_ACCESS.md`. This repo never alters table structure and
 never writes table migrations — it owns everything read-facing on top of those tables (views,
-grants, RLS, `/ops` write policies). Production reads ONLY the `api` schema views (`public_schools`,
-`public_school_admissions`, `public_seat_status`, `public_cities`), defined in `db/views/*.sql`
-and applied via `pnpm db:views --confirm` (human-run, same human-in-the-loop gate as
-`db:migrate`). `staging.*` views are analysis-only, readable solely by `claude_ro`, never by the
+grants, RLS, `/ops` write policies). Production reads ONLY the `api` schema views, defined in
+`db/views/*.sql`. `staging.*` views are analysis-only, readable solely by `claude_ro`, never by the
 app in any environment. Never query raw tables (`schools`, `source_records`, `field_provenance`,
-etc.) from application code. The view contract is mirrored in `src/contracts` (Zod); `pnpm
-verify:views` fails if a view's actual rows diverge from its contract, or if `anon` can read
-anything it shouldn't.
+etc.) from application code — `src/lib/db/public-adapter.ts` is the one exception on the narrow,
+explicit allowlist documented at its top (pure reference tables with no `api.*` view and either
+fully-open or already-correctly-gated RLS of their own). The view contract is mirrored in
+`src/contracts` (Zod); `pnpm verify:views` fails if `anon` can read a raw table or `staging`
+directly, or can't read a granted `api.*` view — contract/type mismatches between a view and its
+Zod schema are reported but don't fail the script (fix and move on).
+
+**DB command authority**: Claude applies non-destructive changes itself — `CREATE OR REPLACE VIEW`,
+`CREATE TABLE`/`ADD COLUMN`/`CREATE INDEX`, idempotent seed upserts, `GRANT SELECT` on `api.*`
+views (`pnpm db:views --confirm`, `pnpm db:migrate <file> --confirm`) — no round-trip needed.
+Destructive changes — `DROP`, `REVOKE`, `DELETE`, `TRUNCATE`, `ALTER COLUMN TYPE`, RLS policy
+changes on personal-data tables (`profiles`, `children`, `consents`, `documents`, etc.) — need the
+user's explicit "yes" in chat first: show the exact SQL, then wait. `pnpm verify:views` is always
+self-run (read-only, no `--confirm`).
 
 ## Stack (do not substitute)
 - Next.js 16.3.x (latest patch), App Router, React 19, TypeScript `strict`, Turbopack, pnpm

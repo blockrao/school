@@ -4,16 +4,18 @@
 -- localities with no source data) so the app can label computed neighbours
 -- differently if it chooses to, rather than presenting both as equally
 -- authoritative.
--- distance_meters stays numeric (its real type) — PostgREST/supabase-js return
--- numeric as a string (avoids float precision loss), so the Zod contract uses
--- z.coerce.number() instead of casting the column down. See
--- src/contracts/public-locality-neighbors.ts.
+-- distance_meters::double precision cast: locality_neighbors.distance_meters is
+-- numeric, which PostgREST/supabase-js return as a string — meter-precision
+-- distance has no real use for numeric's extra precision, so cast down in the
+-- view. db-views.mjs DROP VIEW IF EXISTS's before every CREATE, so this (and any
+-- future column-type edit) applies cleanly. The Zod contract also uses
+-- z.coerce.number() as a defensive second layer either way.
 create or replace view api.public_locality_neighbors as
 select
   l.slug as locality_slug,
   n.slug as neighbor_slug,
   n.name_en as neighbor_name,
-  ln.distance_meters,
+  ln.distance_meters::double precision as distance_meters,
   ln.method
 from locality_neighbors ln
 join localities l on l.id = ln.locality_id

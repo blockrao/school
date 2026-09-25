@@ -1,6 +1,17 @@
 import "server-only";
-import { createPublicClient } from "@/lib/db/public";
-import { parseGeographyPoint } from "@/lib/geo";
+import {
+  type PublicSchool,
+  publicAreaContract,
+  publicBoardContract,
+  publicCityContract,
+  publicDistrictContract,
+  publicLocalityContract,
+  publicLocalityNeighborContract,
+  publicSchoolAffiliationContract,
+  publicSchoolContract,
+  publicStateContract,
+} from "@/contracts";
+import { createApiSchemaClient, createPublicClient } from "@/lib/db/public";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
 
@@ -9,48 +20,22 @@ import { titleCase } from "@/lib/text";
  * component queries Supabase directly. See scripts/check-public-adapter-imports.mjs
  * (CI-enforced) for the rule.
  *
- * TODO(views): once docs/handoff/db-agent-requests.md's public_schools /
- * public_school_facts / public_districts views exist and are granted to anon, swap
- * the base-table `.from(...)` calls below for the views. Callers don't change —
- * that's the whole point of routing everything through one file.
+ * Reads ONLY `api.*` views (via createApiSchemaClient()) — the curated,
+ * source-redacted, owner-run surface (see docs/DATA_ACCESS.md), including small
+ * passthrough views for pure reference data that has no redaction rules of its
+ * own (public_districts/public_states/public_cities/public_boards/
+ * public_school_affiliations — db/views/045_reference_views.sql). Every row read
+ * this way is validated against its Zod contract in src/contracts (the same
+ * contracts scripts/verify-views.ts checks against live data) since
+ * createApiSchemaClient() is intentionally untyped — see its doc comment in
+ * src/lib/db/public.ts.
  *
- * Known gap until the DB agent applies that handoff: `school_identifiers` and
- * `field_provenance` currently have staff-only RLS policies with no public-read
- * variant, so `identifiers`/`facts` below return empty for anon today regardless of
- * a school's published status. Not a bug in this file — nothing to query yet.
+ * `school_identifiers` and `field_provenance` have no api.* view yet —
+ * `getPublicSchoolByIdSlug`'s identifiers/facts sub-queries are unused today
+ * (School Page v2 isn't built) and stay as a documented TODO, returning empty.
  */
 
-const SCHOOL_COLUMNS =
-  "id, slug, name_en, name_hi, management, gender, medium, min_class, max_class, address, pincode, location, geocode_precision, website, phone, email, established_year, tier, verification, claim, last_verified_at, about_en, about_hi, district_id, city_id, locality_id";
-
-export type PublicSchool = {
-  id: string;
-  slug: string;
-  name_en: string;
-  name_hi: string | null;
-  management: string | null;
-  gender: string | null;
-  medium: string[] | null;
-  min_class: string | null;
-  max_class: string | null;
-  address: string | null;
-  pincode: string | null;
-  location: unknown | null;
-  geocode_precision: string | null;
-  website: string | null;
-  phone: string[] | null;
-  email: string[] | null;
-  established_year: number | null;
-  tier: string;
-  verification: string;
-  claim: string;
-  last_verified_at: string | null;
-  about_en: string | null;
-  about_hi: string | null;
-  district_id: number | null;
-  city_id: number | null;
-  locality_id: number | null;
-};
+export type { PublicSchool };
 
 export type PublicSchoolAffiliation = {
   board_id: number;
@@ -71,31 +56,38 @@ export type PublicSchoolFact = {
   verified_at: string | null;
 };
 
-/** Overview page data for one school. Null if not found or not published. */
+/** Overview page data for one school. Null if not found. */
 export async function getPublicSchoolByIdSlug(id: string): Promise<{
   school: PublicSchool;
   affiliations: PublicSchoolAffiliation[];
   identifiers: PublicSchoolIdentifier[];
   facts: PublicSchoolFact[];
 } | null> {
-  const supabase = createPublicClient();
+  const api = createApiSchemaClient();
+  const publicClient = createPublicClient();
 
-  const { data: school, error } = await supabase
-    .from("schools")
-    .select(SCHOOL_COLUMNS)
+  const { data: schoolRow, error } = await api
+    .from("public_schools")
+    .select("*")
     .eq("id", id)
-    .eq("status", "published")
     .maybeSingle();
+  if (error || !schoolRow) return null;
+  const school = publicSchoolContract.parse(schoolRow);
 
-  if (error || !school) return null;
-
+  // TODO: api.public_school_affiliations exists but is deliberately minimal
+  // (school_id, board_id only — see db/views/045_reference_views.sql), not
+  // enough for this type's affiliation_no/level/valid_from/valid_to. No view
+  // exists at all yet for identifiers/facts. All three raw tables lose their
+  // anon grant once the grants-hardening migration lands, so these return empty
+  // until proper views exist. Unused today (School Page v2 isn't built), so
+  // left as a documented gap rather than removed.
   const [affiliationsResult, identifiersResult, factsResult] = await Promise.all([
-    supabase
+    publicClient
       .from("school_affiliations")
       .select("board_id, affiliation_no, level, valid_from, valid_to")
       .eq("school_id", id),
-    supabase.from("school_identifiers").select("scheme, value").eq("school_id", id),
-    supabase
+    publicClient.from("school_identifiers").select("scheme, value").eq("school_id", id),
+    publicClient
       .from("field_provenance")
       .select("field, value, source_id, evidence_url, created_at, verified_at")
       .eq("entity_table", "schools")
@@ -112,34 +104,31 @@ export async function getPublicSchoolByIdSlug(id: string): Promise<{
 
 export type PublicDistrict = { id: number; name_en: string; slug: string; state_id: number };
 
-/** District row by slug, for the district listing page and breadcrumbs. */
+/** District row by slug — internal use only (launch-flag gating, legacy-URL redirect). District never appears in the UI. */
 export async function getPublicDistrictBySlug(slug: string): Promise<PublicDistrict | null> {
-  const supabase = createPublicClient();
-  const { data, error } = await supabase
-    .from("districts")
-    .select("id, name_en, slug, state_id")
+  const api = createApiSchemaClient();
+  const { data, error } = await api
+    .from("public_districts")
+    .select("*")
     .eq("slug", slug)
     .maybeSingle();
-  return error || !data ? null : data;
+  return error || !data ? null : publicDistrictContract.parse(data);
 }
 
 export type PublicState = { id: number; name_en: string; code: string };
 
 export async function getPublicStateById(id: number): Promise<PublicState | null> {
-  const supabase = createPublicClient();
-  const { data, error } = await supabase
-    .from("states")
-    .select("id, name_en, code")
-    .eq("id", id)
-    .maybeSingle();
-  return error || !data ? null : data;
+  const api = createApiSchemaClient();
+  const { data, error } = await api.from("public_states").select("*").eq("id", id).maybeSingle();
+  return error || !data ? null : publicStateContract.parse(data);
 }
 
 /** No slug column on states — there are only a handful of rows, so slugify and match in JS. */
 export async function getPublicStateBySlug(slug: string): Promise<PublicState | null> {
-  const supabase = createPublicClient();
-  const { data } = await supabase.from("states").select("id, name_en, code");
-  return (data ?? []).find((s) => slugify(s.name_en) === slug) ?? null;
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_states").select("*");
+  const states = (data ?? []).map((row) => publicStateContract.parse(row));
+  return states.find((s) => slugify(s.name_en) === slug) ?? null;
 }
 
 /**
@@ -168,43 +157,12 @@ export type PublicArea = {
   is_launch: boolean;
 };
 
-/**
- * Mirrors api.public_areas (districts joined to states, with a published-school
- * count and the launch flag from LAUNCH_DISTRICT_SLUGS). Raw-table sourced until
- * db/views/040_public_areas.sql is applied and this reads it directly.
- */
+/** Reads api.public_areas directly — that view already computes school_count and is_launch. */
 export async function listPublicAreas(): Promise<PublicArea[]> {
-  const supabase = createPublicClient();
-
-  const { data: districts } = await supabase
-    .from("districts")
-    .select("id, slug, name_en, state_id");
-  if (!districts || districts.length === 0) return [];
-
-  const stateIds = [...new Set(districts.map((d) => d.state_id))];
-  const { data: states } = await supabase.from("states").select("id, name_en").in("id", stateIds);
-  const stateNameById = new Map((states ?? []).map((s) => [s.id, s.name_en]));
-
-  const districtIds = districts.map((d) => d.id);
-  const { data: schools } = await supabase
-    .from("schools")
-    .select("district_id")
-    .eq("status", "published")
-    .in("district_id", districtIds);
-
-  const countByDistrictId = new Map<number, number>();
-  for (const row of schools ?? []) {
-    if (row.district_id == null) continue;
-    countByDistrictId.set(row.district_id, (countByDistrictId.get(row.district_id) ?? 0) + 1);
-  }
-
-  return districts.map((d) => ({
-    slug: d.slug,
-    name: titleCase(d.name_en),
-    state: stateNameById.get(d.state_id) ?? "",
-    school_count: countByDistrictId.get(d.id) ?? 0,
-    is_launch: LAUNCH_DISTRICT_SLUGS.has(d.slug),
-  }));
+  const api = createApiSchemaClient();
+  const { data, error } = await api.from("public_areas").select("*");
+  if (error || !data) return [];
+  return data.map((row) => publicAreaContract.parse(row));
 }
 
 export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | null> {
@@ -232,13 +190,13 @@ export async function listPublicSchoolsByDistrict(
     page = 1,
     pageSize = 24,
   } = filters;
-  const supabase = createPublicClient();
+  const api = createApiSchemaClient();
+  const publicClient = createPublicClient();
 
-  let query = supabase
-    .from("schools")
-    .select(SCHOOL_COLUMNS, { count: "exact" })
-    .eq("district_id", districtId)
-    .eq("status", "published");
+  let query = api
+    .from("public_schools")
+    .select("*", { count: "exact" })
+    .eq("district_id", districtId);
 
   if (searchQuery) {
     query = query.ilike("name_en", `%${searchQuery}%`);
@@ -249,7 +207,9 @@ export async function listPublicSchoolsByDistrict(
   }
 
   if (boardId) {
-    const { data: affiliated } = await supabase
+    // school_affiliations stays on the raw-table allowlist (correctly status-gated
+    // RLS of its own) — see this file's header.
+    const { data: affiliated } = await publicClient
       .from("school_affiliations")
       .select("school_id")
       .eq("board_id", boardId);
@@ -258,18 +218,24 @@ export async function listPublicSchoolsByDistrict(
   }
 
   if (admissionsOpen) {
-    const { data: cycles } = await supabase
-      .from("admission_cycles")
+    // api.public_school_admissions, not raw admission_cycles — also gets the
+    // approval-verification gate that view already enforces, which this raw
+    // query never did.
+    const { data: cycles } = await api
+      .from("public_school_admissions")
       .select("school_id")
       .in("status", ["open", "closing_soon"]);
-    const ids = (cycles ?? []).map((c) => c.school_id);
+    const ids = (cycles ?? []).map((c) => c.school_id as string);
     query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
   }
 
   const from = (page - 1) * pageSize;
   const { data, count } = await query.range(from, from + pageSize - 1);
 
-  return { schools: data ?? [], total: count ?? 0 };
+  return {
+    schools: (data ?? []).map((row) => publicSchoolContract.parse(row)),
+    total: count ?? 0,
+  };
 }
 
 export type PublicDistrictFilterOptions = { boards: PublicBoard[]; maxClasses: string[] };
@@ -278,36 +244,39 @@ export type PublicDistrictFilterOptions = { boards: PublicBoard[]; maxClasses: s
 export async function listDistrictFilterOptions(
   districtId: number,
 ): Promise<PublicDistrictFilterOptions> {
-  const supabase = createPublicClient();
+  const api = createApiSchemaClient();
 
-  const { data: schools } = await supabase
-    .from("schools")
+  const { data: schools } = await api
+    .from("public_schools")
     .select("id, max_class")
-    .eq("district_id", districtId)
-    .eq("status", "published");
+    .eq("district_id", districtId);
 
-  const schoolIds = (schools ?? []).map((s) => s.id);
-  const maxClasses = [...new Set((schools ?? []).map((s) => s.max_class).filter((v) => v != null))];
+  const schoolIds = (schools ?? []).map((s) => s.id as string);
+  const maxClasses = [
+    ...new Set((schools ?? []).map((s) => s.max_class as string | null).filter((v) => v != null)),
+  ];
 
   if (schoolIds.length === 0) return { boards: [], maxClasses };
 
-  const { data: affiliations } = await supabase
-    .from("school_affiliations")
+  const { data: affiliations } = await api
+    .from("public_school_affiliations")
     .select("board_id")
     .in("school_id", schoolIds);
-  const boardIds = [...new Set((affiliations ?? []).map((a) => a.board_id))];
+  const boardIds = [
+    ...new Set((affiliations ?? []).map((a) => publicSchoolAffiliationContract.parse(a).board_id)),
+  ];
   if (boardIds.length === 0) return { boards: [], maxClasses };
 
-  const { data: boards } = await supabase.from("boards").select("id, name_en").in("id", boardIds);
-  return { boards: boards ?? [], maxClasses };
+  const { data: boards } = await api.from("public_boards").select("*").in("id", boardIds);
+  return { boards: (boards ?? []).map((row) => publicBoardContract.parse(row)), maxClasses };
 }
 
 export type PublicBoard = { id: number; name_en: string };
 
 export async function listPublicBoards(): Promise<PublicBoard[]> {
-  const supabase = createPublicClient();
-  const { data } = await supabase.from("boards").select("id, name_en");
-  return data ?? [];
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_boards").select("*");
+  return (data ?? []).map((row) => publicBoardContract.parse(row));
 }
 
 export type PublicOpenAdmission = {
@@ -318,41 +287,40 @@ export type PublicOpenAdmission = {
   closesOn: string | null;
 };
 
-/** Published schools in a district with a currently-open admission cycle, soonest deadline first. */
+/** Published schools in a district with a currently-open, approved admission cycle, soonest deadline first. */
 export async function listOpenAdmissionsByDistrict(
   districtId: number,
   limit = 3,
 ): Promise<PublicOpenAdmission[]> {
-  const supabase = createPublicClient();
+  const api = createApiSchemaClient();
 
-  const { data: schools } = await supabase
-    .from("schools")
+  const { data: schools } = await api
+    .from("public_schools")
     .select("id, slug, name_en")
-    .eq("district_id", districtId)
-    .eq("status", "published");
+    .eq("district_id", districtId);
 
-  const schoolIds = (schools ?? []).map((s) => s.id);
+  const schoolIds = (schools ?? []).map((s) => s.id as string);
   if (schoolIds.length === 0) return [];
 
-  const { data: cycles } = await supabase
-    .from("admission_cycles")
+  const { data: cycles } = await api
+    .from("public_school_admissions")
     .select("school_id, status, closes_on")
     .in("school_id", schoolIds)
     .in("status", ["open", "closing_soon"])
     .order("closes_on", { ascending: true })
     .limit(limit);
 
-  const bySchoolId = new Map((schools ?? []).map((s) => [s.id, s]));
+  const bySchoolId = new Map((schools ?? []).map((s) => [s.id as string, s]));
   return (cycles ?? []).flatMap((cycle) => {
-    const school = bySchoolId.get(cycle.school_id);
+    const school = bySchoolId.get(cycle.school_id as string);
     if (!school) return [];
     return [
       {
-        schoolId: school.id,
-        slug: school.slug,
-        nameEn: school.name_en,
-        status: cycle.status,
-        closesOn: cycle.closes_on,
+        schoolId: school.id as string,
+        slug: school.slug as string,
+        nameEn: school.name_en as string,
+        status: cycle.status as string,
+        closesOn: cycle.closes_on as string | null,
       },
     ];
   });
@@ -362,20 +330,24 @@ export async function listOpenAdmissionsByDistrict(
 export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<string, string>> {
   if (schoolIds.length === 0) return new Map();
 
-  const supabase = createPublicClient();
-  const { data: affiliations } = await supabase
-    .from("school_affiliations")
+  const api = createApiSchemaClient();
+  const { data: affiliationRows } = await api
+    .from("public_school_affiliations")
     .select("school_id, board_id")
     .in("school_id", schoolIds);
+  const affiliations = (affiliationRows ?? []).map((row) =>
+    publicSchoolAffiliationContract.parse(row),
+  );
 
-  const boardIds = [...new Set((affiliations ?? []).map((a) => a.board_id))];
+  const boardIds = [...new Set(affiliations.map((a) => a.board_id))];
   if (boardIds.length === 0) return new Map();
 
-  const { data: boards } = await supabase.from("boards").select("id, name_en").in("id", boardIds);
-  const boardNameById = new Map((boards ?? []).map((b) => [b.id, b.name_en]));
+  const { data: boardRows } = await api.from("public_boards").select("*").in("id", boardIds);
+  const boards = (boardRows ?? []).map((row) => publicBoardContract.parse(row));
+  const boardNameById = new Map(boards.map((b) => [b.id, b.name_en]));
 
   const result = new Map<string, string>();
-  for (const row of affiliations ?? []) {
+  for (const row of affiliations) {
     const boardName = boardNameById.get(row.board_id);
     if (boardName && !result.has(row.school_id)) {
       result.set(row.school_id, boardName);
@@ -384,23 +356,30 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
   return result;
 }
 
-/** Soonest admission_cycles.closes_on per school, any status — for list-card DeadlineMargin rails. */
+/**
+ * Soonest approved admission_cycles.closes_on per school, for list-card
+ * DeadlineMargin rails. Only verification IN ('ops_verified','school_verified')
+ * cycles are considered (api.public_school_admissions' own gate) — this used to
+ * read raw admission_cycles with no approval filter at all; switching to the
+ * view is a real correctness fix, not just a grants workaround.
+ */
 export async function getAdmissionDeadlinesBySchoolId(
   schoolIds: string[],
 ): Promise<Map<string, string | null>> {
   if (schoolIds.length === 0) return new Map();
 
-  const supabase = createPublicClient();
-  const { data } = await supabase
-    .from("admission_cycles")
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_school_admissions")
     .select("school_id, closes_on")
     .in("school_id", schoolIds)
     .order("closes_on", { ascending: true });
 
   const result = new Map<string, string | null>();
   for (const row of data ?? []) {
-    if (!result.has(row.school_id)) {
-      result.set(row.school_id, row.closes_on);
+    const schoolId = row.school_id as string;
+    if (!result.has(schoolId)) {
+      result.set(schoolId, row.closes_on as string | null);
     }
   }
   return result;
@@ -408,29 +387,30 @@ export async function getAdmissionDeadlinesBySchoolId(
 
 export type PublicCity = { id: number; name_en: string; slug: string; districtId: number };
 
+function toPublicCity(row: {
+  id: number;
+  name_en: string;
+  slug: string;
+  district_id: number;
+}): PublicCity {
+  return { id: row.id, name_en: row.name_en, slug: row.slug, districtId: row.district_id };
+}
+
 export async function getPublicCityBySlug(slug: string): Promise<PublicCity | null> {
-  const supabase = createPublicClient();
-  const { data } = await supabase
-    .from("cities")
-    .select("id, name_en, slug, district_id")
-    .eq("slug", slug)
-    .maybeSingle();
-  return data
-    ? { id: data.id, name_en: data.name_en, slug: data.slug, districtId: data.district_id }
-    : null;
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_cities").select("*").eq("slug", slug).maybeSingle();
+  return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 
 /** The city inside a district — internal use only (legacy district-slug redirect resolution). District never appears in the UI. */
 export async function getPublicCityByDistrictId(districtId: number): Promise<PublicCity | null> {
-  const supabase = createPublicClient();
-  const { data } = await supabase
-    .from("cities")
-    .select("id, name_en, slug, district_id")
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_cities")
+    .select("*")
     .eq("district_id", districtId)
     .maybeSingle();
-  return data
-    ? { id: data.id, name_en: data.name_en, slug: data.slug, districtId: data.district_id }
-    : null;
+  return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 
 export type PublicCityArea = {
@@ -454,25 +434,25 @@ export type PublicCityArea = {
  * listing; only locality/town pages are scoped to city_id/locality_id.
  */
 export async function getPublicCityAreaBySlug(citySlug: string): Promise<PublicCityArea | null> {
-  const supabase = createPublicClient();
+  const api = createApiSchemaClient();
   const city = await getPublicCityBySlug(citySlug);
   if (!city) return null;
 
-  const { data: district } = await supabase
-    .from("districts")
-    .select("id, slug, state_id")
+  const { data: districtRow } = await api
+    .from("public_districts")
+    .select("*")
     .eq("id", city.districtId)
     .maybeSingle();
-  if (!district) return null;
+  if (!districtRow) return null;
+  const district = publicDistrictContract.parse(districtRow);
 
   const state = await getPublicStateById(district.state_id);
   if (!state) return null;
 
-  const { count } = await supabase
-    .from("schools")
+  const { count } = await api
+    .from("public_schools")
     .select("id", { count: "exact", head: true })
-    .eq("district_id", district.id)
-    .eq("status", "published");
+    .eq("district_id", district.id);
 
   return {
     citySlug: city.slug,
@@ -508,47 +488,38 @@ export async function getPublicTownAreaBySlug(
 ): Promise<PublicTownArea | null> {
   if (!TOWN_LOCALITY_SLUGS.has(townSlug)) return null;
 
-  const supabase = createPublicClient();
+  const api = createApiSchemaClient();
   const state = await getPublicStateBySlug(stateSlug);
   if (!state) return null;
 
-  const { data: locality } = await supabase
-    .from("localities")
-    .select("id, slug, name_en, city_id")
+  const { data: localityRow } = await api
+    .from("public_localities")
+    .select("*")
     .eq("slug", townSlug)
-    .eq("status", "active")
-    .is("superseded_by_corridor_id", null)
     .maybeSingle();
-  if (!locality) return null;
+  if (!localityRow) return null;
+  const locality = publicLocalityContract.parse(localityRow);
 
-  const { data: city } = await supabase
-    .from("cities")
-    .select("id, district_id")
-    .eq("id", locality.city_id)
-    .maybeSingle();
+  const city = await getPublicCityBySlug(locality.city_slug);
   if (!city) return null;
 
-  const { data: district } = await supabase
-    .from("districts")
-    .select("id, slug, state_id")
-    .eq("id", city.district_id)
+  const { data: districtRow } = await api
+    .from("public_districts")
+    .select("*")
+    .eq("id", city.districtId)
     .maybeSingle();
-  if (!district || district.state_id !== state.id) return null;
-
-  const { count } = await supabase
-    .from("schools")
-    .select("id", { count: "exact", head: true })
-    .eq("locality_id", locality.id)
-    .eq("status", "published");
+  if (!districtRow) return null;
+  const district = publicDistrictContract.parse(districtRow);
+  if (district.state_id !== state.id) return null;
 
   return {
     townSlug: locality.slug,
-    townName: locality.name_en,
+    townName: locality.name,
     localityId: locality.id,
     cityId: city.id,
     stateSlug: slugify(state.name_en),
     stateName: state.name_en,
-    schoolCount: count ?? 0,
+    schoolCount: locality.school_count,
     isLaunch: LAUNCH_DISTRICT_SLUGS.has(district.slug),
   };
 }
@@ -581,66 +552,41 @@ export type PublicLocality = {
   schoolCount: number;
 };
 
-async function schoolCountsByLocalityId(
-  supabase: ReturnType<typeof createPublicClient>,
-  localityIds: number[],
-): Promise<Map<number, number>> {
-  if (localityIds.length === 0) return new Map();
-  const { data } = await supabase
-    .from("schools")
-    .select("locality_id")
-    .eq("status", "published")
-    .in("locality_id", localityIds);
-  const counts = new Map<number, number>();
-  for (const row of data ?? []) {
-    if (row.locality_id == null) continue;
-    counts.set(row.locality_id, (counts.get(row.locality_id) ?? 0) + 1);
-  }
-  return counts;
-}
-
-function toPublicLocality(
-  row: {
-    id: number;
-    slug: string;
-    name_en: string;
-    name_hi: string | null;
-    name_hi_status: string;
-    centroid: unknown;
-  },
-  schoolCount: number,
-): PublicLocality {
-  const point = parseGeographyPoint(row.centroid);
+function toPublicLocality(row: {
+  id: number;
+  slug: string;
+  name: string;
+  name_hi: string | null;
+  is_town: boolean;
+  lat: number | null;
+  lng: number | null;
+  school_count: number;
+}): PublicLocality {
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name_en,
-    nameHi: row.name_hi_status === "verified" ? row.name_hi : null,
-    isTown: TOWN_LOCALITY_SLUGS.has(row.slug),
-    lat: point?.lat ?? null,
-    lng: point?.lng ?? null,
-    schoolCount,
+    name: row.name,
+    nameHi: row.name_hi,
+    isTown: row.is_town,
+    lat: row.lat,
+    lng: row.lng,
+    schoolCount: row.school_count,
   };
 }
 
 /** Locality/town row by slug within a city, for locality and town pages. Null if not found, superseded, or inactive. */
 export async function getPublicLocalityBySlug(
-  cityId: number,
+  citySlug: string,
   localitySlug: string,
 ): Promise<PublicLocality | null> {
-  const supabase = createPublicClient();
-  const { data } = await supabase
-    .from("localities")
-    .select("id, slug, name_en, name_hi, name_hi_status, centroid")
-    .eq("city_id", cityId)
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_localities")
+    .select("*")
+    .eq("city_slug", citySlug)
     .eq("slug", localitySlug)
-    .eq("status", "active")
-    .is("superseded_by_corridor_id", null)
     .maybeSingle();
-  if (!data) return null;
-
-  const counts = await schoolCountsByLocalityId(supabase, [data.id]);
-  return toPublicLocality(data, counts.get(data.id) ?? 0);
+  return data ? toPublicLocality(publicLocalityContract.parse(data)) : null;
 }
 
 /**
@@ -649,66 +595,41 @@ export async function getPublicLocalityBySlug(
  * per the Jaipur pivot instruction.
  */
 export async function listPublicLocalitiesByCity(
-  cityId: number,
+  citySlug: string,
   minSchools = 3,
 ): Promise<PublicLocality[]> {
-  const supabase = createPublicClient();
-  const { data: localities } = await supabase
-    .from("localities")
-    .select("id, slug, name_en, name_hi, name_hi_status, centroid")
-    .eq("city_id", cityId)
-    .eq("status", "active")
-    .is("superseded_by_corridor_id", null);
-  if (!localities || localities.length === 0) return [];
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_localities").select("*").eq("city_slug", citySlug);
+  if (!data || data.length === 0) return [];
 
-  const counts = await schoolCountsByLocalityId(
-    supabase,
-    localities.map((l) => l.id),
-  );
-
-  return localities
-    .map((l) => toPublicLocality(l, counts.get(l.id) ?? 0))
+  return data
+    .map((row) => toPublicLocality(publicLocalityContract.parse(row)))
     .filter((l) => l.schoolCount >= minSchools)
     .sort((a, b) => b.schoolCount - a.schoolCount);
 }
 
 /** Published schools assigned to one locality/town, for the locality page's school list. */
 export async function listPublicSchoolsByLocality(localityId: number): Promise<PublicSchool[]> {
-  const supabase = createPublicClient();
-  const { data } = await supabase
-    .from("schools")
-    .select(SCHOOL_COLUMNS)
-    .eq("locality_id", localityId)
-    .eq("status", "published");
-  return data ?? [];
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_schools").select("*").eq("locality_id", localityId);
+  return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
 export type PublicLocalityNeighbor = { slug: string; name: string; method: "source" | "computed" };
 
 /** Neighbouring localities for a locality page's "Nearby" section, nearest first. */
-export async function listLocalityNeighbors(localityId: number): Promise<PublicLocalityNeighbor[]> {
-  const supabase = createPublicClient();
-  const { data: neighbors } = await supabase
-    .from("locality_neighbors")
-    .select("neighbor_locality_id, distance_meters, method")
-    .eq("locality_id", localityId)
+export async function listLocalityNeighbors(
+  localitySlug: string,
+): Promise<PublicLocalityNeighbor[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_locality_neighbors")
+    .select("*")
+    .eq("locality_slug", localitySlug)
     .order("distance_meters", { ascending: true, nullsFirst: false });
-  if (!neighbors || neighbors.length === 0) return [];
 
-  const neighborIds = neighbors.map((n) => n.neighbor_locality_id);
-  const { data: localities } = await supabase
-    .from("localities")
-    .select("id, slug, name_en")
-    .in("id", neighborIds)
-    .eq("status", "active")
-    .is("superseded_by_corridor_id", null);
-  const bySlugId = new Map((localities ?? []).map((l) => [l.id, l]));
-
-  return neighbors.flatMap((n) => {
-    const locality = bySlugId.get(n.neighbor_locality_id);
-    if (!locality) return [];
-    return [
-      { slug: locality.slug, name: locality.name_en, method: n.method as "source" | "computed" },
-    ];
+  return (data ?? []).map((row) => {
+    const neighbor = publicLocalityNeighborContract.parse(row);
+    return { slug: neighbor.neighbor_slug, name: neighbor.neighbor_name, method: neighbor.method };
   });
 }

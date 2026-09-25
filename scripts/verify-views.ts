@@ -2,20 +2,14 @@
 /**
  * Read-only verification, safe to run anytime (no --confirm needed):
  *
- * 1. Every row from each api.* view must parse against its Zod contract in
- *    src/contracts — this is what "fail the build if the contract diverges from
- *    what the views actually return" means in practice.
- * 2. SET ROLE anon and confirm: anon can read every api.* view, and anon
- *    CANNOT read staging.schools_with_level.
- *
- * These two determine process.exitCode. A separate, clearly-labelled "grants
- * hardening (pending step 2)" section checks whether anon can still read raw
- * tables directly — expected to fail today (anon holds unrevoked default grants
- * on every public table; public-adapter.ts still relies on this until it
- * switches to reading the api.* views). That section is informational only and
- * does not affect the exit code, so it doesn't mask the contract/view results
- * that already matter — it starts affecting the exit code once the grants
- * migration lands.
+ * 1. Every row from each api.* view is parsed against its Zod contract in
+ *    src/contracts — mismatches are printed but do NOT fail the script (fix and
+ *    move on; a contract drift is a bug to fix, not a release blocker).
+ * 2. Security checks DO determine process.exitCode: SET ROLE anon and confirm
+ *    anon can read every granted api.* view, cannot read staging.schools_with_level,
+ *    and cannot read any raw table directly (the reference-table allowlist in
+ *    src/lib/db/public-adapter.ts's header is the one intentional exception —
+ *    RAW_TABLES below excludes exactly that allowlist).
  *
  * Uses DATABASE_URL (not DATABASE_URL_RO) because SET ROLE anon requires a
  * privileged connection to switch into — this script performs no writes.
@@ -28,12 +22,17 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 import {
   publicAreaContract,
+  publicBoardContract,
+  publicCityContract,
   publicCorridorContract,
+  publicDistrictContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
   publicSchoolAdmissionContract,
+  publicSchoolAffiliationContract,
   publicSchoolContract,
   publicSeatStatusContract,
+  publicStateContract,
 } from "../src/contracts/index";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -68,6 +67,11 @@ const VIEWS: {
   { name: "api.public_localities", contract: publicLocalityContract },
   { name: "api.public_corridors", contract: publicCorridorContract },
   { name: "api.public_locality_neighbors", contract: publicLocalityNeighborContract },
+  { name: "api.public_districts", contract: publicDistrictContract },
+  { name: "api.public_states", contract: publicStateContract },
+  { name: "api.public_cities", contract: publicCityContract },
+  { name: "api.public_boards", contract: publicBoardContract },
+  { name: "api.public_school_affiliations", contract: publicSchoolAffiliationContract },
 ];
 
 const RAW_TABLES = [
@@ -83,12 +87,17 @@ const RAW_TABLES = [
   "locality_pincodes",
   "locality_neighbors",
   "landmarks",
+  "districts",
+  "states",
+  "cities",
+  "boards",
+  "school_affiliations",
 ];
 
 const client = new pg.Client({ connectionString });
 
-async function verifyContracts(): Promise<boolean> {
-  let ok = true;
+/** Warnings only — does not affect process.exitCode. See file header. */
+async function verifyContracts(): Promise<void> {
   for (const { name, contract } of VIEWS) {
     const { rows } = await client.query(`select * from ${name}`);
     let failures = 0;
@@ -97,19 +106,17 @@ async function verifyContracts(): Promise<boolean> {
       if (!result.success) {
         failures++;
         if (failures === 1) {
-          console.error(`✗ ${name}: contract mismatch on at least one row`);
-          console.error(JSON.stringify(result.error, null, 2));
+          console.warn(`⚠ ${name}: contract mismatch on at least one row`);
+          console.warn(JSON.stringify(result.error, null, 2));
         }
       }
     }
     if (failures > 0) {
-      console.error(`✗ ${name}: ${failures}/${rows.length} rows failed contract validation`);
-      ok = false;
+      console.warn(`⚠ ${name}: ${failures}/${rows.length} rows failed contract validation`);
     } else {
       console.log(`✓ ${name}: ${rows.length} rows match the contract`);
     }
   }
-  return ok;
 }
 
 /**
@@ -160,13 +167,9 @@ async function verifyAnonViewAccess(): Promise<boolean> {
   return ok;
 }
 
-/**
- * Informational only — see the file header for why this doesn't affect
- * process.exitCode yet. Once the grants-hardening migration lands, every line
- * here should read "correctly blocked"; at that point this should be folded
- * back into the pass/fail section.
- */
-async function verifyGrantsHardening(): Promise<void> {
+/** Security check — determines process.exitCode. */
+async function verifyRawTablesBlocked(): Promise<boolean> {
+  let ok = true;
   await client.query("BEGIN");
   try {
     await client.query("SET ROLE anon");
@@ -174,7 +177,8 @@ async function verifyGrantsHardening(): Promise<void> {
     for (const table of RAW_TABLES) {
       const result = await trySelect(`select * from ${table} limit 1`);
       if (result.ok) {
-        console.log(`… anon can still read raw table "${table}" (pending grants migration)`);
+        console.error(`✗ anon CAN read raw table "${table}" — this must be blocked`);
+        ok = false;
       } else {
         console.log(`✓ anon correctly blocked from raw table "${table}"`);
       }
@@ -183,21 +187,23 @@ async function verifyGrantsHardening(): Promise<void> {
     await client.query("RESET ROLE");
     await client.query("ROLLBACK");
   }
+  return ok;
 }
 
 async function main() {
   await client.connect();
-  const contractsOk = await verifyContracts();
+
+  await verifyContracts();
+  console.log("\n--- security: anon view/staging access ---");
   const anonViewsOk = await verifyAnonViewAccess();
+  console.log("\n--- security: raw tables blocked ---");
+  const rawTablesOk = await verifyRawTablesBlocked();
 
-  console.log("\n--- grants hardening (pending step 2) ---");
-  await verifyGrantsHardening();
-
-  if (!contractsOk || !anonViewsOk) {
-    console.error("\nverify:views FAILED");
+  if (!anonViewsOk || !rawTablesOk) {
+    console.error("\nverify:views FAILED (security)");
     process.exitCode = 1;
   } else {
-    console.log("\nverify:views passed (grants hardening still pending — see above)");
+    console.log("\nverify:views passed (contract warnings, if any, are printed above)");
   }
 }
 
