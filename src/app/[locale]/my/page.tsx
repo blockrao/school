@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getPublicCityBySlug, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { getPublicCityById, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
 import { unsubscribeAlert } from "./actions";
@@ -74,19 +74,26 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my`)}`);
   }
 
-  const [{ data: subscriptions }, city] = await Promise.all([
-    supabase
-      .from("alert_subscriptions")
-      .select("id, city_id, class_codes, school_ids")
-      .eq("user_id", user.id)
-      .eq("active", true)
-      .order("created_at", { ascending: false }),
-    getPublicCityBySlug("jaipur"),
-  ]);
+  const { data: subscriptions } = await supabase
+    .from("alert_subscriptions")
+    .select("id, city_id, class_codes, school_ids")
+    .eq("user_id", user.id)
+    .eq("active", true)
+    .order("created_at", { ascending: false });
 
   const allSchoolIds = (subscriptions ?? []).flatMap((s) => s.school_ids);
-  const schools = allSchoolIds.length > 0 ? await listPublicSchoolsByIds(allSchoolIds) : [];
+  // Each subscription carries its own city_id (set when the user subscribed, possibly
+  // in a different city than the one they're browsing now) — resolve each one's real
+  // city rather than assuming the visitor's current city applies to every row.
+  const distinctCityIds = [...new Set((subscriptions ?? []).map((s) => s.city_id))];
+  const [schools, cityRows] = await Promise.all([
+    allSchoolIds.length > 0 ? listPublicSchoolsByIds(allSchoolIds) : Promise.resolve([]),
+    Promise.all(distinctCityIds.map((id) => getPublicCityById(id))),
+  ]);
   const schoolNameById = new Map(schools.map((s) => [s.id, s.name_en ?? "Unnamed school"]));
+  const cityNameById = new Map(
+    cityRows.filter((c): c is NonNullable<typeof c> => c !== null).map((c) => [c.id, c.name_en]),
+  );
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -118,7 +125,7 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="font-semibold">
-                    {city?.name_en ?? "Jaipur"} · {copy.classesLabel}{" "}
+                    {cityNameById.get(sub.city_id) ?? "Unknown city"} · {copy.classesLabel}{" "}
                     {sub.class_codes.map((c) => c.replace("c", "")).join(", ")}
                   </span>
                   {sub.school_ids.length > 0 && (

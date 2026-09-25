@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { CityOption } from "@/lib/city-preference";
+import { useSelectedCity } from "@/lib/city-preference";
 import { cn } from "@/lib/utils";
 
 type Tab = {
@@ -19,8 +21,10 @@ function isActive(pathname: string, href: string, exact: boolean) {
  * needs a saved school's real deadline — that data doesn't exist yet (no auth/shortlist
  * flow built), so the dot is intentionally omitted rather than faked. Revisit at Flow 2.10.
  */
-export function MobileBottomNav({ locale }: { locale: string }) {
+export function MobileBottomNav({ locale, areas }: { locale: string; areas: CityOption[] }) {
   const pathname = usePathname();
+  const city = useSelectedCity(areas);
+  const admissionsHref = city?.href ?? `/${locale}/schools`;
 
   const tabs: Tab[] = [
     {
@@ -40,7 +44,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
     },
     {
       label: "Admissions",
-      href: `/${locale}/rajasthan/jaipur`,
+      href: admissionsHref,
       icon: (
         <>
           <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
@@ -74,7 +78,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
         const active = isActive(pathname, tab.href, index === 0);
         return (
           <Link
-            key={tab.href}
+            key={tab.label}
             href={tab.href}
             aria-current={active ? "page" : undefined}
             className={cn(

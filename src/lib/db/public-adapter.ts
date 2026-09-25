@@ -1,4 +1,6 @@
 import "server-only";
+import { cookies } from "next/headers";
+import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
 import {
   type PublicSchool,
   type PublicSchoolAdmission,
@@ -165,6 +167,41 @@ export async function listPublicAreas(): Promise<PublicArea[]> {
 export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | null> {
   const areas = await listPublicAreas();
   return areas.find((a) => a.slug === slug) ?? null;
+}
+
+/**
+ * Which launched city the current request should show: the user's own choice
+ * (CITY_COOKIE_NAME, set by src/components/shell/city-picker.tsx) if it's
+ * still a launched area, otherwise the platform default (the first launched
+ * area — today, and for the foreseeable future, Jaipur). Every page that
+ * used to hardcode DISTRICT_SLUG/CITY_SLUG = "jaipur" should call this
+ * instead, so it automatically follows both the user's pick and whichever
+ * city is actually launched, with no per-page constant to keep in sync.
+ *
+ * Reads a cookie, so any Server Component that calls this opts into dynamic
+ * (per-request) rendering for that render — there is no way to personalize
+ * by the visitor's own cookie and keep a fully static/ISR'd page at the same
+ * time. Acceptable trade-off for the pages that need real personalization
+ * (search, home, alerts, teacher directory, claim); do not call this from
+ * something that must stay statically generated (e.g. a sitemap route, which
+ * has no visitor to personalize for anyway).
+ */
+export async function getSelectedAreaSlug(): Promise<string> {
+  const launched = (await listPublicAreas()).filter((a) => a.is_launch);
+  const fallback = launched[0]?.slug ?? "jaipur";
+  const store = await cookies();
+  const cookieSlug = store.get(CITY_COOKIE_NAME)?.value;
+  return cookieSlug && launched.some((a) => a.slug === cookieSlug) ? cookieSlug : fallback;
+}
+
+/**
+ * Same resolution as getSelectedAreaSlug, but returns the full city bundle
+ * (name, state, district id for scoping queries, href-ready slugs) instead of
+ * just the slug — what most pages actually need.
+ */
+export async function getSelectedCityArea(): Promise<PublicCityArea | null> {
+  const slug = await getSelectedAreaSlug();
+  return getPublicCityAreaBySlug(slug);
 }
 
 /** Published schools in a district, for the district listing page. Newest first. */
@@ -406,6 +443,15 @@ export async function getPublicCityByDistrictId(districtId: number): Promise<Pub
     .select("*")
     .eq("district_id", districtId)
     .maybeSingle();
+  return data ? toPublicCity(publicCityContract.parse(data)) : null;
+}
+
+/** City row by numeric id — used where a caller already has a city_id (e.g. an alert
+ * subscription's own city_id) and needs its display name, without assuming which city
+ * that is. */
+export async function getPublicCityById(id: number): Promise<PublicCity | null> {
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_cities").select("*").eq("id", id).maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 

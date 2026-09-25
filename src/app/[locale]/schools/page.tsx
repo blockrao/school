@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
-  getPublicDistrictBySlug,
+  getSelectedCityArea,
   listDistrictFilterOptions,
   listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
@@ -20,10 +20,8 @@ import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
-// Launch district — see CLAUDE.md. Search is scoped here, not site-wide, until
-// more districts are live.
-const DISTRICT_SLUG = "jaipur";
-const DISTRICT_LABEL = "Jaipur";
+// Search is scoped to one city at a time, not site-wide — resolved per-request
+// via getSelectedCityArea (the user's own pick, or the platform default).
 const PAGE_SIZE = 24;
 const COMPARE_LIMIT = 4;
 
@@ -45,13 +43,17 @@ function parseParams(searchParams: { [key: string]: string | string[] | undefine
   return { q, boardId, maxClass, admissionsOpen, page, compareIds, view };
 }
 
-export const metadata: Metadata = {
-  title: `Schools in ${DISTRICT_LABEL} — SchoolOye`,
-  description: `Search and filter schools in ${DISTRICT_LABEL}: board, grades and admission status.`,
-  // Query-driven results are dynamic, near-duplicate content — the city page is
-  // the indexable entry point into the same schools.
-  robots: { index: false, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const area = await getSelectedCityArea();
+  const label = area?.cityName ?? "your city";
+  return {
+    title: `Schools in ${label} — SchoolOye`,
+    description: `Search and filter schools in ${label}: board, grades and admission status.`,
+    // Query-driven results are dynamic, near-duplicate content — the city page is
+    // the indexable entry point into the same schools.
+    robots: { index: false, follow: true },
+  };
+}
 
 export default async function SchoolsPage({
   params,
@@ -65,11 +67,11 @@ export default async function SchoolsPage({
     parseParams(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
 
-  const district = await getPublicDistrictBySlug(DISTRICT_SLUG);
+  const area = await getSelectedCityArea();
 
-  const [{ schools, total }, filterOptions] = district
+  const [{ schools, total }, filterOptions] = area
     ? await Promise.all([
-        listPublicSchoolsByDistrict(district.id, {
+        listPublicSchoolsByDistrict(area.districtId, {
           query: q,
           boardId,
           maxClass,
@@ -77,7 +79,7 @@ export default async function SchoolsPage({
           page,
           pageSize: PAGE_SIZE,
         }),
-        listDistrictFilterOptions(district.id),
+        listDistrictFilterOptions(area.districtId),
       ])
     : [
         { schools: [], total: 0 },
@@ -132,7 +134,7 @@ export default async function SchoolsPage({
 
   return (
     <div className="mx-auto max-w-(--container-page) px-4 py-6 pb-24 md:px-10 md:py-9 md:pb-9">
-      <h1 className="font-display text-title-m md:text-title-d">Schools in {DISTRICT_LABEL}</h1>
+      <h1 className="font-display text-title-m md:text-title-d">Schools in {area?.cityName ?? "your city"}</h1>
 
       <Form action={basePath} className="mt-4 flex flex-wrap items-end gap-3">
         {compareIds.length > 0 && (

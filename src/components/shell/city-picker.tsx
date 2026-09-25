@@ -1,0 +1,100 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { type CityOption, saveCityCookie, useSelectedCity } from "@/lib/city-preference";
+import { cn } from "@/lib/utils";
+
+/**
+ * Shows the user's chosen city and lets them switch it. Selecting a city saves
+ * it (cookie, one year) so it's remembered on the next visit, and navigates to
+ * that city. Only launched cities (`api.public_areas.is_launch`) are offered —
+ * this list grows automatically as more cities launch, no code change needed
+ * here.
+ */
+export function CityPicker({ areas, className }: { areas: CityOption[]; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const current = useSelectedCity(areas);
+
+  if (areas.length === 0) return null;
+
+  // Nothing to switch between yet — still show the city as a plain label, not a button,
+  // so the UI doesn't imply choice that doesn't exist.
+  if (areas.length === 1) {
+    return (
+      <span className={cn("px-2 text-body font-medium text-ink", className)}>{current?.name}</span>
+    );
+  }
+
+  function selectCity(area: CityOption) {
+    saveCityCookie(area.slug);
+    setOpen(false);
+    router.push(area.href);
+  }
+
+  return (
+    <div className={cn("relative", className)}>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1 px-2 text-body font-medium text-ink"
+      >
+        {current?.name ?? "Choose city"}
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-hidden="true"
+            tabIndex={-1}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 cursor-default"
+          />
+          <ul
+            role="listbox"
+            aria-label="Choose your city"
+            className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-md border border-rule bg-copy-white shadow-lg"
+          >
+            {areas.map((area) => {
+              const active = area.slug === current?.slug;
+              return (
+                <li key={area.slug}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={active}
+                    onClick={() => selectCity(area)}
+                    className={cn(
+                      "flex w-full items-center justify-between px-3.5 py-2.5 text-left text-body",
+                      active ? "bg-margin-paper font-semibold text-ruled-blue" : "text-ink hover:bg-margin-paper",
+                    )}
+                  >
+                    {area.name}
+                    <span className="text-meta text-muted-ink">{area.stateSlug !== area.slug ? area.stateSlug : ""}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+}

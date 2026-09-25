@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
 import { FieldError } from "@/components/ui/field-error";
-import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { getSelectedCityArea, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
 import { subscribeToAlerts } from "./actions";
@@ -18,7 +18,6 @@ import { subscribeToAlerts } from "./actions";
 // me" delivery-timing toggles have no backing column on alert_subscriptions and
 // aren't built here.
 
-const CITY_SLUG = "jaipur";
 const CLASS_OPTIONS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
 type Copy = {
@@ -106,7 +105,11 @@ export default async function AlertsPage({ params, searchParams }: PageProps<"/[
     redirect(`/${locale}/sign-in?${next.toString()}`);
   }
 
-  const school = schoolId ? (await listPublicSchoolsByIds([schoolId])).at(0) : undefined;
+  const [school, area] = await Promise.all([
+    schoolId ? listPublicSchoolsByIds([schoolId]).then((rows) => rows.at(0)) : undefined,
+    getSelectedCityArea(),
+  ]);
+  const citySlug = area?.citySlug ?? "jaipur";
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -134,7 +137,7 @@ export default async function AlertsPage({ params, searchParams }: PageProps<"/[
       ) : (
         <form action={subscribeToAlerts} className="mt-6 flex flex-col gap-5">
           <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="citySlug" value={CITY_SLUG} />
+          <input type="hidden" name="citySlug" value={citySlug} />
           {schoolId && <input type="hidden" name="schoolId" value={schoolId} />}
 
           <fieldset className="flex flex-col gap-2">

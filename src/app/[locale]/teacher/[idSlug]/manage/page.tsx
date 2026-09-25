@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
-import { getPublicDistrictBySlug, listPublicSchoolsByDistrict } from "@/lib/db/public-adapter";
+import { getSelectedCityArea, listPublicSchoolsByDistrict } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import { listMyTeacherExperience, listMyTeacherQualifications } from "@/lib/db/teachers";
 import { addExperience, addQualification, toggleListed } from "./actions";
 
-const DISTRICT_SLUG = "jaipur";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parseIdSlug(idSlug: string): { id: string; slug: string } | null {
@@ -54,12 +53,12 @@ export default async function ManageTeacherProfilePage({
 
   const canonicalIdSlug = `${teacher.id}-${teacher.slug}`;
 
-  const district = await getPublicDistrictBySlug(DISTRICT_SLUG);
+  const area = await getSelectedCityArea();
   const [experience, qualifications, { schools }] = await Promise.all([
     listMyTeacherExperience(teacher.id),
     listMyTeacherQualifications(teacher.id),
-    district
-      ? listPublicSchoolsByDistrict(district.id, { pageSize: 100 })
+    area
+      ? listPublicSchoolsByDistrict(area.districtId, { pageSize: 100 })
       : Promise.resolve({ schools: [] }),
   ]);
 

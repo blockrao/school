@@ -5,7 +5,7 @@ import { StatusPill } from "@/components/ui/badges";
 import { deadlineMarginStatusClasses } from "@/components/ui/deadline-margin";
 import { EmptyState } from "@/components/ui/state-message";
 import {
-  getPublicDistrictBySlug,
+  getSelectedCityArea,
   listOpenAdmissionsByDistrict,
   listPublicBoards,
   listPublicSchoolsByDistrict,
@@ -14,14 +14,15 @@ import {
 import { deadlineState } from "@/lib/deadline";
 import { cn } from "@/lib/utils";
 
-// Launch district — see CLAUDE.md. South West Delhi stays built but unlinked.
-const DISTRICT_SLUG = "jaipur";
-const DISTRICT_LABEL = "Jaipur";
-
-export function generateMetadata(): Metadata {
+// South West Delhi stays built but unlinked — see CLAUDE.md. Which city renders
+// here is resolved per-request (see getSelectedCityArea): the user's own pick if
+// they've chosen one, otherwise the platform default.
+export async function generateMetadata(): Promise<Metadata> {
+  const area = await getSelectedCityArea();
+  const label = area?.cityName ?? "your city";
   return {
-    title: `Find the right school in ${DISTRICT_LABEL} — SchoolOye`,
-    description: `Search and compare schools in ${DISTRICT_LABEL}: fees, facilities and admission dates in one place.`,
+    title: `Find the right school in ${label} — SchoolOye`,
+    description: `Search and compare schools in ${label}: fees, facilities and admission dates in one place.`,
     alternates: {
       canonical: "/",
       languages: { "en-IN": "/en", "hi-IN": "/hi" },
@@ -77,18 +78,19 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   const now = new Date();
 
-  const district = await getPublicDistrictBySlug(DISTRICT_SLUG);
+  const area = await getSelectedCityArea();
 
-  const [schoolsResult, openAdmissions, boards] = district
+  const [schoolsResult, openAdmissions, boards] = area
     ? await Promise.all([
-        listPublicSchoolsByDistrict(district.id, { pageSize: 1 }),
-        listOpenAdmissionsByDistrict(district.id, 3),
+        listPublicSchoolsByDistrict(area.districtId, { pageSize: 1 }),
+        listOpenAdmissionsByDistrict(area.districtId, 3),
         listPublicBoards(),
       ])
     : [{ total: 0 }, [], []];
 
   const schoolCount = schoolsResult.total;
-  const districtHref = `/${locale}/rajasthan/jaipur`;
+  const districtLabel = area?.cityName ?? "your city";
+  const districtHref = area ? `/${locale}/${area.stateSlug}/${area.citySlug}` : `/${locale}/schools`;
 
   // Category chips reflect real filterable boards, not a fixed design list — the set
   // grows automatically as more boards get affiliations in this district.
@@ -99,7 +101,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       <div className="flex flex-col gap-4.5 border-b border-rule px-4 py-8 md:px-10 md:py-12">
         <div className="flex flex-col gap-1.5">
           <h1 className="font-display text-title-m md:text-title-d">
-            Find the right school in {DISTRICT_LABEL}
+            Find the right school in {districtLabel}
           </h1>
           <p className="text-body text-muted-ink md:text-card">
             {schoolCount} school{schoolCount === 1 ? "" : "s"} · fees, facilities and admission
@@ -180,7 +182,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <EmptyState
             title="No open admission windows yet"
             description="Schools publish their own dates — check back soon, or browse every school in the meantime."
-            nextStepLabel={`Browse all schools in ${DISTRICT_LABEL}`}
+            nextStepLabel={`Browse all schools in ${districtLabel}`}
             nextStepHref={districtHref}
           />
         )}

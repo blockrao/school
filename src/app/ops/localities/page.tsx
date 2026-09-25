@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/ui/state-message";
 import { requireStaff } from "@/lib/db/ops";
-import { getPublicDistrictBySlug, listPublicLocalitiesByCity } from "@/lib/db/public-adapter";
+import { getSelectedCityArea, listPublicLocalitiesByCity } from "@/lib/db/public-adapter";
 import { assignLocality } from "./actions";
-
-const DISTRICT_SLUG = "jaipur";
 
 export const metadata: Metadata = {
   title: "Locality assignments — SchoolOye ops",
@@ -14,13 +12,17 @@ export const metadata: Metadata = {
 export default async function OpsLocalitiesPage() {
   const supabase = await requireStaff();
 
-  const district = await getPublicDistrictBySlug(DISTRICT_SLUG);
+  // Ops tools default to the platform's launch city rather than any visitor's
+  // cookie (staff have no city preference of their own here). Once a second
+  // city is launched, this becomes a real district selector — one queue today,
+  // same as the rest of the app before this pass.
+  const area = await getSelectedCityArea();
   const [{ data: schools }, localities] = await Promise.all([
-    district
+    area
       ? supabase
           .from("schools")
           .select("id, name_en, address, pincode")
-          .eq("district_id", district.id)
+          .eq("district_id", area.districtId)
           .is("locality_id", null)
           .order("name_en", { ascending: true })
       : Promise.resolve({
@@ -31,7 +33,7 @@ export default async function OpsLocalitiesPage() {
             pincode: string | null;
           }[],
         }),
-    listPublicLocalitiesByCity(DISTRICT_SLUG, 0),
+    area ? listPublicLocalitiesByCity(area.citySlug, 0) : Promise.resolve([]),
   ]);
 
   return (
@@ -45,7 +47,7 @@ export default async function OpsLocalitiesPage() {
         <div className="mt-6">
           <EmptyState
             title="Nothing pending"
-            description="Every school in Jaipur has a locality assigned."
+            description={`Every school in ${area?.cityName ?? "this city"} has a locality assigned.`}
             nextStepLabel="Back to ops"
             nextStepHref="/ops"
           />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/state-message";
+import { getSelectedCityArea } from "@/lib/db/public-adapter";
 import { listPublicTeacherSubjects, listPublicTeachers } from "@/lib/db/teachers";
 
 function first(value: string | string[] | undefined) {
@@ -8,9 +9,11 @@ function first(value: string | string[] | undefined) {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
+  const area = await getSelectedCityArea();
+  const label = area?.cityName ?? "your city";
   return {
-    title: "Teachers in Jaipur — SchoolOye",
-    description: "Find teachers in Jaipur by subject and school.",
+    title: `Teachers in ${label} — SchoolOye`,
+    description: `Find teachers in ${label} by subject and school.`,
     alternates: {
       canonical: "/teachers",
       languages: { "en-IN": "/en/teachers", "hi-IN": "/hi/teachers" },
@@ -26,10 +29,12 @@ export default async function TeachersDirectoryPage({
   const rawSearchParams = await searchParams;
   const subject = first(rawSearchParams.subject);
 
-  const [teachers, subjects] = await Promise.all([
+  const [teachers, subjects, area] = await Promise.all([
     listPublicTeachers({ subject }),
     listPublicTeacherSubjects(),
+    getSelectedCityArea(),
   ]);
+  const cityLabel = area?.cityName ?? "your city";
 
   function subjectHref(s?: string) {
     const qs = s ? `?subject=${encodeURIComponent(s)}` : "";
@@ -38,7 +43,7 @@ export default async function TeachersDirectoryPage({
 
   return (
     <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
-      <h1 className="font-display text-title-m md:text-title-d">Find teachers in Jaipur</h1>
+      <h1 className="font-display text-title-m md:text-title-d">Find teachers in {cityLabel}</h1>
 
       {subjects.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -110,7 +115,7 @@ export default async function TeachersDirectoryPage({
 
       <div className="mt-8 flex items-center justify-between gap-4 rounded-md border border-rule p-4">
         <div>
-          <span className="font-display text-card font-semibold">Teach in Jaipur?</span>
+          <span className="font-display text-card font-semibold">Teach in {cityLabel}?</span>
           <p className="text-meta text-muted-ink">
             Create a free profile. You choose what's public.
           </p>

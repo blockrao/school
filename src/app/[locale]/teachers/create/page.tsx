@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import {
-  getPublicDistrictBySlug,
+  getSelectedCityArea,
   listPublicLocalitiesByCity,
   listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
@@ -10,7 +10,6 @@ import { createSessionClient } from "@/lib/db/session";
 import { getMyTeacherProfile } from "@/lib/db/teachers";
 import { saveTeacherProfile } from "./actions";
 
-const DISTRICT_SLUG = "jaipur";
 const OPEN_TO_OPTIONS = ["Tutoring", "Online classes", "Teacher workshops"] as const;
 
 function first(value: string | string[] | undefined) {
@@ -37,20 +36,17 @@ export default async function CreateTeacherProfilePage({
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teachers/create`)}`);
   }
 
-  const [existing, district] = await Promise.all([
-    getMyTeacherProfile(),
-    getPublicDistrictBySlug(DISTRICT_SLUG),
-  ]);
+  const [existing, area] = await Promise.all([getMyTeacherProfile(), getSelectedCityArea()]);
 
   if (existing) {
     redirect(`/${locale}/teacher/${existing.id}-${existing.slug}/manage`);
   }
 
   const [{ schools }, localities] = await Promise.all([
-    district
-      ? listPublicSchoolsByDistrict(district.id, { pageSize: 100 })
+    area
+      ? listPublicSchoolsByDistrict(area.districtId, { pageSize: 100 })
       : Promise.resolve({ schools: [] }),
-    listPublicLocalitiesByCity(DISTRICT_SLUG, 0),
+    area ? listPublicLocalitiesByCity(area.citySlug, 0) : Promise.resolve([]),
   ]);
 
   const errorCode = first(rawSearchParams.error);

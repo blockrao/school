@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/state-message";
-import { getPublicDistrictBySlug, listPublicSchoolsByDistrict } from "@/lib/db/public-adapter";
+import { getSelectedCityArea, listPublicSchoolsByDistrict } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
-
-const DISTRICT_SLUG = "jaipur";
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -20,10 +18,10 @@ export default async function ClaimSearchPage({ searchParams }: PageProps<"/for-
   const rawSearchParams = await searchParams;
   const q = first(rawSearchParams.q);
 
-  const district = await getPublicDistrictBySlug(DISTRICT_SLUG);
+  const area = await getSelectedCityArea();
   const { schools } =
-    q && district
-      ? await listPublicSchoolsByDistrict(district.id, { query: q, pageSize: 20 })
+    q && area
+      ? await listPublicSchoolsByDistrict(area.districtId, { query: q, pageSize: 20 })
       : { schools: [] };
 
   return (

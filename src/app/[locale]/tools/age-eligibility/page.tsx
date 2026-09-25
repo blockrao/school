@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { ageAtDate, nextAcademicYear, referenceDates } from "@/lib/age";
+import { getSelectedCityArea } from "@/lib/db/public-adapter";
 
 // Ported from design/Age Checker.dc.html with one deliberate change: the design
 // shows a confident "Eligible for Nursery in 2027–28" verdict sourced from a
@@ -25,7 +26,7 @@ type Copy = {
   generalHeading: string;
   generalNote: string;
   disclaimer: string;
-  ctaLabel: string;
+  ctaLabel: (city: string) => string;
 };
 
 const COPY: Record<string, Copy> = {
@@ -43,7 +44,7 @@ const COPY: Record<string, Copy> = {
       "Most schools ask for a minimum age of 3 years for Nursery, 4 for LKG, 5 for UKG and 6 for Class 1 — but the exact cut-off date and any age relaxation is set by each school, not a fixed national rule.",
     disclaimer:
       "This is a general guide, not a verified rule for any specific school. Always check the school's own admission notice for its exact age criteria.",
-    ctaLabel: "Browse schools in Jaipur",
+    ctaLabel: (city) => `Browse schools in ${city}`,
   },
   hi: {
     title: "उम्र के हिसाब से पात्रता देखें",
@@ -59,7 +60,7 @@ const COPY: Record<string, Copy> = {
       "ज़्यादातर स्कूल नर्सरी के लिए कम से कम 3 साल, एलकेजी के लिए 4, यूकेजी के लिए 5 और कक्षा 1 के लिए 6 साल की उम्र माँगते हैं — लेकिन सटीक कट-ऑफ़ तारीख़ और छूट हर स्कूल ख़ुद तय करता है, यह कोई तय राष्ट्रीय नियम नहीं है।",
     disclaimer:
       "यह एक सामान्य मार्गदर्शिका है, किसी ख़ास स्कूल का सत्यापित नियम नहीं। सही उम्र मापदंड के लिए हमेशा स्कूल की अपनी प्रवेश सूचना देखें।",
-    ctaLabel: "जयपुर के स्कूल देखें",
+    ctaLabel: (city) => `${city} के स्कूल देखें`,
   },
 };
 
@@ -98,6 +99,8 @@ export default async function AgeEligibilityPage({
   const today = new Date();
   const academicYear = nextAcademicYear(today);
   const dates = referenceDates(academicYear);
+  const area = await getSelectedCityArea();
+  const cityLabel = area?.cityName ?? (isHi ? "अपने शहर" : "your city");
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -179,7 +182,7 @@ export default async function AgeEligibilityPage({
         className="mt-6 inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
         lang={isHi ? "hi" : undefined}
       >
-        {copy.ctaLabel}
+        {copy.ctaLabel(cityLabel)}
       </Link>
     </div>
   );
