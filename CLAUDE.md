@@ -6,20 +6,22 @@ Current MVP build district: **South West Delhi** (golden school: Shreeram World 
 districts come later; the hierarchy is built so they can be added without changing school URLs.
 
 ## Scope
-This repo owns UI, features, user flows, and wiring. The database is owned and built by a separate
-data repo and is assumed to be filling up. Never assess, report on, or comment on data quality or
-coverage in this repo's work. If the UI needs a table, column, view, policy, or RPC that doesn't
-exist, add a one-line request to `docs/handoff/db-agent-requests.md` and continue with the designed
-empty/fallback state ("Not yet published", "Dates not announced", etc.). Never block on data.
+This repo owns UI, features, user flows, and wiring — and, as of the views/publishing-rules work,
+the read views, grants, RLS policies for app access, and publishing rules on top of the data repo's
+tables. The data repo owns table structure and migrations only; this repo never alters a table.
+Never assess, report on, or comment on data quality or coverage in this repo's work outside that
+views/publishing-rules ownership. Never block on data.
 
-Full data access architecture: `docs/DATA_ACCESS.md`. This repo never writes to the database and
-never creates migrations. Production reads ONLY the `api` schema views (`public_schools`,
-`public_school_admissions`, `public_seat_status`, `public_cities`) via the publishable key,
-server-side only. Dev/staging reads the `staging` schema views via role `ui_staging_reader` — that
-credential must never be present in production. Never query raw tables (`schools`,
-`source_records`, `field_provenance`, etc.) from any environment. The view contract is mirrored in
-`src/contracts` (Zod) — the build fails if they diverge from the data repo's
-`docs/contract/api_views.md`.
+Full data access architecture: `docs/DATA_ACCESS.md`. This repo never alters table structure and
+never writes table migrations — it owns everything read-facing on top of those tables (views,
+grants, RLS, `/ops` write policies). Production reads ONLY the `api` schema views (`public_schools`,
+`public_school_admissions`, `public_seat_status`, `public_cities`), defined in `db/views/*.sql`
+and applied via `pnpm db:views --confirm` (human-run, same human-in-the-loop gate as
+`db:migrate`). `staging.*` views are analysis-only, readable solely by `claude_ro`, never by the
+app in any environment. Never query raw tables (`schools`, `source_records`, `field_provenance`,
+etc.) from application code. The view contract is mirrored in `src/contracts` (Zod); `pnpm
+verify:views` fails if a view's actual rows diverge from its contract, or if `anon` can read
+anything it shouldn't.
 
 ## Stack (do not substitute)
 - Next.js 16.3.x (latest patch), App Router, React 19, TypeScript `strict`, Turbopack, pnpm

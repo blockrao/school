@@ -15,6 +15,8 @@
     "bundle-check": "node scripts/measure-bundle.mjs",
     "db:types": "node scripts/gen-db-types.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
+    "db:views": "node scripts/db-views.mjs",
+    "verify:views": "tsx scripts/verify-views.ts",
     "check:public-adapter": "node scripts/check-public-adapter-imports.mjs"
   },
   "dependencies": {
@@ -43,6 +45,7 @@
     "lefthook": "^2.1.14",
     "source-map-explorer": "^2.5.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.1"
   },
