@@ -83,3 +83,27 @@ export function deadlineState(input: DeadlineInput, now: Date): DeadlineState {
     bottom: "last date not announced",
   };
 }
+
+export type DeadlinePillStatus = "not-announced" | "upcoming" | "open" | "closing-soon" | "closed";
+
+/** Maps deadlineState's richer status set down to StatusPill's, with a ready-to-render label. */
+export function deadlineToPill(state: DeadlineState): {
+  status: DeadlinePillStatus;
+  label: string;
+} {
+  switch (state.status) {
+    case "closing-soon":
+    case "deadline-day":
+      return { status: "closing-soon", label: "Closing soon" };
+    case "open":
+    case "open-no-deadline":
+    case "seats-now":
+      return { status: "open", label: "Open" };
+    case "upcoming":
+      return { status: "upcoming", label: "Upcoming" };
+    case "closed":
+      return { status: "closed", label: "Closed" };
+    case "not-announced":
+      return { status: "not-announced", label: "Dates not announced" };
+  }
+}

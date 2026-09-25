@@ -1,5 +1,6 @@
 import "server-only";
 import { createPublicClient } from "@/lib/db/public";
+import { slugify } from "@/lib/slug";
 
 /**
  * Every public-facing data read in the app goes through this file — no page or
@@ -132,12 +133,25 @@ export async function getPublicStateById(id: number): Promise<PublicState | null
   return error || !data ? null : data;
 }
 
+/** No slug column on states — there are only a handful of rows, so slugify and match in JS. */
+export async function getPublicStateBySlug(slug: string): Promise<PublicState | null> {
+  const supabase = createPublicClient();
+  const { data } = await supabase.from("states").select("id, name_en, code");
+  return (data ?? []).find((s) => slugify(s.name_en) === slug) ?? null;
+}
+
 /** Published schools in a district, for the district listing page. Newest first. */
 export async function listPublicSchoolsByDistrict(
   districtId: number,
-  filters: { boardId?: number; page?: number; pageSize?: number } = {},
+  filters: {
+    boardId?: number;
+    maxClass?: string;
+    admissionsOpen?: boolean;
+    page?: number;
+    pageSize?: number;
+  } = {},
 ): Promise<{ schools: PublicSchool[]; total: number }> {
-  const { boardId, page = 1, pageSize = 24 } = filters;
+  const { boardId, maxClass, admissionsOpen, page = 1, pageSize = 24 } = filters;
   const supabase = createPublicClient();
 
   let query = supabase
@@ -145,6 +159,10 @@ export async function listPublicSchoolsByDistrict(
     .select(SCHOOL_COLUMNS, { count: "exact" })
     .eq("district_id", districtId)
     .eq("status", "published");
+
+  if (maxClass) {
+    query = query.eq("max_class", maxClass);
+  }
 
   if (boardId) {
     const { data: affiliated } = await supabase
@@ -155,10 +173,49 @@ export async function listPublicSchoolsByDistrict(
     query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
   }
 
+  if (admissionsOpen) {
+    const { data: cycles } = await supabase
+      .from("admission_cycles")
+      .select("school_id")
+      .in("status", ["open", "closing_soon"]);
+    const ids = (cycles ?? []).map((c) => c.school_id);
+    query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
+  }
+
   const from = (page - 1) * pageSize;
   const { data, count } = await query.range(from, from + pageSize - 1);
 
   return { schools: data ?? [], total: count ?? 0 };
+}
+
+export type PublicDistrictFilterOptions = { boards: PublicBoard[]; maxClasses: string[] };
+
+/** Only the boards and grade ranges actually present in this district — never a dead dropdown option. */
+export async function listDistrictFilterOptions(
+  districtId: number,
+): Promise<PublicDistrictFilterOptions> {
+  const supabase = createPublicClient();
+
+  const { data: schools } = await supabase
+    .from("schools")
+    .select("id, max_class")
+    .eq("district_id", districtId)
+    .eq("status", "published");
+
+  const schoolIds = (schools ?? []).map((s) => s.id);
+  const maxClasses = [...new Set((schools ?? []).map((s) => s.max_class).filter((v) => v != null))];
+
+  if (schoolIds.length === 0) return { boards: [], maxClasses };
+
+  const { data: affiliations } = await supabase
+    .from("school_affiliations")
+    .select("board_id")
+    .in("school_id", schoolIds);
+  const boardIds = [...new Set((affiliations ?? []).map((a) => a.board_id))];
+  if (boardIds.length === 0) return { boards: [], maxClasses };
+
+  const { data: boards } = await supabase.from("boards").select("id, name_en").in("id", boardIds);
+  return { boards: boards ?? [], maxClasses };
 }
 
 export type PublicBoard = { id: number; name_en: string };
@@ -215,4 +272,52 @@ export async function listOpenAdmissionsByDistrict(
       },
     ];
   });
+}
+
+/** One board name per school (first affiliation), for list-card meta lines. Empty map entries are omitted, not guessed. */
+export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<string, string>> {
+  if (schoolIds.length === 0) return new Map();
+
+  const supabase = createPublicClient();
+  const { data: affiliations } = await supabase
+    .from("school_affiliations")
+    .select("school_id, board_id")
+    .in("school_id", schoolIds);
+
+  const boardIds = [...new Set((affiliations ?? []).map((a) => a.board_id))];
+  if (boardIds.length === 0) return new Map();
+
+  const { data: boards } = await supabase.from("boards").select("id, name_en").in("id", boardIds);
+  const boardNameById = new Map((boards ?? []).map((b) => [b.id, b.name_en]));
+
+  const result = new Map<string, string>();
+  for (const row of affiliations ?? []) {
+    const boardName = boardNameById.get(row.board_id);
+    if (boardName && !result.has(row.school_id)) {
+      result.set(row.school_id, boardName);
+    }
+  }
+  return result;
+}
+
+/** Soonest admission_cycles.closes_on per school, any status — for list-card DeadlineMargin rails. */
+export async function getAdmissionDeadlinesBySchoolId(
+  schoolIds: string[],
+): Promise<Map<string, string | null>> {
+  if (schoolIds.length === 0) return new Map();
+
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("admission_cycles")
+    .select("school_id, closes_on")
+    .in("school_id", schoolIds)
+    .order("closes_on", { ascending: true });
+
+  const result = new Map<string, string | null>();
+  for (const row of data ?? []) {
+    if (!result.has(row.school_id)) {
+      result.set(row.school_id, row.closes_on);
+    }
+  }
+  return result;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deadlineState } from "@/lib/deadline";
+import { deadlineState, deadlineToPill } from "@/lib/deadline";
 
 // All fixture dates are constructed as UTC instants; the function itself converts
 // to IST calendar days, so we reason about IST directly in each test's comment.
@@ -127,6 +127,40 @@ describe("deadlineState", () => {
       // 00:01 IST Nov 1 = 18:31 UTC Oct 31
       const now = new Date("2026-10-31T18:31:00.000Z");
       expect(deadlineState({ closesAt }, now).status).toBe("closed");
+    });
+  });
+});
+
+describe("deadlineToPill", () => {
+  const now = new Date("2027-01-01T04:00:00.000Z");
+
+  it("closing-soon and deadline-day both collapse to the closing-soon pill", () => {
+    expect(deadlineToPill(deadlineState({ closesAt: now }, now))).toEqual({
+      status: "closing-soon",
+      label: "Closing soon",
+    });
+    expect(
+      deadlineToPill(deadlineState({ closesAt: new Date("2027-01-03T04:00:00.000Z") }, now)),
+    ).toEqual({ status: "closing-soon", label: "Closing soon" });
+  });
+
+  it("open, open-no-deadline, and seats-now all collapse to the open pill", () => {
+    expect(
+      deadlineToPill(deadlineState({ closesAt: new Date("2027-02-01T04:00:00.000Z") }, now)),
+    ).toEqual({ status: "open", label: "Open" });
+    expect(
+      deadlineToPill(deadlineState({ opensAt: new Date("2026-12-01T04:00:00.000Z") }, now)),
+    ).toEqual({ status: "open", label: "Open" });
+    expect(deadlineToPill(deadlineState({ seatsNow: { count: 2, grade: "Cl. 4" } }, now))).toEqual({
+      status: "open",
+      label: "Open",
+    });
+  });
+
+  it("not-announced -> not-announced pill with a real label", () => {
+    expect(deadlineToPill(deadlineState({}, now))).toEqual({
+      status: "not-announced",
+      label: "Dates not announced",
     });
   });
 });
