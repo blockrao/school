@@ -611,6 +611,14 @@ export async function listPublicSchoolsByLocality(localityId: number): Promise<P
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
+/** Schools by id, for the Compare page — order is not guaranteed to match `ids`, callers re-sort if needed. */
+export async function listPublicSchoolsByIds(ids: string[]): Promise<PublicSchool[]> {
+  if (ids.length === 0) return [];
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_schools").select("*").in("id", ids);
+  return (data ?? []).map((row) => publicSchoolContract.parse(row));
+}
+
 export type PublicLocalityNeighbor = { slug: string; name: string; method: "source" | "computed" };
 
 /** Neighbouring localities for a locality page's "Nearby" section, nearest first. */
