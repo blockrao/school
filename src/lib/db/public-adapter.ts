@@ -191,7 +191,6 @@ export async function listPublicSchoolsByDistrict(
     pageSize = 24,
   } = filters;
   const api = createApiSchemaClient();
-  const publicClient = createPublicClient();
 
   let query = api
     .from("public_schools")
@@ -207,13 +206,11 @@ export async function listPublicSchoolsByDistrict(
   }
 
   if (boardId) {
-    // school_affiliations stays on the raw-table allowlist (correctly status-gated
-    // RLS of its own) — see this file's header.
-    const { data: affiliated } = await publicClient
-      .from("school_affiliations")
-      .select("school_id")
+    const { data: affiliated } = await api
+      .from("public_school_affiliations")
+      .select("school_id, board_id")
       .eq("board_id", boardId);
-    const ids = (affiliated ?? []).map((a) => a.school_id);
+    const ids = (affiliated ?? []).map((a) => publicSchoolAffiliationContract.parse(a).school_id);
     query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
   }
 
@@ -260,7 +257,7 @@ export async function listDistrictFilterOptions(
 
   const { data: affiliations } = await api
     .from("public_school_affiliations")
-    .select("board_id")
+    .select("school_id, board_id")
     .in("school_id", schoolIds);
   const boardIds = [
     ...new Set((affiliations ?? []).map((a) => publicSchoolAffiliationContract.parse(a).board_id)),
