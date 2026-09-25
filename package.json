@@ -10,11 +10,11 @@
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "prepare": "lefthook install",
     "bundle-check": "node scripts/measure-bundle.mjs",
     "db:types": "node scripts/gen-db-types.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "check:admin-imports": "node scripts/check-admin-imports.mjs",
     "check:public-adapter": "node scripts/check-public-adapter-imports.mjs"
   },
   "dependencies": {
@@ -32,6 +32,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
