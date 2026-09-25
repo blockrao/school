@@ -16,10 +16,16 @@ const TOPICS = [
   },
 ];
 
-export const metadata: Metadata = {
-  title: "Guides — SchoolOye",
-  description: "Admission process, required documents, and board comparisons for parents.",
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: "Guides — SchoolOye",
+    description: "Admission process, required documents, and board comparisons for parents.",
+    alternates: {
+      canonical: "/guides",
+      languages: { "en-IN": "/en/guides", "hi-IN": "/hi/guides" },
+    },
+  };
+}
 
 export default function GuidesPage() {
   return (

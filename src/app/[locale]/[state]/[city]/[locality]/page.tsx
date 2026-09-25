@@ -101,7 +101,7 @@ export default async function LocalityPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: city.stateName, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 1, name: city.stateName },
       { "@type": "ListItem", position: 2, name: city.cityName, item: basePath },
       { "@type": "ListItem", position: 3, name: locality.name, item: localityPath },
     ],
@@ -116,7 +116,7 @@ export default async function LocalityPage({
       />
 
       <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
-        <Link href={`/${locale}/${stateSlug}`}>{city.stateName}</Link>
+        <span>{city.stateName}</span>
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>

@@ -123,15 +123,15 @@ export default async function SchoolPage({
       ? `/${locale}/${state.slug}/${city.slug}/${school.locality_slug}`
       : null;
   const cityPath = state && city ? `/${locale}/${state.slug}/${city.slug}` : null;
-  const statePath = state ? `/${locale}/${state.slug}` : null;
 
+  // No `/[locale]/[state]` route exists — state is shown as plain text, not linked.
   const breadcrumbTrail = [
-    state && statePath ? { name: state.name, href: statePath } : null,
+    state ? { name: state.name, href: null } : null,
     city && cityPath ? { name: titleCase(city.name_en), href: cityPath } : null,
     school.locality_name && localityPath
       ? { name: school.locality_name, href: localityPath }
       : null,
-  ].filter((x): x is { name: string; href: string } => x !== null);
+  ].filter((x): x is { name: string; href: string | null } => x !== null);
 
   // Earliest closing (still-open-relevant) cycle drives the DeadlineMargin card;
   // "not-announced" renders on its own when there are none, matching every other
@@ -188,7 +188,7 @@ export default async function SchoolPage({
         "@type": "ListItem",
         position: i + 1,
         name: crumb.name,
-        item: crumb.href,
+        ...(crumb.href ? { item: crumb.href } : {}),
       })),
       {
         "@type": "ListItem",
@@ -215,8 +215,8 @@ export default async function SchoolPage({
       {breadcrumbTrail.length > 0 && (
         <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
           {breadcrumbTrail.map((crumb) => (
-            <span key={crumb.href}>
-              <Link href={crumb.href}>{crumb.name}</Link>
+            <span key={crumb.name}>
+              {crumb.href ? <Link href={crumb.href}>{crumb.name}</Link> : <span>{crumb.name}</span>}
               <span className="mx-1.5" aria-hidden="true">
                 /
               </span>

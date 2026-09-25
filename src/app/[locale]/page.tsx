@@ -18,10 +18,16 @@ import { cn } from "@/lib/utils";
 const DISTRICT_SLUG = "jaipur";
 const DISTRICT_LABEL = "Jaipur";
 
-export const metadata: Metadata = {
-  title: `Find the right school in ${DISTRICT_LABEL} — SchoolOye`,
-  description: `Search and compare schools in ${DISTRICT_LABEL}: fees, facilities and admission dates in one place.`,
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: `Find the right school in ${DISTRICT_LABEL} — SchoolOye`,
+    description: `Search and compare schools in ${DISTRICT_LABEL}: fees, facilities and admission dates in one place.`,
+    alternates: {
+      canonical: "/",
+      languages: { "en-IN": "/en", "hi-IN": "/hi" },
+    },
+  };
+}
 
 function admissionPillStatus(status: ReturnType<typeof deadlineState>["status"]) {
   return status === "closing-soon" || status === "deadline-day" ? "closing-soon" : "open";

@@ -138,7 +138,7 @@ function TownPageBody({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: town.stateName, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 1, name: town.stateName },
       { "@type": "ListItem", position: 2, name: `Near ${town.townName}`, item: townPath },
     ],
   };
@@ -216,8 +216,8 @@ function TownPageBody({
           <EmptyState
             title="No published schools here yet"
             description="Schools appear here once they're verified and published."
-            nextStepLabel={`Browse all schools in ${town.stateName}`}
-            nextStepHref={`/${locale}/${stateSlug}`}
+            nextStepLabel="Browse all schools"
+            nextStepHref={`/${locale}/schools`}
           />
         )}
       </div>
@@ -332,7 +332,7 @@ export default async function CityOrTownPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: city.stateName, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 1, name: city.stateName },
       { "@type": "ListItem", position: 2, name: city.cityName, item: basePath },
     ],
   };
