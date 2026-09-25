@@ -1,0 +1,23 @@
+import { NextResponse } from "next/server";
+import { createSessionClient } from "@/lib/db/session";
+
+/** Not locale-prefixed — this is the stable URL baked into every magic-link email. */
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const next = url.searchParams.get("next") ?? "/en";
+
+  if (code) {
+    const supabase = await createSessionClient();
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      // Same as phone sign-in: ensure a profile row exists from first sign-in.
+      await supabase
+        .from("profiles")
+        .upsert({ user_id: data.user.id }, { onConflict: "user_id", ignoreDuplicates: true });
+      return NextResponse.redirect(new URL(next, url.origin));
+    }
+  }
+
+  return NextResponse.redirect(new URL("/en/sign-in?error=invalid_code", url.origin));
+}
