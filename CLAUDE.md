@@ -7,10 +7,19 @@ districts come later; the hierarchy is built so they can be added without changi
 
 ## Scope
 This repo owns UI, features, user flows, and wiring. The database is owned and built by a separate
-agent and is assumed to be filling up. Never assess, report on, or comment on data quality or
+data repo and is assumed to be filling up. Never assess, report on, or comment on data quality or
 coverage in this repo's work. If the UI needs a table, column, view, policy, or RPC that doesn't
 exist, add a one-line request to `docs/handoff/db-agent-requests.md` and continue with the designed
 empty/fallback state ("Not yet published", "Dates not announced", etc.). Never block on data.
+
+Full data access architecture: `docs/DATA_ACCESS.md`. This repo never writes to the database and
+never creates migrations. Production reads ONLY the `api` schema views (`public_schools`,
+`public_school_admissions`, `public_seat_status`, `public_cities`) via the publishable key,
+server-side only. Dev/staging reads the `staging` schema views via role `ui_staging_reader` — that
+credential must never be present in production. Never query raw tables (`schools`,
+`source_records`, `field_provenance`, etc.) from any environment. The view contract is mirrored in
+`src/contracts` (Zod) — the build fails if they diverge from the data repo's
+`docs/contract/api_views.md`.
 
 ## Stack (do not substitute)
 - Next.js 16.3.x (latest patch), App Router, React 19, TypeScript `strict`, Turbopack, pnpm
@@ -51,6 +60,7 @@ empty/fallback state ("Not yet published", "Dates not announced", etc.). Never b
   Locality/city pages link to entities but are never their canonical URL.
 - Server Components by default. `"use client"` only for real interactivity (tabs are links, not client state).
 - Data access only in `src/lib/db/*` server modules (`import "server-only"`). Public pages never query Supabase from the browser.
+  Only the `api`/`staging` views, never raw tables — see `docs/DATA_ACCESS.md`.
 - Caching: Cache Components + `cacheTag('school:<id>')`, `cacheTag('city:<slug>')`. A Supabase DB webhook hits
   `/api/revalidate` (secret-checked) → `revalidateTag`. Pre-render the top N schools with `generateStaticParams`; others render on demand.
 - Deadline countdowns ("Closes in 4 days") are computed server-side in IST (`Asia/Kolkata`) and streamed, not baked into the static shell.
