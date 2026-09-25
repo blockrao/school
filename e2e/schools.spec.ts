@@ -1,11 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("renders the search results page for South West Delhi", async ({ page }) => {
+test("renders the search results page for Jaipur", async ({ page }) => {
   await page.goto("/en/schools");
-  await expect(
-    page.getByRole("heading", { name: "Schools in South West Delhi", level: 1 }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Schools in Jaipur", level: 1 })).toBeVisible();
 });
 
 test("search form submits q as a query param", async ({ page }) => {

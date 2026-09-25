@@ -11,7 +11,7 @@ export function primaryNavItems(locale: string): PrimaryNavItem[] {
     { label: "Schools", href: `/${locale}/schools`, note: "Search and compare every school" },
     {
       label: "Admissions",
-      href: `/${locale}/delhi/south-west-delhi`,
+      href: `/${locale}/rajasthan/jaipur`,
       note: "Open forms, deadlines, alerts",
     },
     { label: "Teachers", href: `/${locale}/teachers`, note: "Profiles" },
@@ -34,7 +34,7 @@ export function SiteHeader({ locale }: { locale: string }) {
           </Link>
         </div>
         <div className="flex items-center gap-1">
-          <span className="px-2 text-body font-medium text-ink">Delhi</span>
+          <span className="px-2 text-body font-medium text-ink">Jaipur</span>
           <LocaleSwitcher />
         </div>
       </div>
@@ -74,7 +74,7 @@ export function SiteHeader({ locale }: { locale: string }) {
           </label>
         </Form>
         <div className="flex items-center gap-2">
-          <span className="whitespace-nowrap px-2.5 text-body font-medium text-ink">Delhi</span>
+          <span className="whitespace-nowrap px-2.5 text-body font-medium text-ink">Jaipur</span>
           <LocaleSwitcher />
           <Button asChild variant="secondary" className="h-11 border-ruled-blue">
             <Link href={`/${locale}/my`}>Sign in</Link>

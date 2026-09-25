@@ -17,10 +17,10 @@ import {
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
-// MVP build district — see CLAUDE.md. Search is scoped here, not site-wide, until
+// Launch district — see CLAUDE.md. Search is scoped here, not site-wide, until
 // more districts are live.
-const DISTRICT_SLUG = "south-west-delhi";
-const DISTRICT_LABEL = "South West Delhi";
+const DISTRICT_SLUG = "jaipur";
+const DISTRICT_LABEL = "Jaipur";
 const PAGE_SIZE = 24;
 const COMPARE_LIMIT = 4;
 

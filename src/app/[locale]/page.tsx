@@ -14,9 +14,9 @@ import {
 import { deadlineState } from "@/lib/deadline";
 import { cn } from "@/lib/utils";
 
-// MVP build district — see CLAUDE.md. Locality/city segments are reserved for later.
-const DISTRICT_SLUG = "south-west-delhi";
-const DISTRICT_LABEL = "South West Delhi";
+// Launch district — see CLAUDE.md. South West Delhi stays built but unlinked.
+const DISTRICT_SLUG = "jaipur";
+const DISTRICT_LABEL = "Jaipur";
 
 export const metadata: Metadata = {
   title: `Find the right school in ${DISTRICT_LABEL} — SchoolOye`,
@@ -82,7 +82,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     : [{ total: 0 }, [], []];
 
   const schoolCount = schoolsResult.total;
-  const districtHref = `/${locale}/delhi/south-west-delhi`;
+  const districtHref = `/${locale}/rajasthan/jaipur`;
 
   // Category chips reflect real filterable boards, not a fixed design list — the set
   // grows automatically as more boards get affiliations in this district.

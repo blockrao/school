@@ -555,6 +555,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      corridors: {
+        Row: {
+          id: number;
+          name: string;
+          slug: string;
+          aliases: string[];
+          centroid: unknown | null;
+        };
+        Insert: {
+          id?: number;
+          name: string;
+          slug: string;
+          aliases?: string[];
+          centroid?: unknown | null;
+        };
+        Update: {
+          id?: number;
+          name?: string;
+          slug?: string;
+          aliases?: string[];
+          centroid?: unknown | null;
+        };
+        Relationships: [];
+      };
       data_quality_flags: {
         Row: {
           id: number;
@@ -835,6 +859,7 @@ export type Database = {
           verified_by: string | null;
           verified_at: string | null;
           created_at: string;
+          licence_class: string;
         };
         Insert: {
           id?: number;
@@ -848,6 +873,7 @@ export type Database = {
           verified_by?: string | null;
           verified_at?: string | null;
           created_at?: string;
+          licence_class?: string;
         };
         Update: {
           id?: number;
@@ -861,6 +887,7 @@ export type Database = {
           verified_by?: string | null;
           verified_at?: string | null;
           created_at?: string;
+          licence_class?: string;
         };
         Relationships: [];
       };
@@ -930,6 +957,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      landmarks: {
+        Row: {
+          id: number;
+          locality_id: number | null;
+          name: string;
+          type: string | null;
+        };
+        Insert: {
+          id?: number;
+          locality_id?: number | null;
+          name: string;
+          type?: string | null;
+        };
+        Update: {
+          id?: number;
+          locality_id?: number | null;
+          name?: string;
+          type?: string | null;
+        };
+        Relationships: [];
+      };
       localities: {
         Row: {
           id: number;
@@ -948,6 +996,13 @@ export type Database = {
           micro_localities: string[] | null;
           description: string | null;
           enrichment_source: string | null;
+          aliases: string[];
+          parent_locality_id: number | null;
+          status: string;
+          source: string | null;
+          external_ref: string | null;
+          name_hi_status: string;
+          superseded_by_corridor_id: number | null;
         };
         Insert: {
           id?: number;
@@ -966,6 +1021,13 @@ export type Database = {
           micro_localities?: string[] | null;
           description?: string | null;
           enrichment_source?: string | null;
+          aliases?: string[];
+          parent_locality_id?: number | null;
+          status?: string;
+          source?: string | null;
+          external_ref?: string | null;
+          name_hi_status?: string;
+          superseded_by_corridor_id?: number | null;
         };
         Update: {
           id?: number;
@@ -984,6 +1046,64 @@ export type Database = {
           micro_localities?: string[] | null;
           description?: string | null;
           enrichment_source?: string | null;
+          aliases?: string[];
+          parent_locality_id?: number | null;
+          status?: string;
+          source?: string | null;
+          external_ref?: string | null;
+          name_hi_status?: string;
+          superseded_by_corridor_id?: number | null;
+        };
+        Relationships: [];
+      };
+      locality_corridors: {
+        Row: {
+          locality_id: number;
+          corridor_id: number;
+        };
+        Insert: {
+          locality_id: number;
+          corridor_id: number;
+        };
+        Update: {
+          locality_id?: number;
+          corridor_id?: number;
+        };
+        Relationships: [];
+      };
+      locality_neighbors: {
+        Row: {
+          locality_id: number;
+          neighbor_locality_id: number;
+          distance_meters: number | null;
+          method: string;
+        };
+        Insert: {
+          locality_id: number;
+          neighbor_locality_id: number;
+          distance_meters?: number | null;
+          method: string;
+        };
+        Update: {
+          locality_id?: number;
+          neighbor_locality_id?: number;
+          distance_meters?: number | null;
+          method?: string;
+        };
+        Relationships: [];
+      };
+      locality_pincodes: {
+        Row: {
+          locality_id: number;
+          pincode: string;
+        };
+        Insert: {
+          locality_id: number;
+          pincode: string;
+        };
+        Update: {
+          locality_id?: number;
+          pincode?: string;
         };
         Relationships: [];
       };
@@ -1143,6 +1263,21 @@ export type Database = {
           outcome?: string | null;
           notes?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      schema_migrations: {
+        Row: {
+          filename: string;
+          applied_at: string;
+        };
+        Insert: {
+          filename: string;
+          applied_at?: string;
+        };
+        Update: {
+          filename?: string;
+          applied_at?: string;
         };
         Relationships: [];
       };
@@ -1360,6 +1495,7 @@ export type Database = {
           about_hi: string | null;
           created_at: string;
           updated_at: string;
+          edudel_zone: string | null;
         };
         Insert: {
           id?: string;
@@ -1394,6 +1530,7 @@ export type Database = {
           about_hi?: string | null;
           created_at?: string;
           updated_at?: string;
+          edudel_zone?: string | null;
         };
         Update: {
           id?: string;
@@ -1428,6 +1565,7 @@ export type Database = {
           about_hi?: string | null;
           created_at?: string;
           updated_at?: string;
+          edudel_zone?: string | null;
         };
         Relationships: [];
       };
@@ -1735,7 +1873,7 @@ export type Database = {
         | "cancelled"
         | "refunded";
       record_status: "draft" | "published" | "hidden" | "closed" | "opt_out";
-      review_status: "pending" | "approved" | "edited" | "rejected";
+      review_status: "pending" | "approved" | "edited" | "rejected" | "needs_triage";
       school_gender: "coed" | "boys" | "girls";
       school_management:
         | "private_unaided"

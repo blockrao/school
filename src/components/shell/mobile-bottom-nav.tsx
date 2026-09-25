@@ -40,7 +40,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
     },
     {
       label: "Admissions",
-      href: `/${locale}/delhi/south-west-delhi`,
+      href: `/${locale}/rajasthan/jaipur`,
       icon: (
         <>
           <rect x="3.5" y="5" width="17" height="15.5" rx="2" />

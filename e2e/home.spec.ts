@@ -1,10 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("renders the South West Delhi hero and a real school count", async ({ page }) => {
+test("renders the Jaipur hero and a real school count", async ({ page }) => {
   await page.goto("/en");
   await expect(
-    page.getByRole("heading", { name: "Find the right school in South West Delhi", level: 1 }),
+    page.getByRole("heading", { name: "Find the right school in Jaipur", level: 1 }),
   ).toBeVisible();
   await expect(page.getByText(/\d+ schools? · fees, facilities/)).toBeVisible();
 });

@@ -1,5 +1,6 @@
 import "server-only";
 import { createPublicClient } from "@/lib/db/public";
+import { parseGeographyPoint } from "@/lib/geo";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
 
@@ -144,8 +145,20 @@ export async function getPublicStateBySlug(slug: string): Promise<PublicState | 
 /**
  * Kept in sync with db/views/040_public_areas.sql's `is_launch` list — the launch
  * set lives in SQL (and here), never in a table. Update both together.
+ *
+ * Jaipur is the launch district. South West Delhi stays fully built (data,
+ * routes, the Delhi Nursery Hub) but unlinked — out of this set, not deleted.
  */
-const LAUNCH_DISTRICT_SLUGS = new Set(["south-west-delhi"]);
+const LAUNCH_DISTRICT_SLUGS = new Set(["jaipur"]);
+
+/**
+ * Real Jaipur-district towns added by supabase/seeds/jaipur_school_assignment.sql
+ * — ordinary `localities` rows, but rendered with the town page template ("Near
+ * X") instead of the locality template. The list lives here, in this repo's
+ * code — same pattern as LAUNCH_DISTRICT_SLUGS — kept in sync with the `is_town`
+ * computation in db/views/050_public_localities.sql and 010_public_schools.sql.
+ */
+const TOWN_LOCALITY_SLUGS = new Set(["dudu", "tunga", "bassi", "kishangarh-renwal", "chomu"]);
 
 export type PublicArea = {
   slug: string;
@@ -391,4 +404,161 @@ export async function getAdmissionDeadlinesBySchoolId(
     }
   }
   return result;
+}
+
+export type PublicCity = { id: number; name_en: string; slug: string; districtId: number };
+
+export async function getPublicCityBySlug(slug: string): Promise<PublicCity | null> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("cities")
+    .select("id, name_en, slug, district_id")
+    .eq("slug", slug)
+    .maybeSingle();
+  return data
+    ? { id: data.id, name_en: data.name_en, slug: data.slug, districtId: data.district_id }
+    : null;
+}
+
+export type PublicLocality = {
+  id: number;
+  slug: string;
+  name: string;
+  nameHi: string | null;
+  isTown: boolean;
+  lat: number | null;
+  lng: number | null;
+  schoolCount: number;
+};
+
+async function schoolCountsByLocalityId(
+  supabase: ReturnType<typeof createPublicClient>,
+  localityIds: number[],
+): Promise<Map<number, number>> {
+  if (localityIds.length === 0) return new Map();
+  const { data } = await supabase
+    .from("schools")
+    .select("locality_id")
+    .eq("status", "published")
+    .in("locality_id", localityIds);
+  const counts = new Map<number, number>();
+  for (const row of data ?? []) {
+    if (row.locality_id == null) continue;
+    counts.set(row.locality_id, (counts.get(row.locality_id) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function toPublicLocality(
+  row: {
+    id: number;
+    slug: string;
+    name_en: string;
+    name_hi: string | null;
+    name_hi_status: string;
+    centroid: unknown;
+  },
+  schoolCount: number,
+): PublicLocality {
+  const point = parseGeographyPoint(row.centroid);
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name_en,
+    nameHi: row.name_hi_status === "verified" ? row.name_hi : null,
+    isTown: TOWN_LOCALITY_SLUGS.has(row.slug),
+    lat: point?.lat ?? null,
+    lng: point?.lng ?? null,
+    schoolCount,
+  };
+}
+
+/** Locality/town row by slug within a city, for locality and town pages. Null if not found, superseded, or inactive. */
+export async function getPublicLocalityBySlug(
+  cityId: number,
+  localitySlug: string,
+): Promise<PublicLocality | null> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("localities")
+    .select("id, slug, name_en, name_hi, name_hi_status, centroid")
+    .eq("city_id", cityId)
+    .eq("slug", localitySlug)
+    .eq("status", "active")
+    .is("superseded_by_corridor_id", null)
+    .maybeSingle();
+  if (!data) return null;
+
+  const counts = await schoolCountsByLocalityId(supabase, [data.id]);
+  return toPublicLocality(data, counts.get(data.id) ?? 0);
+}
+
+/**
+ * Localities/towns in a city with at least `minSchools` published schools — the
+ * locality index only lists places with enough schools to be worth a page,
+ * per the Jaipur pivot instruction.
+ */
+export async function listPublicLocalitiesByCity(
+  cityId: number,
+  minSchools = 3,
+): Promise<PublicLocality[]> {
+  const supabase = createPublicClient();
+  const { data: localities } = await supabase
+    .from("localities")
+    .select("id, slug, name_en, name_hi, name_hi_status, centroid")
+    .eq("city_id", cityId)
+    .eq("status", "active")
+    .is("superseded_by_corridor_id", null);
+  if (!localities || localities.length === 0) return [];
+
+  const counts = await schoolCountsByLocalityId(
+    supabase,
+    localities.map((l) => l.id),
+  );
+
+  return localities
+    .map((l) => toPublicLocality(l, counts.get(l.id) ?? 0))
+    .filter((l) => l.schoolCount >= minSchools)
+    .sort((a, b) => b.schoolCount - a.schoolCount);
+}
+
+/** Published schools assigned to one locality/town, for the locality page's school list. */
+export async function listPublicSchoolsByLocality(localityId: number): Promise<PublicSchool[]> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("schools")
+    .select(SCHOOL_COLUMNS)
+    .eq("locality_id", localityId)
+    .eq("status", "published");
+  return data ?? [];
+}
+
+export type PublicLocalityNeighbor = { slug: string; name: string; method: "source" | "computed" };
+
+/** Neighbouring localities for a locality page's "Nearby" section, nearest first. */
+export async function listLocalityNeighbors(localityId: number): Promise<PublicLocalityNeighbor[]> {
+  const supabase = createPublicClient();
+  const { data: neighbors } = await supabase
+    .from("locality_neighbors")
+    .select("neighbor_locality_id, distance_meters, method")
+    .eq("locality_id", localityId)
+    .order("distance_meters", { ascending: true, nullsFirst: false });
+  if (!neighbors || neighbors.length === 0) return [];
+
+  const neighborIds = neighbors.map((n) => n.neighbor_locality_id);
+  const { data: localities } = await supabase
+    .from("localities")
+    .select("id, slug, name_en")
+    .in("id", neighborIds)
+    .eq("status", "active")
+    .is("superseded_by_corridor_id", null);
+  const bySlugId = new Map((localities ?? []).map((l) => [l.id, l]));
+
+  return neighbors.flatMap((n) => {
+    const locality = bySlugId.get(n.neighbor_locality_id);
+    if (!locality) return [];
+    return [
+      { slug: locality.slug, name: locality.name_en, method: n.method as "source" | "computed" },
+    ];
+  });
 }
