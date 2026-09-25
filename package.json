@@ -14,7 +14,8 @@
     "bundle-check": "node scripts/measure-bundle.mjs",
     "db:types": "node scripts/gen-db-types.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "check:admin-imports": "node scripts/check-admin-imports.mjs"
+    "check:admin-imports": "node scripts/check-admin-imports.mjs",
+    "check:public-adapter": "node scripts/check-public-adapter-imports.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
