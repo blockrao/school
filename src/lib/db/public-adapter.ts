@@ -144,6 +144,7 @@ export async function getPublicStateBySlug(slug: string): Promise<PublicState | 
 export async function listPublicSchoolsByDistrict(
   districtId: number,
   filters: {
+    query?: string;
     boardId?: number;
     maxClass?: string;
     admissionsOpen?: boolean;
@@ -151,7 +152,14 @@ export async function listPublicSchoolsByDistrict(
     pageSize?: number;
   } = {},
 ): Promise<{ schools: PublicSchool[]; total: number }> {
-  const { boardId, maxClass, admissionsOpen, page = 1, pageSize = 24 } = filters;
+  const {
+    query: searchQuery,
+    boardId,
+    maxClass,
+    admissionsOpen,
+    page = 1,
+    pageSize = 24,
+  } = filters;
   const supabase = createPublicClient();
 
   let query = supabase
@@ -159,6 +167,10 @@ export async function listPublicSchoolsByDistrict(
     .select(SCHOOL_COLUMNS, { count: "exact" })
     .eq("district_id", districtId)
     .eq("status", "published");
+
+  if (searchQuery) {
+    query = query.ilike("name_en", `%${searchQuery}%`);
+  }
 
   if (maxClass) {
     query = query.eq("max_class", maxClass);
