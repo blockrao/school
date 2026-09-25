@@ -1,24 +1,24 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("renders the real Jaipur district page", async ({ page }) => {
+test("renders the real Jaipur city page", async ({ page }) => {
   await page.goto("/en/rajasthan/jaipur");
   await expect(page.getByRole("heading", { name: "Jaipur schools", level: 1 })).toBeVisible();
   await expect(page.getByText(/\d+ schools?/)).toBeVisible();
 });
 
-test("breadcrumb shows title-cased state and district", async ({ page }) => {
+test("breadcrumb shows title-cased state and city", async ({ page }) => {
   await page.goto("/en/rajasthan/jaipur");
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Rajasthan");
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Jaipur");
 });
 
-test("unknown district slug 404s", async ({ page }) => {
-  const response = await page.goto("/en/rajasthan/nonexistent-district");
+test("unknown city slug 404s", async ({ page }) => {
+  const response = await page.goto("/en/rajasthan/nonexistent-city");
   expect(response?.status()).toBe(404);
 });
 
-test("district that doesn't belong to the given state 404s", async ({ page }) => {
+test("city that doesn't belong to the given state 404s", async ({ page }) => {
   const response = await page.goto("/en/haryana/jaipur");
   expect(response?.status()).toBe(404);
 });
@@ -45,7 +45,7 @@ test("unfiltered page has no noindex meta tag", async ({ page }) => {
   await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
 });
 
-test("axe: district page has no serious/critical violations", async ({ page }) => {
+test("axe: city page has no serious/critical violations", async ({ page }) => {
   await page.goto("/en/rajasthan/jaipur");
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   const blocking = results.violations.filter(

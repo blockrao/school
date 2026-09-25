@@ -58,7 +58,9 @@ export function AreaMap({
       style: STYLE_URL,
       center: [centerLng, centerLat],
       zoom,
-      attributionControl: { compact: true },
+      // compact:false — attribution (OpenStreetMap contributors, OpenFreeMap) must
+      // be directly visible, not hidden behind a click-to-expand "i" icon.
+      attributionControl: { compact: false },
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 

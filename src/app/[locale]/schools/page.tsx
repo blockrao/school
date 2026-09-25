@@ -44,7 +44,7 @@ function parseParams(searchParams: { [key: string]: string | string[] | undefine
 export const metadata: Metadata = {
   title: `Schools in ${DISTRICT_LABEL} — SchoolOye`,
   description: `Search and filter schools in ${DISTRICT_LABEL}: board, grades and admission status.`,
-  // Query-driven results are dynamic, near-duplicate content — the district page is
+  // Query-driven results are dynamic, near-duplicate content — the city page is
   // the indexable entry point into the same schools.
   robots: { index: false, follow: true },
 };

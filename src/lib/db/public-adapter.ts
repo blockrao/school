@@ -420,7 +420,7 @@ export async function getPublicCityBySlug(slug: string): Promise<PublicCity | nu
     : null;
 }
 
-/** The city inside a district — used to resolve locality/town pages nested under a district route. */
+/** The city inside a district — internal use only (legacy district-slug redirect resolution). District never appears in the UI. */
 export async function getPublicCityByDistrictId(districtId: number): Promise<PublicCity | null> {
   const supabase = createPublicClient();
   const { data } = await supabase
@@ -431,6 +431,143 @@ export async function getPublicCityByDistrictId(districtId: number): Promise<Pub
   return data
     ? { id: data.id, name_en: data.name_en, slug: data.slug, districtId: data.district_id }
     : null;
+}
+
+export type PublicCityArea = {
+  citySlug: string;
+  cityName: string;
+  cityId: number;
+  /** Internal only — never render this or its slug/name. Needed to scope the "all schools" query. */
+  districtId: number;
+  stateSlug: string;
+  stateName: string;
+  schoolCount: number;
+  isLaunch: boolean;
+};
+
+/**
+ * City bundled with its (internal-only) district's launch flag and its state —
+ * everything a city page needs, with "district" never surfacing past this
+ * function. school_count is district-wide (every published school in the
+ * launched area, whether or not it has a resolved locality yet) — a school
+ * pending /ops locality assignment still belongs on the city's "all schools"
+ * listing; only locality/town pages are scoped to city_id/locality_id.
+ */
+export async function getPublicCityAreaBySlug(citySlug: string): Promise<PublicCityArea | null> {
+  const supabase = createPublicClient();
+  const city = await getPublicCityBySlug(citySlug);
+  if (!city) return null;
+
+  const { data: district } = await supabase
+    .from("districts")
+    .select("id, slug, state_id")
+    .eq("id", city.districtId)
+    .maybeSingle();
+  if (!district) return null;
+
+  const state = await getPublicStateById(district.state_id);
+  if (!state) return null;
+
+  const { count } = await supabase
+    .from("schools")
+    .select("id", { count: "exact", head: true })
+    .eq("district_id", district.id)
+    .eq("status", "published");
+
+  return {
+    citySlug: city.slug,
+    cityName: titleCase(city.name_en),
+    cityId: city.id,
+    districtId: district.id,
+    stateSlug: slugify(state.name_en),
+    stateName: state.name_en,
+    schoolCount: count ?? 0,
+    isLaunch: LAUNCH_DISTRICT_SLUGS.has(district.slug),
+  };
+}
+
+export type PublicTownArea = {
+  townSlug: string;
+  townName: string;
+  localityId: number;
+  cityId: number;
+  stateSlug: string;
+  stateName: string;
+  schoolCount: number;
+  isLaunch: boolean;
+};
+
+/**
+ * Town resolved as a peer of the city in the URL (`/[state]/[town]`, not
+ * nested under a city) — matches the TOWN_LOCALITY_SLUGS set. Scoped by state
+ * slug so a same-named town in a different (future) launch state can't collide.
+ */
+export async function getPublicTownAreaBySlug(
+  stateSlug: string,
+  townSlug: string,
+): Promise<PublicTownArea | null> {
+  if (!TOWN_LOCALITY_SLUGS.has(townSlug)) return null;
+
+  const supabase = createPublicClient();
+  const state = await getPublicStateBySlug(stateSlug);
+  if (!state) return null;
+
+  const { data: locality } = await supabase
+    .from("localities")
+    .select("id, slug, name_en, city_id")
+    .eq("slug", townSlug)
+    .eq("status", "active")
+    .is("superseded_by_corridor_id", null)
+    .maybeSingle();
+  if (!locality) return null;
+
+  const { data: city } = await supabase
+    .from("cities")
+    .select("id, district_id")
+    .eq("id", locality.city_id)
+    .maybeSingle();
+  if (!city) return null;
+
+  const { data: district } = await supabase
+    .from("districts")
+    .select("id, slug, state_id")
+    .eq("id", city.district_id)
+    .maybeSingle();
+  if (!district || district.state_id !== state.id) return null;
+
+  const { count } = await supabase
+    .from("schools")
+    .select("id", { count: "exact", head: true })
+    .eq("locality_id", locality.id)
+    .eq("status", "published");
+
+  return {
+    townSlug: locality.slug,
+    townName: locality.name_en,
+    localityId: locality.id,
+    cityId: city.id,
+    stateSlug: slugify(state.name_en),
+    stateName: state.name_en,
+    schoolCount: count ?? 0,
+    isLaunch: LAUNCH_DISTRICT_SLUGS.has(district.slug),
+  };
+}
+
+/**
+ * For 308ing an old `/[state]/[district]/...` URL to the matching
+ * `/[state]/[city]/...` one. Returns null if the slug isn't a known district,
+ * or if it already equals the city's own slug (Jaipur's city and district
+ * slugs happen to be identical today, so no redirect fires for it — this
+ * exists for the day a district and its city slug diverge).
+ */
+export async function getRedirectCitySlugForDistrictSlug(
+  districtSlug: string,
+): Promise<string | null> {
+  const district = await getPublicDistrictBySlug(districtSlug);
+  if (!district) return null;
+  const city = await getPublicCityByDistrictId(district.id);
+  if (!city || city.slug === districtSlug) return null;
+  return city.slug;
 }
 
 export type PublicLocality = {

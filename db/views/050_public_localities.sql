@@ -20,6 +20,9 @@
 -- superseded_by_corridor_id rows (roads that used to be modeled as
 -- localities) are excluded entirely — api.public_corridors is now their
 -- canonical home.
+--
+-- Does not filter school_count on schools.status — see 010_public_schools.sql's
+-- header for why. Must stay owner-run (same note applies).
 create or replace view api.public_localities as
 select
   l.id,
@@ -33,7 +36,7 @@ select
   case when l.centroid is not null then ST_X(l.centroid::geometry) else null end as lng,
   (
     select count(*)::int from schools s
-    where s.locality_id = l.id and s.status = 'published'
+    where s.locality_id = l.id
   ) as school_count
 from localities l
 join cities c on c.id = l.city_id

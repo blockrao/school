@@ -11,6 +11,15 @@
 -- Jaipur is the launch district as of the Jaipur pivot; South West Delhi stays
 -- fully built (data, routes, the Delhi Nursery Hub) but unlinked — dropped from
 -- is_launch, not deleted, so nothing breaks if Delhi launches later.
+-- Does not filter school_count on schools.status — see 010_public_schools.sql's
+-- header for why. Must stay owner-run (same note applies).
+--
+-- NOTE: this view is still district-sourced (slug/name below are the
+-- district's). It happens to read identically to the city today because
+-- Jaipur's district and city slugs/names match exactly — flagged as a
+-- follow-up to fold into a city-based area view, not done in this pass since
+-- the app no longer routes on district (src/app/[locale]/[state]/[city]/) and
+-- this view's output isn't currently wrong for the one launched area.
 create or replace view api.public_areas as
 select
   d.slug,
@@ -18,7 +27,7 @@ select
   st.name_en as state,
   (
     select count(*)::int from schools s
-    where s.district_id = d.id and s.status = 'published'
+    where s.district_id = d.id
   ) as school_count,
   d.slug in ('jaipur') as is_launch
 from districts d

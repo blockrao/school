@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { NotYetPublished } from "@/components/ui/freshness-line";
@@ -9,11 +9,8 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
-  getPublicAreaBySlug,
-  getPublicCityByDistrictId,
-  getPublicDistrictBySlug,
+  getPublicCityAreaBySlug,
   getPublicLocalityBySlug,
-  getPublicStateBySlug,
   listLocalityNeighbors,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
@@ -21,51 +18,47 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { parseGeographyPoint } from "@/lib/geo";
 import { formatGradeRange } from "@/lib/grades";
 
-async function resolveLocalityPage(stateSlug: string, districtSlug: string, localitySlug: string) {
-  const [district, state, area] = await Promise.all([
-    getPublicDistrictBySlug(districtSlug),
-    getPublicStateBySlug(stateSlug),
-    getPublicAreaBySlug(districtSlug),
-  ]);
-  if (!district || !state || district.state_id !== state.id || !area || !area.is_launch) {
-    return null;
-  }
+async function resolveLocalityPage(stateSlug: string, citySlug: string, localitySlug: string) {
+  const city = await getPublicCityAreaBySlug(citySlug);
+  if (!city?.isLaunch || city.stateSlug !== stateSlug) return null;
 
-  const city = await getPublicCityByDistrictId(district.id);
-  if (!city) return null;
-
-  const locality = await getPublicLocalityBySlug(city.id, localitySlug);
+  const locality = await getPublicLocalityBySlug(city.cityId, localitySlug);
   if (!locality) return null;
 
-  return { district, state, area, city, locality };
+  // Towns are peer-level in the URL (/[state]/[town], not nested under a
+  // city) — a locality-shaped request for one belongs at that URL instead.
+  if (locality.isTown) return { redirectTo: `/${stateSlug}/${localitySlug}` as const };
+
+  return { city, locality };
 }
 
 export async function generateMetadata({
   params,
-}: PageProps<"/[locale]/[state]/[district]/[locality]">): Promise<Metadata> {
-  const { state: stateSlug, district: districtSlug, locality: localitySlug } = await params;
-  const resolved = await resolveLocalityPage(stateSlug, districtSlug, localitySlug);
+}: PageProps<"/[locale]/[state]/[city]/[locality]">): Promise<Metadata> {
+  const { state: stateSlug, city: citySlug, locality: localitySlug } = await params;
+  const resolved = await resolveLocalityPage(stateSlug, citySlug, localitySlug);
   if (!resolved) return { title: "Not found" };
+  if ("redirectTo" in resolved) return { title: "Redirecting" };
 
-  const { locality, area } = resolved;
-  const label = locality.isTown ? `Near ${locality.name}` : locality.name;
+  const { locality, city } = resolved;
 
   return {
-    title: `Schools ${locality.isTown ? "near" : "in"} ${locality.name}, ${area.name} — SchoolOye`,
-    description: `${label}: schools, fees, facilities and admission dates in ${area.name}.`,
-    alternates: { canonical: `/${stateSlug}/${districtSlug}/${localitySlug}` },
+    title: `Schools in ${locality.name}, ${city.cityName} — SchoolOye`,
+    description: `${locality.name}: schools, fees, facilities and admission dates in ${city.cityName}.`,
+    alternates: { canonical: `/${stateSlug}/${citySlug}/${localitySlug}` },
   };
 }
 
 export default async function LocalityPage({
   params,
-}: PageProps<"/[locale]/[state]/[district]/[locality]">) {
-  const { locale, state: stateSlug, district: districtSlug, locality: localitySlug } = await params;
+}: PageProps<"/[locale]/[state]/[city]/[locality]">) {
+  const { locale, state: stateSlug, city: citySlug, locality: localitySlug } = await params;
   const now = new Date();
 
-  const resolved = await resolveLocalityPage(stateSlug, districtSlug, localitySlug);
+  const resolved = await resolveLocalityPage(stateSlug, citySlug, localitySlug);
   if (!resolved) notFound();
-  const { area, locality } = resolved;
+  if ("redirectTo" in resolved) permanentRedirect(`/${locale}${resolved.redirectTo}`);
+  const { city, locality } = resolved;
 
   const [schools, neighbors] = await Promise.all([
     listPublicSchoolsByLocality(locality.id),
@@ -78,9 +71,9 @@ export default async function LocalityPage({
     getAdmissionDeadlinesBySchoolId(schoolIds),
   ]);
 
-  const basePath = `/${locale}/${stateSlug}/${districtSlug}`;
+  const basePath = `/${locale}/${stateSlug}/${citySlug}`;
   const localityPath = `${basePath}/${localitySlug}`;
-  const heading = locality.isTown ? `Schools near ${locality.name}` : `Schools in ${locality.name}`;
+  const heading = `Schools in ${locality.name}`;
 
   const mapPoints = schools.flatMap((school) => {
     const point = parseGeographyPoint(school.location);
@@ -107,8 +100,8 @@ export default async function LocalityPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: area.state, item: `/${locale}/${stateSlug}` },
-      { "@type": "ListItem", position: 2, name: area.name, item: basePath },
+      { "@type": "ListItem", position: 1, name: city.stateName, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 2, name: city.cityName, item: basePath },
       { "@type": "ListItem", position: 3, name: locality.name, item: localityPath },
     ],
   };
@@ -122,11 +115,11 @@ export default async function LocalityPage({
       />
 
       <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
-        <Link href={basePath}>{area.state}</Link>
+        <Link href={`/${locale}/${stateSlug}`}>{city.stateName}</Link>
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
-        <Link href={basePath}>{area.name}</Link>
+        <Link href={basePath}>{city.cityName}</Link>
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
@@ -135,7 +128,7 @@ export default async function LocalityPage({
 
       <h1 className="font-display text-title-m md:text-title-d">{heading}</h1>
       <p className="mt-1 text-body text-muted-ink">
-        {locality.schoolCount} school{locality.schoolCount === 1 ? "" : "s"} · {area.name}
+        {locality.schoolCount} school{locality.schoolCount === 1 ? "" : "s"} · {city.cityName}
       </p>
 
       {mapCenter && (
@@ -144,11 +137,11 @@ export default async function LocalityPage({
             points={mapPoints}
             centerLat={mapCenter.lat}
             centerLng={mapCenter.lng}
-            zoom={locality.isTown ? 11 : 13}
+            zoom={13}
           />
           <p className="mt-1.5 text-meta text-muted-ink">
-            Approximate areas, not exact addresses — schools here are geocoded to{" "}
-            {locality.isTown ? "pincode" : "locality"} precision.
+            Approximate areas, not exact addresses — schools here are geocoded to locality
+            precision.
           </p>
         </div>
       )}
@@ -184,7 +177,7 @@ export default async function LocalityPage({
           <EmptyState
             title="No published schools here yet"
             description="Schools appear here once they're verified and published."
-            nextStepLabel={`Browse all schools in ${area.name}`}
+            nextStepLabel={`Browse all schools in ${city.cityName}`}
             nextStepHref={basePath}
           />
         )}

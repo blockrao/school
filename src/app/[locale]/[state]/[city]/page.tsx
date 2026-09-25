@@ -1,0 +1,495 @@
+import type { Metadata } from "next";
+import Form from "next/form";
+import Link from "next/link";
+import { notFound, permanentRedirect } from "next/navigation";
+import { AreaMapLazy } from "@/components/ui/area-map-lazy";
+import { StatusPill } from "@/components/ui/badges";
+import { NotYetPublished } from "@/components/ui/freshness-line";
+import { SchoolCard } from "@/components/ui/school-card";
+import { EmptyState } from "@/components/ui/state-message";
+import {
+  getAdmissionDeadlinesBySchoolId,
+  getBoardNamesBySchoolId,
+  getPublicCityAreaBySlug,
+  getPublicTownAreaBySlug,
+  getRedirectCitySlugForDistrictSlug,
+  listDistrictFilterOptions,
+  listLocalityNeighbors,
+  listPublicLocalitiesByCity,
+  listPublicSchoolsByDistrict,
+  listPublicSchoolsByLocality,
+} from "@/lib/db/public-adapter";
+import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import { parseGeographyPoint } from "@/lib/geo";
+import { formatGradeRange } from "@/lib/grades";
+
+const PAGE_SIZE = 24;
+
+function parseFilters(searchParams: { [key: string]: string | string[] | undefined }) {
+  const boardParam = Array.isArray(searchParams.board) ? searchParams.board[0] : searchParams.board;
+  const gradeParam = Array.isArray(searchParams.grade) ? searchParams.grade[0] : searchParams.grade;
+  const admissionsParam = Array.isArray(searchParams.admissions)
+    ? searchParams.admissions[0]
+    : searchParams.admissions;
+  const pageParam = Array.isArray(searchParams.page) ? searchParams.page[0] : searchParams.page;
+
+  const boardId = boardParam ? Number(boardParam) : undefined;
+  const maxClass = gradeParam || undefined;
+  const admissionsOpen = admissionsParam === "open";
+  const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
+
+  return { boardId, maxClass, admissionsOpen, page };
+}
+
+/**
+ * Resolves the `[city]` segment three ways, in order: a real city, a town
+ * (peer-level in the URL, e.g. /rajasthan/chomu), or a legacy district slug
+ * to redirect from. District never reaches the UI — it's only used inside
+ * getPublicCityAreaBySlug/getRedirectCitySlugForDistrictSlug to check the
+ * launch flag and resolve old links.
+ */
+async function resolvePlace(stateSlug: string, citySlug: string) {
+  const city = await getPublicCityAreaBySlug(citySlug);
+  if (city && city.stateSlug === stateSlug) return { kind: "city" as const, city };
+
+  const town = await getPublicTownAreaBySlug(stateSlug, citySlug);
+  if (town) return { kind: "town" as const, town };
+
+  return null;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/[state]/[city]">): Promise<Metadata> {
+  const { state: stateSlug, city: citySlug } = await params;
+  const resolved = await resolvePlace(stateSlug, citySlug);
+
+  if (!resolved) {
+    const redirectSlug = await getRedirectCitySlugForDistrictSlug(citySlug);
+    if (redirectSlug) return { title: "Redirecting" };
+    return { title: "Not found" };
+  }
+
+  if (resolved.kind === "town") {
+    const { town } = resolved;
+    if (!town.isLaunch) return { title: "Not found" };
+    return {
+      title: `Schools near ${town.townName}, ${town.stateName} — SchoolOye`,
+      description: `Schools near ${town.townName}: fees, facilities and admission dates.`,
+      alternates: { canonical: `/${stateSlug}/${citySlug}` },
+    };
+  }
+
+  const { city } = resolved;
+  if (!city.isLaunch) return { title: "Not found" };
+
+  const rawSearchParams = await searchParams;
+  const { boardId, maxClass, admissionsOpen } = parseFilters(rawSearchParams);
+  const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
+
+  return {
+    title: `${city.cityName} schools — SchoolOye`,
+    description: `Browse schools in ${city.cityName}, ${city.stateName}: fees, facilities and admission dates.`,
+    alternates: { canonical: `/${stateSlug}/${citySlug}` },
+    robots: filtersActive ? { index: false, follow: true } : undefined,
+  };
+}
+
+function TownPageBody({
+  locale,
+  stateSlug,
+  town,
+  schools,
+  neighbors,
+  boardNames,
+  admissionDeadlines,
+  now,
+}: {
+  locale: string;
+  stateSlug: string;
+  town: NonNullable<Awaited<ReturnType<typeof getPublicTownAreaBySlug>>>;
+  schools: Awaited<ReturnType<typeof listPublicSchoolsByLocality>>;
+  neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
+  boardNames: Map<string, string>;
+  admissionDeadlines: Map<string, string | null>;
+  now: Date;
+}) {
+  const townPath = `/${locale}/${stateSlug}/${town.townSlug}`;
+
+  const mapPoints = schools.flatMap((school) => {
+    const point = parseGeographyPoint(school.location);
+    if (!point) return [];
+    return [
+      {
+        id: school.id,
+        lat: point.lat,
+        lng: point.lng,
+        label: school.name_en,
+        href: `/${locale}/school/${school.id}-${school.slug}`,
+        precision: school.geocode_precision ?? "pincode",
+      },
+    ];
+  });
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: town.stateName, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 2, name: `Near ${town.townName}`, item: townPath },
+    ],
+  };
+
+  return (
+    <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
+        <span>{town.stateName}</span>
+        <span className="mx-1.5" aria-hidden="true">
+          /
+        </span>
+        <span className="text-ink">Near {town.townName}</span>
+      </nav>
+
+      <h1 className="font-display text-title-m md:text-title-d">Schools near {town.townName}</h1>
+      <p className="mt-1 text-body text-muted-ink">
+        {town.schoolCount} school{town.schoolCount === 1 ? "" : "s"}
+      </p>
+
+      {mapPoints.length > 0 && (
+        <div className="mt-5">
+          <AreaMapLazy
+            points={mapPoints}
+            centerLat={mapPoints[0].lat}
+            centerLng={mapPoints[0].lng}
+            zoom={11}
+          />
+          <p className="mt-1.5 text-meta text-muted-ink">
+            Approximate areas, not exact addresses — schools here are geocoded to pincode precision.
+          </p>
+        </div>
+      )}
+
+      <div className="mt-6">
+        {schools.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {schools.map((school) => {
+              const board = boardNames.get(school.id);
+              const grades = formatGradeRange(school.min_class, school.max_class);
+              const meta = board ? `${board} · ${grades}` : grades;
+
+              const closesOn = admissionDeadlines.get(school.id);
+              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
+              const pill = deadlineToPill(deadlineState(deadline, now));
+
+              return (
+                <SchoolCard
+                  key={school.id}
+                  name={school.name_en}
+                  meta={meta}
+                  now={now}
+                  deadline={deadline}
+                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                  fee="Not yet published"
+                  freshness={<NotYetPublished />}
+                  actions={false}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyState
+            title="No published schools here yet"
+            description="Schools appear here once they're verified and published."
+            nextStepLabel={`Browse all schools in ${town.stateName}`}
+            nextStepHref={`/${locale}/${stateSlug}`}
+          />
+        )}
+      </div>
+
+      {neighbors.length > 0 && (
+        <div className="mt-8 border-t border-rule pt-6">
+          <h2 className="font-display text-card md:text-section">Nearby</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {neighbors.map((neighbor) => (
+              <Link
+                key={neighbor.slug}
+                href={`/${locale}/${stateSlug}/${neighbor.slug}`}
+                className="flex min-h-10 items-center rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
+              >
+                {neighbor.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default async function CityOrTownPage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/[state]/[city]">) {
+  const { locale, state: stateSlug, city: citySlug } = await params;
+  const rawSearchParams = await searchParams;
+  const now = new Date();
+
+  const resolved = await resolvePlace(stateSlug, citySlug);
+
+  if (!resolved) {
+    const redirectSlug = await getRedirectCitySlugForDistrictSlug(citySlug);
+    if (redirectSlug) permanentRedirect(`/${locale}/${stateSlug}/${redirectSlug}`);
+    notFound();
+  }
+
+  if (resolved.kind === "town") {
+    const { town } = resolved;
+    if (!town.isLaunch) notFound();
+
+    const [schools, neighbors] = await Promise.all([
+      listPublicSchoolsByLocality(town.localityId),
+      listLocalityNeighbors(town.localityId),
+    ]);
+    const schoolIds = schools.map((s) => s.id);
+    const [boardNames, admissionDeadlines] = await Promise.all([
+      getBoardNamesBySchoolId(schoolIds),
+      getAdmissionDeadlinesBySchoolId(schoolIds),
+    ]);
+
+    return (
+      <TownPageBody
+        locale={locale}
+        stateSlug={stateSlug}
+        town={town}
+        schools={schools}
+        neighbors={neighbors}
+        boardNames={boardNames}
+        admissionDeadlines={admissionDeadlines}
+        now={now}
+      />
+    );
+  }
+
+  const { city } = resolved;
+  if (!city.isLaunch) notFound();
+
+  const { boardId, maxClass, admissionsOpen, page } = parseFilters(rawSearchParams);
+  const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
+
+  // district-scoped, not city_id-scoped: schools pending /ops locality
+  // assignment still belong on the city's "all schools" listing.
+  const [{ schools, total }, filterOptions, localities] = await Promise.all([
+    listPublicSchoolsByDistrict(city.districtId, {
+      boardId,
+      maxClass,
+      admissionsOpen,
+      page,
+      pageSize: PAGE_SIZE,
+    }),
+    listDistrictFilterOptions(city.districtId),
+    listPublicLocalitiesByCity(city.cityId),
+  ]);
+
+  const schoolIds = schools.map((s) => s.id);
+  const [boardNames, admissionDeadlines] = await Promise.all([
+    getBoardNamesBySchoolId(schoolIds),
+    getAdmissionDeadlinesBySchoolId(schoolIds),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const basePath = `/${locale}/${stateSlug}/${citySlug}`;
+
+  function pageHref(targetPage: number) {
+    const qs = new URLSearchParams();
+    if (boardId !== undefined) qs.set("board", String(boardId));
+    if (maxClass) qs.set("grade", maxClass);
+    if (admissionsOpen) qs.set("admissions", "open");
+    if (targetPage > 1) qs.set("page", String(targetPage));
+    const query = qs.toString();
+    return query ? `${basePath}?${query}` : basePath;
+  }
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: city.stateName, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 2, name: city.cityName, item: basePath },
+    ],
+  };
+
+  return (
+    <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
+        <span>{city.stateName}</span>
+        <span className="mx-1.5" aria-hidden="true">
+          /
+        </span>
+        <span className="text-ink">{city.cityName}</span>
+      </nav>
+
+      <h1 className="font-display text-title-m md:text-title-d">{city.cityName} schools</h1>
+      <p className="mt-1 text-body text-muted-ink">
+        {total} school{total === 1 ? "" : "s"}
+        {filtersActive ? " matching your filters" : ""}
+      </p>
+
+      {localities.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-meta font-semibold text-muted-ink">Browse by area</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {localities.map((locality) => (
+              <Link
+                key={locality.slug}
+                href={
+                  locality.isTown
+                    ? `/${locale}/${stateSlug}/${locality.slug}`
+                    : `${basePath}/${locality.slug}`
+                }
+                className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
+              >
+                {locality.isTown ? `Near ${locality.name}` : locality.name}
+                <span className="text-meta text-muted-ink">({locality.schoolCount})</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-meta font-semibold text-muted-ink">Board</span>
+          <select
+            name="board"
+            defaultValue={boardId ?? ""}
+            className="h-11 min-w-36 rounded-md border border-line-blue bg-copy-white px-2.5 text-body"
+          >
+            <option value="">Any board</option>
+            {filterOptions.boards.map((board) => (
+              <option key={board.id} value={board.id}>
+                {board.name_en}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-meta font-semibold text-muted-ink">Grades</span>
+          <select
+            name="grade"
+            defaultValue={maxClass ?? ""}
+            className="h-11 min-w-36 rounded-md border border-line-blue bg-copy-white px-2.5 text-body"
+          >
+            <option value="">Any grades</option>
+            {filterOptions.maxClasses.map((code) => (
+              <option key={code} value={code}>
+                {formatGradeRange(null, code)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex h-11 items-center gap-2">
+          <input
+            type="checkbox"
+            name="admissions"
+            value="open"
+            defaultChecked={admissionsOpen}
+            className="h-5 w-5 rounded-sm border-line-blue"
+          />
+          <span className="text-body">Admissions open now</span>
+        </label>
+
+        <button
+          type="submit"
+          className="flex h-11 items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
+        >
+          Apply filters
+        </button>
+        {filtersActive && (
+          <Link href={basePath} className="flex h-11 items-center font-semibold text-ruled-blue">
+            Clear filters
+          </Link>
+        )}
+      </Form>
+
+      <div className="mt-6">
+        {schools.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {schools.map((school) => {
+              const board = boardNames.get(school.id);
+              const grades = formatGradeRange(school.min_class, school.max_class);
+              const meta = board ? `${board} · ${grades}` : grades;
+
+              const closesOn = admissionDeadlines.get(school.id);
+              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
+              const pill = deadlineToPill(deadlineState(deadline, now));
+
+              return (
+                <SchoolCard
+                  key={school.id}
+                  name={school.name_en}
+                  meta={meta}
+                  now={now}
+                  deadline={deadline}
+                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                  fee="Not yet published"
+                  freshness={<NotYetPublished />}
+                  actions={false}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyState
+            title={
+              filtersActive ? "No schools match these filters" : "No published schools here yet"
+            }
+            description={
+              filtersActive
+                ? "Try widening your filters, or browse every school in this city."
+                : "Schools appear here once they're verified and published."
+            }
+            nextStepLabel="Clear filters"
+            nextStepHref={basePath}
+          />
+        )}
+      </div>
+
+      {total > PAGE_SIZE && (
+        <nav aria-label="Pagination" className="mt-6 flex items-center justify-between">
+          {page > 1 ? (
+            <Link href={pageHref(page - 1)} className="font-semibold text-ruled-blue">
+              ← Previous
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-body text-muted-ink">
+            Page {page} of {totalPages}
+          </span>
+          {page < totalPages ? (
+            <Link href={pageHref(page + 1)} className="font-semibold text-ruled-blue">
+              Next →
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
+    </div>
+  );
+}

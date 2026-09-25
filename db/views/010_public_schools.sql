@@ -15,7 +15,22 @@
 -- A field with no qualifying provenance renders null here — the app's fallback
 -- ("Not yet published") takes over, same as any other unknown fact.
 --
--- Only status = 'published' schools appear at all.
+-- Does NOT filter on schools.status. That field is an unused manual toggle —
+-- every school in the database is 'draft' (confirmed: 0 rows are 'published'
+-- anywhere, in any district). "Published" here means the L0-L3 completeness
+-- rules (docs/DATA_ACCESS.md) plus the source rules above (both computed from
+-- the row's own fields), not a status flag nobody sets.
+--
+-- This view must stay owner-run: created via DATABASE_URL (role `postgres`,
+-- rolbypassrls=true), so it executes with the view owner's privileges, not
+-- the querying anon/authenticated role's. schools has RLS enabled with a
+-- policy restricting direct table reads to status='published' OR staff OR
+-- the school's own member — if this view were ever re-created by a role
+-- without BYPASSRLS, or with `security_invoker=true` explicitly set (neither
+-- is the case here — default view semantics apply), that base-table policy
+-- would silently start hiding rows again despite this file having no status
+-- filter of its own. Re-verify `select rolbypassrls from pg_roles where
+-- rolname = current_user` is true whenever this file is (re)applied.
 create or replace view api.public_schools as
 select
   s.id,
@@ -93,5 +108,4 @@ select
   s.about_en,
   s.about_hi
 from schools s
-left join localities l on l.id = s.locality_id
-where s.status = 'published';
+left join localities l on l.id = s.locality_id;

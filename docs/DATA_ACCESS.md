@@ -13,19 +13,25 @@
 
 ## Production reads
 
-Only these four `api` schema views, via the publishable/anon key, **server-side only**
+Only these `api` schema views, via the publishable/anon key, **server-side only**
 (never from the browser):
 
 - `api.public_schools`
 - `api.public_school_admissions`
 - `api.public_seat_status`
-- `api.public_cities`
+- `api.public_areas` (districts — internal launch-gating and school counts; not
+  routed on in the UI, see Routing note below)
+- `api.public_localities`, `api.public_corridors`, `api.public_locality_neighbors`
 
-Defined in `db/views/010`–`040_*.sql`, granted to `anon` and `authenticated` in
+Defined in `db/views/010`–`070_*.sql`, granted to `anon` and `authenticated` in
 `db/views/090_grants.sql`. See each file's header comment for its exact publishing rule.
 
 ## Publishing rules (enforced in the view definitions, not in application code)
 
+- **None of these views filter on `schools.status`.** That column is an unused manual
+  toggle — every row in the table is `'draft'`, in every district, confirmed by direct
+  count. "Published" is entirely the L0–L3 completeness rules below plus the source
+  rules, both computed from the row's own fields — never a status flag.
 - A fact is shown only if it traces to an **official source** (government/board lists) —
   or, for contact fields (phone/email/website) specifically, a **matched school website**.
   See `db/views/010_public_schools.sql`'s header for the exact source-id lists.
@@ -36,6 +42,32 @@ Defined in `db/views/010`–`040_*.sql`, granted to `anon` and `authenticated` i
   'school_verified')`, not merely `source_verified` from an automated extraction.
 - Every fact that reaches the UI carries its source and a checked-at date through the trust
   components (`FreshnessLine` / `NotYetPublished`) — never a bare value.
+
+## Owner-run views (why base-table RLS doesn't hide rows)
+
+`schools` has RLS enabled with a policy restricting direct table reads to
+`status = 'published' OR is_staff() OR is_school_member(id)`. Since none of the
+`api.*` views filter on status themselves, they only return every row correctly
+because they're **owner-run**: created via `DATABASE_URL` (role `postgres`,
+`rolbypassrls = true`), a view executes against its underlying tables with the
+*owner's* privileges, not the querying role's (`anon`/`authenticated`) — Postgres
+default view semantics, not `security_invoker`. If a view were ever re-created by
+a role without `BYPASSRLS`, the base table's policy would silently start hiding
+rows again despite the view having no status filter of its own. Re-verify with
+`select rolbypassrls from pg_roles where rolname = current_user` (should be
+`true`) whenever `db/views/*.sql` is re-applied.
+
+## Routing note
+
+District is an internal-only concept — it gates whether an area is launched and
+scopes the "all schools" query, but it never appears in a URL, a breadcrumb, or
+any visible label. The app routes on **city** and **town** instead:
+`src/app/[locale]/[state]/[city]/page.tsx` (also handles town slugs, which are
+peer-level in the URL, e.g. `/rajasthan/chomu`) and
+`src/app/[locale]/[state]/[city]/[locality]/page.tsx`. `getRedirectCitySlugForDistrictSlug`
+in `src/lib/db/public-adapter.ts` 308s an old `/[state]/[district]/...` URL to the
+matching city if the two slugs ever diverge (Jaipur's happen to be identical
+today, so nothing currently redirects for it).
 
 ## Completeness levels (drive whether/how a school page renders)
 
