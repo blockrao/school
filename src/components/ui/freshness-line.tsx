@@ -1,6 +1,5 @@
+import { freshnessState } from "@/lib/freshness";
 import { cn } from "@/lib/utils";
-
-const STALE_AFTER_DAYS = 7;
 
 function formatDaysAgo(daysAgo: number) {
   if (daysAgo <= 0) return "today";
@@ -9,37 +8,46 @@ function formatDaysAgo(daysAgo: number) {
 }
 
 /**
- * Canonical freshness line for any verified fact: "Checked N days ago · <source>".
- * Past 7 days it switches to the stale treatment — pencil-yellow dot, bold text —
- * per the CLAUDE.md rule that freshness must degrade visibly, not just numerically.
+ * Never implies a fact was checked when it was only retrieved. `verifiedAt` present
+ * → "Checked N days ago · <source>" (a human actually confirmed this). `verifiedAt`
+ * absent → "From <source> · retrieved <date>" — an absolute date, not a relative "N
+ * days ago", so it can't visually read as the higher-trust verified phrasing. Staleness
+ * comes from the shared `freshnessState` decision (also unit-tested independently).
  */
 export function FreshnessLine({
-  daysAgo,
   source,
-  verb = "Checked",
+  retrievedAt,
+  verifiedAt,
+  now = new Date(),
   staleNote = "rechecking",
   className,
 }: {
-  daysAgo: number;
   source: string;
-  verb?: string;
+  retrievedAt: Date;
+  verifiedAt?: Date | null;
+  now?: Date;
   staleNote?: string;
   className?: string;
 }) {
-  const stale = daysAgo > STALE_AFTER_DAYS;
+  const state = freshnessState({ retrievedAt, verifiedAt }, now);
 
-  if (stale) {
+  const text =
+    state.mode === "checked"
+      ? `Checked ${formatDaysAgo(state.daysAgo)}`
+      : `From ${source} · retrieved ${state.dateLabel}`;
+
+  if (state.stale) {
     return (
       <span className={cn("flex items-center gap-1.5 text-meta font-semibold text-ink", className)}>
         <span aria-hidden="true" className="h-2 w-2 rounded-full bg-pencil-yellow" />
-        {verb} {formatDaysAgo(daysAgo)} — {staleNote}
+        {state.mode === "checked" ? `${text} — ${staleNote}` : text}
       </span>
     );
   }
 
   return (
     <span className={cn("text-meta text-slate", className)}>
-      {verb} {formatDaysAgo(daysAgo)} · {source}
+      {state.mode === "checked" ? `${text} · ${source}` : text}
     </span>
   );
 }

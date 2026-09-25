@@ -102,14 +102,28 @@ export default function ComponentsGalleryPage() {
         <DeadlineMargin now={NOW} opensAt={new Date(NOW.getTime() - 10 * DAY)} />
       </Section>
 
-      <Section title="Freshness line">
-        <FreshnessLine daysAgo={2} source="school notice" />
-        <FreshnessLine daysAgo={9} source="school notice" />
+      <Section title="Freshness line — verified vs retrieved-only, fresh vs stale">
         <FreshnessLine
-          daysAgo={9}
+          now={NOW}
+          retrievedAt={new Date(NOW.getTime() - 5 * DAY)}
+          verifiedAt={new Date(NOW.getTime() - 2 * DAY)}
           source="school notice"
-          verb="Seats reported"
-          staleNote="may have changed, call to confirm"
+        />
+        <FreshnessLine
+          now={NOW}
+          retrievedAt={new Date(NOW.getTime() - 12 * DAY)}
+          verifiedAt={new Date(NOW.getTime() - 9 * DAY)}
+          source="school notice"
+        />
+        <FreshnessLine
+          now={NOW}
+          retrievedAt={new Date(NOW.getTime() - 2 * DAY)}
+          source="school WhatsApp reply"
+        />
+        <FreshnessLine
+          now={NOW}
+          retrievedAt={new Date(NOW.getTime() - 9 * DAY)}
+          source="school notice"
         />
         <NotYetPublished />
       </Section>
@@ -122,7 +136,14 @@ export default function ComponentsGalleryPage() {
           deadline={{ closesAt: new Date(NOW.getTime() + 4 * DAY) }}
           status={<StatusPill status="closing-soon">Closing soon</StatusPill>}
           fee="Registration ₹1,000"
-          freshness={<FreshnessLine daysAgo={2} source="school notice" />}
+          freshness={
+            <FreshnessLine
+              now={NOW}
+              retrievedAt={new Date(NOW.getTime() - 4 * DAY)}
+              verifiedAt={new Date(NOW.getTime() - 2 * DAY)}
+              source="school notice"
+            />
+          }
         />
         <SchoolCard
           name="Aravali International School"
@@ -132,7 +153,14 @@ export default function ComponentsGalleryPage() {
           deadline={{ closesAt: new Date(NOW.getTime() + 30 * DAY) }}
           status={<StatusPill status="open">Open</StatusPill>}
           fee="Registration ₹1,500"
-          freshness={<FreshnessLine daysAgo={1} source="school notice" />}
+          freshness={
+            <FreshnessLine
+              now={NOW}
+              retrievedAt={new Date(NOW.getTime() - 3 * DAY)}
+              verifiedAt={new Date(NOW.getTime() - 1 * DAY)}
+              source="school notice"
+            />
+          }
         />
         <SchoolCard
           name="Green Valley Public School"
@@ -141,7 +169,14 @@ export default function ComponentsGalleryPage() {
           deadline={{ closesAt: new Date(NOW.getTime() + 15 * DAY) }}
           status={<StatusPill status="open">Open</StatusPill>}
           fee="Registration ₹750"
-          freshness={<FreshnessLine daysAgo={9} source="school notice" />}
+          freshness={
+            <FreshnessLine
+              now={NOW}
+              retrievedAt={new Date(NOW.getTime() - 12 * DAY)}
+              verifiedAt={new Date(NOW.getTime() - 9 * DAY)}
+              source="school notice"
+            />
+          }
         />
         <SchoolCard
           name="Green Valley Public School"
@@ -150,7 +185,13 @@ export default function ComponentsGalleryPage() {
           deadline={{}}
           status={<StatusPill status="not-announced">Not announced</StatusPill>}
           fee={<NotYetPublished />}
-          freshness={<FreshnessLine daysAgo={4} source="school website" />}
+          freshness={
+            <FreshnessLine
+              now={NOW}
+              retrievedAt={new Date(NOW.getTime() - 4 * DAY)}
+              source="school website"
+            />
+          }
         />
       </Section>
 
