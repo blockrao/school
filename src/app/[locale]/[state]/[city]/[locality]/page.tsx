@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { NotYetPublished } from "@/components/ui/freshness-line";
+import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
@@ -14,6 +15,7 @@ import {
   listLocalityNeighbors,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
+import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
@@ -65,9 +67,10 @@ export default async function LocalityPage({
   ]);
 
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines] = await Promise.all([
+  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
+    getShortlistedSchoolIds(schoolIds),
   ]);
 
   const basePath = `/${locale}/${stateSlug}/${citySlug}`;
@@ -167,7 +170,13 @@ export default async function LocalityPage({
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
-                  actions={false}
+                  actions={
+                    <SaveButton
+                      schoolId={school.id}
+                      saved={shortlistedIds.has(school.id)}
+                      locale={locale}
+                    />
+                  }
                 />
               );
             })}

@@ -6,6 +6,7 @@ import { StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
 import { RemovableFilterChip } from "@/components/ui/filter-chip";
 import { NotYetPublished } from "@/components/ui/freshness-line";
+import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
@@ -15,6 +16,7 @@ import {
   listDistrictFilterOptions,
   listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
+import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
@@ -83,9 +85,10 @@ export default async function SchoolsPage({
       ];
 
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines] = await Promise.all([
+  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
+    getShortlistedSchoolIds(schoolIds),
   ]);
 
   const basePath = `/${locale}/schools`;
@@ -302,32 +305,40 @@ export default async function SchoolsPage({
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
-                    toggleHref ? (
-                      <Link
-                        href={toggleHref}
-                        role="checkbox"
-                        aria-checked={inCompare}
-                        className={`col-span-2 flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
-                          inCompare
-                            ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
-                            : "border-line-blue text-ink"
-                        }`}
-                      >
-                        <span
-                          aria-hidden="true"
-                          className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
-                            inCompare ? "bg-ruled-blue" : "bg-copy-white"
+                    <>
+                      <SaveButton
+                        schoolId={school.id}
+                        saved={shortlistedIds.has(school.id)}
+                        locale={locale}
+                        span="col-span-1"
+                      />
+                      {toggleHref ? (
+                        <Link
+                          href={toggleHref}
+                          role="checkbox"
+                          aria-checked={inCompare}
+                          className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
+                            inCompare
+                              ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
+                              : "border-line-blue text-ink"
                           }`}
                         >
-                          {inCompare && "✓"}
+                          <span
+                            aria-hidden="true"
+                            className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
+                              inCompare ? "bg-ruled-blue" : "bg-copy-white"
+                            }`}
+                          >
+                            {inCompare && "✓"}
+                          </span>
+                          {inCompare ? "Remove" : "Compare"}
+                        </Link>
+                      ) : (
+                        <span className="flex h-11 items-center justify-center text-meta text-muted-ink">
+                          Limit (4)
                         </span>
-                        {inCompare ? "Remove from compare" : "Compare"}
-                      </Link>
-                    ) : (
-                      <span className="col-span-2 flex h-11 items-center justify-center text-meta text-muted-ink">
-                        Compare limit reached (4)
-                      </span>
-                    )
+                      )}
+                    </>
                   }
                 />
               );

@@ -26,9 +26,16 @@ fully-open or already-correctly-gated RLS of their own). The view contract is mi
 directly, or can't read a granted `api.*` view — contract/type mismatches between a view and its
 Zod schema are reported but don't fail the script (fix and move on).
 
-**DB command authority**: Claude applies non-destructive changes itself — `CREATE OR REPLACE VIEW`,
-`CREATE TABLE`/`ADD COLUMN`/`CREATE INDEX`, idempotent seed upserts, `GRANT SELECT` on `api.*`
-views (`pnpm db:views --confirm`, `pnpm db:migrate <file> --confirm`) — no round-trip needed.
+**`db/views/*.sql` vs `supabase/migrations/*.sql`**: `db/views/*.sql` files only ever
+`CREATE OR REPLACE VIEW` — nothing else. Every grant, revoke, and RLS policy change goes in
+`supabase/migrations/`, applied via `pnpm db:migrate <file> --confirm`, so it's tracked
+(`schema_migrations`) and one-shot instead of silently re-applied every time `pnpm db:views
+--confirm` runs over the whole directory. This includes grants on `api.*` views themselves — a
+view is not readable until its migration runs.
+
+**DB command authority**: Claude applies non-destructive changes itself — `CREATE OR REPLACE VIEW`
+(`pnpm db:views --confirm`), `CREATE TABLE`/`ADD COLUMN`/`CREATE INDEX`, idempotent seed upserts,
+`GRANT SELECT` on `api.*` views (`pnpm db:migrate <file> --confirm`) — no round-trip needed.
 Destructive changes — `DROP`, `REVOKE`, `DELETE`, `TRUNCATE`, `ALTER COLUMN TYPE`, RLS policy
 changes on personal-data tables (`profiles`, `children`, `consents`, `documents`, etc.) — need the
 user's explicit "yes" in chat first: show the exact SQL, then wait. `pnpm verify:views` is always

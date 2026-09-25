@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { NotYetPublished } from "@/components/ui/freshness-line";
+import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
@@ -19,6 +20,7 @@ import {
   listPublicSchoolsByDistrict,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
+import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
@@ -103,6 +105,7 @@ function TownPageBody({
   neighbors,
   boardNames,
   admissionDeadlines,
+  shortlistedIds,
   now,
 }: {
   locale: string;
@@ -112,6 +115,7 @@ function TownPageBody({
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
   boardNames: Map<string, string>;
   admissionDeadlines: Map<string, string | null>;
+  shortlistedIds: Set<string>;
   now: Date;
 }) {
   const townPath = `/${locale}/${stateSlug}/${town.townSlug}`;
@@ -197,7 +201,13 @@ function TownPageBody({
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
-                  actions={false}
+                  actions={
+                    <SaveButton
+                      schoolId={school.id}
+                      saved={shortlistedIds.has(school.id)}
+                      locale={locale}
+                    />
+                  }
                 />
               );
             })}
@@ -257,9 +267,10 @@ export default async function CityOrTownPage({
       listLocalityNeighbors(town.townSlug),
     ]);
     const schoolIds = schools.map((s) => s.id);
-    const [boardNames, admissionDeadlines] = await Promise.all([
+    const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
       getBoardNamesBySchoolId(schoolIds),
       getAdmissionDeadlinesBySchoolId(schoolIds),
+      getShortlistedSchoolIds(schoolIds),
     ]);
 
     return (
@@ -271,6 +282,7 @@ export default async function CityOrTownPage({
         neighbors={neighbors}
         boardNames={boardNames}
         admissionDeadlines={admissionDeadlines}
+        shortlistedIds={shortlistedIds}
         now={now}
       />
     );
@@ -297,9 +309,10 @@ export default async function CityOrTownPage({
   ]);
 
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines] = await Promise.all([
+  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
+    getShortlistedSchoolIds(schoolIds),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -448,7 +461,13 @@ export default async function CityOrTownPage({
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
-                  actions={false}
+                  actions={
+                    <SaveButton
+                      schoolId={school.id}
+                      saved={shortlistedIds.has(school.id)}
+                      locale={locale}
+                    />
+                  }
                 />
               );
             })}

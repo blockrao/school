@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
  * Applies every SQL file in db/views/, in filename order, over DATABASE_URL. Each
- * file is idempotent (create or replace view / grant / revoke), so re-running is
- * always safe — this is not a one-shot migration like scripts/db-migrate.mjs.
+ * file only creates or replaces a view — no grants, revokes, or policy changes
+ * belong here (those go in supabase/migrations/, applied via `pnpm db:migrate`, so
+ * a destructive change is tracked and one-shot instead of silently re-applied every
+ * time this script runs). `CREATE OR REPLACE VIEW` is itself idempotent, so
+ * re-running this script is always safe — unlike scripts/db-migrate.mjs.
  *
  * `CREATE OR REPLACE VIEW` cannot change a column's type — before each file's own
  * SQL runs, this script issues `DROP VIEW IF EXISTS <name> CASCADE` for every view
