@@ -37,12 +37,15 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Routes are locale-prefixed (/[locale]/my/...), so the matcher needs the leading
-  // segment too — a bare "/my/:path*" never matches "/en/my/...".
   matcher: [
+    // /my and /sign-in are locale-prefixed (/[locale]/my/...) — the matcher needs
+    // the leading segment too, a bare "/my/:path*" never matches "/en/my/...".
     "/:locale/my/:path*",
-    "/:locale/portal/:path*",
-    "/:locale/ops/:path*",
     "/:locale/sign-in",
+    // /portal, /ops and /for-schools/claim are top-level, not locale-prefixed —
+    // matches the header/footer links and docs/screen-map.md's own route table.
+    "/portal/:path*",
+    "/ops/:path*",
+    "/for-schools/claim/:path*",
   ],
 };

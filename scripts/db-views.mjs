@@ -16,6 +16,16 @@
  * future view is built on top of another, this needs reconsidering (a dropped
  * dependency would take the dependent view with it).
  *
+ * DROP does not preserve grants (CREATE OR REPLACE alone would, but the DROP above
+ * defeats that) — every view this script drops+recreates loses anon/authenticated's
+ * SELECT until something re-grants it. Caught live: db:views ran to fix
+ * 030_public_seat_status.sql, and every api.* view silently became unreadable by
+ * anon (production incident, fixed by hand, see this session's report). Fixed here
+ * categorically: after applying every file, re-GRANT USAGE + SELECT on every
+ * api.* view to anon and authenticated, discovered from information_schema rather
+ * than a hardcoded list so a newly-added view is covered automatically. GRANT is
+ * idempotent — safe to run unconditionally on every invocation.
+ *
  * Refuses to run without an explicit --confirm flag — this repo owns the view
  * definitions but a human runs the apply step. Claude writes the SQL and stops.
  *
@@ -85,6 +95,19 @@ function dropStatementsFor(sql) {
   return [...names].map((name) => `drop view if exists ${name} cascade;`);
 }
 
+async function regrantApiViews() {
+  const { rows } = await client.query(
+    "select table_name from information_schema.views where table_schema = 'api'",
+  );
+  if (rows.length === 0) return;
+
+  await client.query("grant usage on schema api to anon, authenticated");
+  for (const { table_name: name } of rows) {
+    await client.query(`grant select on api.${name} to anon, authenticated`);
+  }
+  console.log(`Re-granted anon/authenticated SELECT on ${rows.length} api.* view(s).`);
+}
+
 async function main() {
   await client.connect();
 
@@ -104,9 +127,11 @@ async function main() {
       console.error(`Failed, rolled back: ${file}`);
       console.error(err.message);
       process.exitCode = 1;
-      break;
+      return;
     }
   }
+
+  await regrantApiViews();
 }
 
 main()
