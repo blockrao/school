@@ -20,6 +20,9 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 import {
   publicAreaContract,
+  publicCorridorContract,
+  publicLocalityContract,
+  publicLocalityNeighborContract,
   publicSchoolAdmissionContract,
   publicSchoolContract,
   publicSeatStatusContract,
@@ -54,6 +57,9 @@ const VIEWS: {
   { name: "api.public_school_admissions", contract: publicSchoolAdmissionContract },
   { name: "api.public_seat_status", contract: publicSeatStatusContract },
   { name: "api.public_areas", contract: publicAreaContract },
+  { name: "api.public_localities", contract: publicLocalityContract },
+  { name: "api.public_corridors", contract: publicCorridorContract },
+  { name: "api.public_locality_neighbors", contract: publicLocalityNeighborContract },
 ];
 
 const RAW_TABLES = [
@@ -64,6 +70,11 @@ const RAW_TABLES = [
   "seat_status",
   "profiles",
   "children",
+  "localities",
+  "corridors",
+  "locality_pincodes",
+  "locality_neighbors",
+  "landmarks",
 ];
 
 const client = new pg.Client({ connectionString });

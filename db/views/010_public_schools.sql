@@ -23,6 +23,9 @@ select
   s.district_id,
   s.city_id,
   s.locality_id,
+  l.slug as locality_slug,
+  l.name_en as locality_name,
+  l.slug in ('dudu', 'tunga', 'bassi', 'kishangarh-renwal', 'chomu') as locality_is_town,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'name_en'
@@ -90,4 +93,5 @@ select
   s.about_en,
   s.about_hi
 from schools s
+left join localities l on l.id = s.locality_id
 where s.status = 'published';

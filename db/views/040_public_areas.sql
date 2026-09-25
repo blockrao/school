@@ -7,6 +7,10 @@
 -- slug to the `in (...)` list below. Keep this in sync with LAUNCH_DISTRICT_SLUGS
 -- in src/lib/db/public-adapter.ts until this view is applied and the adapter
 -- switches to reading it directly.
+--
+-- Jaipur is the launch district as of the Jaipur pivot; South West Delhi stays
+-- fully built (data, routes, the Delhi Nursery Hub) but unlinked — dropped from
+-- is_launch, not deleted, so nothing breaks if Delhi launches later.
 create or replace view api.public_areas as
 select
   d.slug,
@@ -16,6 +20,6 @@ select
     select count(*)::int from schools s
     where s.district_id = d.id and s.status = 'published'
   ) as school_count,
-  d.slug in ('south-west-delhi') as is_launch
+  d.slug in ('jaipur') as is_launch
 from districts d
 join states st on st.id = d.state_id;
