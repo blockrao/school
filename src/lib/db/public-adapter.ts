@@ -1,6 +1,7 @@
 import "server-only";
 import { createPublicClient } from "@/lib/db/public";
 import { slugify } from "@/lib/slug";
+import { titleCase } from "@/lib/text";
 
 /**
  * Every public-facing data read in the app goes through this file — no page or
@@ -138,6 +139,64 @@ export async function getPublicStateBySlug(slug: string): Promise<PublicState | 
   const supabase = createPublicClient();
   const { data } = await supabase.from("states").select("id, name_en, code");
   return (data ?? []).find((s) => slugify(s.name_en) === slug) ?? null;
+}
+
+/**
+ * Kept in sync with db/views/040_public_areas.sql's `is_launch` list — the launch
+ * set lives in SQL (and here), never in a table. Update both together.
+ */
+const LAUNCH_DISTRICT_SLUGS = new Set(["south-west-delhi"]);
+
+export type PublicArea = {
+  slug: string;
+  name: string;
+  state: string;
+  school_count: number;
+  is_launch: boolean;
+};
+
+/**
+ * Mirrors api.public_areas (districts joined to states, with a published-school
+ * count and the launch flag from LAUNCH_DISTRICT_SLUGS). Raw-table sourced until
+ * db/views/040_public_areas.sql is applied and this reads it directly.
+ */
+export async function listPublicAreas(): Promise<PublicArea[]> {
+  const supabase = createPublicClient();
+
+  const { data: districts } = await supabase
+    .from("districts")
+    .select("id, slug, name_en, state_id");
+  if (!districts || districts.length === 0) return [];
+
+  const stateIds = [...new Set(districts.map((d) => d.state_id))];
+  const { data: states } = await supabase.from("states").select("id, name_en").in("id", stateIds);
+  const stateNameById = new Map((states ?? []).map((s) => [s.id, s.name_en]));
+
+  const districtIds = districts.map((d) => d.id);
+  const { data: schools } = await supabase
+    .from("schools")
+    .select("district_id")
+    .eq("status", "published")
+    .in("district_id", districtIds);
+
+  const countByDistrictId = new Map<number, number>();
+  for (const row of schools ?? []) {
+    if (row.district_id == null) continue;
+    countByDistrictId.set(row.district_id, (countByDistrictId.get(row.district_id) ?? 0) + 1);
+  }
+
+  return districts.map((d) => ({
+    slug: d.slug,
+    name: titleCase(d.name_en),
+    state: stateNameById.get(d.state_id) ?? "",
+    school_count: countByDistrictId.get(d.id) ?? 0,
+    is_launch: LAUNCH_DISTRICT_SLUGS.has(d.slug),
+  }));
+}
+
+export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | null> {
+  const areas = await listPublicAreas();
+  return areas.find((a) => a.slug === slug) ?? null;
 }
 
 /** Published schools in a district, for the district listing page. Newest first. */

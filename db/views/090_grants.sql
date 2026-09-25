@@ -5,4 +5,4 @@ grant usage on schema api to anon, authenticated;
 grant select on api.public_schools to anon, authenticated;
 grant select on api.public_school_admissions to anon, authenticated;
 grant select on api.public_seat_status to anon, authenticated;
-grant select on api.public_cities to anon, authenticated;
+grant select on api.public_areas to anon, authenticated;

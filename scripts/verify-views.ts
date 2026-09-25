@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import {
-  publicCityContract,
+  publicAreaContract,
   publicSchoolAdmissionContract,
   publicSchoolContract,
   publicSeatStatusContract,
@@ -53,7 +53,7 @@ const VIEWS: {
   { name: "api.public_schools", contract: publicSchoolContract },
   { name: "api.public_school_admissions", contract: publicSchoolAdmissionContract },
   { name: "api.public_seat_status", contract: publicSeatStatusContract },
-  { name: "api.public_cities", contract: publicCityContract },
+  { name: "api.public_areas", contract: publicAreaContract },
 ];
 
 const RAW_TABLES = [

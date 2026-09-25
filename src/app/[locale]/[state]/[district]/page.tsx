@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
+  getPublicAreaBySlug,
   getPublicDistrictBySlug,
   getPublicStateBySlug,
   listDistrictFilterOptions,
@@ -16,7 +17,6 @@ import {
 } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
-import { titleCase } from "@/lib/text";
 
 const PAGE_SIZE = 24;
 
@@ -41,21 +41,24 @@ export async function generateMetadata({
   searchParams,
 }: PageProps<"/[locale]/[state]/[district]">): Promise<Metadata> {
   const { state: stateSlug, district: districtSlug } = await params;
-  const district = await getPublicDistrictBySlug(districtSlug);
-  const state = await getPublicStateBySlug(stateSlug);
+  const [district, state, area] = await Promise.all([
+    getPublicDistrictBySlug(districtSlug),
+    getPublicStateBySlug(stateSlug),
+    getPublicAreaBySlug(districtSlug),
+  ]);
 
-  if (!district || !state || district.state_id !== state.id) {
+  if (!district || !state || district.state_id !== state.id || !area || !area.is_launch) {
     return { title: "Not found" };
   }
 
   const rawSearchParams = await searchParams;
   const { boardId, maxClass, admissionsOpen } = parseFilters(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
-  const districtLabel = titleCase(district.name_en);
+  const districtLabel = area.name;
 
   return {
     title: `${districtLabel} schools — SchoolOye`,
-    description: `Browse schools in ${districtLabel}, ${state.name_en}: fees, facilities and admission dates.`,
+    description: `Browse schools in ${districtLabel}, ${area.state}: fees, facilities and admission dates.`,
     alternates: { canonical: `/${stateSlug}/${districtSlug}` },
     // Filtered combinations are dynamic and near-duplicate content — keep only the
     // unfiltered listing indexable.
@@ -71,18 +74,19 @@ export default async function DistrictPage({
   const rawSearchParams = await searchParams;
   const now = new Date();
 
-  const [district, state] = await Promise.all([
+  const [district, state, area] = await Promise.all([
     getPublicDistrictBySlug(districtSlug),
     getPublicStateBySlug(stateSlug),
+    getPublicAreaBySlug(districtSlug),
   ]);
 
-  if (!district || !state || district.state_id !== state.id) {
+  if (!district || !state || district.state_id !== state.id || !area || !area.is_launch) {
     notFound();
   }
 
   const { boardId, maxClass, admissionsOpen, page } = parseFilters(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
-  const districtLabel = titleCase(district.name_en);
+  const districtLabel = area.name;
 
   const [{ schools, total }, filterOptions] = await Promise.all([
     listPublicSchoolsByDistrict(district.id, {
@@ -118,7 +122,7 @@ export default async function DistrictPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: state.name_en, item: `/${locale}/${stateSlug}` },
+      { "@type": "ListItem", position: 1, name: area.state, item: `/${locale}/${stateSlug}` },
       { "@type": "ListItem", position: 2, name: districtLabel, item: basePath },
     ],
   };
@@ -132,7 +136,7 @@ export default async function DistrictPage({
       />
 
       <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
-        <span>{state.name_en}</span>
+        <span>{area.state}</span>
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>

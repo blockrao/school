@@ -1,13 +1,18 @@
 import Link from "next/link";
+import { listPublicAreas } from "@/lib/db/public-adapter";
+import { slugify } from "@/lib/slug";
 
 /**
  * Only lists cities/pages with something real behind them. The design's footer includes
  * About our data / Privacy / Contact / Report-an-update links and a multi-city switcher —
  * none of those screens exist yet (not in the current build order), so they're left out
- * rather than linked to nothing. Also matches screen-map.md's fix note: show only cities
- * with live data.
+ * rather than linked to nothing. "Schools by city" lists launch areas from
+ * listPublicAreas() (is_launch), not a hardcoded link.
  */
-export function SiteFooter({ locale }: { locale: string }) {
+export async function SiteFooter({ locale }: { locale: string }) {
+  const areas = await listPublicAreas();
+  const launchAreas = areas.filter((a) => a.is_launch);
+
   return (
     <footer className="border-t border-rule bg-margin-paper px-4 pt-6 pb-24 md:px-10 md:pb-6 md:pt-10">
       <div className="mx-auto flex max-w-(--container-page) flex-col gap-7">
@@ -41,17 +46,22 @@ export function SiteFooter({ locale }: { locale: string }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 border-t border-rule pt-5">
-          <span className="text-meta font-semibold">Schools by city</span>
-          <div className="flex flex-wrap gap-x-5">
-            <Link
-              href={`/${locale}/delhi/south-west-delhi`}
-              className="flex min-h-8 items-center text-body"
-            >
-              South West Delhi
-            </Link>
+        {launchAreas.length > 0 && (
+          <div className="flex flex-col gap-1.5 border-t border-rule pt-5">
+            <span className="text-meta font-semibold">Schools by city</span>
+            <div className="flex flex-wrap gap-x-5">
+              {launchAreas.map((area) => (
+                <Link
+                  key={area.slug}
+                  href={`/${locale}/${slugify(area.state)}/${area.slug}`}
+                  className="flex min-h-8 items-center text-body"
+                >
+                  {area.name}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex flex-col gap-1 text-meta text-muted-ink md:flex-row md:justify-between">
           <span>© 2026 SchoolOye</span>
