@@ -9,7 +9,8 @@ Use v1 only for blocks v2 lacks (e.g. v1 school page's untabbed long-form layout
 
 ## Launch scope (Delhi, Gurugram, Haryana)
 
-MVP build district: **South West Delhi** (see CLAUDE.md). Status values: **designed+built** (design
+Launch district: **Jaipur** (see CLAUDE.md — pivoted from South West Delhi, which stays fully
+built but unlinked). Status values: **designed+built** (design
 file ported, all states/wiring/e2e/screenshots done), **built-from-components** (no design file —
 minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md`), **pending**
 (scheduled, not started), **deferred** (explicitly post-launch).
