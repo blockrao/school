@@ -19,6 +19,7 @@ import {
 import { createSessionClient } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
@@ -176,7 +177,7 @@ export default async function SchoolPage({
       ? { geo: { "@type": "GeoCoordinates", latitude: mapPoint.lat, longitude: mapPoint.lng } }
       : {}),
     ...(affiliationNo ? { identifier: affiliationNo } : {}),
-    url: `https://schooloye.in/school/${school.id}-${school.slug}`,
+    url: `${siteUrl}/${locale}/school/${school.id}-${school.slug}`,
     ...(school.website ? { sameAs: school.website } : {}),
   };
 
@@ -188,13 +189,13 @@ export default async function SchoolPage({
         "@type": "ListItem",
         position: i + 1,
         name: crumb.name,
-        ...(crumb.href ? { item: crumb.href } : {}),
+        ...(crumb.href ? { item: `${siteUrl}${crumb.href}` } : {}),
       })),
       {
         "@type": "ListItem",
         position: breadcrumbTrail.length + 1,
         name,
-        item: `/school/${school.id}-${school.slug}`,
+        item: `${siteUrl}/${locale}/school/${school.id}-${school.slug}`,
       },
     ],
   };

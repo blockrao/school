@@ -17,6 +17,7 @@ import {
 } from "@/lib/db/public-adapter";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 
 async function resolveLocalityPage(stateSlug: string, citySlug: string, localitySlug: string) {
@@ -102,8 +103,8 @@ export default async function LocalityPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: city.stateName },
-      { "@type": "ListItem", position: 2, name: city.cityName, item: basePath },
-      { "@type": "ListItem", position: 3, name: locality.name, item: localityPath },
+      { "@type": "ListItem", position: 2, name: city.cityName, item: `${siteUrl}${basePath}` },
+      { "@type": "ListItem", position: 3, name: locality.name, item: `${siteUrl}${localityPath}` },
     ],
   };
 

@@ -17,6 +17,24 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    // Canonical domain is https://www.schooloye.com. Host-matched, so Preview
+    // deployments (different *.vercel.app hostnames) are untouched.
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "schooloye.com" }],
+        destination: "https://www.schooloye.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "school-ten-ivory.vercel.app" }],
+        destination: "https://www.schooloye.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -22,11 +22,15 @@ const serverEnvSchema = z
     // Set by Vercel at build/runtime — "production" | "preview" | "development".
     // Unset locally, which we treat as safe (never blocks mock in local dev).
     VERCEL_ENV: z.string().optional(),
-    // Vercel's own system env var — the project's production domain, no config
-    // needed. Used to build absolute sitemap URLs (Next.js requires absolute
-    // `url`s in MetadataRoute.Sitemap entries). Unset locally; sitemap.ts falls
-    // back to localhost, which is fine since it has no meaningful local content.
+    // Vercel's own system env var — the project's production *.vercel.app domain,
+    // no config needed. Used as a fallback origin (see `siteUrl` below) when
+    // NEXT_PUBLIC_SITE_URL isn't set — i.e. Preview deployments.
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
+    // The canonical production origin — see src/lib/env.ts for the full note.
+    // Read directly here too (NEXT_PUBLIC_* vars are readable server-side, they're
+    // just *also* exposed to the client) so `siteUrl` doesn't need to import the
+    // public env module for one field.
+    NEXT_PUBLIC_SITE_URL: z.string().optional(),
   })
   .refine((env) => !(env.PAYMENT_PROVIDER === "mock" && env.VERCEL_ENV === "production"), {
     message: "PAYMENT_PROVIDER=mock is never allowed when VERCEL_ENV=production.",
@@ -41,11 +45,17 @@ export const serverEnv = serverEnvSchema.parse({
   DATABASE_URL_PAYMENTS: process.env.DATABASE_URL_PAYMENTS,
   VERCEL_ENV: process.env.VERCEL_ENV,
   VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
 });
 
-/** Absolute production origin, for building the few URLs that must be absolute
- * (sitemap entries, the robots.txt `sitemap` directive). Falls back to
- * localhost outside Vercel, which is fine — neither is meaningful locally. */
-export const siteUrl = serverEnv.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${serverEnv.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+/** Absolute canonical origin, for every URL that must be absolute (metadataBase,
+ * JSON-LD, sitemap entries, the robots.txt `sitemap` directive). Prefers the
+ * real domain (NEXT_PUBLIC_SITE_URL, Production only) so canonical/JSON-LD/
+ * sitemap output always points at www.schooloye.com regardless of which
+ * deployment renders the request; falls back to Vercel's own production
+ * *.vercel.app domain, then localhost, for Preview/local. */
+export const siteUrl = serverEnv.NEXT_PUBLIC_SITE_URL
+  ? serverEnv.NEXT_PUBLIC_SITE_URL
+  : serverEnv.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${serverEnv.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000";

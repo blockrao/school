@@ -22,6 +22,7 @@ import {
 } from "@/lib/db/public-adapter";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 
 const PAGE_SIZE = 24;
@@ -139,7 +140,12 @@ function TownPageBody({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: town.stateName },
-      { "@type": "ListItem", position: 2, name: `Near ${town.townName}`, item: townPath },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: `Near ${town.townName}`,
+        item: `${siteUrl}${townPath}`,
+      },
     ],
   };
 
@@ -333,7 +339,7 @@ export default async function CityOrTownPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: city.stateName },
-      { "@type": "ListItem", position: 2, name: city.cityName, item: basePath },
+      { "@type": "ListItem", position: 2, name: city.cityName, item: `${siteUrl}${basePath}` },
     ],
   };
 

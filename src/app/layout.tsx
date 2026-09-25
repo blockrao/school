@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Anek_Devanagari, Anek_Latin, Mukta } from "next/font/google";
+import { siteUrl } from "@/lib/env.server";
 import "./globals.css";
 
 const anekLatin = Anek_Latin({
@@ -21,6 +22,7 @@ const mukta = Mukta({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "SchoolOye",
   description: "Find and compare schools in Delhi, Gurugram and Haryana.",
 };

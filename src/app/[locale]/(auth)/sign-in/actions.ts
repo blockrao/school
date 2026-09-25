@@ -6,8 +6,15 @@ import { z } from "zod";
 import { createSessionClient } from "@/lib/db/session";
 import { normalizeIndianPhone } from "@/lib/phone";
 
-/** Best-effort request origin, for building the magic-link redirect URL. */
+/**
+ * Origin for the magic-link redirect. Prefers NEXT_PUBLIC_SITE_URL (set in
+ * Production only) so real users always land back on www.schooloye.com even
+ * if the request somehow arrived via a raw vercel.app host. Falls back to the
+ * request's own origin when unset — Preview deployments (which don't set
+ * NEXT_PUBLIC_SITE_URL) still redirect back to themselves for testing.
+ */
 async function requestOrigin(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
   const h = await headers();
   const host = h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
