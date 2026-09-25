@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
+import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
 import { RemovableFilterChip } from "@/components/ui/filter-chip";
@@ -37,8 +38,9 @@ function parseParams(searchParams: { [key: string]: string | string[] | undefine
   const pageParam = first(searchParams.page);
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
   const compareIds = (first(searchParams.compare) || "").split(",").filter(Boolean);
+  const view = first(searchParams.view) === "map" ? "map" : "list";
 
-  return { q, boardId, maxClass, admissionsOpen, page, compareIds };
+  return { q, boardId, maxClass, admissionsOpen, page, compareIds, view };
 }
 
 export const metadata: Metadata = {
@@ -57,7 +59,8 @@ export default async function SchoolsPage({
   const rawSearchParams = await searchParams;
   const now = new Date();
 
-  const { q, boardId, maxClass, admissionsOpen, page, compareIds } = parseParams(rawSearchParams);
+  const { q, boardId, maxClass, admissionsOpen, page, compareIds, view } =
+    parseParams(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
 
   const district = await getPublicDistrictBySlug(DISTRICT_SLUG);
@@ -96,6 +99,7 @@ export default async function SchoolsPage({
       admissions: string;
       compare: string;
       page: string;
+      view: string;
     }>,
   ) {
     const merged = {
@@ -105,6 +109,7 @@ export default async function SchoolsPage({
       admissions: admissionsOpen ? "open" : "",
       compare: compareIds.join(","),
       page: "",
+      view: view === "map" ? "map" : "",
       ...overrides,
     };
     const qs = new URLSearchParams();
@@ -196,6 +201,22 @@ export default async function SchoolsPage({
         <span className="text-body text-muted-ink">
           {total} school{total === 1 ? "" : "s"}
         </span>
+        <div className="ml-auto flex overflow-hidden rounded-md border border-line-blue">
+          <Link
+            href={buildHref({ view: "" })}
+            aria-current={view === "list" ? "page" : undefined}
+            className={`flex h-9 items-center px-3 text-meta font-semibold ${view === "list" ? "bg-ruled-blue text-copy-white" : "bg-copy-white text-ink"}`}
+          >
+            List
+          </Link>
+          <Link
+            href={buildHref({ view: "map" })}
+            aria-current={view === "map" ? "page" : undefined}
+            className={`flex h-9 items-center px-3 text-meta font-semibold ${view === "map" ? "bg-ruled-blue text-copy-white" : "bg-copy-white text-ink"}`}
+          >
+            Map
+          </Link>
+        </div>
         {q && <RemovableFilterChip href={buildHref({ q: "" })}>{`"${q}"`}</RemovableFilterChip>}
         {boardId !== undefined && (
           <RemovableFilterChip href={buildHref({ board: "" })}>
@@ -223,7 +244,39 @@ export default async function SchoolsPage({
       </div>
 
       <div className="mt-6">
-        {schools.length > 0 ? (
+        {schools.length > 0 && view === "map" ? (
+          (() => {
+            const mapPoints = schools.flatMap((school) =>
+              school.lat != null && school.lng != null
+                ? [
+                    {
+                      id: school.id,
+                      lat: school.lat,
+                      lng: school.lng,
+                      label: school.name_en ?? "Name not yet published",
+                      href: `/${locale}/school/${school.id}-${school.slug}`,
+                      precision: school.geocode_precision ?? "pincode",
+                    },
+                  ]
+                : [],
+            );
+            return mapPoints.length > 0 ? (
+              <AreaMapLazy
+                points={mapPoints}
+                centerLat={mapPoints[0].lat}
+                centerLng={mapPoints[0].lng}
+                zoom={11}
+              />
+            ) : (
+              <EmptyState
+                title="No mapped schools in this result"
+                description="These schools don't have coordinates yet — switch to List to see them."
+                nextStepLabel="Switch to list"
+                nextStepHref={buildHref({ view: "" })}
+              />
+            );
+          })()
+        ) : schools.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {schools.map((school) => {
               const board = boardNames.get(school.id);
