@@ -4,7 +4,9 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
+import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
+import { SaveButton } from "@/components/ui/save-button";
 import { ShareButton } from "@/components/ui/share-button";
 import type { PublicSchoolAdmission } from "@/contracts";
 import {
@@ -14,10 +16,13 @@ import {
   getPublicSchoolByIdSlug,
   getPublicStateById,
 } from "@/lib/db/public-adapter";
+import { createSessionClient } from "@/lib/db/session";
+import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
+import { sendEnquiry } from "./actions";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -88,8 +93,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function SchoolPage({ params }: PageProps<"/[locale]/school/[idSlug]">) {
+export default async function SchoolPage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/school/[idSlug]">) {
   const { locale, idSlug } = await params;
+  const rawSearchParams = await searchParams;
   const now = new Date();
 
   const resolved = await resolveSchoolPage(idSlug);
@@ -99,6 +108,15 @@ export default async function SchoolPage({ params }: PageProps<"/[locale]/school
   const { school, admissions, city, state, board, affiliationNo } = resolved;
   const name = school.name_en ?? "Name not yet published";
   const grades = formatGradeRange(school.min_class, school.max_class);
+
+  const supabase = await createSessionClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const shortlistedIds = await getShortlistedSchoolIds([school.id]);
+
+  const enquirySent = rawSearchParams.enquiry_sent === "1";
+  const enquiryError = rawSearchParams.enquiry_error === "failed";
 
   const localityPath =
     state && city && school.locality_slug
@@ -218,6 +236,12 @@ export default async function SchoolPage({ params }: PageProps<"/[locale]/school
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <StatusPill status={pill.status}>{pill.label}</StatusPill>
           <ShareButton title={name} />
+          <SaveButton
+            schoolId={school.id}
+            saved={shortlistedIds.has(school.id)}
+            locale={locale}
+            span="w-fit px-4"
+          />
         </div>
       </div>
 
@@ -379,6 +403,71 @@ export default async function SchoolPage({ params }: PageProps<"/[locale]/school
                 )}
               </div>
             </div>
+          </section>
+
+          <section
+            aria-labelledby="enquiry-heading"
+            className="flex flex-col gap-2 rounded-md border border-rule p-4"
+          >
+            <h2 id="enquiry-heading" className="font-display text-card font-semibold">
+              Ask this school
+            </h2>
+            {enquirySent ? (
+              <p className="text-body text-muted-ink">
+                Your question has been sent to the school. They'll get back to you directly.
+              </p>
+            ) : user ? (
+              <form action={sendEnquiry} className="flex flex-col gap-3">
+                <input type="hidden" name="schoolId" value={school.id} />
+                <input type="hidden" name="idSlug" value={`${school.id}-${school.slug}`} />
+                <input type="hidden" name="locale" value={locale} />
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-meta font-semibold text-muted-ink">
+                    Class you're asking about (optional)
+                  </span>
+                  <select
+                    name="classCode"
+                    defaultValue=""
+                    className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+                  >
+                    <option value="">Any class</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={`c${n}`}>
+                        Class {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-meta font-semibold text-muted-ink">Your question</span>
+                  <textarea
+                    name="message"
+                    required
+                    maxLength={1000}
+                    rows={4}
+                    className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
+                  />
+                </label>
+                {enquiryError && (
+                  <FieldError id="enquiry-error">
+                    Something went wrong sending your question. Please try again.
+                  </FieldError>
+                )}
+                <button
+                  type="submit"
+                  className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
+                >
+                  Send question
+                </button>
+              </form>
+            ) : (
+              <Link
+                href={`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/school/${school.id}-${school.slug}#enquiry-heading`)}`}
+                className="w-fit font-semibold text-ruled-blue"
+              >
+                Sign in to ask this school a question
+              </Link>
+            )}
           </section>
         </aside>
       </div>
