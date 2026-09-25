@@ -49,9 +49,20 @@ export function SiteHeader({ locale }: { locale: string }) {
           action={`/${locale}/schools`}
           className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-line-blue-strong bg-copy-white px-3"
         >
-          <span aria-hidden="true" className="text-slate">
-            ⌕
-          </span>
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className="shrink-0 text-slate"
+          >
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="M16 16l5 5" />
+          </svg>
           <label className="min-w-0 flex-1">
             <span className="sr-only">School, area or teacher</span>
             <input

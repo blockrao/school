@@ -15,7 +15,7 @@ export function SiteFooter({ locale }: { locale: string }) {
           <div className="flex flex-col gap-2">
             <span className="font-display text-section font-bold text-ruled-blue">SchoolOye</span>
             <p className="max-w-80 text-body text-muted-ink">
-              Dates checked against each school's own notice. Sponsored listings are always
+              Dates come from each school's own published notice. Sponsored listings are always
               labelled. No rankings or star ratings.
             </p>
           </div>
