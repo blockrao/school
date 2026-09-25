@@ -352,6 +352,26 @@ async function verifyApplicationHelpOwnership(): Promise<boolean> {
           "✓ a different user is correctly rejected from create_application_order using this child",
         );
       }
+
+      // Once any application under this order reaches "submitted" or later, the
+      // owner themselves must be locked out of save_order_intake too.
+      await client.query(
+        "insert into applications (order_id, school_id, status) values ($1, (select id from schools limit 1), 'submitted')",
+        [orderId],
+      );
+      await client.query("select set_config('request.jwt.claim.sub', $1, true)", [userA]);
+      await client.query("SET ROLE authenticated");
+      const lockedIntake = await tryQuery("select save_order_intake($1, '{}'::jsonb)", [orderId]);
+      await client.query("RESET ROLE");
+
+      if (lockedIntake.ok) {
+        console.error("✗ owner CAN still save_order_intake after an application was submitted");
+        ok = false;
+      } else {
+        console.log(
+          "✓ owner correctly locked out of save_order_intake once an application is submitted",
+        );
+      }
     }
   } finally {
     await client.query("RESET ROLE");
