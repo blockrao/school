@@ -4,7 +4,13 @@
 -- Structured facts only: no description/vibe/character tags/real_estate/
 -- best_for/known_for/police_station fields were copied. See
 -- docs/city-mapping-seed.md for the full report.
-begin;
+--
+-- No explicit begin/commit here — scripts/db-migrate.mjs already wraps the whole
+-- file in one transaction. A nested begin/commit inside that (this file's own,
+-- from an earlier version) silently ended the outer transaction early over
+-- Supabase's pooled connection, which is why the first apply attempt reported
+-- success but left corridors/locality_neighbors/locality_pincodes/landmarks and
+-- schema_migrations itself empty.
 
 -- Locality enrichment (name_hi, centroid, zone/ward as internal fields,
 -- aliases, source attribution). name_hi is machine-generated for every row
@@ -1707,5 +1713,3 @@ from (values
 join public.localities l1 on l1.slug = v.slug1 and l1.city_id = (select id from public.cities where slug = 'jaipur')
 join public.localities l2 on l2.slug = v.slug2 and l2.city_id = (select id from public.cities where slug = 'jaipur')
 on conflict (locality_id, neighbor_locality_id) do nothing;
-
-commit;
