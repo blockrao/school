@@ -4,12 +4,16 @@
 -- localities with no source data) so the app can label computed neighbours
 -- differently if it chooses to, rather than presenting both as equally
 -- authoritative.
+-- distance_meters::float8 cast: locality_neighbors.distance_meters is numeric,
+-- which PostgREST/supabase-js return as a string (avoids float precision loss
+-- on arbitrary-precision numeric) — cast down since meter-precision distance
+-- has no real use for numeric's extra precision, keeping the contract a number.
 create or replace view api.public_locality_neighbors as
 select
   l.slug as locality_slug,
   n.slug as neighbor_slug,
   n.name_en as neighbor_name,
-  ln.distance_meters,
+  ln.distance_meters::float8 as distance_meters,
   ln.method
 from locality_neighbors ln
 join localities l on l.id = ln.locality_id
