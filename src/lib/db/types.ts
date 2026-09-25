@@ -562,6 +562,8 @@ export type Database = {
           slug: string;
           aliases: string[];
           centroid: unknown | null;
+          name_hi: string | null;
+          name_hi_status: string;
         };
         Insert: {
           id?: number;
@@ -569,6 +571,8 @@ export type Database = {
           slug: string;
           aliases?: string[];
           centroid?: unknown | null;
+          name_hi?: string | null;
+          name_hi_status?: string;
         };
         Update: {
           id?: number;
@@ -576,6 +580,8 @@ export type Database = {
           slug?: string;
           aliases?: string[];
           centroid?: unknown | null;
+          name_hi?: string | null;
+          name_hi_status?: string;
         };
         Relationships: [];
       };
@@ -1496,6 +1502,9 @@ export type Database = {
           created_at: string;
           updated_at: string;
           edudel_zone: string | null;
+          corridor_id: number | null;
+          locality_assignment_method: string | null;
+          locality_assignment_note: string | null;
         };
         Insert: {
           id?: string;
@@ -1531,6 +1540,9 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           edudel_zone?: string | null;
+          corridor_id?: number | null;
+          locality_assignment_method?: string | null;
+          locality_assignment_note?: string | null;
         };
         Update: {
           id?: string;
@@ -1566,6 +1578,9 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           edudel_zone?: string | null;
+          corridor_id?: number | null;
+          locality_assignment_method?: string | null;
+          locality_assignment_note?: string | null;
         };
         Relationships: [];
       };

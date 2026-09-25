@@ -158,8 +158,6 @@ where id in (
 -- - 093fba3c-1620-4ffd-92f3-658f21360677, Army Public School: "Jaipur Cantt"
 --   is real but not in the locality catalog; pincode (324008) resolves near
 --   Jhalawar district, untrustworthy.
--- - 8e9771ac-ebee-4552-94ab-96c7b1a1384c, Aurobindo International School:
---   "Sirsi Road, Sirsi Mod" only; pincode 302012 ambiguous (4 localities).
 -- - da4c58ef-1cb7-4c8b-a0be-d24f6ca2597e, Central Academy: "Ambabari" is a
 --   real Jaipur area not yet in the locality catalog; pincode 302012 ambiguous.
 -- - 2d126fc6-880f-4a79-85ef-68ba627283a2, S S International School: "Ganesh
