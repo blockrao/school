@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { SponsoredTag } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 export function SchoolCard({
   name,
+  href,
   meta,
   sponsored = false,
   deadline,
@@ -19,6 +21,7 @@ export function SchoolCard({
   className,
 }: {
   name: string;
+  href: string;
   meta: string;
   sponsored?: boolean;
   deadline: DeadlineInput;
@@ -50,12 +53,14 @@ export function SchoolCard({
         <span>{state.bottom}</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3">
-        {sponsored && <SponsoredTag className="self-start" />}
-        <span className="font-display text-card font-semibold">{name}</span>
-        <span className="text-body text-muted-ink">{meta}</span>
-        {status}
-        <span className="text-body">{fee}</span>
-        {freshness}
+        <Link href={href} className="flex min-w-0 flex-col gap-1.5">
+          {sponsored && <SponsoredTag className="self-start" />}
+          <span className="font-display text-card font-semibold">{name}</span>
+          <span className="text-body text-muted-ink">{meta}</span>
+          {status}
+          <span className="text-body">{fee}</span>
+          {freshness}
+        </Link>
         <div className="mt-0.5 grid grid-cols-2 gap-2">
           {actions ?? (
             <>

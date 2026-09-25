@@ -14,7 +14,8 @@ export const publicSchoolAdmissionContract = z.object({
   form_mode: z.string(),
   opens_on: z.string().nullable(),
   closes_on: z.string().nullable(),
-  registration_fee: z.number().nullable(),
+  // registration_fee is numeric(10,2) — PostgREST returns it as a string.
+  registration_fee: z.coerce.number().nullable(),
   form_url: z.string().nullable(),
   last_checked_at: z.string().nullable(),
   verification: z.string(),

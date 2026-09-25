@@ -240,6 +240,7 @@ export default async function SchoolsPage({
               return (
                 <SchoolCard
                   key={school.id}
+                  href={`/${locale}/school/${school.id}-${school.slug}`}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}

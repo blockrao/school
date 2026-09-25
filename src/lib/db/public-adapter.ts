@@ -1,12 +1,14 @@
 import "server-only";
 import {
   type PublicSchool,
+  type PublicSchoolAdmission,
   publicAreaContract,
   publicBoardContract,
   publicCityContract,
   publicDistrictContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
+  publicSchoolAdmissionContract,
   publicSchoolAffiliationContract,
   publicSchoolContract,
   publicStateContract,
@@ -112,6 +114,13 @@ export async function getPublicDistrictBySlug(slug: string): Promise<PublicDistr
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
+  return error || !data ? null : publicDistrictContract.parse(data);
+}
+
+/** District row by id — internal use only, same as getPublicDistrictBySlug. */
+export async function getPublicDistrictById(id: number): Promise<PublicDistrict | null> {
+  const api = createApiSchemaClient();
+  const { data, error } = await api.from("public_districts").select("*").eq("id", id).maybeSingle();
   return error || !data ? null : publicDistrictContract.parse(data);
 }
 
@@ -380,6 +389,19 @@ export async function getAdmissionDeadlinesBySchoolId(
     }
   }
   return result;
+}
+
+/** Every approved admission cycle for one school (any status), soonest-closing first — for the school page's admissions summary. */
+export async function getPublicAdmissionsBySchoolId(
+  schoolId: string,
+): Promise<PublicSchoolAdmission[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_school_admissions")
+    .select("*")
+    .eq("school_id", schoolId)
+    .order("closes_on", { ascending: true, nullsFirst: false });
+  return (data ?? []).map((row) => publicSchoolAdmissionContract.parse(row));
 }
 
 export type PublicCity = { id: number; name_en: string; slug: string; districtId: number };

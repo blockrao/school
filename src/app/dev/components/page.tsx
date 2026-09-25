@@ -130,6 +130,7 @@ export default function ComponentsGalleryPage() {
 
       <Section title="School card — default / sponsored / stale / unknown">
         <SchoolCard
+          href="#"
           name="Green Valley Public School"
           meta="CBSE · Nursery–12 · Malviya Nagar · 1.2 km"
           now={NOW}
@@ -146,6 +147,7 @@ export default function ComponentsGalleryPage() {
           }
         />
         <SchoolCard
+          href="#"
           name="Aravali International School"
           meta="CBSE · Nursery–12 · Malviya Nagar · 1.2 km"
           sponsored
@@ -163,6 +165,7 @@ export default function ComponentsGalleryPage() {
           }
         />
         <SchoolCard
+          href="#"
           name="Green Valley Public School"
           meta="CBSE · Nursery–12 · Malviya Nagar · 1.2 km"
           now={NOW}
@@ -179,6 +182,7 @@ export default function ComponentsGalleryPage() {
           }
         />
         <SchoolCard
+          href="#"
           name="Green Valley Public School"
           meta="CBSE · Nursery–12 · Malviya Nagar · 1.2 km"
           now={NOW}
