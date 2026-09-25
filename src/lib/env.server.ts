@@ -22,6 +22,11 @@ const serverEnvSchema = z
     // Set by Vercel at build/runtime — "production" | "preview" | "development".
     // Unset locally, which we treat as safe (never blocks mock in local dev).
     VERCEL_ENV: z.string().optional(),
+    // Vercel's own system env var — the project's production domain, no config
+    // needed. Used to build absolute sitemap URLs (Next.js requires absolute
+    // `url`s in MetadataRoute.Sitemap entries). Unset locally; sitemap.ts falls
+    // back to localhost, which is fine since it has no meaningful local content.
+    VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
   })
   .refine((env) => !(env.PAYMENT_PROVIDER === "mock" && env.VERCEL_ENV === "production"), {
     message: "PAYMENT_PROVIDER=mock is never allowed when VERCEL_ENV=production.",
@@ -35,4 +40,12 @@ export const serverEnv = serverEnvSchema.parse({
   PAYMENT_PROVIDER: process.env.PAYMENT_PROVIDER,
   DATABASE_URL_PAYMENTS: process.env.DATABASE_URL_PAYMENTS,
   VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
 });
+
+/** Absolute production origin, for building the few URLs that must be absolute
+ * (sitemap entries, the robots.txt `sitemap` directive). Falls back to
+ * localhost outside Vercel, which is fine — neither is meaningful locally. */
+export const siteUrl = serverEnv.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${serverEnv.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
