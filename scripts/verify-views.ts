@@ -135,6 +135,22 @@ async function trySelect(sql: string): Promise<{ ok: boolean; error?: string }> 
   }
 }
 
+/** Same as trySelect, but for parameterized queries (used by the ownership tests below). */
+async function tryQuery(
+  sql: string,
+  params: unknown[] = [],
+): Promise<{ ok: boolean; rows?: unknown[]; error?: string }> {
+  try {
+    await client.query("SAVEPOINT check_point");
+    const result = await client.query(sql, params);
+    await client.query("RELEASE SAVEPOINT check_point");
+    return { ok: true, rows: result.rows };
+  } catch (err) {
+    await client.query("ROLLBACK TO SAVEPOINT check_point");
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
 async function verifyAnonViewAccess(): Promise<boolean> {
   let ok = true;
   await client.query("BEGIN");
@@ -188,6 +204,162 @@ async function verifyRawTablesBlocked(): Promise<boolean> {
   return ok;
 }
 
+/** Security check — determines process.exitCode. */
+async function verifyApplicationHelpFunctionAccess(): Promise<boolean> {
+  let ok = true;
+  await client.query("BEGIN");
+  try {
+    await client.query("SET ROLE anon");
+    const anonChecks: [string, string][] = [
+      [
+        "create_application_order",
+        "select create_application_order('help_single', gen_random_uuid())",
+      ],
+      ["save_order_intake", "select save_order_intake(gen_random_uuid(), '{}'::jsonb)"],
+      ["approve_application", "select approve_application(gen_random_uuid())"],
+      ["mark_order_paid", "select mark_order_paid(gen_random_uuid(), 'x')"],
+    ];
+    for (const [label, sql] of anonChecks) {
+      const result = await trySelect(sql);
+      if (result.ok) {
+        console.error(`✗ anon CAN execute ${label} — this must be blocked`);
+        ok = false;
+      } else {
+        console.log(`✓ anon correctly blocked from executing ${label}`);
+      }
+    }
+    await client.query("RESET ROLE");
+
+    await client.query("SET ROLE authenticated");
+    const authenticatedChecks: [string, string][] = [
+      ["mark_order_paid", "select mark_order_paid(gen_random_uuid(), 'x')"],
+      ["purge_expired_documents", "select purge_expired_documents()"],
+    ];
+    for (const [label, sql] of authenticatedChecks) {
+      const result = await trySelect(sql);
+      if (result.ok) {
+        console.error(`✗ authenticated CAN execute ${label} — this must be blocked`);
+        ok = false;
+      } else {
+        console.log(`✓ authenticated correctly blocked from executing ${label}`);
+      }
+    }
+  } finally {
+    await client.query("RESET ROLE");
+    await client.query("ROLLBACK");
+  }
+  return ok;
+}
+
+/**
+ * Security check — determines process.exitCode. Simulates two real parents (via
+ * request.jwt.claim.sub, the same GUC auth.uid() reads) to prove the ownership
+ * checks inside create_application_order/save_order_intake actually reject a
+ * cross-user call, not just that the grant exists. Everything here is rolled
+ * back — no fixture data persists.
+ */
+async function verifyApplicationHelpOwnership(): Promise<boolean> {
+  let ok = true;
+  await client.query("BEGIN");
+  try {
+    const userA = "00000000-0000-4000-8000-000000000001";
+    const userB = "00000000-0000-4000-8000-000000000002";
+    await client.query("insert into profiles (user_id) values ($1), ($2)", [userA, userB]);
+    const childA = (
+      await client.query(
+        "insert into children (parent_id, first_name, date_of_birth) values ($1, 'Test Child', '2022-01-01') returning id",
+        [userA],
+      )
+    ).rows[0].id;
+
+    // create_application_order's signature is the only defense against a
+    // tampered amount — confirm it has no amount/price parameter at all.
+    const args = (
+      await client.query(
+        "select pg_get_function_arguments(oid) as args from pg_proc where proname = 'create_application_order'",
+      )
+    ).rows[0].args as string;
+    if (/amount|price/i.test(args)) {
+      console.error(`✗ create_application_order accepts a client-supplied amount/price: (${args})`);
+      ok = false;
+    } else {
+      console.log(`✓ create_application_order takes no amount/price argument — (${args})`);
+    }
+
+    await client.query("select set_config('request.jwt.claim.sub', $1, true)", [userA]);
+    await client.query("SET ROLE authenticated");
+    const created = await tryQuery("select create_application_order('help_single', $1) as id", [
+      childA,
+    ]);
+    await client.query("RESET ROLE");
+
+    if (!created.ok || !created.rows?.[0]) {
+      console.error(`✗ create_application_order failed for its own owner — ${created.error}`);
+      ok = false;
+    } else {
+      const orderId = (created.rows[0] as { id: string }).id;
+      const priceCheck = await client.query(
+        "select o.amount_inr, p.price_inr from application_orders o join products p on p.code = o.product_code where o.id = $1",
+        [orderId],
+      );
+      const { amount_inr, price_inr } = priceCheck.rows[0];
+      if (String(amount_inr) !== String(price_inr)) {
+        console.error(
+          `✗ order amount_inr (${amount_inr}) does not match products.price_inr (${price_inr})`,
+        );
+        ok = false;
+      } else {
+        console.log(`✓ order amount_inr (₹${amount_inr}) came from products, not a client value`);
+      }
+
+      // User A can legitimately save their own intake.
+      await client.query("select set_config('request.jwt.claim.sub', $1, true)", [userA]);
+      await client.query("SET ROLE authenticated");
+      const ownIntake = await tryQuery(
+        'select save_order_intake($1, \'{"category":"general"}\'::jsonb)',
+        [orderId],
+      );
+      await client.query("RESET ROLE");
+      if (!ownIntake.ok) {
+        console.error(`✗ save_order_intake failed for its own owner — ${ownIntake.error}`);
+        ok = false;
+      } else {
+        console.log("✓ owner can save their own order's intake");
+      }
+
+      // User B (a different parent) must be rejected on both counts.
+      await client.query("select set_config('request.jwt.claim.sub', $1, true)", [userB]);
+      await client.query("SET ROLE authenticated");
+      const crossIntake = await tryQuery("select save_order_intake($1, '{}'::jsonb)", [orderId]);
+      const crossOrder = await tryQuery("select create_application_order('help_single', $1)", [
+        childA,
+      ]);
+      await client.query("RESET ROLE");
+
+      if (crossIntake.ok) {
+        console.error("✗ a different user CAN save_order_intake on someone else's order");
+        ok = false;
+      } else {
+        console.log(
+          "✓ a different user is correctly rejected from save_order_intake on this order",
+        );
+      }
+      if (crossOrder.ok) {
+        console.error("✗ a different user CAN create_application_order using someone else's child");
+        ok = false;
+      } else {
+        console.log(
+          "✓ a different user is correctly rejected from create_application_order using this child",
+        );
+      }
+    }
+  } finally {
+    await client.query("RESET ROLE");
+    await client.query("ROLLBACK");
+  }
+  return ok;
+}
+
 async function main() {
   await client.connect();
 
@@ -196,8 +368,12 @@ async function main() {
   const anonViewsOk = await verifyAnonViewAccess();
   console.log("\n--- security: raw tables blocked ---");
   const rawTablesOk = await verifyRawTablesBlocked();
+  console.log("\n--- security: application-help function access ---");
+  const functionAccessOk = await verifyApplicationHelpFunctionAccess();
+  console.log("\n--- security: application-help ownership + tamper checks ---");
+  const ownershipOk = await verifyApplicationHelpOwnership();
 
-  if (!anonViewsOk || !rawTablesOk) {
+  if (!anonViewsOk || !rawTablesOk || !functionAccessOk || !ownershipOk) {
     console.error("\nverify:views FAILED (security)");
     process.exitCode = 1;
   } else {

@@ -34,6 +34,7 @@ export function ApplicationStatusRow({
   description,
   actionLabel,
   actionHref,
+  actionSlot,
   className,
 }: {
   tone: ApplicationStatusTone;
@@ -42,6 +43,8 @@ export function ApplicationStatusRow({
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  /** For an action that's a mutation (a form, not a link) — e.g. approving an application. Takes precedence over actionLabel/actionHref. */
+  actionSlot?: ReactNode;
   className?: string;
 }) {
   const styles = toneClasses[tone];
@@ -60,11 +63,12 @@ export function ApplicationStatusRow({
           <StatusPillInline className={styles.pill}>{statusLabel}</StatusPillInline>
         </div>
         <span className="text-body text-muted-ink">{description}</span>
-        {actionLabel && actionHref && (
-          <Button asChild size="sm" className="self-start">
-            <a href={actionHref}>{actionLabel}</a>
-          </Button>
-        )}
+        {actionSlot ??
+          (actionLabel && actionHref && (
+            <Button asChild size="sm" className="self-start">
+              <a href={actionHref}>{actionLabel}</a>
+            </Button>
+          ))}
       </div>
     </div>
   );

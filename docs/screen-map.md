@@ -30,7 +30,7 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
 | 8 | Seats Available Now | `/[locale]/[city]/seats-available` + block on school page | ISR, short revalidate | pending | OpenSeat |
 | 9 | WhatsApp Alerts | `/[locale]/alerts` | client flow | designed+built | Steps 5a/5b (phone entry, OTP verify) factored into the shared `/sign-in` gate instead of embedded here — see top-of-file comment. Consent recorded in `consents`, subscription in `alert_subscriptions`. Step 5e's per-toggle delivery timing has no backing column, not built. WhatsApp sending is backend, out of frontend scope |
 | — | Sign-in (phone OTP) | `/[locale]/sign-in` | dynamic, noindex | designed+built | Adapted from WhatsApp Alerts steps 5a/5b as a standalone, reusable gate for Alerts/Shortlist/Enquiry via `?next=` |
-| 10 | Application Help | `/[locale]/admissions/help` → `/my/admissions` | auth, dynamic | pending | Concierge + Document Vault. `/my/*` noindex |
+| 10 | Application Help | `/[locale]/admissions/help` → `/my/admissions` | auth, dynamic | designed+built | Concierge + Document Vault. `/my/*` noindex. Payments behind a provider interface (mock/manual now, razorpay later) — see docs/data-retention.md and the child-select addition in docs/design-gaps.md |
 | 11 | School Portal | `/for-schools` (public), `/portal/*` (auth) | dynamic | pending | Claim → dashboard → seats → post notice |
 | 12 | Teacher Profile | `/[locale]/teacher/[id]-[slug]` | ISR | pending | Claimed + unclaimed states |
 | 13 | Teachers Directory | `/[locale]/teachers` | ISR | pending | |

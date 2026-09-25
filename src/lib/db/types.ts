@@ -1773,6 +1773,14 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      approve_application: {
+        Args: Record<string, unknown>; // p_application_id uuid
+        Returns: unknown; // void
+      };
+      create_application_order: {
+        Args: Record<string, unknown>; // p_product_code text, p_child_id uuid
+        Returns: unknown; // uuid
+      };
       current_role_is: {
         Args: Record<string, unknown>; // r user_role
         Returns: unknown; // boolean
@@ -1793,13 +1801,25 @@ export type Database = {
         Args: Record<string, unknown>; // no args
         Returns: unknown; // boolean
       };
+      mark_order_paid: {
+        Args: Record<string, unknown>; // p_order_id uuid, p_payment_ref text
+        Returns: unknown; // void
+      };
       normalize_school_name: {
         Args: Record<string, unknown>; // input text
         Returns: unknown; // text
       };
+      purge_expired_documents: {
+        Args: Record<string, unknown>; // no args
+        Returns: unknown; // integer
+      };
       saras_fuzzy_candidates: {
         Args: Record<string, unknown>; // p_district_id integer, p_name text, p_limit integer DEFAULT 5
         Returns: unknown; // TABLE(id uuid, name_en text, sim real)
+      };
+      save_order_intake: {
+        Args: Record<string, unknown>; // p_order_id uuid, p_intake jsonb
+        Returns: unknown; // void
       };
     };
     Enums: {

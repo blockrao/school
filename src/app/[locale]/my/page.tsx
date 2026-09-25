@@ -20,6 +20,7 @@ type Copy = {
   classesLabel: string;
   turnOff: string;
   shortlistLink: string;
+  admissionsLink: string;
 };
 
 const COPY: Record<string, Copy> = {
@@ -32,6 +33,7 @@ const COPY: Record<string, Copy> = {
     classesLabel: "Classes",
     turnOff: "Turn off",
     shortlistLink: "Saved schools",
+    admissionsLink: "My Admissions",
   },
   hi: {
     title: "आपका खाता",
@@ -42,6 +44,7 @@ const COPY: Record<string, Copy> = {
     classesLabel: "कक्षाएं",
     turnOff: "बंद करें",
     shortlistLink: "सेव किए स्कूल",
+    admissionsLink: "मेरे प्रवेश",
   },
 };
 
@@ -144,13 +147,22 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
         )}
       </div>
 
-      <Link
-        href={`/${locale}/my/shortlist`}
-        className="mt-8 inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
-        lang={isHi ? "hi" : undefined}
-      >
-        {copy.shortlistLink}
-      </Link>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link
+          href={`/${locale}/my/shortlist`}
+          className="inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
+          lang={isHi ? "hi" : undefined}
+        >
+          {copy.shortlistLink}
+        </Link>
+        <Link
+          href={`/${locale}/my/admissions`}
+          className="inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
+          lang={isHi ? "hi" : undefined}
+        >
+          {copy.admissionsLink}
+        </Link>
+      </div>
     </div>
   );
 }
