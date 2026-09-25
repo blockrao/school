@@ -31,6 +31,9 @@ import {
   publicSchoolContract,
   publicSeatStatusContract,
   publicStateContract,
+  publicTeacherContract,
+  publicTeacherExperienceContract,
+  publicTeacherQualificationContract,
 } from "../src/contracts/index";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +73,9 @@ const VIEWS: {
   { name: "api.public_cities", contract: publicCityContract },
   { name: "api.public_boards", contract: publicBoardContract },
   { name: "api.public_school_boards", contract: publicSchoolBoardContract },
+  { name: "api.public_teachers", contract: publicTeacherContract },
+  { name: "api.public_teacher_experience", contract: publicTeacherExperienceContract },
+  { name: "api.public_teacher_qualifications", contract: publicTeacherQualificationContract },
 ];
 
 const RAW_TABLES = [
@@ -90,6 +96,9 @@ const RAW_TABLES = [
   "cities",
   "boards",
   "school_affiliations",
+  "teachers",
+  "teacher_experience",
+  "teacher_qualifications",
 ];
 
 const client = new pg.Client({ connectionString });

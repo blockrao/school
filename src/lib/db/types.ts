@@ -1734,6 +1734,162 @@ export type Database = {
         };
         Relationships: [];
       };
+      teacher_claims: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          user_id: string;
+          method: string;
+          evidence: Json | null;
+          status: Database["public"]["Enums"]["claim_status"];
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          user_id: string;
+          method: string;
+          evidence?: Json | null;
+          status?: Database["public"]["Enums"]["claim_status"];
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          user_id?: string;
+          method?: string;
+          evidence?: Json | null;
+          status?: Database["public"]["Enums"]["claim_status"];
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      teacher_experience: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          role_title: string;
+          school_id: string | null;
+          school_text: string | null;
+          start_year: number;
+          end_year: number | null;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          role_title: string;
+          school_id?: string | null;
+          school_text?: string | null;
+          start_year: number;
+          end_year?: number | null;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          role_title?: string;
+          school_id?: string | null;
+          school_text?: string | null;
+          start_year?: number;
+          end_year?: number | null;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      teacher_qualifications: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          title: string;
+          detail: string | null;
+          verified_by: string | null;
+          verified_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          title: string;
+          detail?: string | null;
+          verified_by?: string | null;
+          verified_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          title?: string;
+          detail?: string | null;
+          verified_by?: string | null;
+          verified_at?: string | null;
+        };
+        Relationships: [];
+      };
+      teachers: {
+        Row: {
+          id: string;
+          claimed_by: string | null;
+          full_name: string;
+          subject: string | null;
+          level: string | null;
+          primary_school_id: string | null;
+          locality_id: number | null;
+          headline: string | null;
+          about: string | null;
+          years_teaching: number | null;
+          open_to: string[];
+          photo_storage_path: string | null;
+          is_listed: boolean;
+          status: Database["public"]["Enums"]["record_status"];
+          created_at: string;
+          updated_at: string;
+          slug: string;
+        };
+        Insert: {
+          id?: string;
+          claimed_by?: string | null;
+          full_name: string;
+          subject?: string | null;
+          level?: string | null;
+          primary_school_id?: string | null;
+          locality_id?: number | null;
+          headline?: string | null;
+          about?: string | null;
+          years_teaching?: number | null;
+          open_to?: string[];
+          photo_storage_path?: string | null;
+          is_listed?: boolean;
+          status?: Database["public"]["Enums"]["record_status"];
+          created_at?: string;
+          updated_at?: string;
+          slug: string;
+        };
+        Update: {
+          id?: string;
+          claimed_by?: string | null;
+          full_name?: string;
+          subject?: string | null;
+          level?: string | null;
+          primary_school_id?: string | null;
+          locality_id?: number | null;
+          headline?: string | null;
+          about?: string | null;
+          years_teaching?: number | null;
+          open_to?: string[];
+          photo_storage_path?: string | null;
+          is_listed?: boolean;
+          status?: Database["public"]["Enums"]["record_status"];
+          created_at?: string;
+          updated_at?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
       update_reports: {
         Row: {
           id: string;
