@@ -5,7 +5,8 @@ export const publicLocalityNeighborContract = z.object({
   locality_slug: z.string(),
   neighbor_slug: z.string(),
   neighbor_name: z.string(),
-  distance_meters: z.number().nullable(),
+  // distance_meters is numeric — PostgREST returns it as a string.
+  distance_meters: z.coerce.number().nullable(),
   method: z.enum(["source", "computed"]),
 });
 

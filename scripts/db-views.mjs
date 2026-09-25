@@ -4,6 +4,15 @@
  * file is idempotent (create or replace view / grant / revoke), so re-running is
  * always safe — this is not a one-shot migration like scripts/db-migrate.mjs.
  *
+ * `CREATE OR REPLACE VIEW` cannot change a column's type — before each file's own
+ * SQL runs, this script issues `DROP VIEW IF EXISTS <name> CASCADE` for every view
+ * that file creates (parsed from `create (or replace )? view <name>`), inside the
+ * same per-file transaction. This makes every view file safe to edit freely
+ * (including changing a column's type) without needing to hand-add drop statements.
+ * No CASCADE risk today — nothing depends on any of these views yet — but if a
+ * future view is built on top of another, this needs reconsidering (a dropped
+ * dependency would take the dependent view with it).
+ *
  * Refuses to run without an explicit --confirm flag — this repo owns the view
  * definitions but a human runs the apply step. Claude writes the SQL and stops.
  *
@@ -56,13 +65,34 @@ if (!confirm) {
 
 const client = new pg.Client({ connectionString });
 
+const VIEW_NAME_RE = /create\s+(?:or\s+replace\s+)?view\s+([a-z0-9_.]+)/gi;
+
+function stripLineComments(sql) {
+  return sql
+    .split("\n")
+    .map((line) => line.replace(/--.*$/, ""))
+    .join("\n");
+}
+
+function dropStatementsFor(sql) {
+  const names = new Set();
+  for (const match of stripLineComments(sql).matchAll(VIEW_NAME_RE)) {
+    names.add(match[1]);
+  }
+  return [...names].map((name) => `drop view if exists ${name} cascade;`);
+}
+
 async function main() {
   await client.connect();
 
   for (const file of files) {
     const sql = readFileSync(path.join(viewsDir, file), "utf8");
+    const drops = dropStatementsFor(sql);
     try {
       await client.query("BEGIN");
+      for (const drop of drops) {
+        await client.query(drop);
+      }
       await client.query(sql);
       await client.query("COMMIT");
       console.log(`Applied: ${file}`);
