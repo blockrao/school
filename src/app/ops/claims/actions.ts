@@ -23,6 +23,12 @@ export async function approveClaim(formData: FormData) {
     .from("school_members")
     .insert({ school_id: schoolId, user_id: userId, role: "admin" });
 
+  // Deliberately does NOT touch verification/source_type/verification_status.
+  // Checklist: "A claimed-but-unverified school's self-submitted facts get
+  // source_type = school_reported, never auto-upgraded to schooloye_verified."
+  // Claiming ownership proves who runs the school, not that its listed facts
+  // are correct -- that only changes when staff actually reviews them via
+  // updateSchool (src/app/ops/schools/[id]/actions.ts).
   await supabase.from("schools").update({ claim: "claimed" }).eq("id", schoolId);
 
   redirect("/ops/claims");

@@ -9,7 +9,8 @@ export type Database = {
       admission_cycles: {
         Row: {
           id: string;
-          school_id: string;
+          school_id: string | null;
+          exam_id: string | null;
           academic_year: string;
           class_code: string;
           status: Database["public"]["Enums"]["admission_status"];
@@ -20,12 +21,21 @@ export type Database = {
           dob_from: string | null;
           dob_to: string | null;
           registration_fee: number | null;
+          late_fee_amount: number | null;
           documents_required: string[] | null;
           form_url: string | null;
           notice_url: string | null;
+          eligibility_notes_en: string | null;
+          eligibility_notes_hi: string | null;
           selection_notes: string | null;
+          pattern: Json | null;
+          syllabus: Json | null;
+          application_steps: Json | null;
+          corrections: Json | null;
           seats_total: number | null;
           verification: Database["public"]["Enums"]["verification_status"];
+          source_type: Database["public"]["Enums"]["provenance_source_type"];
+          verification_status: Database["public"]["Enums"]["verification_status_v2"];
           last_checked_at: string | null;
           verified_at: string | null;
           verified_by: string | null;
@@ -35,7 +45,8 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          school_id: string;
+          school_id?: string | null;
+          exam_id?: string | null;
           academic_year: string;
           class_code: string;
           status?: Database["public"]["Enums"]["admission_status"];
@@ -46,12 +57,21 @@ export type Database = {
           dob_from?: string | null;
           dob_to?: string | null;
           registration_fee?: number | null;
+          late_fee_amount?: number | null;
           documents_required?: string[] | null;
           form_url?: string | null;
           notice_url?: string | null;
+          eligibility_notes_en?: string | null;
+          eligibility_notes_hi?: string | null;
           selection_notes?: string | null;
+          pattern?: Json | null;
+          syllabus?: Json | null;
+          application_steps?: Json | null;
+          corrections?: Json | null;
           seats_total?: number | null;
           verification?: Database["public"]["Enums"]["verification_status"];
+          source_type: Database["public"]["Enums"]["provenance_source_type"];
+          verification_status: Database["public"]["Enums"]["verification_status_v2"];
           last_checked_at?: string | null;
           verified_at?: string | null;
           verified_by?: string | null;
@@ -61,7 +81,8 @@ export type Database = {
         };
         Update: {
           id?: string;
-          school_id?: string;
+          school_id?: string | null;
+          exam_id?: string | null;
           academic_year?: string;
           class_code?: string;
           status?: Database["public"]["Enums"]["admission_status"];
@@ -72,12 +93,21 @@ export type Database = {
           dob_from?: string | null;
           dob_to?: string | null;
           registration_fee?: number | null;
+          late_fee_amount?: number | null;
           documents_required?: string[] | null;
           form_url?: string | null;
           notice_url?: string | null;
+          eligibility_notes_en?: string | null;
+          eligibility_notes_hi?: string | null;
           selection_notes?: string | null;
+          pattern?: Json | null;
+          syllabus?: Json | null;
+          application_steps?: Json | null;
+          corrections?: Json | null;
           seats_total?: number | null;
           verification?: Database["public"]["Enums"]["verification_status"];
+          source_type?: Database["public"]["Enums"]["provenance_source_type"];
+          verification_status?: Database["public"]["Enums"]["verification_status_v2"];
           last_checked_at?: string | null;
           verified_at?: string | null;
           verified_by?: string | null;
@@ -85,7 +115,29 @@ export type Database = {
           class_label_ambiguous?: boolean;
           class_label_note?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "admission_cycles_class_code_fkey";
+            columns: ["class_code"];
+            isOneToOne: false;
+            referencedRelation: "class_levels";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "admission_cycles_exam_id_fkey";
+            columns: ["exam_id"];
+            isOneToOne: false;
+            referencedRelation: "exams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "admission_cycles_school_id_fkey";
+            columns: ["school_id"];
+            isOneToOne: false;
+            referencedRelation: "schools";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       admission_notices: {
         Row: {
@@ -1659,6 +1711,8 @@ export type Database = {
           locality_assignment_method: string | null;
           locality_assignment_note: string | null;
           school_code: number;
+          source_type: Database["public"]["Enums"]["provenance_source_type"];
+          verification_status: Database["public"]["Enums"]["verification_status_v2"];
         };
         Insert: {
           id?: string;
@@ -1698,6 +1752,8 @@ export type Database = {
           locality_assignment_method?: string | null;
           locality_assignment_note?: string | null;
           school_code?: number;
+          source_type: Database["public"]["Enums"]["provenance_source_type"];
+          verification_status: Database["public"]["Enums"]["verification_status_v2"];
         };
         Update: {
           id?: string;
@@ -1737,6 +1793,8 @@ export type Database = {
           locality_assignment_method?: string | null;
           locality_assignment_note?: string | null;
           school_code?: number;
+          source_type?: Database["public"]["Enums"]["provenance_source_type"];
+          verification_status?: Database["public"]["Enums"]["verification_status_v2"];
         };
         Relationships: [];
       };
@@ -2237,8 +2295,10 @@ export type Database = {
         | "claim_review"
         | "correction_request"
         | "seat_update";
+      provenance_source_type: "official" | "school_reported" | "schooloye_verified" | "user_submitted";
       user_role: "parent" | "school_admin" | "ops" | "admin";
       verification_status: "unverified" | "source_verified" | "ops_verified" | "school_verified";
+      verification_status_v2: "unknown" | "pending" | "verified" | "conflicting";
     };
     CompositeTypes: Record<string, never>;
   };

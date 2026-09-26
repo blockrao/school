@@ -11,6 +11,21 @@ type Tier = NonNullable<SchoolUpdate["tier"]>;
 type Status = NonNullable<SchoolUpdate["status"]>;
 type Verification = NonNullable<SchoolUpdate["verification"]>;
 type Claim = NonNullable<SchoolUpdate["claim"]>;
+type SourceType = NonNullable<SchoolUpdate["source_type"]>;
+type VerificationStatus = NonNullable<SchoolUpdate["verification_status"]>;
+
+// Mirrors the backfill mapping applied in the
+// add_source_type_and_verification_status_provenance migration. The ops
+// form still edits the single legacy `verification` field (source_verified /
+// ops_verified / school_verified / unverified); until that form is split
+// into two real inputs, every write here keeps source_type +
+// verification_status derived from it so the new columns never go stale.
+const VERIFICATION_TO_PROVENANCE: Record<Verification, { sourceType: SourceType; status: VerificationStatus }> = {
+  unverified: { sourceType: "user_submitted", status: "unknown" },
+  source_verified: { sourceType: "official", status: "verified" },
+  ops_verified: { sourceType: "schooloye_verified", status: "verified" },
+  school_verified: { sourceType: "school_reported", status: "verified" },
+};
 
 function enumOrNull<T extends string>(value: FormDataEntryValue | null): T | null {
   const text = String(value ?? "").trim();
@@ -60,6 +75,10 @@ export async function updateSchool(formData: FormData) {
     verification: String(formData.get("verification") ?? "unverified") as Verification,
     claim: String(formData.get("claim") ?? "unclaimed") as Claim,
   };
+
+  const provenance = VERIFICATION_TO_PROVENANCE[patch.verification as Verification];
+  patch.source_type = provenance.sourceType;
+  patch.verification_status = provenance.status;
 
   if (formData.get("markVerifiedNow") === "1") {
     patch.last_verified_at = new Date().toISOString();
