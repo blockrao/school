@@ -871,6 +871,8 @@ export type PublicExamSummary = {
   academicYears: string[];
   soonestOpensOn: string | null;
   soonestClosesOn: string | null;
+  /** Latest last_checked_at across the exam's cycles — sitemap lastmod, not shown to readers. */
+  lastCheckedAt: string | null;
 };
 
 /**
@@ -885,7 +887,9 @@ export async function listPublicExams(): Promise<PublicExamSummary[]> {
   const api = createApiSchemaClient();
   const { data } = await api
     .from("public_exam_admissions")
-    .select("slug, name_en, conducting_body, class_code, academic_year, opens_on, closes_on")
+    .select(
+      "slug, name_en, conducting_body, class_code, academic_year, opens_on, closes_on, last_checked_at",
+    )
     .order("closes_on", { ascending: true, nullsFirst: false });
 
   const bySlug = new Map<string, PublicExamSummary>();
@@ -900,12 +904,19 @@ export async function listPublicExams(): Promise<PublicExamSummary[]> {
         academicYears: [row.academic_year],
         soonestOpensOn: row.opens_on,
         soonestClosesOn: row.closes_on,
+        lastCheckedAt: row.last_checked_at,
       });
       continue;
     }
     if (!existing.classCodes.includes(row.class_code)) existing.classCodes.push(row.class_code);
     if (!existing.academicYears.includes(row.academic_year)) {
       existing.academicYears.push(row.academic_year);
+    }
+    if (
+      row.last_checked_at &&
+      (!existing.lastCheckedAt || row.last_checked_at > existing.lastCheckedAt)
+    ) {
+      existing.lastCheckedAt = row.last_checked_at;
     }
   }
   return Array.from(bySlug.values());

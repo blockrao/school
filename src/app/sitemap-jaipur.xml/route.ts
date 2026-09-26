@@ -5,7 +5,7 @@ import {
   type PublicSchool,
 } from "@/lib/db/public-adapter";
 import { siteUrl } from "@/lib/env.server";
-import { xmlEscape } from "@/lib/sitemap";
+import { urlEntry, urlSetXml } from "@/lib/sitemap";
 
 const CITY_SLUG = "jaipur";
 
@@ -34,17 +34,6 @@ function maxVerifiedAt(schools: PublicSchool[]): Date | undefined {
   return times.length > 0 ? new Date(Math.max(...times)) : undefined;
 }
 
-function urlEntry(path: string, lastModified?: Date): string {
-  const en = xmlEscape(`${siteUrl}/en${path}`);
-  const hi = xmlEscape(`${siteUrl}/hi${path}`);
-  const lastmod = lastModified ? `\n    <lastmod>${lastModified.toISOString()}</lastmod>` : "";
-  return `  <url>
-    <loc>${en}</loc>${lastmod}
-    <xhtml:link rel="alternate" hreflang="en-IN" href="${en}" />
-    <xhtml:link rel="alternate" hreflang="hi-IN" href="${hi}" />
-  </url>`;
-}
-
 export async function GET() {
   const city = await getPublicCityAreaBySlug(CITY_SLUG);
   if (!city?.isLaunch) {
@@ -59,24 +48,20 @@ export async function GET() {
   const indexableSchools = schools.filter(isIndexable);
 
   const entries = [
-    urlEntry(`/${CITY_SLUG}`, maxVerifiedAt(indexableSchools)),
+    urlEntry(siteUrl, `/${CITY_SLUG}`, maxVerifiedAt(indexableSchools)),
     ...localities.map((locality) => {
       const path = locality.isTown ? `/${locality.slug}` : `/${CITY_SLUG}/${locality.slug}`;
       const localitySchools = indexableSchools.filter((s) => s.locality_id === locality.id);
-      return urlEntry(path, maxVerifiedAt(localitySchools));
+      return urlEntry(siteUrl, path, maxVerifiedAt(localitySchools));
     }),
     ...indexableSchools.map((school) =>
       urlEntry(
+        siteUrl,
         `/${CITY_SLUG}/${school.slug}-${school.school_code}`,
         school.last_verified_at ? new Date(school.last_verified_at) : undefined,
       ),
     ),
   ];
 
-  const body = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${entries.join("\n")}
-</urlset>
-`;
-  return new Response(body, { headers: { "Content-Type": "application/xml" } });
+  return new Response(urlSetXml(entries), { headers: { "Content-Type": "application/xml" } });
 }

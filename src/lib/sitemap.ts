@@ -19,3 +19,29 @@ export function xmlEscape(value: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 }
+
+/**
+ * One <url> entry, English canonical with an English/Hindi hreflang pair —
+ * shared by every sitemap-*.xml route (LAUNCH_CITY_SLUGS' city sitemaps and
+ * sitemap-site.xml) so they stay byte-identical in shape. `path` is locale-free
+ * (e.g. "/exams/rms-cet", not "/en/exams/rms-cet").
+ */
+export function urlEntry(siteUrl: string, path: string, lastModified?: Date): string {
+  const en = xmlEscape(`${siteUrl}/en${path}`);
+  const hi = xmlEscape(`${siteUrl}/hi${path}`);
+  const lastmod = lastModified ? `\n    <lastmod>${lastModified.toISOString()}</lastmod>` : "";
+  return `  <url>
+    <loc>${en}</loc>${lastmod}
+    <xhtml:link rel="alternate" hreflang="en-IN" href="${en}" />
+    <xhtml:link rel="alternate" hreflang="hi-IN" href="${hi}" />
+  </url>`;
+}
+
+/** Wraps a list of urlEntry() strings in the sitemap urlset envelope. */
+export function urlSetXml(entries: string[]): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${entries.join("\n")}
+</urlset>
+`;
+}
