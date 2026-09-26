@@ -15,3 +15,25 @@ export async function requireStaff(locale = "en") {
 
   return supabase;
 }
+
+/**
+ * Redirects to /ops if signed in as staff but not `admin` — for actions that
+ * change who else has staff access (role changes, staff removal). `ops` can
+ * see /ops/staff, only `admin` can mutate it.
+ */
+export async function requireAdmin(locale = "en") {
+  const supabase = await requireStaff(locale);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user?.id ?? "")
+    .single();
+
+  if (profile?.role !== "admin") redirect("/ops");
+
+  return supabase;
+}
