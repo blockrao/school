@@ -58,3 +58,8 @@ select
   q.verified_at is not null as verified
 from teacher_qualifications q
 join teachers t on t.id = q.teacher_id and t.status = 'published' and t.is_listed;
+
+-- Grants were missing entirely for these three views (found in the Sep 2026
+-- platform audit) — anon/authenticated had no SELECT at all, so the teacher
+-- directory/profile pages were silently broken for every real client.
+grant select on api.public_teachers, api.public_teacher_experience, api.public_teacher_qualifications to anon, authenticated;

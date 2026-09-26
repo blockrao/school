@@ -55,6 +55,9 @@ export const config = {
     // the leading segment too, a bare "/my/:path*" never matches "/en/my/...".
     "/:locale/my/:path*",
     "/:locale/sign-in",
+    "/:locale/sign-up",
+    "/:locale/forgot-password",
+    "/:locale/reset-password",
     // /portal, /ops and /for-schools/claim are top-level, not locale-prefixed —
     // matches the header/footer links and docs/screen-map.md's own route table.
     "/portal/:path*",
