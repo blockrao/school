@@ -2,7 +2,13 @@ import "server-only";
 import { cookies } from "next/headers";
 import {
   type PublicExamAdmission,
+  type PublicExamApplicationStep,
+  type PublicExamCentre,
+  type PublicExamCorrection,
+  type PublicExamFeeTier,
   type PublicExamMilestone,
+  type PublicExamParticipatingSchool,
+  type PublicExamReservationSplit,
   type PublicSchool,
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
@@ -816,7 +822,16 @@ export async function listSchoolRankings(citySlug: string): Promise<PublicSchool
   return (data ?? []).map((row) => publicSchoolRankingContract.parse(row));
 }
 
-export type { PublicExamAdmission, PublicExamMilestone };
+export type {
+  PublicExamAdmission,
+  PublicExamApplicationStep,
+  PublicExamCentre,
+  PublicExamCorrection,
+  PublicExamFeeTier,
+  PublicExamMilestone,
+  PublicExamParticipatingSchool,
+  PublicExamReservationSplit,
+};
 
 /**
  * Every approved admission cycle for one national/multi-school exam (e.g. RMS
