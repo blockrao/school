@@ -1,5 +1,6 @@
 export * from "@/contracts/public-areas";
 export * from "@/contracts/public-corridors";
+export * from "@/contracts/public-exam-admissions";
 export * from "@/contracts/public-localities";
 export * from "@/contracts/public-locality-neighbors";
 export * from "@/contracts/public-reference";

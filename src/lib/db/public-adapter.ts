@@ -1,6 +1,8 @@
 import "server-only";
 import { cookies } from "next/headers";
 import {
+  type PublicExamAdmission,
+  type PublicExamMilestone,
   type PublicSchool,
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
@@ -9,6 +11,7 @@ import {
   publicBoardContract,
   publicCityContract,
   publicDistrictContract,
+  publicExamAdmissionContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
   publicSchoolAdmissionContract,
@@ -796,4 +799,25 @@ export async function listSchoolRankings(citySlug: string): Promise<PublicSchool
     .order("category", { ascending: true })
     .order("rank", { ascending: true });
   return (data ?? []).map((row) => publicSchoolRankingContract.parse(row));
+}
+
+export type { PublicExamAdmission, PublicExamMilestone };
+
+/**
+ * Every approved admission cycle for one national/multi-school exam (e.g. RMS
+ * CET), one row per class level, soonest-closing first — for the exam hub
+ * page. Reads api.public_exam_admissions, the exam-scoped twin of
+ * api.public_school_admissions (same verification/publish gate, same
+ * days_to_close computed column), joining exams instead of schools.
+ */
+export async function getPublicAdmissionsByExamSlug(
+  examSlug: string,
+): Promise<PublicExamAdmission[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_exam_admissions")
+    .select("*")
+    .eq("slug", examSlug)
+    .order("closes_on", { ascending: true, nullsFirst: false });
+  return (data ?? []).map((row) => publicExamAdmissionContract.parse(row));
 }
