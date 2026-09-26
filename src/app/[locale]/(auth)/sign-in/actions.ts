@@ -1,27 +1,11 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient } from "@/lib/db/session";
 import { normalizeIndianPhone } from "@/lib/phone";
 import { checkRateLimit } from "@/lib/rate-limit";
-
-/**
- * Origin for the magic-link redirect. Prefers NEXT_PUBLIC_SITE_URL (set in
- * Production only) so real users always land back on www.schooloye.com even
- * if the request somehow arrived via a raw vercel.app host. Falls back to the
- * request's own origin when unset — Preview deployments (which don't set
- * NEXT_PUBLIC_SITE_URL) still redirect back to themselves for testing.
- */
-async function requestOrigin(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
-  const h = await headers();
-  const host = h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-}
 
 /** Only allow same-origin relative paths as a post-sign-in redirect target (no open redirect). */
 function safeNext(next: FormDataEntryValue | null, locale: string): string {
@@ -118,49 +102,4 @@ export async function verifySignInOtp(formData: FormData) {
 
   const pending = await needsOnboarding(supabase, data.user.id);
   redirect(postSignInPath(pending, locale, next));
-}
-
-const emailSchema = z.object({
-  email: z.string().trim().email(),
-  locale: z.string().min(1),
-});
-
-/**
- * Magic-link sign-in — an alternative to phone OTP for whenever SMS isn't
- * practical to test with (or a user simply prefers email). Supabase's
- * signInWithOtp({ email }) sends a link, not a code; the link lands on
- * /auth/callback (not locale-prefixed — it's a stable URL baked into the sent
- * email, same reasoning /ops and /portal aren't locale-prefixed either), which
- * exchanges the PKCE code for a session and redirects to `next`.
- */
-export async function requestMagicLink(formData: FormData) {
-  const locale = typeof formData.get("locale") === "string" ? String(formData.get("locale")) : "en";
-  const next = safeNext(formData.get("next"), locale);
-  const parsed = emailSchema.safeParse({ email: formData.get("email"), locale });
-
-  if (!parsed.success) {
-    redirect(`/${locale}/sign-in?error=invalid_email&next=${encodeURIComponent(next)}`);
-  }
-
-  // 5 magic-link sends per address per 15 minutes.
-  const allowed = await checkRateLimit("magic_link_send", parsed.data.email, 5, 15 * 60);
-  if (!allowed) {
-    redirect(`/${locale}/sign-in?error=rate_limited&next=${encodeURIComponent(next)}`);
-  }
-
-  const origin = await requestOrigin();
-  const supabase = await createSessionClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email: parsed.data.email,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
-    },
-  });
-  if (error) {
-    redirect(`/${locale}/sign-in?error=send_failed&next=${encodeURIComponent(next)}`);
-  }
-
-  redirect(
-    `/${locale}/sign-in?email=${encodeURIComponent(parsed.data.email)}&next=${encodeURIComponent(next)}`,
-  );
 }

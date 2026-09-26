@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient } from "@/lib/db/session";
 
-/** Not locale-prefixed — this is the stable URL baked into every magic-link email. */
+/** Not locale-prefixed — this is the stable URL baked into every signup-confirmation and password-reset email. */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");

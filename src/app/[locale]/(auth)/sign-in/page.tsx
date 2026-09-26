@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FieldError } from "@/components/ui/field-error";
 import { OtpInput } from "@/components/ui/otp-input";
 import { formatIndianPhone } from "@/lib/phone";
-import { requestMagicLink, requestOtp, verifySignInOtp } from "./actions";
+import { requestOtp, verifySignInOtp } from "./actions";
 import { signInWithPassword } from "./password-actions";
 
 // Adapted from design/WhatsApp Alerts.dc.html (steps 5a "Your WhatsApp number" / 5b
@@ -11,11 +11,7 @@ import { signInWithPassword } from "./password-actions";
 // Alerts flow — Shortlist and Enquiry need the same OTP step and shouldn't each
 // re-implement it. `?next=` carries the caller back to wherever it came from.
 //
-// Email magic-link added alongside phone OTP (no design reference — phone was the
-// only method shown) so sign-in works without SMS. Sends via
-// supabase.auth.signInWithOtp({ email }), landing on /auth/callback.
-//
-// Email+password added as a third, interim option (no design reference either)
+// Email+password added as a second, interim option (no design reference either)
 // while the SMS provider for phone OTP isn't wired up in Supabase yet — see
 // docs/access-control-design.md. Remove this block once phone OTP is live if
 // it's no longer wanted, but leaving it also gives a no-SMS-dependency login
@@ -30,12 +26,6 @@ type Copy = {
   otpLabel: string;
   verify: string;
   changeNumber: string;
-  orEmail: string;
-  emailLabel: string;
-  sendLink: string;
-  linkSentTo: string;
-  linkSentBody: string;
-  useDifferentEmail: string;
   orPassword: string;
   passwordEmailLabel: string;
   passwordLabel: string;
@@ -44,7 +34,6 @@ type Copy = {
   noAccount: string;
   createAccount: string;
   errorInvalidPhone: string;
-  errorInvalidEmail: string;
   errorSendFailed: string;
   errorInvalidCode: string;
   errorRateLimited: string;
@@ -61,12 +50,6 @@ const COPY: Record<string, Copy> = {
     otpLabel: "Enter the 6-digit code",
     verify: "Verify & sign in",
     changeNumber: "Change number",
-    orEmail: "Or sign in with email",
-    emailLabel: "Email address",
-    sendLink: "Send magic link",
-    linkSentTo: "Link sent to",
-    linkSentBody: "Open the email and tap the link to sign in. You can close this tab.",
-    useDifferentEmail: "Use a different email",
     orPassword: "Or sign in with a password",
     passwordEmailLabel: "Email address",
     passwordLabel: "Password",
@@ -75,7 +58,6 @@ const COPY: Record<string, Copy> = {
     noAccount: "New here?",
     createAccount: "Create an account",
     errorInvalidPhone: "Enter a valid 10-digit Indian mobile number.",
-    errorInvalidEmail: "Enter a valid email address.",
     errorSendFailed: "Couldn't send it. Please try again.",
     errorInvalidCode: "That code didn't work. Please try again.",
     errorRateLimited: "Too many attempts. Please wait a few minutes and try again.",
@@ -90,12 +72,6 @@ const COPY: Record<string, Copy> = {
     otpLabel: "6 अंकों का कोड डालें",
     verify: "सत्यापित करें और साइन इन करें",
     changeNumber: "नंबर बदलें",
-    orEmail: "या ईमेल से साइन इन करें",
-    emailLabel: "ईमेल पता",
-    sendLink: "मैजिक लिंक भेजें",
-    linkSentTo: "लिंक भेजा गया",
-    linkSentBody: "ईमेल खोलें और साइन इन करने के लिए लिंक पर टैप करें। आप यह टैब बंद कर सकते हैं।",
-    useDifferentEmail: "दूसरा ईमेल इस्तेमाल करें",
     orPassword: "या पासवर्ड से साइन इन करें",
     passwordEmailLabel: "ईमेल पता",
     passwordLabel: "पासवर्ड",
@@ -104,7 +80,6 @@ const COPY: Record<string, Copy> = {
     noAccount: "नए हैं?",
     createAccount: "खाता बनाएं",
     errorInvalidPhone: "एक मान्य 10 अंकों का भारतीय मोबाइल नंबर डालें।",
-    errorInvalidEmail: "एक मान्य ईमेल पता डालें।",
     errorSendFailed: "भेजा नहीं जा सका। कृपया फिर से कोशिश करें।",
     errorInvalidCode: "यह कोड काम नहीं किया। कृपया फिर से कोशिश करें।",
     errorRateLimited: "बहुत सारे प्रयास। कृपया कुछ मिनट रुकें और फिर से कोशिश करें।",
@@ -134,7 +109,6 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
   const isHi = locale === "hi";
 
   const phone = first(rawSearchParams.phone) ?? "";
-  const email = first(rawSearchParams.email) ?? "";
   const next = first(rawSearchParams.next) ?? `/${locale}`;
   const errorCode = first(rawSearchParams.error);
   const pErrorCode = first(rawSearchParams.perror);
@@ -142,15 +116,13 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
   const errorMessage =
     errorCode === "invalid_phone"
       ? copy.errorInvalidPhone
-      : errorCode === "invalid_email"
-        ? copy.errorInvalidEmail
-        : errorCode === "send_failed"
-          ? copy.errorSendFailed
-          : errorCode === "invalid_code"
-            ? copy.errorInvalidCode
-            : errorCode === "rate_limited"
-              ? copy.errorRateLimited
-              : undefined;
+      : errorCode === "send_failed"
+        ? copy.errorSendFailed
+        : errorCode === "invalid_code"
+          ? copy.errorInvalidCode
+          : errorCode === "rate_limited"
+            ? copy.errorRateLimited
+            : undefined;
 
   const passwordErrorMessage =
     pErrorCode === "rate_limited"
@@ -199,22 +171,6 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
             </a>
           </div>
         </form>
-      ) : email ? (
-        <div className="mt-6 flex flex-col gap-3 rounded-md border border-rule bg-copy-white p-4">
-          <p className="font-semibold" lang={isHi ? "hi" : undefined}>
-            {copy.linkSentTo} {email}
-          </p>
-          <p className="text-body text-muted-ink" lang={isHi ? "hi" : undefined}>
-            {copy.linkSentBody}
-          </p>
-          <a
-            href={`/${locale}/sign-in?next=${encodeURIComponent(next)}`}
-            className="w-fit text-meta font-semibold text-ruled-blue"
-            lang={isHi ? "hi" : undefined}
-          >
-            {copy.useDifferentEmail}
-          </a>
-        </div>
       ) : (
         <>
           <form action={requestOtp} className="mt-6 flex flex-col gap-4">
@@ -254,40 +210,6 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
               {copy.sendCode}
             </button>
           </form>
-
-          <div className="mt-8 border-t border-rule pt-6">
-            <p className="text-meta font-semibold text-muted-ink" lang={isHi ? "hi" : undefined}>
-              {copy.orEmail}
-            </p>
-            <form action={requestMagicLink} className="mt-3 flex flex-col gap-4">
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="next" value={next} />
-              <label className="flex flex-col gap-1.5">
-                <span
-                  className="text-meta font-semibold text-muted-ink"
-                  lang={isHi ? "hi" : undefined}
-                >
-                  {copy.emailLabel}
-                </span>
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  required
-                  className="h-12 max-w-80 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
-                />
-                {(errorCode === "invalid_email" || errorCode === "rate_limited") &&
-                  errorMessage && <FieldError id="email-error">{errorMessage}</FieldError>}
-              </label>
-              <button
-                type="submit"
-                className="flex h-12 w-fit items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
-                lang={isHi ? "hi" : undefined}
-              >
-                {copy.sendLink}
-              </button>
-            </form>
-          </div>
 
           <div className="mt-8 border-t border-rule pt-6">
             <p className="text-meta font-semibold text-muted-ink" lang={isHi ? "hi" : undefined}>
