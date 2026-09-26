@@ -855,10 +855,16 @@ export async function getPublicAdmissionsByExamSlug(
   examSlug: string,
 ): Promise<PublicExamAdmission[]> {
   const api = createApiSchemaClient();
+  // Newest academic_year first ("2027-28" sorts correctly against "2026-27"
+  // as plain text since both are the same YYYY-YY shape) so a freshly added
+  // cycle — even one with no closes_on yet, e.g. status "not_announced" —
+  // always surfaces above a resolved cycle from a prior year. closes_on is
+  // only a tiebreak within the same year (multiple class tracks).
   const { data } = await api
     .from("public_exam_admissions")
     .select("*")
     .eq("slug", examSlug)
+    .order("academic_year", { ascending: false })
     .order("closes_on", { ascending: true, nullsFirst: false });
   return (data ?? []).map((row) => publicExamAdmissionContract.parse(row));
 }
