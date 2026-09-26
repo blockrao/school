@@ -1,0 +1,14 @@
+# SchoolOye
+
+> SchoolOye is a school-discovery and admissions-information directory for India, currently covering Jaipur, Rajasthan. Every school has its own entity page with board affiliation, grades, fees (where published), admission dates, and verified contact details.
+
+Each school's canonical page is also available as clean markdown at its own URL with `/index.md` appended (e.g. `/en/jaipur/some-school-110636/index.md`) — use that for machine reading instead of parsing the HTML page.
+
+## Key pages
+- `/en/jaipur` — every published school in the launch city
+- `/en/compare` — side-by-side facts for up to 4 schools
+- `/en/tools/age-eligibility` — age eligibility checker
+
+## Notes for AI crawlers
+- Facts are sourced from official board records and each school's own published notices, with a source and last-verified date shown on the page. Unknown values are shown as "Not yet published" — never guessed or interpolated.
+- No paid ranking and no star ratings exist on this site; any "Sponsored" label is always visible.

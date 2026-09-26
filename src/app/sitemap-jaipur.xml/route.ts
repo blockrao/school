@@ -59,17 +59,15 @@ export async function GET() {
   const indexableSchools = schools.filter(isIndexable);
 
   const entries = [
-    urlEntry(`/${city.stateSlug}/${CITY_SLUG}`, maxVerifiedAt(indexableSchools)),
+    urlEntry(`/${CITY_SLUG}`, maxVerifiedAt(indexableSchools)),
     ...localities.map((locality) => {
-      const path = locality.isTown
-        ? `/${city.stateSlug}/${locality.slug}`
-        : `/${city.stateSlug}/${CITY_SLUG}/${locality.slug}`;
+      const path = locality.isTown ? `/${locality.slug}` : `/${CITY_SLUG}/${locality.slug}`;
       const localitySchools = indexableSchools.filter((s) => s.locality_id === locality.id);
       return urlEntry(path, maxVerifiedAt(localitySchools));
     }),
     ...indexableSchools.map((school) =>
       urlEntry(
-        `/school/${school.id}-${school.slug}`,
+        `/${CITY_SLUG}/${school.slug}-${school.school_code}`,
         school.last_verified_at ? new Date(school.last_verified_at) : undefined,
       ),
     ),

@@ -24,6 +24,7 @@ import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
+import { schoolPath } from "@/lib/school-url";
 
 const PAGE_SIZE = 24;
 
@@ -45,16 +46,17 @@ function parseFilters(searchParams: { [key: string]: string | string[] | undefin
 
 /**
  * Resolves the `[city]` segment three ways, in order: a real city, a town
- * (peer-level in the URL, e.g. /rajasthan/chomu), or a legacy district slug
- * to redirect from. District never reaches the UI — it's only used inside
+ * (peer-level in the URL, e.g. /chomu), or a legacy district slug to redirect
+ * from. District never reaches the UI — it's only used inside
  * getPublicCityAreaBySlug/getRedirectCitySlugForDistrictSlug to check the
- * launch flag and resolve old links.
+ * launch flag and resolve old links. No state segment — city is the only
+ * geography segment in the URL (see the routing decision log).
  */
-async function resolvePlace(stateSlug: string, citySlug: string) {
+async function resolvePlace(citySlug: string) {
   const city = await getPublicCityAreaBySlug(citySlug);
-  if (city && city.stateSlug === stateSlug) return { kind: "city" as const, city };
+  if (city) return { kind: "city" as const, city };
 
-  const town = await getPublicTownAreaBySlug(stateSlug, citySlug);
+  const town = await getPublicTownAreaBySlug(citySlug);
   if (town) return { kind: "town" as const, town };
 
   return null;
@@ -63,9 +65,9 @@ async function resolvePlace(stateSlug: string, citySlug: string) {
 export async function generateMetadata({
   params,
   searchParams,
-}: PageProps<"/[locale]/[state]/[city]">): Promise<Metadata> {
-  const { state: stateSlug, city: citySlug } = await params;
-  const resolved = await resolvePlace(stateSlug, citySlug);
+}: PageProps<"/[locale]/[city]">): Promise<Metadata> {
+  const { city: citySlug } = await params;
+  const resolved = await resolvePlace(citySlug);
 
   if (!resolved) {
     const redirectSlug = await getRedirectCitySlugForDistrictSlug(citySlug);
@@ -79,7 +81,7 @@ export async function generateMetadata({
     return {
       title: `Schools near ${town.townName}, ${town.stateName} — SchoolOye`,
       description: `Schools near ${town.townName}: fees, facilities and admission dates.`,
-      alternates: { canonical: `/${stateSlug}/${citySlug}` },
+      alternates: { canonical: `/${citySlug}` },
     };
   }
 
@@ -93,14 +95,13 @@ export async function generateMetadata({
   return {
     title: `${city.cityName} schools — SchoolOye`,
     description: `Browse schools in ${city.cityName}, ${city.stateName}: fees, facilities and admission dates.`,
-    alternates: { canonical: `/${stateSlug}/${citySlug}` },
+    alternates: { canonical: `/${citySlug}` },
     robots: filtersActive ? { index: false, follow: true } : undefined,
   };
 }
 
 function TownPageBody({
   locale,
-  stateSlug,
   town,
   schools,
   neighbors,
@@ -110,7 +111,6 @@ function TownPageBody({
   now,
 }: {
   locale: string;
-  stateSlug: string;
   town: NonNullable<Awaited<ReturnType<typeof getPublicTownAreaBySlug>>>;
   schools: Awaited<ReturnType<typeof listPublicSchoolsByLocality>>;
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
@@ -119,7 +119,7 @@ function TownPageBody({
   shortlistedIds: Set<string>;
   now: Date;
 }) {
-  const townPath = `/${locale}/${stateSlug}/${town.townSlug}`;
+  const townPath = `/${locale}/${town.townSlug}`;
 
   const mapPoints = schools.flatMap((school) => {
     if (school.lat == null || school.lng == null) return [];
@@ -129,7 +129,7 @@ function TownPageBody({
         lat: school.lat,
         lng: school.lng,
         label: school.name_en ?? "Name not yet published",
-        href: `/${locale}/school/${school.id}-${school.slug}`,
+        href: schoolPath(locale, town.townSlug, school),
         precision: school.geocode_precision ?? "pincode",
       },
     ];
@@ -199,7 +199,7 @@ function TownPageBody({
               return (
                 <SchoolCard
                   key={school.id}
-                  href={`/${locale}/school/${school.id}-${school.slug}`}
+                  href={schoolPath(locale, town.townSlug, school)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}
@@ -235,7 +235,7 @@ function TownPageBody({
             {neighbors.map((neighbor) => (
               <Link
                 key={neighbor.slug}
-                href={`/${locale}/${stateSlug}/${neighbor.slug}`}
+                href={`/${locale}/${neighbor.slug}`}
                 className="flex min-h-10 items-center rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
               >
                 {neighbor.name}
@@ -251,16 +251,16 @@ function TownPageBody({
 export default async function CityOrTownPage({
   params,
   searchParams,
-}: PageProps<"/[locale]/[state]/[city]">) {
-  const { locale, state: stateSlug, city: citySlug } = await params;
+}: PageProps<"/[locale]/[city]">) {
+  const { locale, city: citySlug } = await params;
   const rawSearchParams = await searchParams;
   const now = new Date();
 
-  const resolved = await resolvePlace(stateSlug, citySlug);
+  const resolved = await resolvePlace(citySlug);
 
   if (!resolved) {
     const redirectSlug = await getRedirectCitySlugForDistrictSlug(citySlug);
-    if (redirectSlug) permanentRedirect(`/${locale}/${stateSlug}/${redirectSlug}`);
+    if (redirectSlug) permanentRedirect(`/${locale}/${redirectSlug}`);
     notFound();
   }
 
@@ -282,7 +282,6 @@ export default async function CityOrTownPage({
     return (
       <TownPageBody
         locale={locale}
-        stateSlug={stateSlug}
         town={town}
         schools={schools}
         neighbors={neighbors}
@@ -322,7 +321,7 @@ export default async function CityOrTownPage({
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const basePath = `/${locale}/${stateSlug}/${citySlug}`;
+  const basePath = `/${locale}/${citySlug}`;
 
   function pageHref(targetPage: number) {
     const qs = new URLSearchParams();
@@ -373,9 +372,7 @@ export default async function CityOrTownPage({
               <Link
                 key={locality.slug}
                 href={
-                  locality.isTown
-                    ? `/${locale}/${stateSlug}/${locality.slug}`
-                    : `${basePath}/${locality.slug}`
+                  locality.isTown ? `/${locale}/${locality.slug}` : `${basePath}/${locality.slug}`
                 }
                 className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
               >
@@ -459,7 +456,7 @@ export default async function CityOrTownPage({
               return (
                 <SchoolCard
                   key={school.id}
-                  href={`/${locale}/school/${school.id}-${school.slug}`}
+                  href={schoolPath(locale, citySlug, school)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}

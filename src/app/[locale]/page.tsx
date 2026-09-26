@@ -12,6 +12,7 @@ import {
   type PublicOpenAdmission,
 } from "@/lib/db/public-adapter";
 import { deadlineState } from "@/lib/deadline";
+import { schoolPath } from "@/lib/school-url";
 import { cn } from "@/lib/utils";
 
 // South West Delhi stays built but unlinked — see CLAUDE.md. Which city renders
@@ -36,10 +37,12 @@ function admissionPillStatus(status: ReturnType<typeof deadlineState>["status"])
 
 function AdmissionRow({
   admission,
+  citySlug,
   locale,
   now,
 }: {
   admission: PublicOpenAdmission;
+  citySlug: string;
   locale: string;
   now: Date;
 }) {
@@ -51,7 +54,10 @@ function AdmissionRow({
 
   return (
     <Link
-      href={`/${locale}/school/${admission.schoolId}-${admission.slug}`}
+      href={schoolPath(locale, citySlug, {
+        slug: admission.slug,
+        school_code: admission.schoolCode,
+      })}
       className="flex min-h-17 border-b border-rule-soft hover:bg-margin-paper"
     >
       <div
@@ -90,7 +96,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   const schoolCount = schoolsResult.total;
   const districtLabel = area?.cityName ?? "your city";
-  const districtHref = area ? `/${locale}/${area.stateSlug}/${area.citySlug}` : `/${locale}/schools`;
+  const districtHref = area ? `/${locale}/${area.citySlug}` : `/${locale}/schools`;
 
   // Category chips reflect real filterable boards, not a fixed design list — the set
   // grows automatically as more boards get affiliations in this district.
@@ -173,6 +179,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <AdmissionRow
                 key={admission.schoolId}
                 admission={admission}
+                citySlug={area?.citySlug ?? ""}
                 locale={locale}
                 now={now}
               />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import {
   getPublicTeacherById,
@@ -52,9 +53,12 @@ export default async function TeacherProfilePage({
     permanentRedirect(`/${locale}/teacher/${teacher.id}-${teacher.slug}`);
   }
 
-  const [experience, qualifications] = await Promise.all([
+  const [experience, qualifications, primarySchoolPath] = await Promise.all([
     listPublicTeacherExperience(teacher.id),
     listPublicTeacherQualifications(teacher.id),
+    teacher.primary_school_id
+      ? getSchoolCanonicalPath(teacher.primary_school_id, locale)
+      : Promise.resolve(null),
   ]);
 
   const supabase = await createSessionClient();
@@ -101,11 +105,8 @@ export default async function TeacherProfilePage({
           <p className="text-body">
             {[teacher.subject, teacher.level].filter(Boolean).join(" · ")}
           </p>
-          {teacher.primary_school_id && teacher.primary_school_slug && (
-            <Link
-              href={`/${locale}/school/${teacher.primary_school_id}-${teacher.primary_school_slug}`}
-              className="font-semibold text-ruled-blue"
-            >
+          {primarySchoolPath && (
+            <Link href={primarySchoolPath} className="font-semibold text-ruled-blue">
               {teacher.primary_school_name}
             </Link>
           )}

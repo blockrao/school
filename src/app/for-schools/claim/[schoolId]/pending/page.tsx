@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { getSchoolCanonicalPath, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: "Claim submitted — SchoolOye", robots: { index: false, follow: false } };
@@ -13,6 +13,7 @@ export default async function ClaimPendingPage({
   const { schoolId } = await params;
   const school = (await listPublicSchoolsByIds([schoolId])).at(0);
   if (!school) notFound();
+  const schoolPath = (await getSchoolCanonicalPath(school.id, "en")) ?? "/en/schools";
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -23,7 +24,7 @@ export default async function ClaimPendingPage({
         confirm once it's verified — usually within a working day.
       </p>
       <Link
-        href={`/en/school/${school.id}-${school.slug}`}
+        href={schoolPath}
         className="mt-6 inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
       >
         View school page

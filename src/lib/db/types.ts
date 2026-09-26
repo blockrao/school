@@ -1505,6 +1505,7 @@ export type Database = {
           corridor_id: number | null;
           locality_assignment_method: string | null;
           locality_assignment_note: string | null;
+          school_code: number;
         };
         Insert: {
           id?: string;
@@ -1543,6 +1544,7 @@ export type Database = {
           corridor_id?: number | null;
           locality_assignment_method?: string | null;
           locality_assignment_note?: string | null;
+          school_code?: number;
         };
         Update: {
           id?: string;
@@ -1581,6 +1583,7 @@ export type Database = {
           corridor_id?: number | null;
           locality_assignment_method?: string | null;
           locality_assignment_note?: string | null;
+          school_code?: number;
         };
         Relationships: [];
       };
@@ -1719,18 +1722,21 @@ export type Database = {
           code: string;
           name_en: string;
           name_hi: string | null;
+          slug: string;
         };
         Insert: {
           id?: number;
           code: string;
           name_en: string;
           name_hi?: string | null;
+          slug: string;
         };
         Update: {
           id?: number;
           code?: string;
           name_en?: string;
           name_hi?: string | null;
+          slug?: string;
         };
         Relationships: [];
       };
@@ -1927,7 +1933,19 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      active_cities: {
+        Row: {
+          id: number | null;
+          name_en: string | null;
+          slug: string | null;
+          state_id: number | null;
+          state_slug: string | null;
+          school_count: number | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       approve_application: {
         Args: Record<string, unknown>; // p_application_id uuid

@@ -1,6 +1,5 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
 import {
   type PublicSchool,
   type PublicSchoolAdmission,
@@ -16,7 +15,9 @@ import {
   publicSchoolContract,
   publicStateContract,
 } from "@/contracts";
+import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
 import { createApiSchemaClient, createPublicClient } from "@/lib/db/public";
+import { schoolPath } from "@/lib/school-url";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
 
@@ -92,6 +93,87 @@ export async function getPublicSchoolByIdSlug(id: string): Promise<{
     identifiers: identifiersResult.data ?? [],
     facts: factsResult.data ?? [],
   };
+}
+
+/**
+ * Same shape as getPublicSchoolByIdSlug, keyed by the stable school_code
+ * instead of the UUID — the canonical resolver for /[locale]/[city]/[slug]-[code].
+ * Resolving by code (not slug text) means a later slug correction never
+ * breaks the URL — see db/views/010_public_schools.sql's school_code note.
+ */
+export async function getPublicSchoolByCode(code: number): Promise<{
+  school: PublicSchool;
+  board: PublicSchoolBoard | null;
+  identifiers: PublicSchoolIdentifier[];
+  facts: PublicSchoolFact[];
+} | null> {
+  const api = createApiSchemaClient();
+  const publicClient = createPublicClient();
+
+  const { data: schoolRow, error } = await api
+    .from("public_schools")
+    .select("*")
+    .eq("school_code", code)
+    .maybeSingle();
+  if (error || !schoolRow) return null;
+  const school = publicSchoolContract.parse(schoolRow);
+
+  const [boardResult, identifiersResult, factsResult] = await Promise.all([
+    api.from("public_school_boards").select("*").eq("school_id", school.id).maybeSingle(),
+    publicClient.from("school_identifiers").select("scheme, value").eq("school_id", school.id),
+    publicClient
+      .from("field_provenance")
+      .select("field, value, source_id, evidence_url, created_at, verified_at")
+      .eq("entity_table", "schools")
+      .eq("entity_id", school.id),
+  ]);
+
+  return {
+    school,
+    board: boardResult.data ? publicSchoolBoardContract.parse(boardResult.data) : null,
+    identifiers: identifiersResult.data ?? [],
+    facts: factsResult.data ?? [],
+  };
+}
+
+/**
+ * A school's own canonical path, resolved from just its id — for callers (the
+ * teacher profile page, the /for-schools claim flow) that hold a school_id/row
+ * but aren't already scoped to one city the way the browse pages are. Null if
+ * the school or its city can't be resolved.
+ */
+export async function getSchoolCanonicalPath(
+  schoolId: string,
+  locale: string,
+): Promise<string | null> {
+  const result = await getPublicSchoolByIdSlug(schoolId);
+  if (!result) return null;
+  const { school } = result;
+  if (!school.district_id) return null;
+  const city = await getPublicCityByDistrictId(school.district_id);
+  if (!city) return null;
+  return schoolPath(locale, city.slug, school);
+}
+
+/**
+ * Batched city lookup by district id, for pages that list schools across
+ * potentially more than one city (Compare, saved schools) and need each row's
+ * own city slug for its canonical link — unlike a single city/locality/search
+ * page, which is already scoped to one city and can just reuse that slug.
+ */
+export async function getCitiesByDistrictIds(
+  districtIds: number[],
+): Promise<Map<number, PublicCity>> {
+  const uniqueIds = [...new Set(districtIds)];
+  if (uniqueIds.length === 0) return new Map();
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_cities").select("*").in("district_id", uniqueIds);
+  const result = new Map<number, PublicCity>();
+  for (const row of data ?? []) {
+    const city = toPublicCity(publicCityContract.parse(row));
+    result.set(city.districtId, city);
+  }
+  return result;
 }
 
 export type PublicDistrict = { id: number; name_en: string; slug: string; state_id: number };
@@ -312,6 +394,7 @@ export async function listPublicBoards(): Promise<PublicBoard[]> {
 export type PublicOpenAdmission = {
   schoolId: string;
   slug: string;
+  schoolCode: number;
   nameEn: string;
   status: string;
   closesOn: string | null;
@@ -326,7 +409,7 @@ export async function listOpenAdmissionsByDistrict(
 
   const { data: schools } = await api
     .from("public_schools")
-    .select("id, slug, name_en")
+    .select("id, slug, school_code, name_en")
     .eq("district_id", districtId);
 
   const schoolIds = (schools ?? []).map((s) => s.id as string);
@@ -348,6 +431,7 @@ export async function listOpenAdmissionsByDistrict(
       {
         schoolId: school.id as string,
         slug: school.slug as string,
+        schoolCode: school.school_code as number,
         nameEn: school.name_en as string,
         status: cycle.status as string,
         closesOn: cycle.closes_on as string | null,
@@ -520,19 +604,18 @@ export type PublicTownArea = {
 };
 
 /**
- * Town resolved as a peer of the city in the URL (`/[state]/[town]`, not
- * nested under a city) — matches the TOWN_LOCALITY_SLUGS set. Scoped by state
- * slug so a same-named town in a different (future) launch state can't collide.
+ * Town resolved as a peer of the city in the URL (`/[locale]/[town]`, not
+ * nested under a city) — matches the TOWN_LOCALITY_SLUGS set. Global lookup by
+ * slug only: the URL carries no state segment (city is the only geography
+ * segment — see the routing decision log), so there's nothing left to scope
+ * against. Fine while every launched town lives in one state; if a same-named
+ * town in a different state ever launches, TOWN_LOCALITY_SLUGS collides and
+ * needs its own disambiguation then.
  */
-export async function getPublicTownAreaBySlug(
-  stateSlug: string,
-  townSlug: string,
-): Promise<PublicTownArea | null> {
+export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicTownArea | null> {
   if (!TOWN_LOCALITY_SLUGS.has(townSlug)) return null;
 
   const api = createApiSchemaClient();
-  const state = await getPublicStateBySlug(stateSlug);
-  if (!state) return null;
 
   const { data: localityRow } = await api
     .from("public_localities")
@@ -552,7 +635,8 @@ export async function getPublicTownAreaBySlug(
     .maybeSingle();
   if (!districtRow) return null;
   const district = publicDistrictContract.parse(districtRow);
-  if (district.state_id !== state.id) return null;
+  const state = await getPublicStateById(district.state_id);
+  if (!state) return null;
 
   return {
     townSlug: locality.slug,
@@ -567,8 +651,8 @@ export async function getPublicTownAreaBySlug(
 }
 
 /**
- * For 308ing an old `/[state]/[district]/...` URL to the matching
- * `/[state]/[city]/...` one. Returns null if the slug isn't a known district,
+ * For 308ing an old `/[locale]/[district]/...` URL to the matching
+ * `/[locale]/[city]/...` one. Returns null if the slug isn't a known district,
  * or if it already equals the city's own slug (Jaipur's city and district
  * slugs happen to be identical today, so no redirect fires for it — this
  * exists for the day a district and its city slug diverge).

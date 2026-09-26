@@ -15,6 +15,14 @@
 -- A field with no qualifying provenance renders null here — the app's fallback
 -- ("Not yet published") takes over, same as any other unknown fact.
 --
+-- school_code: stable 6-digit numeric entity id (schools.school_code, unique
+-- NOT NULL, backfilled — see the School Entity Page spec doc). Not source-gated
+-- like the fact columns above — it's an internal identifier, not a published
+-- fact about the school — and it's never guessed/omitted like UDISE. Used as
+-- the canonical URL suffix (/[city]/[slug]-[school_code]) and as the
+-- "Schooloy School ID" PropertyValue in JSON-LD, so the app can resolve a
+-- school by a stable id even if its slug text is later corrected.
+--
 -- Does NOT filter on schools.status. That field is an unused manual toggle —
 -- every school in the database is 'draft' (confirmed: 0 rows are 'published'
 -- anywhere, in any district). "Published" here means the L0-L3 completeness
@@ -34,6 +42,7 @@
 create or replace view api.public_schools as
 select
   s.id,
+  s.school_code,
   s.slug,
   s.district_id,
   s.city_id,

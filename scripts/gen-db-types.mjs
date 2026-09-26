@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFile } from "node:child_process";
 /**
  * Introspects the public schema over DATABASE_URL_RO and emits src/lib/db/types.ts
  * in the supabase-js `Database` type shape. Replaces `supabase gen types` (forbidden
@@ -23,7 +24,14 @@ function loadEnvLocal() {
   for (const line of content.split("\n")) {
     const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
     if (match && !process.env[match[1]]) {
-      process.env[match[1]] = match[2];
+      let value = match[2];
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      process.env[match[1]] = value;
     }
   }
 }
@@ -234,6 +242,25 @@ ${enumsTs}
     fs.mkdir(path.dirname(outPath), { recursive: true }),
   );
   await import("node:fs/promises").then((fs) => fs.writeFile(outPath, output, "utf8"));
+
+  // Run the generated file through Biome so its formatting (e.g. how long union
+  // types wrap) always matches what `pnpm lint`/`pnpm format` expect, regardless
+  // of how this script happens to lay out the raw template strings above.
+  await new Promise((resolve) => {
+    execFile(
+      "npx",
+      ["biome", "format", "--write", outPath],
+      { cwd: root },
+      (error, _stdout, stderr) => {
+        if (error) {
+          console.warn(
+            `Warning: could not auto-format ${outPath} with Biome: ${stderr || error.message}`,
+          );
+        }
+        resolve();
+      },
+    );
+  });
 
   console.log(
     `Wrote src/lib/db/types.ts — ${tableNames.length} tables, ${viewNames.length} views, ${enums.size} enums, ${functionsResult.rows.length} functions.`,

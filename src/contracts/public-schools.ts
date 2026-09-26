@@ -3,6 +3,8 @@ import { z } from "zod";
 /** Mirrors db/views/010_public_schools.sql — api.public_schools. */
 export const publicSchoolContract = z.object({
   id: z.string(),
+  /** Stable 6-digit numeric entity id — canonical URL suffix, never UDISE. */
+  school_code: z.number(),
   slug: z.string(),
   district_id: z.number().nullable(),
   city_id: z.number().nullable(),

@@ -19,7 +19,7 @@ export type CityOption = {
   slug: string;
   name: string;
   stateSlug: string;
-  /** Precomputed `/[locale]/[state]/[city]` href — locale is baked in by the server caller. */
+  /** Precomputed `/[locale]/[city]` href — locale is baked in by the server caller. */
   href: string;
 };
 
@@ -31,6 +31,7 @@ function readCityCookie(): string | null {
 
 export function saveCityCookie(slug: string) {
   if (typeof document === "undefined") return;
+  // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API isn't supported in Safari/Firefox yet; this needs to work in every browser.
   document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(slug)}; path=/; max-age=${ONE_YEAR_SECONDS}; samesite=lax`;
 }
 

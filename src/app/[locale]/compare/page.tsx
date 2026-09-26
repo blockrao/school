@@ -5,10 +5,12 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
+  getCitiesByDistrictIds,
   listPublicSchoolsByIds,
 } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
 import { istDayMonthLabel } from "@/lib/ist-date";
+import { schoolPath } from "@/lib/school-url";
 
 const COMPARE_LIMIT = 4;
 
@@ -38,10 +40,17 @@ export default async function ComparePage({
   });
 
   const schoolIds = orderedSchools.map((s) => s.id);
-  const [boardNames, admissionDeadlines] = await Promise.all([
+  const districtIds = orderedSchools.flatMap((s) => (s.district_id != null ? [s.district_id] : []));
+  const [boardNames, admissionDeadlines, citiesByDistrict] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
+    getCitiesByDistrictIds(districtIds),
   ]);
+
+  function hrefFor(school: (typeof orderedSchools)[number]): string {
+    const city = school.district_id != null ? citiesByDistrict.get(school.district_id) : undefined;
+    return city ? schoolPath(locale, city.slug, school) : `/${locale}/schools`;
+  }
 
   if (orderedSchools.length === 0) {
     return (
@@ -116,7 +125,7 @@ export default async function ComparePage({
               {orderedSchools.map((school) => (
                 <th key={school.id} className="border-b border-rule p-3 text-left align-top">
                   <Link
-                    href={`/${locale}/school/${school.id}-${school.slug}`}
+                    href={hrefFor(school)}
                     className="font-display font-semibold text-ink hover:text-ruled-blue"
                   >
                     {school.name_en ?? "Name not yet published"}

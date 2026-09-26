@@ -47,7 +47,14 @@ function loadEnvLocal() {
   for (const line of content.split("\n")) {
     const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
     if (match && !process.env[match[1]]) {
-      process.env[match[1]] = match[2];
+      let value = match[2];
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      process.env[match[1]] = value;
     }
   }
 }

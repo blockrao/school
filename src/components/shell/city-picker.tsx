@@ -67,7 +67,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default"
           />
-          <ul
+          <div
             role="listbox"
             aria-label="Choose your city"
             className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-md border border-rule bg-copy-white shadow-lg"
@@ -75,7 +75,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
             {areas.map((area) => {
               const active = area.slug === current?.slug;
               return (
-                <li key={area.slug}>
+                <div key={area.slug}>
                   <button
                     type="button"
                     role="option"
@@ -83,16 +83,20 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
                     onClick={() => selectCity(area)}
                     className={cn(
                       "flex w-full items-center justify-between px-3.5 py-2.5 text-left text-body",
-                      active ? "bg-margin-paper font-semibold text-ruled-blue" : "text-ink hover:bg-margin-paper",
+                      active
+                        ? "bg-margin-paper font-semibold text-ruled-blue"
+                        : "text-ink hover:bg-margin-paper",
                     )}
                   >
                     {area.name}
-                    <span className="text-meta text-muted-ink">{area.stateSlug !== area.slug ? area.stateSlug : ""}</span>
+                    <span className="text-meta text-muted-ink">
+                      {area.stateSlug !== area.slug ? area.stateSlug : ""}
+                    </span>
                   </button>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         </>
       )}
     </div>

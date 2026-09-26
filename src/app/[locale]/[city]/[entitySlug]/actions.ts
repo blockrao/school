@@ -6,28 +6,24 @@ import { createSessionClient } from "@/lib/db/session";
 
 const enquirySchema = z.object({
   schoolId: z.string().min(1),
-  idSlug: z.string().min(1),
-  locale: z.string().min(1),
+  returnPath: z.string().min(1),
   classCode: z.string().optional(),
   message: z.string().trim().min(1).max(1000),
 });
 
 export async function sendEnquiry(formData: FormData) {
-  const idSlug = String(formData.get("idSlug") ?? "");
-  const locale = String(formData.get("locale") ?? "en");
-  const schoolPath = `/${locale}/school/${idSlug}`;
+  const returnPath = String(formData.get("returnPath") ?? "");
 
   const classCode = formData.get("classCode");
   const parsed = enquirySchema.safeParse({
     schoolId: formData.get("schoolId"),
-    idSlug,
-    locale,
+    returnPath,
     classCode: typeof classCode === "string" && classCode.length > 0 ? classCode : undefined,
     message: formData.get("message"),
   });
 
   if (!parsed.success) {
-    redirect(`${schoolPath}?enquiry_error=invalid#enquiry-heading`);
+    redirect(`${returnPath}?enquiry_error=invalid#enquiry-heading`);
   }
 
   const supabase = await createSessionClient();
@@ -35,7 +31,8 @@ export async function sendEnquiry(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`${schoolPath}#enquiry-heading`)}`);
+    const locale = returnPath.split("/")[1] || "en";
+    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`${returnPath}#enquiry-heading`)}`);
   }
 
   const { error } = await supabase.from("enquiries").insert({
@@ -46,8 +43,8 @@ export async function sendEnquiry(formData: FormData) {
   });
 
   if (error) {
-    redirect(`${schoolPath}?enquiry_error=failed#enquiry-heading`);
+    redirect(`${returnPath}?enquiry_error=failed#enquiry-heading`);
   }
 
-  redirect(`${schoolPath}?enquiry_sent=1#enquiry-heading`);
+  redirect(`${returnPath}?enquiry_sent=1#enquiry-heading`);
 }

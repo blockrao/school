@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
-import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { getSchoolCanonicalPath, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
 import { maskEmail, maskPhone } from "@/lib/mask";
 import { submitClaim } from "./actions";
@@ -36,7 +36,7 @@ export default async function ClaimSchoolPage({
   if (!school) notFound();
 
   if (school.claim === "claimed") {
-    redirect(`/en/school/${school.id}-${school.slug}`);
+    redirect((await getSchoolCanonicalPath(school.id, "en")) ?? "/en/schools");
   }
 
   const errorCode = first(rawSearchParams.error);

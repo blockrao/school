@@ -17,15 +17,12 @@ async function getLaunchedCityOptions(locale: string): Promise<CityOption[]> {
   const areas = await listPublicAreas();
   return areas
     .filter((area) => area.is_launch)
-    .map((area) => {
-      const stateSlug = slugify(area.state);
-      return {
-        slug: area.slug,
-        name: area.name,
-        stateSlug,
-        href: `/${locale}/${stateSlug}/${area.slug}`,
-      };
-    });
+    .map((area) => ({
+      slug: area.slug,
+      name: area.name,
+      stateSlug: slugify(area.state),
+      href: `/${locale}/${area.slug}`,
+    }));
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {

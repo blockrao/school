@@ -8,11 +8,13 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
+  getCitiesByDistrictIds,
   listPublicSchoolsByIds,
 } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
+import { schoolPath } from "@/lib/school-url";
 
 // design-pending: no matching file in design/ for a saved-schools list. Built from
 // the same SchoolCard grid every other listing page uses.
@@ -55,10 +57,17 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
     return school ? [school] : [];
   });
 
-  const [boardNames, admissionDeadlines] = await Promise.all([
+  const districtIds = orderedSchools.flatMap((s) => (s.district_id != null ? [s.district_id] : []));
+  const [boardNames, admissionDeadlines, citiesByDistrict] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
+    getCitiesByDistrictIds(districtIds),
   ]);
+
+  function hrefFor(school: (typeof orderedSchools)[number]): string {
+    const city = school.district_id != null ? citiesByDistrict.get(school.district_id) : undefined;
+    return city ? schoolPath(locale, city.slug, school) : `/${locale}/schools`;
+  }
 
   return (
     <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
@@ -80,7 +89,7 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
             return (
               <SchoolCard
                 key={school.id}
-                href={`/${locale}/school/${school.id}-${school.slug}`}
+                href={hrefFor(school)}
                 name={school.name_en ?? "Name not yet published"}
                 meta={meta}
                 now={now}
