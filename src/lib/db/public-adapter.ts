@@ -274,7 +274,13 @@ export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | nu
  */
 export async function getSelectedAreaSlug(): Promise<string> {
   const launched = (await listPublicAreas()).filter((a) => a.is_launch);
-  const fallback = launched[0]?.slug ?? "jaipur";
+  // "First launched area" isn't a stable notion — listPublicAreas() has no
+  // ORDER BY, so its row order follows Postgres's own scan order (by
+  // district id), not launch priority. Jaipur is the platform's primary,
+  // fully-published market; other launched areas (e.g. Gurugram, added for
+  // city-picker testing with no published schools yet) must never become
+  // the silent default for a visitor with no cookie.
+  const fallback = launched.find((a) => a.slug === "jaipur")?.slug ?? launched[0]?.slug ?? "jaipur";
   const store = await cookies();
   const cookieSlug = store.get(CITY_COOKIE_NAME)?.value;
   return cookieSlug && launched.some((a) => a.slug === cookieSlug) ? cookieSlug : fallback;
