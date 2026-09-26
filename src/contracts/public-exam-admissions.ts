@@ -89,6 +89,10 @@ export const publicExamAdmissionContract = z.object({
   reservation_splits: z.array(publicExamReservationSplitContract),
   centres: z.array(publicExamCentreContract),
   participating_schools: z.array(publicExamParticipatingSchoolContract),
+  // Free-form prose explaining how raw marks become the merit list (subject
+  // weightings, qualifying cutoffs, tie-break order) — distinct from
+  // eligibility_notes_en, which covers who may apply rather than how they're ranked.
+  selection_notes: z.string().nullable(),
 });
 
 export type PublicExamMilestone = z.infer<typeof publicExamMilestoneContract>;

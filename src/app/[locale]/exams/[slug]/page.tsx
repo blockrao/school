@@ -136,6 +136,16 @@ function EligibilityNotes({ cycle }: { cycle: PublicExamAdmission }) {
   );
 }
 
+function SelectionNotes({ cycle }: { cycle: PublicExamAdmission }) {
+  if (!cycle.selection_notes) return null;
+  return (
+    <div>
+      <SectionHeading>How the merit list is decided</SectionHeading>
+      <p className="text-body text-muted-ink">{cycle.selection_notes}</p>
+    </div>
+  );
+}
+
 // The pattern jsonb is exam/class-specific free-form content — rendered
 // defensively since its shape isn't (and shouldn't be) locked in the schema.
 function ExamPattern({ pattern }: { pattern: unknown }) {
@@ -321,6 +331,7 @@ function CycleCard({ cycle, now }: { cycle: PublicExamAdmission; now: Date }) {
       <FeeTiers cycle={cycle} />
       <ReservationSplits cycle={cycle} />
       <ExamPattern pattern={cycle.pattern} />
+      <SelectionNotes cycle={cycle} />
       <Syllabus syllabus={cycle.syllabus} />
 
       {cycle.milestones.length > 0 && (
