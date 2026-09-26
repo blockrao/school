@@ -29,7 +29,15 @@ export function primaryNavItems(locale: string, admissionsHref: string): Primary
   ];
 }
 
-export function SiteHeader({ locale, areas }: { locale: string; areas: CityOption[] }) {
+export function SiteHeader({
+  locale,
+  areas,
+  isSignedIn,
+}: {
+  locale: string;
+  areas: CityOption[];
+  isSignedIn: boolean;
+}) {
   const admissionsHref = areas[0]?.href ?? `/${locale}/schools`;
   const items = primaryNavItems(locale, admissionsHref);
 
@@ -38,7 +46,7 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
       {/* Mobile: hamburger, logo, city, locale switch */}
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
-          <MobileMenu locale={locale} items={items} />
+          <MobileMenu locale={locale} items={items} isSignedIn={isSignedIn} />
           <Link href={`/${locale}`} className="font-display text-card font-bold text-ruled-blue">
             SchoolOye
           </Link>
@@ -87,7 +95,9 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
           <CityPicker areas={areas} />
           <LocaleSwitcher />
           <Button asChild variant="secondary" className="h-11 border-ruled-blue">
-            <Link href={`/${locale}/sign-in`}>Sign in</Link>
+            <Link href={isSignedIn ? `/${locale}/my` : `/${locale}/sign-in`}>
+              {isSignedIn ? "My account" : "Sign in"}
+            </Link>
           </Button>
         </div>
       </div>

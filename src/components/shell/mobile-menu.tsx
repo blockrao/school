@@ -6,7 +6,15 @@ import type { PrimaryNavItem } from "@/components/shell/primary-nav";
 import { Button } from "@/components/ui/button";
 
 /** Hamburger trigger + slide-in overlay panel. Open/close is real client state — the one piece of the shell that needs it. */
-export function MobileMenu({ locale, items }: { locale: string; items: PrimaryNavItem[] }) {
+export function MobileMenu({
+  locale,
+  items,
+  isSignedIn,
+}: {
+  locale: string;
+  items: PrimaryNavItem[];
+  isSignedIn: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -59,8 +67,11 @@ export function MobileMenu({ locale, items }: { locale: string; items: PrimaryNa
 
             <div className="border-b border-rule p-4">
               <Button asChild className="w-full">
-                <Link href={`/${locale}/my`} onClick={() => setOpen(false)}>
-                  Sign in
+                <Link
+                  href={isSignedIn ? `/${locale}/my` : `/${locale}/sign-in`}
+                  onClick={() => setOpen(false)}
+                >
+                  {isSignedIn ? "My account" : "Sign in"}
                 </Link>
               </Button>
             </div>
