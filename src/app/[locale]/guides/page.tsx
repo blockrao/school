@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { localeAlternates, localeCanonical } from "@/lib/seo";
+
 // Fully static content (no per-user or per-request data) — the layout no
 // longer forces this dynamic (see [locale]/layout.tsx), so it can be a real
 // ISR page instead of rendering fresh on every request.
@@ -21,13 +23,16 @@ const TOPICS = [
   },
 ];
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/guides">): Promise<Metadata> {
+  const { locale } = await params;
   return {
     title: "Guides — SchoolOye",
     description: "Admission process, required documents, and board comparisons for parents.",
     alternates: {
-      canonical: "/guides",
-      languages: { "en-IN": "/en/guides", "hi-IN": "/hi/guides" },
+      canonical: localeCanonical(locale, "/guides"),
+      languages: localeAlternates("/guides"),
     },
   };
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { StatusPill } from "@/components/ui/badges";
 import { listPublicExams } from "@/lib/db/public-adapter";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { classLabel } from "@/lib/text";
 
@@ -9,14 +10,17 @@ import { classLabel } from "@/lib/text";
 // per exam, so keep the revalidate window short rather than caching a stale pill.
 export const revalidate = 900;
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/exams">): Promise<Metadata> {
+  const { locale } = await params;
   return {
     title: "Entrance Exams — SchoolOye",
     description:
       "National and multi-school entrance exams: eligibility, dates, fees and how to apply — verified against each exam's official notification.",
     alternates: {
-      canonical: "/exams",
-      languages: { "en-IN": "/en/exams", "hi-IN": "/hi/exams" },
+      canonical: localeCanonical(locale, "/exams"),
+      languages: localeAlternates("/exams"),
     },
   };
 }

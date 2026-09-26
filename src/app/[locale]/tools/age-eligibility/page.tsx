@@ -3,6 +3,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { ageAtDate, nextAcademicYear, referenceDates } from "@/lib/age";
 import { getSelectedCityArea } from "@/lib/db/public-adapter";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 
 // Ported from design/Age Checker.dc.html with one deliberate change: the design
 // shows a confident "Eligible for Nursery in 2027–28" verdict sourced from a
@@ -77,8 +78,8 @@ export async function generateMetadata({
     title: `${copy.title} — SchoolOye`,
     description: copy.subtitle,
     alternates: {
-      canonical: "/tools/age-eligibility",
-      languages: { "en-IN": "/en/tools/age-eligibility", "hi-IN": "/hi/tools/age-eligibility" },
+      canonical: localeCanonical(locale, "/tools/age-eligibility"),
+      languages: localeAlternates("/tools/age-eligibility"),
     },
   };
 }

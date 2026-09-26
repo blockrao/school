@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listSchoolRankings } from "@/lib/db/public-adapter";
 import { schoolPath } from "@/lib/school-url";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 
 const CITY_SLUG = "jaipur";
 
@@ -71,17 +72,17 @@ const SCHOOL_BLURBS: Record<string, string> = {
   "a1bd7712-f24f-4ef1-9b2e-79101a4777b6": "A co-ed school in Sitapura's IT Park corridor.",
 };
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/guides/top-schools-in-jaipur">): Promise<Metadata> {
+  const { locale } = await params;
   return {
     title: "Top Schools in Jaipur, by Category — SchoolOye",
     description:
       "Jaipur's top-ranked schools across co-ed, girls', boarding and emerging categories, with a brief note on each and a link to its full profile.",
     alternates: {
-      canonical: "/guides/top-schools-in-jaipur",
-      languages: {
-        "en-IN": "/en/guides/top-schools-in-jaipur",
-        "hi-IN": "/hi/guides/top-schools-in-jaipur",
-      },
+      canonical: localeCanonical(locale, "/guides/top-schools-in-jaipur"),
+      languages: localeAlternates("/guides/top-schools-in-jaipur"),
     },
   };
 }

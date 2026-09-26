@@ -15,6 +15,7 @@ import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { istDateLabel } from "@/lib/ist-date";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
 
 const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
@@ -31,7 +32,7 @@ export const revalidate = 900;
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/exams/[slug]">): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const cycles = await getPublicAdmissionsByExamSlug(slug);
   if (cycles.length === 0) return { title: "Not found" };
 
@@ -43,8 +44,8 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `/exams/${slug}`,
-      languages: { "en-IN": `/en/exams/${slug}`, "hi-IN": `/hi/exams/${slug}` },
+      canonical: localeCanonical(locale, `/exams/${slug}`),
+      languages: localeAlternates(`/exams/${slug}`),
     },
   };
 }

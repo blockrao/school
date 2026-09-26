@@ -25,6 +25,7 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath } from "@/lib/school-url";
+import { localeCanonical } from "@/lib/seo";
 
 const PAGE_SIZE = 24;
 
@@ -66,7 +67,7 @@ export async function generateMetadata({
   params,
   searchParams,
 }: PageProps<"/[locale]/[city]">): Promise<Metadata> {
-  const { city: citySlug } = await params;
+  const { locale, city: citySlug } = await params;
   const resolved = await resolvePlace(citySlug);
 
   if (!resolved) {
@@ -81,7 +82,7 @@ export async function generateMetadata({
     return {
       title: `Schools near ${town.townName}, ${town.stateName} — SchoolOye`,
       description: `Schools near ${town.townName}: fees, facilities and admission dates.`,
-      alternates: { canonical: `/${citySlug}` },
+      alternates: { canonical: localeCanonical(locale, `/${citySlug}`) },
     };
   }
 
@@ -95,7 +96,7 @@ export async function generateMetadata({
   return {
     title: `${city.cityName} schools — SchoolOye`,
     description: `Browse schools in ${city.cityName}, ${city.stateName}: fees, facilities and admission dates.`,
-    alternates: { canonical: `/${citySlug}` },
+    alternates: { canonical: localeCanonical(locale, `/${citySlug}`) },
     robots: filtersActive ? { index: false, follow: true } : undefined,
   };
 }

@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
 
+import { localeAlternates, localeCanonical } from "@/lib/seo";
+
 // design-pending — no design file for a legal page. Placeholder content only,
 // same status/reasoning as terms/page.tsx (see that file's comment).
 
-export const metadata: Metadata = {
-  title: "Privacy Notice — SchoolOye",
-  alternates: {
-    canonical: "/privacy",
-    languages: { "en-IN": "/en/privacy", "hi-IN": "/hi/privacy" },
-  },
-};
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/privacy">): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: "Privacy Notice — SchoolOye",
+    alternates: {
+      canonical: localeCanonical(locale, "/privacy"),
+      languages: localeAlternates("/privacy"),
+    },
+  };
+}
 
 export default function PrivacyPage() {
   return (

@@ -26,13 +26,14 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath } from "@/lib/school-url";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { sendEnquiry } from "./actions";
 import { type ResolvedCity, resolveEntity } from "./resolve";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/[city]/[entitySlug]">): Promise<Metadata> {
-  const { city: citySlug, entitySlug } = await params;
+  const { locale, city: citySlug, entitySlug } = await params;
   const resolved = await resolveEntity(citySlug, entitySlug);
   if (!resolved) return { title: "Not found" };
   if (resolved.kind === "redirect") return { title: "Redirecting" };
@@ -42,7 +43,7 @@ export async function generateMetadata({
     return {
       title: `Schools in ${locality.name}, ${city.cityName} — SchoolOye`,
       description: `${locality.name}: schools, fees, facilities and admission dates in ${city.cityName}.`,
-      alternates: { canonical: `/${citySlug}/${entitySlug}` },
+      alternates: { canonical: localeCanonical(locale, `/${citySlug}/${entitySlug}`) },
     };
   }
 
@@ -50,14 +51,14 @@ export async function generateMetadata({
   const { school } = bundle;
   const name = school.name_en ?? "School";
   const areaLabel = school.locality_name ?? city.cityName;
-  const canonicalPath = schoolPath("en", citySlug, school).replace(/^\/en/, "");
+  const path = schoolPath("en", citySlug, school).replace(/^\/en/, "");
 
   return {
     title: `${name}, ${areaLabel} — SchoolOye`,
     description: `${name}: board, grades, fees and admission dates in ${areaLabel}.`,
     alternates: {
-      canonical: canonicalPath,
-      languages: { "en-IN": `/en${canonicalPath}`, "hi-IN": `/hi${canonicalPath}` },
+      canonical: localeCanonical(locale, path),
+      languages: localeAlternates(path),
     },
   };
 }

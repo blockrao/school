@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listPublicAreas } from "@/lib/db/public-adapter";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 
 // design-pending — no design file for a legal page. Placeholder content only:
 // SchoolOye has no final Terms of Service yet (pending legal review, same
@@ -8,10 +9,15 @@ import { listPublicAreas } from "@/lib/db/public-adapter";
 // of — the version string below (see src/lib/consent.ts) is what's recorded
 // on the user's `consents` row, not this specific wording.
 
-export const metadata: Metadata = {
-  title: "Terms of Service — SchoolOye",
-  alternates: { canonical: "/terms", languages: { "en-IN": "/en/terms", "hi-IN": "/hi/terms" } },
-};
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/terms">): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: "Terms of Service — SchoolOye",
+    alternates: { canonical: localeCanonical(locale, "/terms"), languages: localeAlternates("/terms") },
+  };
+}
 
 export default async function TermsPage() {
   // Describes the platform's actual current scope, not any one visitor's chosen

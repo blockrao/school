@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listApplicationHelpProducts } from "@/lib/db/application-help";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 
 type Copy = {
   title: string;
@@ -80,8 +81,8 @@ export async function generateMetadata({
     title: `${copy.title} — SchoolOye`,
     description: copy.subtitle,
     alternates: {
-      canonical: "/admissions/help",
-      languages: { "en-IN": "/en/admissions/help", "hi-IN": "/hi/admissions/help" },
+      canonical: localeCanonical(locale, "/admissions/help"),
+      languages: localeAlternates("/admissions/help"),
     },
   };
 }

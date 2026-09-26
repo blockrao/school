@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 import Form from "next/form";
 import Link from "next/link";
 import { StatusPill } from "@/components/ui/badges";
@@ -18,15 +19,18 @@ import { cn } from "@/lib/utils";
 // South West Delhi stays built but unlinked — see CLAUDE.md. Which city renders
 // here is resolved per-request (see getSelectedCityArea): the user's own pick if
 // they've chosen one, otherwise the platform default.
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
   const area = await getSelectedCityArea();
   const label = area?.cityName ?? "your city";
   return {
     title: `Find the right school in ${label} — SchoolOye`,
     description: `Search and compare schools in ${label}: fees, facilities and admission dates in one place.`,
     alternates: {
-      canonical: "/",
-      languages: { "en-IN": "/en", "hi-IN": "/hi" },
+      canonical: localeCanonical(locale),
+      languages: localeAlternates(),
     },
   };
 }

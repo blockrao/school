@@ -2,21 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/state-message";
 import { getSelectedCityArea } from "@/lib/db/public-adapter";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { listPublicTeacherSubjects, listPublicTeachers } from "@/lib/db/teachers";
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/teachers">): Promise<Metadata> {
+  const { locale } = await params;
   const area = await getSelectedCityArea();
   const label = area?.cityName ?? "your city";
   return {
     title: `Teachers in ${label} — SchoolOye`,
     description: `Find teachers in ${label} by subject and school.`,
     alternates: {
-      canonical: "/teachers",
-      languages: { "en-IN": "/en/teachers", "hi-IN": "/hi/teachers" },
+      canonical: localeCanonical(locale, "/teachers"),
+      languages: localeAlternates("/teachers"),
     },
   };
 }

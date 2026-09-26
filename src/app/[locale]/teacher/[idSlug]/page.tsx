@@ -5,6 +5,7 @@ import { startConversation } from "@/app/[locale]/my/messages/actions";
 import { FieldError } from "@/components/ui/field-error";
 import { findConversation } from "@/lib/db/messages";
 import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
+import { localeCanonical } from "@/lib/seo";
 import { listPublicTeacherSchools } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import {
@@ -32,7 +33,7 @@ function parseIdSlug(idSlug: string): { id: string; slug: string } | null {
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/teacher/[idSlug]">): Promise<Metadata> {
-  const { idSlug } = await params;
+  const { locale, idSlug } = await params;
   const parsed = parseIdSlug(idSlug);
   if (!parsed) return { title: "Not found" };
   const teacher = await getPublicTeacherById(parsed.id);
@@ -40,7 +41,7 @@ export async function generateMetadata({
   return {
     title: `${teacher.full_name}${teacher.subject ? `, ${teacher.subject} teacher` : ""} — SchoolOye`,
     description: teacher.headline ?? undefined,
-    alternates: { canonical: `/teacher/${teacher.id}-${teacher.slug}` },
+    alternates: { canonical: localeCanonical(locale, `/teacher/${teacher.id}-${teacher.slug}`) },
   };
 }
 
