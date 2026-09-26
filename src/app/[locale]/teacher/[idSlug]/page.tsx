@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { startConversation } from "@/app/[locale]/my/messages/actions";
+import { FieldError } from "@/components/ui/field-error";
+import { findConversation } from "@/lib/db/messages";
 import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import {
@@ -40,10 +43,23 @@ export async function generateMetadata({
   };
 }
 
+function first(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+const MESSAGE_ERROR_COPY: Record<string, string> = {
+  invalid_message: "Enter a message before sending.",
+  rate_limited: "Too many messages sent — please wait a bit and try again.",
+  message_failed: "Something went wrong sending that. Please try again.",
+};
+
 export default async function TeacherProfilePage({
   params,
+  searchParams,
 }: PageProps<"/[locale]/teacher/[idSlug]">) {
   const { locale, idSlug } = await params;
+  const rawSearchParams = await searchParams;
+  const errorCode = first(rawSearchParams.error);
   const parsed = parseIdSlug(idSlug);
   if (!parsed) notFound();
 
@@ -65,16 +81,14 @@ export default async function TeacherProfilePage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const isOwner =
-    !!user &&
-    (
-      await supabase
-        .from("teachers")
-        .select("id")
-        .eq("id", teacher.id)
-        .eq("claimed_by", user.id)
-        .maybeSingle()
-    ).data;
+  const { data: teacherAuthRow } = await supabase
+    .from("teachers")
+    .select("claimed_by")
+    .eq("id", teacher.id)
+    .maybeSingle();
+  const isOwner = !!user && teacherAuthRow?.claimed_by === user.id;
+  const isClaimed = !!teacherAuthRow?.claimed_by;
+  const existingConversation = user && !isOwner ? await findConversation(teacher.id) : null;
 
   const teacherJsonLd = {
     "@context": "https://schema.org",
@@ -135,6 +149,52 @@ export default async function TeacherProfilePage({
           Manage your profile
         </Link>
       )}
+
+      {isOwner ? null : isClaimed ? (
+        existingConversation ? (
+          <Link
+            href={`/${locale}/my/messages/${existingConversation.id}`}
+            className="mt-4 inline-flex h-11 w-fit items-center rounded-md bg-ruled-blue px-4 font-semibold text-copy-white"
+          >
+            View your conversation
+          </Link>
+        ) : user ? (
+          <form action={startConversation} className="mt-4 flex flex-col gap-2">
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="teacherId" value={teacher.id} />
+            <input type="hidden" name="teacherIdSlug" value={idSlug} />
+            <label className="flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-muted-ink">
+                Message {teacher.full_name}
+              </span>
+              <textarea
+                name="body"
+                required
+                rows={3}
+                maxLength={4000}
+                placeholder="Hi, I'd like to ask about..."
+                className="max-w-lg rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
+              />
+            </label>
+            {errorCode && MESSAGE_ERROR_COPY[errorCode] && (
+              <FieldError id="message-error">{MESSAGE_ERROR_COPY[errorCode]}</FieldError>
+            )}
+            <button
+              type="submit"
+              className="flex h-11 w-fit items-center rounded-md bg-ruled-blue px-4 font-semibold text-copy-white"
+            >
+              Send message
+            </button>
+          </form>
+        ) : (
+          <Link
+            href={`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teacher/${idSlug}`)}`}
+            className="mt-4 inline-flex h-11 w-fit items-center rounded-md bg-ruled-blue px-4 font-semibold text-copy-white"
+          >
+            Sign in to message {teacher.full_name}
+          </Link>
+        )
+      ) : null}
 
       {teacher.about && (
         <div className="mt-8 border-t border-rule pt-6">

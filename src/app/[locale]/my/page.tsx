@@ -21,6 +21,7 @@ type Copy = {
   turnOff: string;
   shortlistLink: string;
   admissionsLink: string;
+  messagesLink: string;
   accountLink: string;
 };
 
@@ -35,6 +36,7 @@ const COPY: Record<string, Copy> = {
     turnOff: "Turn off",
     shortlistLink: "Saved schools",
     admissionsLink: "My Admissions",
+    messagesLink: "Messages",
     accountLink: "Account settings",
   },
   hi: {
@@ -47,6 +49,7 @@ const COPY: Record<string, Copy> = {
     turnOff: "बंद करें",
     shortlistLink: "सेव किए स्कूल",
     admissionsLink: "मेरे प्रवेश",
+    messagesLink: "संदेश",
     accountLink: "खाता सेटिंग्स",
   },
 };
@@ -178,6 +181,13 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
           lang={isHi ? "hi" : undefined}
         >
           {copy.admissionsLink}
+        </Link>
+        <Link
+          href={`/${locale}/my/messages`}
+          className="inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
+          lang={isHi ? "hi" : undefined}
+        >
+          {copy.messagesLink}
         </Link>
       </div>
     </div>

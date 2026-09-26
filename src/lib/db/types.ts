@@ -489,6 +489,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      conversations: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          initiator_id: string;
+          created_at: string;
+          last_message_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          initiator_id: string;
+          created_at?: string;
+          last_message_at?: string;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          initiator_id?: string;
+          created_at?: string;
+          last_message_at?: string;
+        };
+        Relationships: [];
+      };
       content_posts: {
         Row: {
           id: string;
@@ -1110,6 +1134,30 @@ export type Database = {
         Update: {
           locality_id?: number;
           pincode?: string;
+        };
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          body?: string;
+          created_at?: string;
         };
         Relationships: [];
       };
