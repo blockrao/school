@@ -1,5 +1,11 @@
 # SchoolOye — frontend repo rules
 
+Architecture baseline (frozen, three-round-reviewed): `docs/architecture-baseline.md`
+reconciles it against this actual schema — most of it is already built here, more
+precisely than the baseline doc assumed. One real gap: no standalone `exams`/`exam_cycles`
+entity yet (see that file) — model it before building the exam detail page, not as a
+special case of `admission_cycles`.
+
 India K-12 school discovery: school graph + claim flow, OpenSeat vacancies, admission help, teacher profiles.
 Launch: Delhi, Gurugram, Haryana. English first, Hindi next (`/hi`).
 Current launch city: **Jaipur, Rajasthan** (see `docs/DATA_ACCESS.md`'s routing note — district is
