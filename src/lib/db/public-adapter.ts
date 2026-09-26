@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import {
   type PublicExamAdmission,
   type PublicExamApplicationStep,
@@ -251,13 +252,23 @@ export type PublicArea = {
   is_launch: boolean;
 };
 
-/** Reads api.public_areas directly — that view already computes school_count and is_launch. */
-export async function listPublicAreas(): Promise<PublicArea[]> {
+/**
+ * Reads api.public_areas directly — that view already computes school_count
+ * and is_launch. Wrapped in React's cache() (request memoization): this is
+ * called independently by the root [locale]/layout.tsx (header/mobile nav)
+ * AND by SiteFooter — every single page in the app was firing this exact
+ * query twice, and Next's own Link prefetching multiplied that further (a
+ * live production trace showed 16 near-identical calls in under a second on
+ * ordinary navigation). cache() collapses repeat calls within one request
+ * into a single query, for free — this data is also nearly static (launch
+ * cities), so there's no correctness cost to reusing it across a request.
+ */
+export const listPublicAreas = cache(async (): Promise<PublicArea[]> => {
   const api = createApiSchemaClient();
   const { data, error } = await api.from("public_areas").select("*");
   if (error || !data) return [];
   return data.map((row) => publicAreaContract.parse(row));
-}
+});
 
 export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | null> {
   const areas = await listPublicAreas();

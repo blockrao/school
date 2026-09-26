@@ -34,15 +34,18 @@ export default async function PortalDashboardPage() {
     membership: { schoolId },
   } = await requireSchoolMember();
 
-  const school = (await listPublicSchoolsByIds([schoolId])).at(0);
   const academicYear = currentSessionLabel();
 
-  const [classLevels, seatRows, notices, enquiries] = await Promise.all([
+  // All five of these are independent (only schoolId/academicYear, already
+  // in hand) — one round trip's worth of latency instead of five stacked.
+  const [schools, classLevels, seatRows, notices, enquiries] = await Promise.all([
+    listPublicSchoolsByIds([schoolId]),
     listClassLevels(),
     listSeatStatusForSchool(schoolId, academicYear),
     listNoticesForSchool(schoolId),
     listEnquiriesForSchool(schoolId),
   ]);
+  const school = schools.at(0);
 
   const latestByClass = new Map<string, (typeof seatRows)[number]>();
   for (const row of seatRows) {
