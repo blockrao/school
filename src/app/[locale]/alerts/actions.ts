@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ALERTS_NOTICE_VERSION } from "@/lib/consent";
 import { getPublicCityBySlug } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 const subscribeSchema = z.object({
   locale: z.string().min(1),
@@ -32,9 +32,7 @@ export async function subscribeToAlerts(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/alerts`)}`);
   }

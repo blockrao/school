@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMySchoolId } from "@/lib/db/portal";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 const postSchema = z.object({
   kind: z.enum(["news", "press"]),
@@ -29,9 +29,7 @@ export async function submitSchoolPost(formData: FormData) {
   if (!schoolId) redirect("/for-schools");
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   const { error } = await supabase.from("school_posts").insert({
     school_id: schoolId,

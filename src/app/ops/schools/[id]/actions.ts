@@ -35,7 +35,7 @@ export async function updateSchool(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Missing school id");
 
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   const establishedYearRaw = String(formData.get("established_year") ?? "").trim();
 

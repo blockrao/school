@@ -8,7 +8,7 @@ export async function assignLocality(formData: FormData) {
   const localityId = String(formData.get("localityId") ?? "");
   const note = String(formData.get("note") ?? "");
 
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   await supabase
     .from("schools")

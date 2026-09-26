@@ -11,7 +11,7 @@ import {
   getCitiesByDistrictIds,
   listPublicSchoolsByIds,
 } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath } from "@/lib/school-url";
@@ -35,9 +35,7 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
   const now = new Date();
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/shortlist`)}`);

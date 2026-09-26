@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { updatePassword } from "../sign-in/password-actions";
 
 type Copy = {
@@ -72,9 +72,7 @@ export default async function ResetPasswordPage({
   const errorCode = first(rawSearchParams.error);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/forgot-password`);
   }

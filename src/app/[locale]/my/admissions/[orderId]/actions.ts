@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 const DOCUMENT_STORAGE_NOTICE_VERSION = "document-storage-2026-09";
 const DOCUMENT_RETENTION_MONTHS = 12;
@@ -73,9 +73,7 @@ export async function uploadDocument(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(
       `/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/admissions/${orderId}/documents`)}`,

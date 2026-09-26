@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPublicCityById, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
 import { unsubscribeAlert } from "./actions";
 
@@ -69,9 +69,7 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
   const isHi = locale === "hi";
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my`)}`);

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMySchoolId } from "@/lib/db/portal";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 const editRequestSchema = z.object({
   field: z.string().trim().min(1),
@@ -27,9 +27,7 @@ export async function submitEditRequest(formData: FormData) {
   if (!schoolId) redirect("/for-schools");
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) redirect(`/en/sign-in?next=${encodeURIComponent(path)}`);
 
   const { error } = await supabase.from("correction_requests").insert({

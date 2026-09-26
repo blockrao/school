@@ -3,16 +3,14 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const UNIQUE_VIOLATION = "23505";
 
 async function requireOwnedTeacher(teacherId: string) {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return null;
 
   const { data } = await supabase

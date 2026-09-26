@@ -5,7 +5,7 @@ import { requireStaff } from "@/lib/db/ops";
 
 export async function resolveCorrection(formData: FormData) {
   const requestId = String(formData.get("requestId") ?? "");
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   await supabase
     .from("correction_requests")

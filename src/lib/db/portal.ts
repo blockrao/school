@@ -1,5 +1,5 @@
 import "server-only";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export type ClassLevel = {
   code: string;
@@ -20,9 +20,7 @@ export async function listClassLevels(): Promise<ClassLevel[]> {
 /** The first school the signed-in user is a member of, or null if they're not a member of any. */
 export async function getMySchoolId(): Promise<string | null> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return null;
 
   const { data } = await supabase

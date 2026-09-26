@@ -5,7 +5,7 @@ import { requireStaff } from "@/lib/db/ops";
 
 export async function confirmSeatStatus(formData: FormData) {
   const seatId = String(formData.get("seatId") ?? "");
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   await supabase
     .from("seat_status")
@@ -17,7 +17,7 @@ export async function confirmSeatStatus(formData: FormData) {
 
 export async function rejectSeatStatus(formData: FormData) {
   const seatId = String(formData.get("seatId") ?? "");
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   await supabase.from("seat_status").delete().eq("id", seatId);
 

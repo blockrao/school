@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 /**
  * DPDP data-portability export — everything the app holds that's scoped to
@@ -11,9 +11,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const locale = url.pathname.split("/")[1] || "en";
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     return NextResponse.redirect(
       new URL(`/${locale}/sign-in?next=${encodeURIComponent(url.pathname)}`, url.origin),

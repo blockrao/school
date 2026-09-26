@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 /** Only allow same-origin relative paths as a post-auth redirect target (no open redirect). */
@@ -180,9 +180,7 @@ export async function updatePassword(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/reset-password`)}`);
   }

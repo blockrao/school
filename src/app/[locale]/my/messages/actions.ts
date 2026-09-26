@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const startSchema = z.object({
@@ -19,9 +19,7 @@ export async function startConversation(formData: FormData) {
   });
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) redirect(`/${locale}/sign-in`);
 
   if (!parsed.success) {
@@ -74,9 +72,7 @@ export async function sendReply(formData: FormData) {
   });
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) redirect(`/${locale}/sign-in`);
   if (!parsed.success) return;
 

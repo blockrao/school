@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OpsCorrectionsPage() {
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   const { data: requests } = await supabase
     .from("correction_requests")

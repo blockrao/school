@@ -8,7 +8,7 @@ import {
   searchPublicSchoolsByName,
 } from "@/lib/db/public-adapter";
 import { listTeacherAffiliations } from "@/lib/db/school-team";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { listMyTeacherExperience, listMyTeacherQualifications } from "@/lib/db/teachers";
 import {
   acceptSchoolInvite,
@@ -48,9 +48,7 @@ export default async function ManageTeacherProfilePage({
   if (!parsed) notFound();
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(
       `/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teacher/${idSlug}/manage`)}`,

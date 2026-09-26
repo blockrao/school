@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OpsLocalitiesPage() {
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   // Ops tools default to the platform's launch city rather than any visitor's
   // cookie (staff have no city preference of their own here). Once a second

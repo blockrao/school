@@ -11,7 +11,7 @@ export async function grantStaffRole(formData: FormData) {
   const role = String(formData.get("role") ?? "ops") as "ops" | "admin";
   if (!email) redirect("/ops/staff?error=missing_email");
 
-  const supabase = await requireAdmin();
+  const { supabase } = await requireAdmin();
   const { data: profile } = await supabase
     .from("profiles")
     .select("user_id")
@@ -30,10 +30,7 @@ export async function grantStaffRole(formData: FormData) {
 export async function revokeStaffRole(formData: FormData) {
   const userId = String(formData.get("userId") ?? "");
 
-  const supabase = await requireAdmin();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireAdmin();
 
   if (userId === user?.id) {
     redirect("/ops/staff?error=self_revoke");

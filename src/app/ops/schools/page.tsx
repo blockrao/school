@@ -60,7 +60,7 @@ export default async function OpsSchoolsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
   const params = await searchParams;
   const q = params.q?.trim() ?? "";
   const status = params.status ?? "draft";

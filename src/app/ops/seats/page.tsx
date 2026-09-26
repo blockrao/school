@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OpsSeatsPage() {
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   const { data: rows } = await supabase
     .from("seat_status")

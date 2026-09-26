@@ -1,5 +1,5 @@
 import "server-only";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export type Child = {
   id: string;
@@ -65,9 +65,7 @@ export type Application = {
 
 export async function listMyChildren(): Promise<Child[]> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return [];
 
   const { data } = await supabase
@@ -101,9 +99,7 @@ export async function getProductByCode(code: string): Promise<Product | null> {
 
 export async function getMyOrder(orderId: string): Promise<Order | null> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return null;
 
   const { data } = await supabase
@@ -117,9 +113,7 @@ export async function getMyOrder(orderId: string): Promise<Order | null> {
 
 export async function listMyOrders(): Promise<Order[]> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return [];
 
   const { data } = await supabase

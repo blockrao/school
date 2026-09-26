@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/ui/state-message";
 import { listAwaitingPaymentOrdersForStaff } from "@/lib/db/application-help";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { markOrderPaidByStaff } from "./actions";
 
 // Minimal, scoped only to the manual-provider "mark paid" step (Apply plan point
@@ -17,9 +17,7 @@ export const metadata: Metadata = {
 
 export default async function OpsOrdersPage() {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) redirect("/en/sign-in?next=%2Fops%2Forders");
 
   const { data: isStaff } = await supabase.rpc("is_staff");

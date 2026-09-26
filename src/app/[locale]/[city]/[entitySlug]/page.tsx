@@ -20,7 +20,7 @@ import {
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
 import { listPublicSchoolTeam } from "@/lib/db/school-team";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
@@ -292,9 +292,7 @@ export default async function EntityPage({
   const canonicalPath = schoolPath(locale, citySlug, school);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   const [admissions, shortlistedIdsSet, similarSchoolsRaw, team] = await Promise.all([
     getPublicAdmissionsBySchoolId(school.id),

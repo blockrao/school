@@ -12,7 +12,7 @@ export async function updateTaskStatus(formData: FormData) {
   const status = String(formData.get("status") ?? "") as TaskStatus;
   const outcome = formData.get("outcome");
 
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
   await supabase
     .from("ops_tasks")
     .update({
@@ -29,7 +29,7 @@ export async function assignTask(formData: FormData) {
   const taskId = String(formData.get("taskId") ?? "");
   const assignee = String(formData.get("assignee") ?? "");
 
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
   await supabase
     .from("ops_tasks")
     .update({ assignee: assignee || null, updated_at: new Date().toISOString() })
@@ -41,10 +41,7 @@ export async function assignTask(formData: FormData) {
 export async function claimTask(formData: FormData) {
   const taskId = String(formData.get("taskId") ?? "");
 
-  const supabase = await requireStaff();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireStaff();
 
   await supabase
     .from("ops_tasks")
@@ -67,7 +64,7 @@ export async function createTask(formData: FormData) {
 
   if (!kind) return;
 
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
   await supabase.from("ops_tasks").insert({
     kind,
     school_id: schoolId || null,

@@ -6,7 +6,7 @@ import { FieldError } from "@/components/ui/field-error";
 import { findConversation } from "@/lib/db/messages";
 import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
 import { listPublicTeacherSchools } from "@/lib/db/school-team";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import {
   getPublicTeacherById,
   listPublicTeacherExperience,
@@ -80,9 +80,7 @@ export default async function TeacherProfilePage({
   ]);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   const { data: teacherAuthRow } = await supabase
     .from("teachers")
     .select("claimed_by")

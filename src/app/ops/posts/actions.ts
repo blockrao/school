@@ -5,10 +5,7 @@ import { requireStaff } from "@/lib/db/ops";
 
 export async function approvePost(formData: FormData) {
   const postId = String(formData.get("postId") ?? "");
-  const supabase = await requireStaff();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireStaff();
 
   await supabase
     .from("school_posts")
@@ -25,10 +22,7 @@ export async function approvePost(formData: FormData) {
 
 export async function rejectPost(formData: FormData) {
   const postId = String(formData.get("postId") ?? "");
-  const supabase = await requireStaff();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireStaff();
 
   await supabase
     .from("school_posts")

@@ -46,10 +46,7 @@ export default async function OpsTasksPage({
 }) {
   const { status: statusParam = "open", mine } = await searchParams;
   const status = statusParam as TaskStatus | "all";
-  const supabase = await requireStaff();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireStaff();
 
   let query = supabase
     .from("ops_tasks")

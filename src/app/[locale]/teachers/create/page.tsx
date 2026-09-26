@@ -6,7 +6,7 @@ import {
   listPublicLocalitiesByCity,
   listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getMyTeacherProfile } from "@/lib/db/teachers";
 import { saveTeacherProfile } from "./actions";
 
@@ -29,9 +29,7 @@ export default async function CreateTeacherProfilePage({
   const rawSearchParams = await searchParams;
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teachers/create`)}`);
   }

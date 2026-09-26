@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { nextAcademicYear } from "@/lib/age";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getPaymentProvider } from "@/lib/payments/provider";
 
 const CHILD_PROFILE_NOTICE_VERSION = "child-profile-2026-09";
@@ -27,9 +27,7 @@ export async function addChild(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/admissions/help/package`)}`);
   }
@@ -78,9 +76,7 @@ export async function startCheckout(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/admissions/help/package`)}`);
   }

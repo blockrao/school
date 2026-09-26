@@ -18,7 +18,7 @@ export default async function OpsAuditPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { table } = await searchParams;
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   let query = supabase
     .from("audit_log")

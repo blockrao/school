@@ -5,10 +5,7 @@ import { requireStaff } from "@/lib/db/ops";
 
 export async function approveNotice(formData: FormData) {
   const noticeId = String(formData.get("noticeId") ?? "");
-  const supabase = await requireStaff();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireStaff();
 
   await supabase
     .from("admission_notices")
@@ -20,10 +17,7 @@ export async function approveNotice(formData: FormData) {
 
 export async function rejectNotice(formData: FormData) {
   const noticeId = String(formData.get("noticeId") ?? "");
-  const supabase = await requireStaff();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireStaff();
 
   await supabase
     .from("admission_notices")

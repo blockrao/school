@@ -1,5 +1,5 @@
 import "server-only";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export type ConversationSummary = {
   id: string;
@@ -20,9 +20,7 @@ export type ConversationSummary = {
  */
 export async function listMyConversations(): Promise<ConversationSummary[]> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return [];
 
   const { data: rows } = await supabase
@@ -92,9 +90,7 @@ export async function getConversation(
 /** The signed-in user's conversation with a teacher, if one already exists. */
 export async function findConversation(teacherId: string) {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return null;
 
   const { data } = await supabase

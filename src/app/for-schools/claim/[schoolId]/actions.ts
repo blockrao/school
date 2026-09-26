@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import type { Json } from "@/lib/db/types";
 
 const claimSchema = z.object({
@@ -26,9 +26,7 @@ export async function submitClaim(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/en/sign-in?next=${encodeURIComponent(claimPath)}`);
   }

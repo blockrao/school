@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 const enquirySchema = z.object({
   schoolId: z.string().min(1),
@@ -27,9 +27,7 @@ export async function sendEnquiry(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     const locale = returnPath.split("/")[1] || "en";
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`${returnPath}#enquiry-heading`)}`);

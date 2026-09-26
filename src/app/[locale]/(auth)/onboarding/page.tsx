@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
 import { FieldError } from "@/components/ui/field-error";
 import { needsOnboarding } from "@/lib/db/onboarding";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { completeOnboarding } from "./actions";
 
 // design-pending — no design file for first-login onboarding (the design set only
@@ -79,9 +79,7 @@ export default async function OnboardingPage({
   const errorCode = first(rawSearchParams.error);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/onboarding?next=${next}`)}`);
   }

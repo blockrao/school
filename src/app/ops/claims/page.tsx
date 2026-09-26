@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OpsClaimsPage() {
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
 
   const { data: claims } = await supabase
     .from("school_claims")

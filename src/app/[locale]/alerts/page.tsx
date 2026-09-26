@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
 import { FieldError } from "@/components/ui/field-error";
 import { getSelectedCityArea, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
 import { subscribeToAlerts } from "./actions";
 
@@ -95,9 +95,7 @@ export default async function AlertsPage({ params, searchParams }: PageProps<"/[
   const errorCode = first(rawSearchParams.error);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   if (!user) {
     const next = new URLSearchParams();

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { listApplicationHelpProducts, listMyChildren } from "@/lib/db/application-help";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { addChild, startCheckout } from "../actions";
 
 // design-pending: the design's 7b (Package picker) assumes a child is already on
@@ -34,9 +34,7 @@ export default async function ApplicationHelpPackagePage({
   const rawSearchParams = await searchParams;
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/admissions/help/package`)}`);
   }

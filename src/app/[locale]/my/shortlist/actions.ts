@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 /** Same-origin path+query from the Referer header, so Save/Remove can redirect back to
  * whichever list page the button was clicked from without threading a `next` field
@@ -28,9 +28,7 @@ export async function toggleShortlist(formData: FormData) {
   const back = await refererPath(locale);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(back)}`);
   }

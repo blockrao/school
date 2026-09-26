@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import type { Application } from "@/lib/db/application-help";
 import { listApplicationsForOrders, listMyChildren, listMyOrders } from "@/lib/db/application-help";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { approveApplication } from "./actions";
 
 // Design (7f) shows 4 status tones via ApplicationStatusRow (already built in the
@@ -57,9 +57,7 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
   const { locale } = await params;
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/admissions`)}`);
   }

@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/shell/site-footer";
 import { SiteHeader } from "@/components/shell/site-header";
 import type { CityOption } from "@/lib/city-preference";
 import { listPublicAreas } from "@/lib/db/public-adapter";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { slugify } from "@/lib/slug";
 
 const LOCALES = ["en", "hi"] as const;
@@ -34,9 +34,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
     getLaunchedCityOptions(locale),
     createSessionClient(),
   ]);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   const isSignedIn = !!user;
 
   return (

@@ -8,7 +8,7 @@ import {
   publicTeacherQualificationContract,
 } from "@/contracts";
 import { createApiSchemaClient } from "@/lib/db/public";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export async function listPublicTeachers(
   filters: { subject?: string } = {},
@@ -77,9 +77,7 @@ export async function listPublicTeacherQualifications(
 /** The signed-in user's own teacher row (any status), for the create/manage flow. Uses the raw table via the session client, not the api view — the api view only ever shows published+listed rows. */
 export async function getMyTeacherProfile() {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) return null;
 
   const { data } = await supabase

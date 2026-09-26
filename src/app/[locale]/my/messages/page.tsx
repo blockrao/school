@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/ui/state-message";
 import { listMyConversations } from "@/lib/db/messages";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export const metadata: Metadata = {
   title: "Messages — SchoolOye",
@@ -13,9 +13,7 @@ export const metadata: Metadata = {
 export default async function MessagesInboxPage({ params }: PageProps<"/[locale]/my/messages">) {
   const { locale } = await params;
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/messages`)}`);
 
   const conversations = await listMyConversations();

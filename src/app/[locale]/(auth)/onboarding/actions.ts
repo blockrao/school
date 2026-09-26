@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ACCOUNT_NOTICE_VERSION } from "@/lib/consent";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 /** Only allow same-origin relative paths as a post-onboarding redirect target (no open redirect). */
 function safeNext(next: FormDataEntryValue | null, locale: string): string {
@@ -35,9 +35,7 @@ export async function completeOnboarding(formData: FormData) {
   }
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/onboarding`)}`);
   }

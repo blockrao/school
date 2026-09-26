@@ -8,10 +8,7 @@ export async function approveClaim(formData: FormData) {
   const schoolId = String(formData.get("schoolId") ?? "");
   const userId = String(formData.get("userId") ?? "");
 
-  const supabase = await requireStaff();
-  const {
-    data: { user: staffUser },
-  } = await supabase.auth.getUser();
+  const { supabase, user: staffUser } = await requireStaff();
 
   await supabase
     .from("school_claims")
@@ -34,10 +31,7 @@ export async function approveClaim(formData: FormData) {
 export async function rejectClaim(formData: FormData) {
   const claimId = String(formData.get("claimId") ?? "");
 
-  const supabase = await requireStaff();
-  const {
-    data: { user: staffUser },
-  } = await supabase.auth.getUser();
+  const { supabase, user: staffUser } = await requireStaff();
 
   await supabase
     .from("school_claims")

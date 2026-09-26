@@ -1,6 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export type SchoolMembership = {
   schoolId: string;
@@ -23,9 +23,7 @@ export async function requireSchoolMember(): Promise<{
   membership: SchoolMembership;
 }> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) redirect("/for-schools");
 
   const { data } = await supabase

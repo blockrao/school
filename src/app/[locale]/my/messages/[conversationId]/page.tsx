@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { getConversation, listMessages } from "@/lib/db/messages";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { sendReply } from "../actions";
 
 export const metadata: Metadata = {
@@ -24,9 +24,7 @@ export default async function ConversationThreadPage({
   const errorCode = first(rawSearchParams.error);
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(
       `/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/messages/${conversationId}`)}`,

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 const nameSchema = z.object({ fullName: z.string().trim().min(1).max(200) });
 
@@ -11,9 +11,7 @@ export async function updateName(formData: FormData) {
   const parsed = nameSchema.safeParse({ fullName: formData.get("fullName") });
 
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
   if (!user) {
     redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/account`)}`);
   }

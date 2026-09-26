@@ -1,5 +1,5 @@
 import "server-only";
-import { createSessionClient } from "@/lib/db/session";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export type OpsCounts = {
   schoolsUnverified: number;
@@ -21,9 +21,7 @@ export type OpsCounts = {
  */
 export async function getOpsCounts(): Promise<OpsCounts> {
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser(supabase);
 
   const [
     schoolsUnverified,

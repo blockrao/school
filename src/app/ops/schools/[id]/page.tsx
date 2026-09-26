@@ -37,7 +37,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default async function OpsSchoolDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await requireStaff();
+  const { supabase } = await requireStaff();
   const { id } = await params;
 
   const [{ data: school }, { data: affiliation }, { data: identifiers }] = await Promise.all([

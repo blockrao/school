@@ -23,23 +23,15 @@ export default async function OpsStaffPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { error } = await searchParams;
-  const supabase = await requireStaff();
+  const { supabase, user } = await requireStaff();
 
-  // listStaff() is independent of the admin-role check below — run them
+  // The admin-role lookup and listStaff() are independent — run them
   // concurrently instead of stacking two round trips.
-  const meQuery = (async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const { data: me } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("user_id", user?.id ?? "")
-      .single();
-    return { userId: user?.id, isAdmin: me?.role === "admin" };
-  })();
-
-  const [{ userId, isAdmin }, staff] = await Promise.all([meQuery, listStaff()]);
+  const [{ data: me }, staff] = await Promise.all([
+    supabase.from("profiles").select("role").eq("user_id", user.id).single(),
+    listStaff(),
+  ]);
+  const isAdmin = me?.role === "admin";
 
   return (
     <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
@@ -118,7 +110,7 @@ export default async function OpsStaffPage({
                 <span className="rounded-full border border-rule px-2 py-0.5 text-meta capitalize">
                   {s.role}
                 </span>
-                {isAdmin && s.userId !== userId ? (
+                {isAdmin && s.userId !== user.id ? (
                   <form action={revokeStaffRole}>
                     <input type="hidden" name="userId" value={s.userId} />
                     <button
