@@ -23,6 +23,7 @@ export function primaryNavItems(locale: string, admissionsHref: string): Primary
       href: admissionsHref,
       note: "Open forms, deadlines, alerts",
     },
+    { label: "Exams", href: `/${locale}/exams`, note: "Entrance exams: eligibility, dates, fees" },
     { label: "Teachers", href: `/${locale}/teachers`, note: "Profiles" },
     { label: "Guides", href: `/${locale}/guides`, note: "Admission process, documents, boards" },
     { label: "For schools", href: "/for-schools", note: "Claim your page, post notices" },

@@ -234,7 +234,23 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </div>
       </div>
 
-      <div className="px-4 py-6 md:px-10 md:py-9">
+      <div className="flex flex-col gap-2.5 px-4 py-6 md:px-10 md:py-9">
+        <Link
+          href={`/${locale}/exams`}
+          className="flex items-center justify-between gap-3 rounded-md border border-rule bg-copy-white px-4 py-3.5 hover:border-ruled-blue"
+        >
+          <span className="flex flex-col">
+            <span className="font-display text-card font-semibold">Entrance exams</span>
+            <span className="text-body text-muted-ink">
+              Eligibility, dates and fees for RMS CET and other exams — verified against the
+              official notification
+            </span>
+          </span>
+          <span aria-hidden="true" className="text-card text-ruled-blue">
+            →
+          </span>
+        </Link>
+
         <Link
           href={`/${locale}/guides`}
           className="flex items-center justify-between gap-3 rounded-md border border-rule bg-copy-white px-4 py-3.5 hover:border-ruled-blue"

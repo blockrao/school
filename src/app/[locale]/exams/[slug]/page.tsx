@@ -15,6 +15,7 @@ import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { istDateLabel } from "@/lib/ist-date";
+import { classLabel } from "@/lib/text";
 
 const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 
@@ -46,10 +47,6 @@ export async function generateMetadata({
       languages: { "en-IN": `/en/exams/${slug}`, "hi-IN": `/hi/exams/${slug}` },
     },
   };
-}
-
-function classLabel(classCode: string): string {
-  return `Class ${classCode.replace(/^c/, "")}`;
 }
 
 function MilestoneRow({ milestone }: { milestone: PublicExamMilestone }) {

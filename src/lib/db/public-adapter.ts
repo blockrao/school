@@ -862,3 +862,51 @@ export async function getPublicAdmissionsByExamSlug(
     .order("closes_on", { ascending: true, nullsFirst: false });
   return (data ?? []).map((row) => publicExamAdmissionContract.parse(row));
 }
+
+export type PublicExamSummary = {
+  slug: string;
+  nameEn: string;
+  conductingBody: string | null;
+  classCodes: string[];
+  academicYears: string[];
+  soonestOpensOn: string | null;
+  soonestClosesOn: string | null;
+};
+
+/**
+ * One row per distinct exam (not per cycle) — for the /exams hub page. Groups
+ * api.public_exam_admissions by exam and keeps just enough to render a card
+ * linking to /exams/[slug]. Same publish gate as getPublicAdmissionsByExamSlug
+ * (the view itself only exposes ops_verified/school_verified cycles); the
+ * query is already ordered soonest-closing-first, so the first cycle seen per
+ * exam is the one whose open/close dates the card shows.
+ */
+export async function listPublicExams(): Promise<PublicExamSummary[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_exam_admissions")
+    .select("slug, name_en, conducting_body, class_code, academic_year, opens_on, closes_on")
+    .order("closes_on", { ascending: true, nullsFirst: false });
+
+  const bySlug = new Map<string, PublicExamSummary>();
+  for (const row of data ?? []) {
+    const existing = bySlug.get(row.slug);
+    if (!existing) {
+      bySlug.set(row.slug, {
+        slug: row.slug,
+        nameEn: row.name_en,
+        conductingBody: row.conducting_body,
+        classCodes: [row.class_code],
+        academicYears: [row.academic_year],
+        soonestOpensOn: row.opens_on,
+        soonestClosesOn: row.closes_on,
+      });
+      continue;
+    }
+    if (!existing.classCodes.includes(row.class_code)) existing.classCodes.push(row.class_code);
+    if (!existing.academicYears.includes(row.academic_year)) {
+      existing.academicYears.push(row.academic_year);
+    }
+  }
+  return Array.from(bySlug.values());
+}

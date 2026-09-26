@@ -4,10 +4,11 @@ import { slugify } from "@/lib/slug";
 
 /**
  * Only lists cities/pages with something real behind them. The design's footer includes
- * About our data / Privacy / Contact / Report-an-update links and a multi-city switcher —
- * none of those screens exist yet (not in the current build order), so they're left out
- * rather than linked to nothing. "Schools by city" lists launch areas from
- * listPublicAreas() (is_launch), not a hardcoded link.
+ * a multi-city switcher and a "Report an update" link — neither screen exists yet (not in
+ * the current build order), so they're left out rather than linked to nothing. "Schools by
+ * city" lists launch areas from listPublicAreas() (is_launch), not a hardcoded link. Privacy
+ * and Terms are real (if placeholder-content) pages — see their own files — so they're
+ * linked here now that the site is public.
  */
 export async function SiteFooter({ locale }: { locale: string }) {
   const areas = await listPublicAreas();
@@ -16,7 +17,7 @@ export async function SiteFooter({ locale }: { locale: string }) {
   return (
     <footer className="border-t border-rule bg-margin-paper px-4 pt-6 pb-24 md:px-10 md:pb-6 md:pt-10">
       <div className="mx-auto flex max-w-(--container-page) flex-col gap-7">
-        <div className="grid gap-7 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-7 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div className="flex flex-col gap-2">
             <span className="font-display text-section font-bold text-ruled-blue">SchoolOye</span>
             <p className="max-w-80 text-body text-muted-ink">
@@ -30,11 +31,36 @@ export async function SiteFooter({ locale }: { locale: string }) {
             <Link href={`/${locale}/schools`} className="flex min-h-8 items-center text-body">
               Schools
             </Link>
+            <Link href={`/${locale}/exams`} className="flex min-h-8 items-center text-body">
+              Entrance exams
+            </Link>
             <Link href={`/${locale}/teachers`} className="flex min-h-8 items-center text-body">
               Teachers
             </Link>
             <Link href={`/${locale}/guides`} className="flex min-h-8 items-center text-body">
               Guides
+            </Link>
+            <Link href={`/${locale}/compare`} className="flex min-h-8 items-center text-body">
+              Compare schools
+            </Link>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="mb-1 text-meta font-semibold">Tools</span>
+            <Link
+              href={`/${locale}/tools/age-eligibility`}
+              className="flex min-h-8 items-center text-body"
+            >
+              Check age eligibility
+            </Link>
+            <Link href={`/${locale}/alerts`} className="flex min-h-8 items-center text-body">
+              WhatsApp alerts
+            </Link>
+            <Link
+              href={`/${locale}/admissions/help`}
+              className="flex min-h-8 items-center text-body"
+            >
+              Admission help
             </Link>
           </div>
 
@@ -63,9 +89,19 @@ export async function SiteFooter({ locale }: { locale: string }) {
           </div>
         )}
 
-        <div className="flex flex-col gap-1 text-meta text-muted-ink md:flex-row md:justify-between">
+        <div className="flex flex-col gap-3 border-t border-rule pt-5 text-meta text-muted-ink md:flex-row md:items-center md:justify-between md:gap-6">
           <span>© 2026 SchoolOye</span>
-          <a href="mailto:grievance@schooloye.in">Grievance officer: grievance@schooloye.in</a>
+          <div className="flex flex-wrap gap-x-5 gap-y-1">
+            <Link href={`/${locale}/privacy`} className="min-h-8 content-center">
+              Privacy
+            </Link>
+            <Link href={`/${locale}/terms`} className="min-h-8 content-center">
+              Terms
+            </Link>
+            <a href="mailto:grievance@schooloye.in" className="min-h-8 content-center">
+              Grievance officer: grievance@schooloye.in
+            </a>
+          </div>
         </div>
       </div>
     </footer>
