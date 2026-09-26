@@ -8,6 +8,13 @@ import { publicEnv } from "@/lib/env";
  *
  * Named `proxy`, not `middleware` — Next.js 16 renamed the file convention
  * (middleware.ts is deprecated). See node_modules/next/dist/docs/.../proxy.md.
+ *
+ * Also fails closed on /ops: redirects signed-out requests to sign-in before
+ * a single byte of an ops page renders. requireStaff() (src/lib/db/ops.ts)
+ * already does this per-page; this is a second, earlier layer so a future
+ * /ops page added without requireStaff() doesn't accidentally ship
+ * unauthenticated — defense in depth, not a replacement for the RLS
+ * policies that are the actual source of truth.
  */
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -31,7 +38,13 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+
+  if (request.nextUrl.pathname.startsWith("/ops") && !data?.claims) {
+    const signInUrl = new URL("/en/sign-in", request.url);
+    signInUrl.searchParams.set("next", request.nextUrl.pathname);
+    return NextResponse.redirect(signInUrl);
+  }
 
   return response;
 }

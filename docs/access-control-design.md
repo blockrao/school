@@ -46,8 +46,8 @@ the OWASP-recommended shape (ASVS V4 — enforce access control at the
 resource, not the presentation layer): even if a page's own guard is
 missing, buggy, or bypassed via a direct API call, the database still
 refuses the query. App-layer checks (`requireStaff()`,
-`requireSchoolMember()`, the new `middleware.ts`) exist for UX (redirecting
-to the right page) and as a second layer, not as the actual gate.
+`requireSchoolMember()`, `src/proxy.ts`) exist for UX (redirecting to the
+right page) and as a second layer, not as the actual gate.
 
 ## What changed this pass
 
@@ -68,11 +68,15 @@ to the right page) and as a second layer, not as the actual gate.
 - `rate_limits` table + `check_rate_limit()` — see below.
 
 **Application**:
-- `src/middleware.ts` (new) — refreshes the Supabase session cookie on every
-  request (previously nothing did this outside individual Server Actions,
-  so a long-idle session on `/portal` or `/ops` could silently go stale) and
-  fails closed on `/ops/*` for signed-out requests, one layer before
-  `requireStaff()` runs.
+- `src/proxy.ts` (existing — Next.js 16's renamed `middleware.ts`; a first
+  attempt at this pass added a separate `src/middleware.ts`, which duplicated
+  this file and broke the build, since Next.js refuses both conventions at
+  once — fixed by deleting it) already refreshed the session cookie for
+  `/my`, `/portal`, `/ops`, `/sign-in`, `/for-schools/claim`, so that gap
+  didn't actually exist. What it didn't do: fail closed on `/ops` for a
+  signed-out request. Added that redirect (to sign-in) as one layer before
+  `requireStaff()` runs, reusing the `getClaims()` call this file already
+  made.
 - `src/lib/db/portal-auth.ts` (new) — `requireSchoolMember()` /
   `requireSchoolAdmin()`, the `/portal` equivalent of the existing
   `requireStaff()`. Wired into `/portal`'s entry page.
