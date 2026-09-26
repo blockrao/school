@@ -4,6 +4,7 @@ import {
   type PublicSchool,
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
+  type PublicSchoolRanking,
   publicAreaContract,
   publicBoardContract,
   publicCityContract,
@@ -13,6 +14,7 @@ import {
   publicSchoolAdmissionContract,
   publicSchoolBoardContract,
   publicSchoolContract,
+  publicSchoolRankingContract,
   publicStateContract,
 } from "@/contracts";
 import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
@@ -768,4 +770,24 @@ export async function listLocalityNeighbors(
     const neighbor = publicLocalityNeighborContract.parse(row);
     return { slug: neighbor.neighbor_slug, name: neighbor.neighbor_name, method: neighbor.method };
   });
+}
+
+export type { PublicSchoolRanking };
+
+/**
+ * Editorial ranking placements (e.g. cforerankings.com) for a "Top schools"
+ * article page — not part of the core directory/search. Reads
+ * api.public_school_rankings, which already applies the publish-gate and
+ * field-trust redaction via api.public_schools underneath, so a school that
+ * drops out of trust or gets un-published simply disappears from here too.
+ */
+export async function listSchoolRankings(citySlug: string): Promise<PublicSchoolRanking[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_school_rankings")
+    .select("*")
+    .eq("city_slug", citySlug)
+    .order("category", { ascending: true })
+    .order("rank", { ascending: true });
+  return (data ?? []).map((row) => publicSchoolRankingContract.parse(row));
 }

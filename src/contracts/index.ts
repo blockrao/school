@@ -4,6 +4,7 @@ export * from "@/contracts/public-localities";
 export * from "@/contracts/public-locality-neighbors";
 export * from "@/contracts/public-reference";
 export * from "@/contracts/public-school-admissions";
+export * from "@/contracts/public-school-rankings";
 export * from "@/contracts/public-schools";
 export * from "@/contracts/public-seat-status";
 export * from "@/contracts/public-teachers";
