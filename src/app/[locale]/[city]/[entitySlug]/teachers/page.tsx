@@ -12,10 +12,24 @@ export async function generateMetadata({
   const { city: citySlug, entitySlug } = await params;
   const resolved = await resolveEntity(citySlug, entitySlug);
   if (!resolved || resolved.kind !== "school") return { title: "Not found" };
-  const name = resolved.bundle.school.name_en ?? "School";
+  const { school } = resolved.bundle;
+  const name = school.name_en ?? "School";
+  // Same shape as the Overview page's own canonical: locale-less canonical +
+  // explicit hreflang alternates, not a locale baked into the canonical URL.
+  const canonicalPath = `${schoolPath("en", citySlug, school).replace(/^\/en/, "")}/teachers`;
+
+  // An empty roster is exactly the thin-content case CLAUDE.md's trust rules
+  // warn against (same reasoning already applied to the deferred Fees/
+  // Facilities tabs) — index it only once the school actually has a
+  // published team, not on the strength of the URL existing.
+  const team = await listPublicSchoolTeam(school.id);
   return {
     title: `Teachers at ${name} — SchoolOye`,
-    robots: { index: true, follow: true },
+    alternates: {
+      canonical: canonicalPath,
+      languages: { "en-IN": `/en${canonicalPath}`, "hi-IN": `/hi${canonicalPath}` },
+    },
+    robots: { index: team.length > 0, follow: true },
   };
 }
 

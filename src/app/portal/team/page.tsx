@@ -20,6 +20,11 @@ export const metadata: Metadata = {
 const ERROR_COPY: Record<string, string> = {
   invalid: "That teacher couldn't be found.",
   already_pending: "There's already an active or pending relationship with that teacher.",
+  teacher_not_found:
+    "That teacher profile isn't listed anymore — search again to find a current one.",
+  rate_limited: "Too many invites sent — please wait a bit and try again.",
+  invite_failed: "Something went wrong sending that invite. Please try again.",
+  stale: "That request had already changed — refresh to see its current state.",
 };
 
 function first(value: string | string[] | undefined) {
@@ -194,6 +199,8 @@ export default async function PortalTeamPage({ searchParams }: PageProps<"/porta
               >
                 <div>
                   <Link
+                    // Portal is English-only for now (no /[locale] segment here) —
+                    // "en" is the fixed default until the portal itself is localized.
                     href={`/en/teacher/${member.teacherId}-${member.teacherSlug}`}
                     className="font-semibold text-ruled-blue"
                   >

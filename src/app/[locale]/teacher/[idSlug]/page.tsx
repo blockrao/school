@@ -70,20 +70,14 @@ export default async function TeacherProfilePage({
     permanentRedirect(`/${locale}/teacher/${teacher.id}-${teacher.slug}`);
   }
 
-  const [experience, qualifications, primarySchoolPath, verifiedSchools] = await Promise.all([
+  const [experience, qualifications, primarySchoolPath, verifiedSchoolLinks] = await Promise.all([
     listPublicTeacherExperience(teacher.id),
     listPublicTeacherQualifications(teacher.id),
     teacher.primary_school_id
       ? getSchoolCanonicalPath(teacher.primary_school_id, locale)
       : Promise.resolve(null),
-    listPublicTeacherSchools(teacher.id),
+    listPublicTeacherSchools(teacher.id, locale),
   ]);
-  const verifiedSchoolLinks = await Promise.all(
-    verifiedSchools.map(async (s) => ({
-      ...s,
-      path: await getSchoolCanonicalPath(s.schoolId, locale),
-    })),
-  );
 
   const supabase = await createSessionClient();
   const {

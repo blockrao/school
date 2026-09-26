@@ -314,6 +314,26 @@ export default async function ManageTeacherProfilePage({
               There's already an active or pending relationship with that school.
             </FieldError>
           )}
+          {errorCode === "school_not_found" && (
+            <FieldError id="school-error">
+              That school isn't published anymore — search again to find a current one.
+            </FieldError>
+          )}
+          {errorCode === "rate_limited" && (
+            <FieldError id="school-error">
+              Too many requests sent — please wait a bit and try again.
+            </FieldError>
+          )}
+          {errorCode === "request_failed" && (
+            <FieldError id="school-error">
+              Something went wrong sending that request. Please try again.
+            </FieldError>
+          )}
+          {errorCode === "stale" && (
+            <FieldError id="school-error">
+              That had already changed — refresh to see its current state.
+            </FieldError>
+          )}
           {schoolQuery && (
             <div className="mt-3 flex flex-col gap-2">
               {schoolSearchResults.length === 0 ? (

@@ -1,6 +1,7 @@
 import "server-only";
-import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { getCitiesByDistrictIds, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
+import { schoolPath } from "@/lib/school-url";
 
 export type AffiliationRow = {
   id: string;
@@ -165,10 +166,19 @@ export async function listPublicSchoolTeam(schoolId: string): Promise<PublicTeam
   }));
 }
 
-/** Active school affiliations for a teacher's own public profile — "Verified at". */
+export type VerifiedSchool = { schoolId: string; schoolName: string; path: string | null };
+
+/**
+ * Active school affiliations for a teacher's own public profile — "Verified
+ * at". Resolves each school's canonical path in exactly two extra queries
+ * total (schools by id, then cities by district id — the same batched
+ * two-query shape `getCitiesByDistrictIds` already exists for, used by
+ * Compare/saved-schools), never one `getSchoolCanonicalPath` call per school.
+ */
 export async function listPublicTeacherSchools(
   teacherId: string,
-): Promise<{ schoolId: string; schoolName: string }[]> {
+  locale: string,
+): Promise<VerifiedSchool[]> {
   const supabase = await createSessionClient();
   const { data: rows } = await supabase
     .from("school_teacher_affiliations")
@@ -178,6 +188,17 @@ export async function listPublicTeacherSchools(
 
   const schoolIds = [...new Set((rows ?? []).map((r) => r.school_id))];
   if (schoolIds.length === 0) return [];
+
   const schools = await listPublicSchoolsByIds(schoolIds);
-  return schools.map((s) => ({ schoolId: s.id, schoolName: s.name_en ?? "School" }));
+  const districtIds = schools.flatMap((s) => (s.district_id ? [s.district_id] : []));
+  const citiesByDistrict = await getCitiesByDistrictIds(districtIds);
+
+  return schools.map((s) => {
+    const city = s.district_id ? citiesByDistrict.get(s.district_id) : undefined;
+    return {
+      schoolId: s.id,
+      schoolName: s.name_en ?? "School",
+      path: city ? schoolPath(locale, city.slug, s) : null,
+    };
+  });
 }
