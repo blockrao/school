@@ -22,3 +22,5 @@ from school_rankings sr
 join api.public_schools ps on ps.id = sr.school_id
 join api.public_cities c on c.id = ps.city_id
 order by sr.category, sr.rank;
+
+grant select on api.public_school_rankings to anon, authenticated;
