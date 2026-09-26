@@ -1581,6 +1581,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      school_teacher_affiliations: {
+        Row: {
+          id: string;
+          school_id: string;
+          teacher_id: string;
+          status: Database["public"]["Enums"]["affiliation_status"];
+          initiated_by: string;
+          requested_by: string | null;
+          responded_by: string | null;
+          responded_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          teacher_id: string;
+          status: Database["public"]["Enums"]["affiliation_status"];
+          initiated_by: string;
+          requested_by?: string | null;
+          responded_by?: string | null;
+          responded_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          teacher_id?: string;
+          status?: Database["public"]["Enums"]["affiliation_status"];
+          initiated_by?: string;
+          requested_by?: string | null;
+          responded_by?: string | null;
+          responded_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       schools: {
         Row: {
           id: string;
@@ -2137,6 +2176,13 @@ export type Database = {
         | "result_waitlisted"
         | "result_not_selected"
         | "withdrawn";
+      affiliation_status:
+        | "pending_teacher"
+        | "pending_school"
+        | "active"
+        | "declined_by_teacher"
+        | "declined_by_school"
+        | "removed";
       claim_status: "unclaimed" | "pending" | "claimed" | "rejected";
       consent_purpose:
         | "account"

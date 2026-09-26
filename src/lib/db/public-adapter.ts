@@ -762,6 +762,21 @@ export async function listPublicSchoolsByIds(ids: string[]): Promise<PublicSchoo
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
+/** Published schools matching a name, across every city — for a teacher's "request to join" search. */
+export async function searchPublicSchoolsByName(
+  query: string,
+  limit = 10,
+): Promise<PublicSchool[]> {
+  if (!query.trim()) return [];
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_schools")
+    .select("*")
+    .ilike("name_en", `%${query.trim()}%`)
+    .limit(limit);
+  return (data ?? []).map((row) => publicSchoolContract.parse(row));
+}
+
 export type PublicLocalityNeighbor = { slug: string; name: string; method: "source" | "computed" };
 
 /** Neighbouring localities for a locality page's "Nearby" section, nearest first. */

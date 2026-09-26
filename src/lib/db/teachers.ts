@@ -20,6 +20,21 @@ export async function listPublicTeachers(
   return (data ?? []).map((row) => publicTeacherContract.parse(row));
 }
 
+/** Published, claimed teacher profiles matching a name — for a school's "invite to team" search. */
+export async function searchPublicTeachersByName(
+  query: string,
+  limit = 10,
+): Promise<PublicTeacher[]> {
+  if (!query.trim()) return [];
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_teachers")
+    .select("*")
+    .ilike("full_name", `%${query.trim()}%`)
+    .limit(limit);
+  return (data ?? []).map((row) => publicTeacherContract.parse(row));
+}
+
 export async function listPublicTeacherSubjects(): Promise<string[]> {
   const api = createApiSchemaClient();
   const { data } = await api.from("public_teachers").select("subject");

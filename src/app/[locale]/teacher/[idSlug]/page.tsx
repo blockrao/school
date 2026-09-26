@@ -5,6 +5,7 @@ import { startConversation } from "@/app/[locale]/my/messages/actions";
 import { FieldError } from "@/components/ui/field-error";
 import { findConversation } from "@/lib/db/messages";
 import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
+import { listPublicTeacherSchools } from "@/lib/db/school-team";
 import { createSessionClient } from "@/lib/db/session";
 import {
   getPublicTeacherById,
@@ -69,13 +70,20 @@ export default async function TeacherProfilePage({
     permanentRedirect(`/${locale}/teacher/${teacher.id}-${teacher.slug}`);
   }
 
-  const [experience, qualifications, primarySchoolPath] = await Promise.all([
+  const [experience, qualifications, primarySchoolPath, verifiedSchools] = await Promise.all([
     listPublicTeacherExperience(teacher.id),
     listPublicTeacherQualifications(teacher.id),
     teacher.primary_school_id
       ? getSchoolCanonicalPath(teacher.primary_school_id, locale)
       : Promise.resolve(null),
+    listPublicTeacherSchools(teacher.id),
   ]);
+  const verifiedSchoolLinks = await Promise.all(
+    verifiedSchools.map(async (s) => ({
+      ...s,
+      path: await getSchoolCanonicalPath(s.schoolId, locale),
+    })),
+  );
 
   const supabase = await createSessionClient();
   const {
@@ -242,6 +250,34 @@ export default async function TeacherProfilePage({
                   className={`shrink-0 text-meta font-semibold ${q.verified ? "text-board-green" : "text-muted-ink"}`}
                 >
                   {q.verified ? "✓ Verified" : "Not checked yet"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {verifiedSchoolLinks.length > 0 && (
+        <div className="mt-8 border-t border-rule pt-6">
+          <h2 className="font-display text-card font-semibold">Verified at</h2>
+          <p className="mt-1 text-meta text-muted-ink">
+            {teacher.full_name} is a confirmed team member at these schools.
+          </p>
+          <div className="mt-3 flex flex-col">
+            {verifiedSchoolLinks.map((s) => (
+              <div
+                key={s.schoolId}
+                className="flex items-center justify-between gap-3 border-t border-rule-soft py-2.5 first:border-t-0"
+              >
+                {s.path ? (
+                  <Link href={s.path} className="font-semibold text-ruled-blue">
+                    {s.schoolName}
+                  </Link>
+                ) : (
+                  <span className="font-semibold">{s.schoolName}</span>
+                )}
+                <span className="shrink-0 text-meta font-semibold text-board-green">
+                  ✓ Verified team member
                 </span>
               </div>
             ))}

@@ -98,3 +98,121 @@ export async function toggleListed(formData: FormData) {
 
   redirect(manageUrl);
 }
+
+export async function requestSchool(formData: FormData) {
+  const teacherId = String(formData.get("teacherId") ?? "");
+  const idSlug = String(formData.get("idSlug") ?? "");
+  const schoolId = String(formData.get("schoolId") ?? "");
+  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+
+  const owned = await requireOwnedTeacher(teacherId);
+  if (!owned) redirect(manageUrl);
+  if (!z.string().uuid().safeParse(schoolId).success) redirect(`${manageUrl}?error=invalid_school`);
+
+  const { data: existing } = await owned.supabase
+    .from("school_teacher_affiliations")
+    .select("id, status")
+    .eq("school_id", schoolId)
+    .eq("teacher_id", teacherId)
+    .maybeSingle();
+
+  if (existing && ["active", "pending_teacher", "pending_school"].includes(existing.status)) {
+    redirect(`${manageUrl}?error=already_pending`);
+  }
+
+  if (existing) {
+    await owned.supabase
+      .from("school_teacher_affiliations")
+      .update({
+        status: "pending_school",
+        initiated_by: "teacher",
+        requested_by: null,
+        responded_by: null,
+        responded_at: null,
+      })
+      .eq("id", existing.id);
+  } else {
+    await owned.supabase.from("school_teacher_affiliations").insert({
+      school_id: schoolId,
+      teacher_id: teacherId,
+      status: "pending_school",
+      initiated_by: "teacher",
+    });
+  }
+
+  redirect(`${manageUrl}?requested=1`);
+}
+
+async function respondToSchoolInvite(
+  formData: FormData,
+  next: { status: "active" | "declined_by_teacher"; responded_at: string },
+) {
+  const teacherId = String(formData.get("teacherId") ?? "");
+  const idSlug = String(formData.get("idSlug") ?? "");
+  const affiliationId = String(formData.get("affiliationId") ?? "");
+  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+
+  const owned = await requireOwnedTeacher(teacherId);
+  if (!owned) redirect(manageUrl);
+
+  await owned.supabase
+    .from("school_teacher_affiliations")
+    .update(next)
+    .eq("id", affiliationId)
+    .eq("teacher_id", teacherId)
+    .eq("status", "pending_teacher");
+
+  redirect(manageUrl);
+}
+
+export async function acceptSchoolInvite(formData: FormData) {
+  await respondToSchoolInvite(formData, {
+    status: "active",
+    responded_at: new Date().toISOString(),
+  });
+}
+
+export async function declineSchoolInvite(formData: FormData) {
+  await respondToSchoolInvite(formData, {
+    status: "declined_by_teacher",
+    responded_at: new Date().toISOString(),
+  });
+}
+
+export async function cancelSchoolRequest(formData: FormData) {
+  const teacherId = String(formData.get("teacherId") ?? "");
+  const idSlug = String(formData.get("idSlug") ?? "");
+  const affiliationId = String(formData.get("affiliationId") ?? "");
+  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+
+  const owned = await requireOwnedTeacher(teacherId);
+  if (!owned) redirect(manageUrl);
+
+  await owned.supabase
+    .from("school_teacher_affiliations")
+    .update({ status: "removed" })
+    .eq("id", affiliationId)
+    .eq("teacher_id", teacherId)
+    .eq("status", "pending_school");
+
+  redirect(manageUrl);
+}
+
+export async function leaveSchool(formData: FormData) {
+  const teacherId = String(formData.get("teacherId") ?? "");
+  const idSlug = String(formData.get("idSlug") ?? "");
+  const affiliationId = String(formData.get("affiliationId") ?? "");
+  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+
+  const owned = await requireOwnedTeacher(teacherId);
+  if (!owned) redirect(manageUrl);
+
+  await owned.supabase
+    .from("school_teacher_affiliations")
+    .update({ status: "removed" })
+    .eq("id", affiliationId)
+    .eq("teacher_id", teacherId)
+    .eq("status", "active");
+
+  redirect(manageUrl);
+}

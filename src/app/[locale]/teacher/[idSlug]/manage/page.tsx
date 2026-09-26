@@ -2,10 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
-import { getSelectedCityArea, listPublicSchoolsByDistrict } from "@/lib/db/public-adapter";
+import {
+  getSelectedCityArea,
+  listPublicSchoolsByDistrict,
+  searchPublicSchoolsByName,
+} from "@/lib/db/public-adapter";
+import { listTeacherAffiliations } from "@/lib/db/school-team";
 import { createSessionClient } from "@/lib/db/session";
 import { listMyTeacherExperience, listMyTeacherQualifications } from "@/lib/db/teachers";
-import { addExperience, addQualification, toggleListed } from "./actions";
+import {
+  acceptSchoolInvite,
+  addExperience,
+  addQualification,
+  cancelSchoolRequest,
+  declineSchoolInvite,
+  leaveSchool,
+  requestSchool,
+  toggleListed,
+} from "./actions";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -54,13 +68,17 @@ export default async function ManageTeacherProfilePage({
   const canonicalIdSlug = `${teacher.id}-${teacher.slug}`;
 
   const area = await getSelectedCityArea();
-  const [experience, qualifications, { schools }] = await Promise.all([
-    listMyTeacherExperience(teacher.id),
-    listMyTeacherQualifications(teacher.id),
-    area
-      ? listPublicSchoolsByDistrict(area.districtId, { pageSize: 100 })
-      : Promise.resolve({ schools: [] }),
-  ]);
+  const schoolQuery = first(rawSearchParams.school_q) ?? "";
+  const [experience, qualifications, { schools }, teacherSchools, schoolSearchResults] =
+    await Promise.all([
+      listMyTeacherExperience(teacher.id),
+      listMyTeacherQualifications(teacher.id),
+      area
+        ? listPublicSchoolsByDistrict(area.districtId, { pageSize: 100 })
+        : Promise.resolve({ schools: [] }),
+      listTeacherAffiliations(teacher.id),
+      searchPublicSchoolsByName(schoolQuery),
+    ]);
 
   const errorCode = first(rawSearchParams.error);
 
@@ -222,6 +240,177 @@ export default async function ManageTeacherProfilePage({
           <p className="mt-3 text-meta text-muted-ink">
             SchoolOye checks qualifications before marking them verified.
           </p>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-md border border-rule bg-copy-white p-4">
+        <h2 className="font-display text-card font-semibold">Schools</h2>
+        <p className="mt-1 text-meta text-muted-ink">
+          A school can invite you onto its published team, or you can request to join one below.
+          Either way, the other side has to accept before it shows publicly.
+        </p>
+
+        {teacherSchools.invitesReceived.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-meta font-semibold text-muted-ink">Invitations</h3>
+            <div className="mt-2 flex flex-col gap-2">
+              {teacherSchools.invitesReceived.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule-soft p-3"
+                >
+                  <span className="font-semibold">{inv.schoolName}</span>
+                  <div className="flex gap-2">
+                    <form action={acceptSchoolInvite}>
+                      <input type="hidden" name="locale" value={locale} />
+                      <input type="hidden" name="teacherId" value={teacher.id} />
+                      <input type="hidden" name="idSlug" value={canonicalIdSlug} />
+                      <input type="hidden" name="affiliationId" value={inv.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md bg-ruled-blue px-3 py-1.5 text-meta font-semibold text-copy-white"
+                      >
+                        Accept
+                      </button>
+                    </form>
+                    <form action={declineSchoolInvite}>
+                      <input type="hidden" name="locale" value={locale} />
+                      <input type="hidden" name="teacherId" value={teacher.id} />
+                      <input type="hidden" name="idSlug" value={canonicalIdSlug} />
+                      <input type="hidden" name="affiliationId" value={inv.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-ink px-3 py-1.5 text-meta font-semibold"
+                      >
+                        Decline
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4">
+          <h3 className="text-meta font-semibold text-muted-ink">Request to join a school</h3>
+          <form className="mt-2 flex gap-2" action={`/${locale}/teacher/${canonicalIdSlug}/manage`}>
+            <input
+              type="text"
+              name="school_q"
+              defaultValue={schoolQuery}
+              placeholder="Search schools by name"
+              className="h-11 w-full max-w-sm rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+            />
+            <button
+              type="submit"
+              className="flex h-11 shrink-0 items-center rounded-md border border-ruled-blue px-4 font-semibold text-ruled-blue"
+            >
+              Search
+            </button>
+          </form>
+          {errorCode === "already_pending" && (
+            <FieldError id="school-error">
+              There's already an active or pending relationship with that school.
+            </FieldError>
+          )}
+          {schoolQuery && (
+            <div className="mt-3 flex flex-col gap-2">
+              {schoolSearchResults.length === 0 ? (
+                <p className="text-meta text-muted-ink">No schools match "{schoolQuery}".</p>
+              ) : (
+                schoolSearchResults.map((s) => {
+                  const alreadyLinked =
+                    teacherSchools.active.some((a) => a.schoolId === s.id) ||
+                    teacherSchools.requestsSent.some((a) => a.schoolId === s.id);
+                  return (
+                    <div
+                      key={s.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule-soft p-3"
+                    >
+                      <span className="font-semibold">{s.name_en ?? "School"}</span>
+                      {alreadyLinked ? (
+                        <span className="text-meta text-muted-ink">
+                          Already requested / on team
+                        </span>
+                      ) : (
+                        <form action={requestSchool}>
+                          <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="teacherId" value={teacher.id} />
+                          <input type="hidden" name="idSlug" value={canonicalIdSlug} />
+                          <input type="hidden" name="schoolId" value={s.id} />
+                          <button
+                            type="submit"
+                            className="rounded-md bg-ruled-blue px-3 py-1.5 text-meta font-semibold text-copy-white"
+                          >
+                            Request to join
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+
+        {teacherSchools.requestsSent.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-meta font-semibold text-muted-ink">Requests sent</h3>
+            <div className="mt-2 flex flex-col gap-2">
+              {teacherSchools.requestsSent.map((req) => (
+                <div
+                  key={req.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule-soft p-3"
+                >
+                  <span className="font-semibold">{req.schoolName}</span>
+                  <form action={cancelSchoolRequest}>
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="teacherId" value={teacher.id} />
+                    <input type="hidden" name="idSlug" value={canonicalIdSlug} />
+                    <input type="hidden" name="affiliationId" value={req.id} />
+                    <button
+                      type="submit"
+                      className="rounded-md border border-ink px-3 py-1.5 text-meta font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4">
+          <h3 className="text-meta font-semibold text-muted-ink">Your schools</h3>
+          {teacherSchools.active.length === 0 ? (
+            <p className="mt-1 text-meta text-muted-ink">Not on any school's published team yet.</p>
+          ) : (
+            <div className="mt-2 flex flex-col gap-2">
+              {teacherSchools.active.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule-soft p-3"
+                >
+                  <span className="font-semibold">{member.schoolName}</span>
+                  <form action={leaveSchool}>
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="teacherId" value={teacher.id} />
+                    <input type="hidden" name="idSlug" value={canonicalIdSlug} />
+                    <input type="hidden" name="affiliationId" value={member.id} />
+                    <button
+                      type="submit"
+                      className="rounded-md border border-ink px-3 py-1.5 text-meta font-semibold"
+                    >
+                      Leave
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -19,6 +19,7 @@ import {
   listLocalityNeighbors,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
+import { listPublicSchoolTeam } from "@/lib/db/school-team";
 import { createSessionClient } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
@@ -295,10 +296,11 @@ export default async function EntityPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [admissions, shortlistedIdsSet, similarSchoolsRaw] = await Promise.all([
+  const [admissions, shortlistedIdsSet, similarSchoolsRaw, team] = await Promise.all([
     getPublicAdmissionsBySchoolId(school.id),
     getShortlistedSchoolIds([school.id]),
     school.locality_id ? listPublicSchoolsByLocality(school.locality_id) : Promise.resolve([]),
+    listPublicSchoolTeam(school.id),
   ]);
   const similarSchools = similarSchoolsRaw.filter((s) => s.id !== school.id).slice(0, 4);
 
@@ -649,6 +651,36 @@ export default async function EntityPage({
                 {school.address ?? "Address not yet published"} — approximate area, not an exact pin
                 (geocoded to {school.geocode_precision ?? "pincode"} precision).
               </p>
+            </section>
+          )}
+
+          {team.length > 0 && (
+            <section aria-labelledby="teachers-heading" className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 id="teachers-heading" className="font-display text-card font-semibold">
+                  Teachers at {name}
+                </h2>
+                <Link
+                  href={`${canonicalPath}/teachers`}
+                  className="text-meta font-semibold text-ruled-blue"
+                >
+                  See all ({team.length}) →
+                </Link>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {team.slice(0, 4).map((t) => (
+                  <Link
+                    key={t.teacherId}
+                    href={`/${locale}/teacher/${t.teacherId}-${t.slug}`}
+                    className="flex flex-col gap-0.5 rounded-md border border-rule p-3 hover:border-ruled-blue"
+                  >
+                    <span className="font-display font-semibold">{t.fullName}</span>
+                    <span className="text-meta text-muted-ink">
+                      {[t.subject, t.level].filter(Boolean).join(" · ")}
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </section>
           )}
 
