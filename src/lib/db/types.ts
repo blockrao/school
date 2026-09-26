@@ -1464,6 +1464,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      school_posts: {
+        Row: {
+          id: string;
+          school_id: string;
+          kind: Database["public"]["Enums"]["post_kind"];
+          title: string;
+          body: string;
+          source_url: string | null;
+          review: Database["public"]["Enums"]["review_status"];
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_by: string | null;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          kind?: Database["public"]["Enums"]["post_kind"];
+          title: string;
+          body: string;
+          source_url?: string | null;
+          review?: Database["public"]["Enums"]["review_status"];
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_by?: string | null;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          kind?: Database["public"]["Enums"]["post_kind"];
+          title?: string;
+          body?: string;
+          source_url?: string | null;
+          review?: Database["public"]["Enums"]["review_status"];
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_by?: string | null;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       school_slug_history: {
         Row: {
           school_id: string;
@@ -2070,6 +2118,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "refunded";
+      post_kind: "news" | "press";
       record_status: "draft" | "published" | "hidden" | "closed" | "opt_out";
       review_status: "pending" | "approved" | "edited" | "rejected" | "needs_triage";
       school_gender: "coed" | "boys" | "girls";

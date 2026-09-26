@@ -71,6 +71,12 @@ export default async function PortalDashboardPage() {
           >
             Request a profile edit
           </Link>
+          <Link
+            href="/portal/news"
+            className="flex h-11 items-center rounded-md border border-ruled-blue px-4 font-semibold text-ruled-blue"
+          >
+            News & PR
+          </Link>
         </div>
       </div>
 

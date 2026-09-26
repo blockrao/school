@@ -92,6 +92,12 @@ export default async function OpsHomePage() {
           counts.corrections,
         )}
         {queueCard(
+          "/ops/posts",
+          "School news & PR",
+          "Review news and press updates submitted by schools.",
+          counts.schoolPosts,
+        )}
+        {queueCard(
           "/ops/orders",
           "Application Help orders",
           "Confirm payment on manual-provider orders.",

@@ -94,3 +94,23 @@ export async function listEnquiriesForSchool(schoolId: string): Promise<PortalEn
     .limit(10);
   return data ?? [];
 }
+
+export type PortalPost = {
+  id: string;
+  kind: "news" | "press";
+  title: string;
+  body: string;
+  source_url: string | null;
+  review: "pending" | "approved" | "edited" | "rejected" | "needs_triage";
+  created_at: string;
+};
+
+export async function listPostsForSchool(schoolId: string): Promise<PortalPost[]> {
+  const supabase = await createSessionClient();
+  const { data } = await supabase
+    .from("school_posts")
+    .select("id, kind, title, body, source_url, review, created_at")
+    .eq("school_id", schoolId)
+    .order("created_at", { ascending: false });
+  return (data as PortalPost[] | null) ?? [];
+}
