@@ -60,4 +60,10 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
   confirmation): 18 tables still using bare `auth.uid()` in RLS instead of
   `(select auth.uid())`, and zero use of Cache Components/`cacheTag` anywhere
   despite the CLAUDE.md-documented caching architecture — every page renders
-  fully dynamically with no static reuse.
+  fully dynamically with no static reuse. Applied migration
+  `20260926115231_optimize_rls_auth_uid_initplan`: wrapped bare `auth.uid()`
+  in `(select auth.uid())` across 18 tables (profiles, children, consents,
+  documents, messages, conversations, teachers, and more) — same pattern as
+  `school_teacher_affiliations` earlier, verified with a rolled-back
+  transactional dry run first. Pure per-row-eval fix, no policy logic
+  changed.
