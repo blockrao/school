@@ -8,9 +8,10 @@
 -- in src/lib/db/public-adapter.ts until this view is applied and the adapter
 -- switches to reading it directly.
 --
--- Jaipur is the launch district as of the Jaipur pivot; South West Delhi stays
--- fully built (data, routes, the Delhi Nursery Hub) but unlinked — dropped from
--- is_launch, not deleted, so nothing breaks if Delhi launches later.
+-- Jaipur and Gurugram are the launch districts (Gurugram added for city-picker
+-- testing). South West Delhi stays fully built (data, routes, the Delhi Nursery
+-- Hub) but unlinked — dropped from is_launch, not deleted, so nothing breaks if
+-- Delhi launches later.
 -- Does not filter school_count on schools.status — see 010_public_schools.sql's
 -- header for why. Must stay owner-run (same note applies).
 --
@@ -29,6 +30,6 @@ select
     select count(*)::int from schools s
     where s.district_id = d.id
   ) as school_count,
-  d.slug in ('jaipur') as is_launch
+  d.slug in ('jaipur', 'gurugram') as is_launch
 from districts d
 join states st on st.id = d.state_id;

@@ -216,10 +216,12 @@ export async function getPublicStateBySlug(slug: string): Promise<PublicState | 
  * Kept in sync with db/views/040_public_areas.sql's `is_launch` list — the launch
  * set lives in SQL (and here), never in a table. Update both together.
  *
- * Jaipur is the launch district. South West Delhi stays fully built (data,
- * routes, the Delhi Nursery Hub) but unlinked — out of this set, not deleted.
+ * Jaipur and Gurugram are the launch districts (Gurugram added for city-picker
+ * testing — 534 schools already in the DB from the original bulk import).
+ * South West Delhi stays fully built (data, routes, the Delhi Nursery Hub) but
+ * unlinked — out of this set, not deleted.
  */
-const LAUNCH_DISTRICT_SLUGS = new Set(["jaipur"]);
+const LAUNCH_DISTRICT_SLUGS = new Set(["jaipur", "gurugram"]);
 
 /**
  * Real Jaipur-district towns added by supabase/seeds/jaipur_school_assignment.sql
