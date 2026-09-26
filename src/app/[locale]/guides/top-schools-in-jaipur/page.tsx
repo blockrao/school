@@ -5,6 +5,9 @@ import { schoolPath } from "@/lib/school-url";
 
 const CITY_SLUG = "jaipur";
 
+// Ranking data changes rarely; refresh hourly rather than on every request.
+export const revalidate = 3600;
+
 const CATEGORY_LABELS: Record<string, string> = {
   best_day_coed_indian: "Best Co-Ed Day Schools",
   best_day_cum_boarding_indian: "Best Day-cum-Boarding Schools (Indian Curriculum)",
