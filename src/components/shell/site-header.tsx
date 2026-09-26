@@ -1,11 +1,11 @@
 import Form from "next/form";
 import Link from "next/link";
+import { AuthStatusLink } from "@/components/shell/auth-status-link";
 import { CityPicker } from "@/components/shell/city-picker";
 import { LocaleSwitcher } from "@/components/shell/locale-switcher";
 import { MobileMenu } from "@/components/shell/mobile-menu";
 import type { PrimaryNavItem } from "@/components/shell/primary-nav";
 import { PrimaryNav } from "@/components/shell/primary-nav";
-import { Button } from "@/components/ui/button";
 import type { CityOption } from "@/lib/city-preference";
 
 /**
@@ -29,15 +29,7 @@ export function primaryNavItems(locale: string, admissionsHref: string): Primary
   ];
 }
 
-export function SiteHeader({
-  locale,
-  areas,
-  isSignedIn,
-}: {
-  locale: string;
-  areas: CityOption[];
-  isSignedIn: boolean;
-}) {
+export function SiteHeader({ locale, areas }: { locale: string; areas: CityOption[] }) {
   const admissionsHref = areas[0]?.href ?? `/${locale}/schools`;
   const items = primaryNavItems(locale, admissionsHref);
 
@@ -46,7 +38,7 @@ export function SiteHeader({
       {/* Mobile: hamburger, logo, city, locale switch */}
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
-          <MobileMenu locale={locale} items={items} isSignedIn={isSignedIn} />
+          <MobileMenu locale={locale} items={items} />
           <Link href={`/${locale}`} className="font-display text-card font-bold text-ruled-blue">
             SchoolOye
           </Link>
@@ -94,11 +86,7 @@ export function SiteHeader({
         <div className="flex items-center gap-2">
           <CityPicker areas={areas} />
           <LocaleSwitcher />
-          <Button asChild variant="secondary" className="h-11 border-ruled-blue">
-            <Link href={isSignedIn ? `/${locale}/my` : `/${locale}/sign-in`}>
-              {isSignedIn ? "My account" : "Sign in"}
-            </Link>
-          </Button>
+          <AuthStatusLink locale={locale} variant="secondary" className="h-11 border-ruled-blue" />
         </div>
       </div>
     </header>

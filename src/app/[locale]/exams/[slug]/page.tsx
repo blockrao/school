@@ -18,6 +18,13 @@ import { istDateLabel } from "@/lib/ist-date";
 
 const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 
+// Shorter revalidate than other static pages: this page renders live
+// deadline countdowns (DeadlineMargin/deadlineState depend on "now" at
+// request time) — see CLAUDE.md's warning against baking a countdown into
+// a long-lived cache. 15 minutes keeps the countdown practically accurate
+// while still cutting the vast majority of repeat-request DB load.
+export const revalidate = 900;
+
 // design-pending — no Exam Hub screen exists in design/ yet. See docs/design-gaps.md.
 
 export async function generateMetadata({

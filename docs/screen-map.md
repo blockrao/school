@@ -66,4 +66,25 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
   documents, messages, conversations, teachers, and more) — same pattern as
   `school_teacher_affiliations` earlier, verified with a rolled-back
   transactional dry run first. Pure per-row-eval fix, no policy logic
-  changed.
+  changed. 2026-09-26: found the real reason the CLAUDE.md-documented ISR/
+  Cache Components architecture wasn't actually happening: `[locale]/layout.tsx`
+  called `cookies()` (via createSessionClient(), for the header's isSignedIn)
+  on every single request, which — in Next's stable, non-experimental
+  rendering model — forces the *entire* subtree dynamic, no partial static/
+  dynamic split without the experimental Cache Components flag (out of scope
+  for this pass — no way to build-verify it from this device). Fixed the
+  layout itself by moving isSignedIn resolution client-side
+  (`AuthStatusLink`, reads the session via the browser Supabase client,
+  UI-only — no auth/authorization logic changed). Added `export const
+  revalidate` to the three pages that turned out to have no per-request
+  data of their own once the layout was fixed: guides index, the legacy
+  `/school/[idSlug]` redirect resolver, and the exam detail page (900s there
+  instead of 3600s — it renders live deadline countdowns, see the
+  DeadlineMargin caching warning above). The two highest-traffic pages
+  (school/teacher profile pages, the school's teacher roster) are still NOT
+  cacheable — they each have their own per-request calls (shortlist
+  personalization, DM/messaging state, `school-team.ts`'s
+  `listPublicSchoolTeam()` using an authenticated client for what's actually
+  public data) that would need the same client-side-personalization
+  treatment, or full Cache Components, to unlock. Flagged, not done this
+  pass.

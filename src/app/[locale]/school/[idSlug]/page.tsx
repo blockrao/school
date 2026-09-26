@@ -3,6 +3,11 @@ import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// getSchoolCanonicalPath() only reads reference tables (no per-user data), so
+// this legacy redirect resolver can be cached instead of hitting the DB on
+// every old inbound link.
+export const revalidate = 3600;
+
 /**
  * Legacy canonical URL (flat, UUID-keyed) from before the /[city]/[slug]-[code]
  * migration — kept alive as a permanent redirect so old inbound links/SEO

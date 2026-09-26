@@ -2,19 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AuthStatusLink } from "@/components/shell/auth-status-link";
 import type { PrimaryNavItem } from "@/components/shell/primary-nav";
-import { Button } from "@/components/ui/button";
 
 /** Hamburger trigger + slide-in overlay panel. Open/close is real client state — the one piece of the shell that needs it. */
-export function MobileMenu({
-  locale,
-  items,
-  isSignedIn,
-}: {
-  locale: string;
-  items: PrimaryNavItem[];
-  isSignedIn: boolean;
-}) {
+export function MobileMenu({ locale, items }: { locale: string; items: PrimaryNavItem[] }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -66,14 +58,12 @@ export function MobileMenu({
             </div>
 
             <div className="border-b border-rule p-4">
-              <Button asChild className="w-full">
-                <Link
-                  href={isSignedIn ? `/${locale}/my` : `/${locale}/sign-in`}
-                  onClick={() => setOpen(false)}
-                >
-                  {isSignedIn ? "My account" : "Sign in"}
-                </Link>
-              </Button>
+              <AuthStatusLink
+                locale={locale}
+                variant="primary"
+                className="w-full"
+                onNavigate={() => setOpen(false)}
+              />
             </div>
 
             <nav className="flex flex-col py-1">

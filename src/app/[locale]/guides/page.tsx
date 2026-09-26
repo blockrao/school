@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 
+// Fully static content (no per-user or per-request data) — the layout no
+// longer forces this dynamic (see [locale]/layout.tsx), so it can be a real
+// ISR page instead of rendering fresh on every request.
+export const revalidate = 3600;
+
 // design-pending — no Guides screen exists in design/. See docs/design-gaps.md.
 const TOPICS = [
   {
