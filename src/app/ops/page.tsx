@@ -9,6 +9,11 @@ export const metadata: Metadata = {
 
 const QUEUES = [
   {
+    href: "/ops/schools",
+    label: "Schools — verification & publish",
+    description: "Search any school, confirm its facts, and publish it.",
+  },
+  {
     href: "/ops/localities",
     label: "Locality assignments",
     description: "Schools with no locality assigned yet.",
