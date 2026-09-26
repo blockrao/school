@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
 import { StatusPill } from "@/components/ui/badges";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import type {
@@ -12,7 +13,10 @@ import type {
 } from "@/contracts";
 import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import type { EligibilityCycle } from "@/lib/eligibility";
 import { istDateLabel } from "@/lib/ist-date";
+
+const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 
 // design-pending — no Exam Hub screen exists in design/ yet. See docs/design-gaps.md.
 
@@ -108,7 +112,10 @@ function EligibilityNotes({ cycle }: { cycle: PublicExamAdmission }) {
           <span className="font-semibold">
             {cycle.dob_from ? istDateLabel(new Date(cycle.dob_from)) : "—"} to{" "}
             {cycle.dob_to ? istDateLabel(new Date(cycle.dob_to)) : "—"}
-          </span>
+          </span>{" "}
+          <a href={`#${ELIGIBILITY_CHECKER_ID}`} className="font-semibold text-ruled-blue">
+            Not sure? Check your eligibility ↓
+          </a>
         </p>
       )}
       {cycle.eligibility_notes_en && (
@@ -486,13 +493,37 @@ function WhatsAppShare({ exam }: { exam: PublicExamAdmission }) {
   );
 }
 
+function toEligibilityCycles(cycles: PublicExamAdmission[], now: Date): EligibilityCycle[] {
+  return cycles
+    .filter((cycle) => cycle.dob_from && cycle.dob_to)
+    .map((cycle) => {
+      const margin = deadlineState(
+        {
+          opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
+          closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
+        },
+        now,
+      );
+      const pill = deadlineToPill(margin);
+      return {
+        id: cycle.cycle_id,
+        label: `${classLabel(cycle.class_code)} · ${cycle.academic_year}`,
+        dobFrom: cycle.dob_from,
+        dobTo: cycle.dob_to,
+        applyStatus: pill.status,
+        formUrl: cycle.form_url,
+      };
+    });
+}
+
 export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams/[slug]">) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const cycles = await getPublicAdmissionsByExamSlug(slug);
   if (cycles.length === 0) notFound();
 
   const exam = cycles[0];
   const now = new Date();
+  const eligibilityCycles = toEligibilityCycles(cycles, now);
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -517,6 +548,18 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
 
       <TrustBanner />
       <WhatsAppShare exam={exam} />
+
+      {eligibilityCycles.length > 0 && (
+        <EligibilityChecker
+          id={ELIGIBILITY_CHECKER_ID}
+          cycles={eligibilityCycles}
+          helpHref={`/${locale}/admissions/help`}
+          shareHref={`https://wa.me/?text=${encodeURIComponent(
+            `Check if your child is eligible for ${exam.name_en} ${exam.academic_year}: https://www.schooloye.com/${locale}/exams/${slug}#${ELIGIBILITY_CHECKER_ID}`,
+          )}`}
+          className="mt-6"
+        />
+      )}
 
       <div className="mt-6 flex flex-col gap-4">
         {cycles.map((cycle) => (
