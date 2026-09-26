@@ -32,6 +32,7 @@ type Copy = {
   errorInvalidEmail: string;
   errorSendFailed: string;
   errorInvalidCode: string;
+  errorRateLimited: string;
 };
 
 const COPY: Record<string, Copy> = {
@@ -54,6 +55,7 @@ const COPY: Record<string, Copy> = {
     errorInvalidEmail: "Enter a valid email address.",
     errorSendFailed: "Couldn't send it. Please try again.",
     errorInvalidCode: "That code didn't work. Please try again.",
+    errorRateLimited: "Too many attempts. Please wait a few minutes and try again.",
   },
   hi: {
     title: "साइन इन करें",
@@ -74,6 +76,7 @@ const COPY: Record<string, Copy> = {
     errorInvalidEmail: "एक मान्य ईमेल पता डालें।",
     errorSendFailed: "भेजा नहीं जा सका। कृपया फिर से कोशिश करें।",
     errorInvalidCode: "यह कोड काम नहीं किया। कृपया फिर से कोशिश करें।",
+    errorRateLimited: "बहुत सारे प्रयास। कृपया कुछ मिनट रुकें और फिर से कोशिश करें।",
   },
 };
 
@@ -112,7 +115,9 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
           ? copy.errorSendFailed
           : errorCode === "invalid_code"
             ? copy.errorInvalidCode
-            : undefined;
+            : errorCode === "rate_limited"
+              ? copy.errorRateLimited
+              : undefined;
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -196,9 +201,10 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
                   className="h-12 w-full rounded-r-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
                 />
               </div>
-              {(errorCode === "invalid_phone" || errorCode === "send_failed") && errorMessage && (
-                <FieldError id="phone-error">{errorMessage}</FieldError>
-              )}
+              {(errorCode === "invalid_phone" ||
+                errorCode === "send_failed" ||
+                errorCode === "rate_limited") &&
+                errorMessage && <FieldError id="phone-error">{errorMessage}</FieldError>}
             </label>
             <button
               type="submit"
@@ -230,9 +236,8 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
                   required
                   className="h-12 max-w-80 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
                 />
-                {errorCode === "invalid_email" && errorMessage && (
-                  <FieldError id="email-error">{errorMessage}</FieldError>
-                )}
+                {(errorCode === "invalid_email" || errorCode === "rate_limited") &&
+                  errorMessage && <FieldError id="email-error">{errorMessage}</FieldError>}
               </label>
               <button
                 type="submit"

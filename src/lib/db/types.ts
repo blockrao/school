@@ -1218,6 +1218,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      rate_limits: {
+        Row: {
+          key: string;
+          count: number;
+          window_start: string;
+        };
+        Insert: {
+          key: string;
+          count?: number;
+          window_start?: string;
+        };
+        Update: {
+          key?: string;
+          count?: number;
+          window_start?: string;
+        };
+        Relationships: [];
+      };
       sales_accounts: {
         Row: {
           school_id: string;
@@ -1432,17 +1450,17 @@ export type Database = {
         Row: {
           school_id: string;
           user_id: string;
-          role: string;
+          role: Database["public"]["Enums"]["school_member_role"];
         };
         Insert: {
           school_id: string;
           user_id: string;
-          role?: string;
+          role?: Database["public"]["Enums"]["school_member_role"];
         };
         Update: {
           school_id?: string;
           user_id?: string;
-          role?: string;
+          role?: Database["public"]["Enums"]["school_member_role"];
         };
         Relationships: [];
       };
@@ -1951,6 +1969,10 @@ export type Database = {
         Args: Record<string, unknown>; // p_application_id uuid
         Returns: unknown; // void
       };
+      check_rate_limit: {
+        Args: Record<string, unknown>; // p_key text, p_max_attempts integer, p_window_seconds integer
+        Returns: unknown; // boolean
+      };
       create_application_order: {
         Args: Record<string, unknown>; // p_product_code text, p_child_id uuid
         Returns: unknown; // uuid
@@ -1966,6 +1988,10 @@ export type Database = {
       fuzzy_candidates_in_districts: {
         Args: Record<string, unknown>; // p_district_ids integer[], p_name text, p_limit integer DEFAULT 5
         Returns: unknown; // TABLE(id uuid, name_en text, address text, pincode text, sim real)
+      };
+      is_school_admin: {
+        Args: Record<string, unknown>; // sid uuid
+        Returns: unknown; // boolean
       };
       is_school_member: {
         Args: Record<string, unknown>; // sid uuid
@@ -2054,6 +2080,7 @@ export type Database = {
         | "central_government"
         | "local_body"
         | "other";
+      school_member_role: "admin" | "staff";
       school_tier: "A" | "B" | "C";
       seat_confidence: "confirmed" | "reported" | "application_possible";
       seat_public_status: "open" | "limited" | "waitlist" | "closed";

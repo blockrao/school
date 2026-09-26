@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { nextAcademicYear } from "@/lib/age";
 import {
-  getMySchoolId,
   listClassLevels,
   listEnquiriesForSchool,
   listNoticesForSchool,
   listSeatStatusForSchool,
 } from "@/lib/db/portal";
+import { requireSchoolMember } from "@/lib/db/portal-auth";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { updateSeatStatus } from "./actions";
 
@@ -31,8 +30,9 @@ export const metadata: Metadata = {
 };
 
 export default async function PortalDashboardPage() {
-  const schoolId = await getMySchoolId();
-  if (!schoolId) redirect("/for-schools");
+  const {
+    membership: { schoolId },
+  } = await requireSchoolMember();
 
   const school = (await listPublicSchoolsByIds([schoolId])).at(0);
   const academicYear = currentSessionLabel();

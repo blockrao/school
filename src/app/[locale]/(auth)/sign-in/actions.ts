@@ -6,6 +6,7 @@ import { z } from "zod";
 import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient } from "@/lib/db/session";
 import { normalizeIndianPhone } from "@/lib/phone";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * Origin for the magic-link redirect. Prefers NEXT_PUBLIC_SITE_URL (set in
@@ -46,6 +47,13 @@ export async function requestOtp(formData: FormData) {
     redirect(`/${locale}/sign-in?error=invalid_phone&next=${encodeURIComponent(next)}`);
   }
 
+  // 5 OTP sends per number per 15 minutes — SMS costs money and can be used
+  // to spam a phone number that isn't the requester's own.
+  const allowed = await checkRateLimit("otp_send", phone, 5, 15 * 60);
+  if (!allowed) {
+    redirect(`/${locale}/sign-in?error=rate_limited&next=${encodeURIComponent(next)}`);
+  }
+
   const supabase = await createSessionClient();
   const { error } = await supabase.auth.signInWithOtp({ phone });
   if (error) {
@@ -76,6 +84,16 @@ export async function verifySignInOtp(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `/${locale}/sign-in?phone=${encodeURIComponent(phoneParam)}&error=invalid_code&next=${encodeURIComponent(next)}`,
+    );
+  }
+
+  // 8 verify attempts per number per 15 minutes — a 6-digit code has 1e6
+  // possibilities; this keeps brute-forcing it computationally pointless
+  // without needing a longer code.
+  const allowed = await checkRateLimit("otp_verify", parsed.data.phone, 8, 15 * 60);
+  if (!allowed) {
+    redirect(
+      `/${locale}/sign-in?phone=${encodeURIComponent(parsed.data.phone)}&error=rate_limited&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -122,6 +140,12 @@ export async function requestMagicLink(formData: FormData) {
 
   if (!parsed.success) {
     redirect(`/${locale}/sign-in?error=invalid_email&next=${encodeURIComponent(next)}`);
+  }
+
+  // 5 magic-link sends per address per 15 minutes.
+  const allowed = await checkRateLimit("magic_link_send", parsed.data.email, 5, 15 * 60);
+  if (!allowed) {
+    redirect(`/${locale}/sign-in?error=rate_limited&next=${encodeURIComponent(next)}`);
   }
 
   const origin = await requestOrigin();
