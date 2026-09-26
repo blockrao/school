@@ -52,6 +52,12 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
 - DeadlineMargin depends on `now`. On cached pages it must render in a dynamic/streamed segment or the page must revalidate at IST midnight; never bake a countdown into a long-lived cache. Store deadlines as Postgres `date`.
 
 ## Infrastructure
-- Database: Supabase ap-southeast-1 (Singapore); Vercel functions: sin1. Region move to
-  ap-south-1 deferred — must be decided before the first real user signup, while
-  auth/profile/children tables are empty.
+- Database: Supabase ap-south-1 (Mumbai); Vercel functions: bom1. 2026-09-26
+  performance audit: the DB had already moved to ap-south-1, but `vercel.json`
+  was still pinned to sin1 (Singapore) — every request was paying a
+  cross-region round trip on top of every Supabase call. Fixed by updating
+  `vercel.json` to bom1. Also found and flagged (not yet applied without
+  confirmation): 18 tables still using bare `auth.uid()` in RLS instead of
+  `(select auth.uid())`, and zero use of Cache Components/`cacheTag` anywhere
+  despite the CLAUDE.md-documented caching architecture — every page renders
+  fully dynamically with no static reuse.

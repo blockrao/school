@@ -53,9 +53,12 @@ self-run (read-only, no `--confirm`).
 - Zod + Server Actions for all mutations; react-hook-form only where a form needs client state
 - MapLibre GL (lazy, client island) for maps; no Google Maps JS
 - Biome (lint/format), Vitest (unit), Playwright (e2e + a11y smoke)
-- Database: Supabase ap-southeast-1 (Singapore); Vercel functions: sin1. Region move to
-  ap-south-1 deferred — must be decided before the first real user signup, while
-  auth/profile/children tables are empty.
+- Database: Supabase ap-south-1 (Mumbai); Vercel functions: bom1. Moved from
+  ap-southeast-1 (Singapore) — the DB side of the move happened first, and this
+  file went stale for a while with `vercel.json` still pinned to sin1 (fixed
+  2026-09-26; see docs/screen-map.md for the note). Keep these two in sync if
+  the region ever changes again — a mismatch here costs real cross-region
+  latency on every single Supabase call.
 - Next.js 16.x API reference: `AGENTS.md` — prefer it over training knowledge for Cache
   Components, `cacheTag`, instant navigation, `next/form`.
 
