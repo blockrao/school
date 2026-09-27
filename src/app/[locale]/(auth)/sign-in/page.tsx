@@ -13,7 +13,7 @@ import { signInWithPassword } from "./password-actions";
 //
 // Email+password added as a second, interim option (no design reference either)
 // while the SMS provider for phone OTP isn't wired up in Supabase yet — see
-// docs/access-control-design.md. Remove this block once phone OTP is live if
+// docs/spec/access-control.md. Remove this block once phone OTP is live if
 // it's no longer wanted, but leaving it also gives a no-SMS-dependency login
 // path going forward, which is worth keeping regardless.
 

@@ -1,4 +1,8 @@
-# Access control & authentication — design
+# Access control & authentication — Developer Spec
+
+**Status:** built (describes the implemented model) · **Updated:** 27 Sep 2026
+**Canonical location:** this file (was `docs/access-control-design.md`).
+**Decisions:** N-09, N-11, D-061, D-073, D-103
 
 Refines "admin has separate access, school operation has different access,
 teacher/student/parent are end users" into the concrete role model, RLS
@@ -114,9 +118,9 @@ right page) and as a second layer, not as the actual gate.
   would need its own (rate-limited, audited) invite mechanism.
 - **Splitting `ops` from `admin` in practice**, not just in the enum — e.g.
   restricting who can promote a profile to `ops`/`admin` in the first place.
-  Currently no UI does this at all (it's a direct DB write, as this
-  session's earlier promotion of the first ops account was).
-- **Supabase Dashboard-only settings** these MCP tools can't change: OTP
+  `/ops/staff` now lets an `admin` change `profiles.role` (built 26 Sep);
+  there is still no separate ops-vs-admin permission set beyond that.
+- **Supabase Dashboard-only settings** (not changeable from SQL or the terminal): OTP
   expiry window, the project-level SMS/email send-rate caps (a second,
   provider-side backstop behind the new `rate_limits` table), and leaked-password
   protection (irrelevant here since there are no passwords, but relevant if

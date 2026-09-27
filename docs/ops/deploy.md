@@ -44,4 +44,4 @@ Set `SITE_INDEXABLE=true` in Vercel when the site is ready to go public. Do this
 deliberately, on launch day — not as part of a routine deploy.
 
 ## Region
-Database: Supabase ap-southeast-1 (Singapore). Vercel functions: `sin1` (see `vercel.json`).
+Database: Supabase `ap-south-1` (Mumbai). Vercel functions: `bom1` (see `vercel.json`). Keep the two in sync (D-083).

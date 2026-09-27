@@ -16,7 +16,7 @@
 -- ("Not yet published") takes over, same as any other unknown fact.
 --
 -- school_code: stable 6-digit numeric entity id (schools.school_code, unique
--- NOT NULL, backfilled — see the School Entity Page spec doc). Not source-gated
+-- NOT NULL, backfilled — see docs/spec/school-entity-page.md). Not source-gated
 -- like the fact columns above — it's an internal identifier, not a published
 -- fact about the school — and it's never guessed/omitted like UDISE. Used as
 -- the canonical URL suffix (/[city]/[slug]-[school_code]) and as the
@@ -26,7 +26,7 @@
 -- Does NOT filter on schools.status. That field is an unused manual toggle —
 -- every school in the database is 'draft' (confirmed: 0 rows are 'published'
 -- anywhere, in any district). "Published" here means the L0-L3 completeness
--- rules (docs/DATA_ACCESS.md) plus the source rules above (both computed from
+-- rules (docs/spec/data-and-trust.md) plus the source rules above (both computed from
 -- the row's own fields), not a status flag nobody sets.
 --
 -- This view must stay owner-run: created via DATABASE_URL (role `postgres`,

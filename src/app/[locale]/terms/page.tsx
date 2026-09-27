@@ -4,7 +4,7 @@ import { localeAlternates, localeCanonical } from "@/lib/seo";
 
 // design-pending — no design file for a legal page. Placeholder content only:
 // SchoolOye has no final Terms of Service yet (pending legal review, same
-// status as docs/data-retention.md's retention rule). This page exists so
+// status as docs/ops/data-retention.md's retention rule). This page exists so
 // onboarding has a real, versioned document to link to and record acceptance
 // of — the version string below (see src/lib/consent.ts) is what's recorded
 // on the user's `consents` row, not this specific wording.

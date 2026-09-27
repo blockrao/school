@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Invokes purge_expired_documents() — deletes the Storage object and soft-deletes
- * the documents row for anything past retain_until. See docs/data-retention.md.
+ * the documents row for anything past retain_until. See docs/ops/data-retention.md.
  *
  * Not granted to any app-facing role, so this connects as DATABASE_URL (same
  * trust level as scripts/db-migrate.mjs) — run by a human, or wired to a real
