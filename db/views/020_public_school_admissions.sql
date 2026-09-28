@@ -1,14 +1,16 @@
--- D-119 (28 Sep 2026): every admission cycle of a published school is shown as stored;
--- `verification` is exposed so the page can label it. No verification filter.
--- api.public_school_admissions: admission cycles, shown only once a human (staff or
--- the school itself) has confirmed them — not merely source_verified from an
--- automated extraction. "Approved" = verification in ('ops_verified','school_verified').
--- Column shape matches the pre-existing public.public_school_admissions view; this
--- adds the approval gate and moves it into the api schema.
+-- D-119 (Prav, 28 Sep 2026): every admission cycle of a published school is shown
+-- exactly as stored, matching 010_public_schools.sql's current rule. `verification`
+-- is exposed so the page can label the record, but it gates nothing here — the
+-- older per-field approval gate ("Approved" = verification in ('ops_verified',
+-- 'school_verified'), formerly D-025) is suspended along with the rest of
+-- data-and-trust.md §3's rules 1–5 (see that file for the full list and for how
+-- to reinstate gating if D-119 is ever reversed).
 --
--- Does not filter on schools.status — see 010_public_schools.sql's header for
--- why (status is an unused manual toggle, not the real publishing gate).
--- Must stay owner-run (same note applies).
+-- Filters on schools.status = 'published' (the real publishing gate under D-119,
+-- same as 010_public_schools.sql) via the join below.
+-- Column shape matches the pre-existing public.public_school_admissions view; this
+-- moved it into the api schema.
+-- Must stay owner-run — see 010_public_schools.sql's header.
 create or replace view api.public_school_admissions as
 select
   s.id as school_id,

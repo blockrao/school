@@ -628,11 +628,13 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
 }
 
 /**
- * Soonest approved admission_cycles.closes_on per school, for list-card
- * DeadlineMargin rails. Only verification IN ('ops_verified','school_verified')
- * cycles are considered (api.public_school_admissions' own gate) — this used to
- * read raw admission_cycles with no approval filter at all; switching to the
- * view is a real correctness fix, not just a grants workaround.
+ * Soonest admission_cycles.closes_on per school, for list-card DeadlineMargin
+ * rails, read via api.public_school_admissions rather than the raw table (for
+ * the shared api-schema access path, not an approval filter). Under D-119
+ * (28 Sep 2026) the view has no verification gate — every cycle of a published
+ * school is shown as stored; a stale comment here previously claimed the view
+ * only exposed verification IN ('ops_verified','school_verified') cycles, which
+ * was true before D-119 suspended that rule and is not true of the live view now.
  */
 export async function getAdmissionDeadlinesBySchoolId(
   schoolIds: string[],

@@ -687,3 +687,56 @@ enough that further UI work would just polish permanently-empty sections. Same d
 prior scoping pass this session: live schema → existing domain capabilities → actual production
 data → missing capability → smallest viable architecture → implementation. This is a scoping
 exercise only — no implementation until Prav locks scope.
+
+## 2026-09-28 — `admission_notices` → `admission_cycles` capability/gap inventory
+
+Deep-dive scoping pass (not implementation) into the promotion bridge between `admission_notices`
+(the ingestion/review layer, 276 real rows) and `admission_cycles` (the canonical projection the
+public page reads, 10 rows, all exam-linked with `school_id = NULL`).
+
+**Key findings:**
+- Today, "Approve" in `/ops/notices` only flips `admission_notices.review = 'approved'`; nothing
+  reads that flag downstream. No code anywhere writes to `admission_cycles`.
+- Of the 6 approved, `page_kind = 'admission_notice'` rows, only **1** has both a mappable status
+  and a real `opens_on`/`closes_on` date. The other 5 fail on empty `cycles[]`, unreadable
+  extraction, or an unmappable `status_hint` (`"unknown"`, not a member of the `admission_status`
+  enum). Confirms approval today means "a human looked at the source," not "ready to publish."
+- `admission_cycles` has `UNIQUE (school_id, academic_year, class_code)` and a
+  `school_xor_exam` check constraint — a safe, pre-existing upsert key.
+- `field_provenance` (85,068 rows) has never been used for anything but `entity_table = 'schools'`
+  — extending it to admissions would be new, not reuse.
+- No existing code writes to `admission_cycles`, and no correction/rejection/supersession
+  mechanism exists for it — any promotion design has to define this from scratch.
+
+**False finding, corrected before any runtime change:** initially identified the missing
+verification predicate on `api.public_school_admissions` (and the matching gap in the
+`cycles_public_read` RLS policy) as a publication-safety bug — the live view has no
+`verification` filter, while its sibling `api.public_exam_admissions` does, and two comments in
+`public-adapter.ts` plus `docs/spec/admissions-tracker.md` both claimed the school-linked view
+was gated the same way. Prav authorized a prerequisite fix on that basis. Before writing it,
+inspection of `docs/spec/data-and-trust.md` §3 and the header of `db/views/010_public_schools.sql`
+established that the missing gate is **intentional**: Prav's D-119 (28 Sep 2026) explicitly
+suspends data-and-trust.md's rules 1–5 repo-wide, including the admissions verification gate —
+"a school is public when `schools.status = 'published'`, and every field is shown as stored." The
+two comments and the spec doc were stale relative to a same-day decision, not the live view.
+**No SQL, RLS, or data was changed.** Corrected instead: the self-contradictory header comment in
+`db/views/020_public_school_admissions.sql` (it opened with the correct D-119 description but kept
+three leftover pre-D-119 sentences describing the suspended gate), the two wrong claims in
+`public-adapter.ts`, and the outdated statements in `docs/spec/admissions-tracker.md` (via a dated
+correction note, keeping the original 27-Sep snapshot table intact per this session's established
+convention). Verified via `pnpm run typecheck`, `pnpm run lint`, `pnpm test` (117/117) — comment/doc
+changes only, no logic touched.
+
+This also sharpens the admissions value question: under D-119 there is no verification gate
+protecting a promoted `admission_cycles` row from public display — `verification` can describe a
+canonical record's state but cannot be relied on as the publication safety mechanism. Any future
+promotion pipeline has to establish publication-worthiness itself, before writing to the canonical
+path, not after.
+
+**Decision:** Increment 8 (normalization + promotion) is paused. Next is a product-level
+admissions/school-intelligence **value audit** — using the real 276-row corpus (and the broader
+question of what's worth promoting: admissions vs. mandatory disclosures/contact vs.
+facilities/safety vs. other structured data) to decide whether, and how narrowly, to build a
+promotion pipeline at all — before any further engineering on this. `school_notices` as a general
+abstraction is explicitly not being created; `admission_notices` stays the concrete domain until
+the audit says otherwise.

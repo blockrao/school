@@ -30,6 +30,14 @@ The tracker turns approved `admission_cycles` rows (one per school × session ×
 
 ## 2. Current state (verified against the repo on 27 Sep 2026)
 
+> **2026-09-28 correction:** the "Admissions view" row below, and the `where` gate note in
+> §4's migration sketch, describe `db/views/020_public_school_admissions.sql` as gated on
+> legacy `verification in ('ops_verified','school_verified')` — that was accurate on 27 Sep,
+> but Prav's D-119 (28 Sep 2026, see `data-and-trust.md` §3) suspended that gate along with
+> the rest of that file's rules 1–5: the live view now shows every admission cycle of a
+> published school as stored, with no verification filter. `api.public_exam_admissions`
+> (exam-linked cycles) is unaffected and still carries its own verification gate live.
+
 | Area | What exists | Gap |
 |---|---|---|
 | City page | `src/app/[locale]/[city]/page.tsx`. Its `?admissions=open` filter is noindex (N-08) and uses `listPublicSchools…({admissionsOpen})` in `src/lib/db/public-adapter.ts:363`, which filters on **stored** `status in (open, closing_soon)`. | There is no dedicated admissions page. `/[locale]/[city]/admissions` is **pending** (`docs/screen-map.md` row 4; design `design/City List.dc.html`). |
@@ -208,7 +216,10 @@ Precedence rules:
   end as display_status
 ```
 
-Keep the `where` gate (`verification in ('ops_verified','school_verified')`) until every read site uses N-03's `verification_status`. Then switch to `ac.verification_status = 'verified'`; that swap is a view change, not destructive. Also:
+(2026-09-28: this `where` gate no longer exists in the live view — D-119 suspended it, see the
+correction note in §2. This section's own migration sketch above pre-dates that decision;
+re-check whether a verification-based `where` clause is still the intended design before reusing
+this snippet.) Also:
 - apply with `pnpm db:views --confirm`;
 - update the Zod contract;
 - run `pnpm verify:views` and `pnpm db:types`;
