@@ -11,6 +11,14 @@ const buttonVariants = cva(
         primary: "bg-ruled-blue text-copy-white hover:bg-ink focus-visible:outline-pencil-yellow",
         secondary:
           "border border-line-blue bg-copy-white text-ruled-blue hover:bg-margin-paper focus-visible:outline-ruled-blue",
+        // V2 visual foundation (Increment 9) — additive variants for the
+        // migrated shared chrome only (SiteHeader's AuthStatusLink,
+        // MobileMenu's AuthStatusLink). Existing primary/secondary are
+        // unchanged and still used by every unmigrated page.
+        v2Primary:
+          "bg-v2-accent text-v2-accent-ink font-v2-sans hover:opacity-90 focus-visible:outline-v2-accent",
+        v2Secondary:
+          "border border-v2-line-2 bg-v2-surface text-v2-ink font-v2-sans hover:bg-v2-sunk focus-visible:outline-v2-accent",
       },
       size: {
         default: "h-12 px-5",

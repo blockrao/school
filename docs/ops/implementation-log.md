@@ -1156,3 +1156,133 @@ the v2 system, done once as its own foundational increment ahead of any content-
 content seam until the rest of the site is redesigned to match. Not proceeding with either without
 his call — this is a large, hard-to-cheaply-reverse decision (a full re-theme touches every shared
 component; a scoped version means redoing the chrome later anyway), not an implementation detail.
+
+## 2026-09-28 — Increment 9: V2 visual foundation + shared chrome migration
+
+Per Prav's detailed increment spec: established the V2 visual token/typography/theme
+infrastructure and migrated the shared site chrome onto it, without touching entity-page content,
+domain logic, schema, or URLs. Full Step 15 report below, as required.
+
+### 1. Intended goal
+Create a reusable V2 visual foundation (tokens, typography, theme) and migrate the shared global
+shell (header, search, nav, mobile nav, footer) onto it, so the whole site has one coherent chrome
+language, while leaving all page content on the existing v1 ("notebook") theme until Increment 10.
+
+### 2. Actual changes
+- `src/app/globals.css` — added a namespaced `--color-v2-*` token layer (12 semantic tokens, light
+  values ported verbatim from the design), `--font-v2-sans`/`--font-v2-mono`, and a dark-theme
+  override block (`@media (prefers-color-scheme: dark)` guarded by `:not([data-theme=light])`, plus
+  `[data-theme=dark]` for manual override) with dark values also ported verbatim.
+- `src/app/layout.tsx` — added IBM Plex Sans / IBM Plex Sans Devanagari / IBM Plex Mono via
+  `next/font/google` (weights 400/500/600 Sans, 400/500 Mono — matching the design's own Google
+  Fonts import exactly), exposed as CSS variables alongside (not replacing) the existing Anek/Mukta
+  variables.
+- `src/components/ui/button.tsx` — added `v2Primary`/`v2Secondary` variants (additive; existing
+  `primary`/`secondary` untouched, still used everywhere outside the migrated chrome).
+- `src/components/shell/site-header.tsx`, `site-footer.tsx`, `primary-nav.tsx`, `mobile-menu.tsx`,
+  `mobile-bottom-nav.tsx`, `city-picker.tsx`, `auth-status-link.tsx` — every v1 token/class
+  (`border-rule`, `bg-copy-white`, `text-ink`, `text-muted-ink`, `text-slate`, `text-ruled-blue`,
+  `bg-margin-paper`, `border-line-blue*`, `font-display`) replaced with its v2 equivalent. Confirmed
+  via grep: zero v1 token occurrences remain in these seven files.
+
+### 3. Visual foundation
+- **Fonts:** IBM Plex Sans (Latin) + IBM Plex Sans Devanagari (Devanagari) + IBM Plex Mono, loaded
+  via `next/font/google`, combined as `--font-v2-sans`/`--font-v2-mono` → Tailwind utilities
+  `font-v2-sans`/`font-v2-mono`.
+- **Tokens:** `v2-bg`, `v2-surface`, `v2-sunk`, `v2-line`, `v2-line-2`, `v2-ink`, `v2-ink-2`,
+  `v2-ink-3`, `v2-accent`, `v2-accent-ink`, `v2-accent-soft`, `v2-amber`, `v2-amber-soft` — each a
+  Tailwind utility (`bg-v2-*`/`text-v2-*`/`border-v2-*`), values verbatim from the design's
+  `:root,[data-so-theme=light]` and `[data-so-theme=dark]` blocks.
+- **Theme mechanism:** CSS-variable cascade, not a `dark:` variant — automatic via
+  `prefers-color-scheme`, with a `data-theme="dark"|"light"` attribute on `<html>` as a manual
+  override path for a future toggle. **No toggle UI was built** — not requested, and every
+  component just consumes `bg-v2-*`/`text-v2-*` utilities with zero per-component dark-mode code,
+  satisfying "theme switching must not require rewriting individual components" without adding a
+  framework the repo doesn't need yet.
+- **Responsive mechanism:** unchanged — no layout/flex/grid/width/breakpoint classes were touched
+  anywhere in this increment, only color and font-family tokens. The existing `md:` breakpoint
+  structure in every migrated file is untouched, so responsive *behavior* (what stacks, what hides)
+  is provably identical to before; only colors and typeface changed.
+- **Primitives:** extended `Button` (2 new variants) rather than creating a new component
+  hierarchy, per the "existing component + small extension" instruction. No new primitives were
+  needed for this increment's actual scope (header/search/nav/footer reused existing markup
+  patterns with new tokens).
+
+### 4. Shared chrome
+- **Header** (`site-header.tsx`): mobile bar (hamburger, brand, city picker) and desktop bar (brand,
+  primary nav, search, city picker, auth link) both re-themed; sticky positioning/height/layout
+  unchanged.
+- **Search**: the header's inline search form — border, background, icon, input text, and
+  placeholder all moved to v2 tokens.
+- **Navigation** (`primary-nav.tsx`): active/hover states now use `v2-accent`/`v2-ink`.
+- **Mobile navigation** (`mobile-menu.tsx`, `mobile-bottom-nav.tsx`): slide-in panel, overlay scrim,
+  and the fixed 5-tab bottom bar all re-themed; `AuthStatusLink` inside the mobile menu now renders
+  with the new `v2Primary` button variant.
+- **Footer** (`site-footer.tsx`): background moved to `v2-sunk` (a step below `v2-bg`, matching the
+  design's convention of a slightly recessed footer surface distinct from the page body), every
+  link's color made explicit (`text-v2-ink`/`text-v2-ink-3` + `hover:text-v2-accent`) rather than
+  left to inherit — necessary because the site's global `a { color: var(--color-ruled-blue) }` base
+  rule would otherwise leak the *old* accent color onto every unstyled footer link; explicit utility
+  classes override it via ordinary CSS specificity (class beats type selector), confirmed by reading
+  the compiled cascade rather than assuming it.
+- **Global page shell**: scoped to the header/footer pair only (the "boundary"), per the increment's
+  own Step 8 — `<body>`'s background/text/link defaults were deliberately left on v1 tokens, since
+  changing them would silently re-skin every unmigrated page's content, which this increment
+  explicitly excludes.
+
+### 5. What was deliberately NOT changed
+Entity page content, admissions, fees, discovery pages, database/schema, RLS, Supabase queries, API
+contracts, URL structure, SEO metadata/JSON-LD, claim logic, verification logic. Grep-confirmed: no
+file outside `globals.css`, `layout.tsx`, `button.tsx`, and the seven shell components above was
+touched.
+
+### 6. Validation
+- **Typecheck:** clean (`next typegen && tsc --noEmit`).
+- **Lint/format:** clean after two formatting-only fixes (`biome format --write` on
+  `site-header.tsx`/`site-footer.tsx` — attribute wrapping only, no logic change), then a clean
+  `biome check .`.
+- **Tests:** 123/123 passing (unchanged from before this increment — no test touches shell
+  components directly).
+- **Build:** **could not be verified in this sandbox** — `pnpm run build` fails to fetch *all six*
+  Google Fonts (Anek Devanagari, Anek Latin, Mukta, IBM Plex Mono, IBM Plex Sans, IBM Plex Sans
+  Devanagari) with "Failed to fetch ... from Google Fonts... behind a proxy" — this is the sandbox's
+  existing egress restriction (same class as the previously-documented block on reaching the
+  Supabase host from a browser render), not something this increment introduced: the pre-existing
+  Anek/Mukta fonts fail identically to the new IBM Plex ones. `pnpm run build` was not part of this
+  session's established verification trio (typecheck/lint/test) before this increment either, for
+  the same underlying reason. Flagged as a real gap, not silently waved through.
+- **Responsive/light-dark/a11y checks (Step 9-11):** no live-browser render was available (same
+  sandbox limitation as the build check and the previously-documented `ClaimStatusLink` hydration
+  check). Performed by analysis instead: (a) zero layout/flex/grid/width/breakpoint classes were
+  touched, so responsive behavior is provably unchanged in shape; (b) computed WCAG contrast ratios
+  for every foreground/background pairing actually used — `v2-ink`/`v2-surface` 17.2:1,
+  `v2-accent`/`v2-surface` 6.8:1, `v2-ink-3`/`v2-surface` 5.65:1, and the dark-mode equivalents 15.8:1
+  / 8.7:1 / 8.25:1 — all clear AA (4.5:1) for normal text; (c) every `aria-*` attribute, focus-visible
+  outline, and keyboard interaction already present (hamburger `aria-expanded`, city picker
+  `aria-haspopup`/`role=listbox`, nav `aria-current`) was preserved verbatim — none were removed or
+  restructured. **This is analysis, not a rendered visual check** — a real-browser pass against the
+  live deployment (not this sandbox) is the outstanding verification step, flagged rather than
+  assumed.
+
+### 7. Remaining visual debt
+Every page's own content still renders in the v1 "notebook" theme (Anek/Mukta, ruled-blue/margin-
+paper tokens) — home, search/discovery, the canonical school page (all sections), claim flow, ops,
+teacher pages, guides, exams. The seam described in the increment spec (v2 chrome, v1 content) is
+now live on every page. Increment 10 (canonical school page V2) is the next piece of this; every
+other surface (home, search, claim, teachers, ops) has no scheduled increment yet.
+
+### 8. Architecture risks for Increment 10
+- The global `a { color: var(--color-ruled-blue) }` base-layer rule (still v1) will need the same
+  explicit-override treatment this increment gave the footer, anywhere Increment 10 adds an
+  unstyled link inside v2-themed entity-page content — don't assume inheriting from `<body>` is
+  enough.
+- `<body>` itself is still v1-themed (`bg-copy-white text-ink font-body`) — Increment 10 will need
+  to decide whether the entity page wraps its own content in a v2-scoped container (this
+  increment's pattern: token classes applied directly to the section's own root) or whether that's
+  the point at which `<body>` itself finally moves to v2 defaults.
+- No dark-mode toggle UI exists — if Increment 10's design expects a visible switcher (the design
+  file's `data-so-theme="{{ theme }}"` binding implies the mockup expects one), that's new work, not
+  something this increment's CSS-variable infrastructure alone provides.
+
+### 9. Commit
+Pending — see next entry for the exact hash after push.

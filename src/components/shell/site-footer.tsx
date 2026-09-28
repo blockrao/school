@@ -31,97 +31,104 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
   }
 
   return (
-    <footer className="border-t border-rule bg-margin-paper px-4 pt-6 pb-24 md:px-10 md:pb-6 md:pt-10">
+    // V2 visual foundation (Increment 9): the other half of the migrated
+    // global shell boundary, matching SiteHeader's tokens.
+    <footer className="border-t border-v2-line bg-v2-sunk px-4 pt-6 pb-24 font-v2-sans text-v2-ink md:px-10 md:pb-6 md:pt-10">
       <div className="mx-auto flex max-w-(--container-page) flex-col gap-7">
         <div className="grid gap-7 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div className="flex flex-col gap-2">
-            <span className="font-display text-section font-bold text-ruled-blue">
-              {t(dict, "common.brand")}
-            </span>
-            <p className="max-w-80 text-body text-muted-ink">{t(dict, "footer.tagline")}</p>
+            <span className="text-section font-bold text-v2-accent">{t(dict, "common.brand")}</span>
+            <p className="max-w-80 text-body text-v2-ink-3">{t(dict, "footer.tagline")}</p>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="mb-1 text-meta font-semibold">
+            <span className="mb-1 text-meta font-semibold text-v2-ink">
               {t(dict, "footer.explore_heading")}
             </span>
             <Link
               href={`${localePrefix(locale)}/schools`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.schools")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/exams`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.entrance_exams")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/teachers`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.teachers")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/guides`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.guides")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/compare`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.compare_schools")}
             </Link>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="mb-1 text-meta font-semibold">{t(dict, "footer.tools_heading")}</span>
+            <span className="mb-1 text-meta font-semibold text-v2-ink">
+              {t(dict, "footer.tools_heading")}
+            </span>
             <Link
               href={`${localePrefix(locale)}/tools/age-eligibility`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.check_age_eligibility")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/alerts`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.whatsapp_alerts")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/admissions/help`}
-              className="flex min-h-8 items-center text-body"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
             >
               {t(dict, "footer.admission_help")}
             </Link>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="mb-1 text-meta font-semibold">
+            <span className="mb-1 text-meta font-semibold text-v2-ink">
               {t(dict, "footer.for_schools_heading")}
             </span>
-            <Link href="/for-schools" className="flex min-h-8 items-center text-body">
+            <Link
+              href="/for-schools"
+              className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
+            >
               {t(dict, "footer.claim_school_free")}
             </Link>
           </div>
         </div>
 
         {launchAreas.length > 0 && (
-          <div className="flex flex-col gap-4 border-t border-rule pt-5">
-            <span className="text-meta font-semibold">{t(dict, "footer.schools_by_city")}</span>
+          <div className="flex flex-col gap-4 border-t border-v2-line pt-5">
+            <span className="text-meta font-semibold text-v2-ink">
+              {t(dict, "footer.schools_by_city")}
+            </span>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from(areasByState.entries()).map(([state, stateAreas]) => (
                 <div key={state} className="flex flex-col gap-1.5">
-                  <span className="text-meta text-muted-ink">{state}</span>
+                  <span className="text-meta text-v2-ink-3">{state}</span>
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
                     {stateAreas.map((area) => (
                       <Link
                         key={area.slug}
                         href={cityPath(locale, area.state_slug, area.slug)}
-                        className="flex min-h-8 items-center text-body"
+                        className="flex min-h-8 items-center text-body text-v2-ink hover:text-v2-accent"
                       >
                         {area.name}
                       </Link>
@@ -133,16 +140,25 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
           </div>
         )}
 
-        <div className="flex flex-col gap-3 border-t border-rule pt-5 text-meta text-muted-ink md:flex-row md:items-center md:justify-between md:gap-6">
+        <div className="flex flex-col gap-3 border-t border-v2-line pt-5 text-meta text-v2-ink-3 md:flex-row md:items-center md:justify-between md:gap-6">
           <span>{t(dict, "footer.copyright", { year: 2026 })}</span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <Link href={`${localePrefix(locale)}/privacy`} className="min-h-8 content-center">
+            <Link
+              href={`${localePrefix(locale)}/privacy`}
+              className="min-h-8 content-center text-v2-ink-3 hover:text-v2-accent"
+            >
               {t(dict, "footer.privacy")}
             </Link>
-            <Link href={`${localePrefix(locale)}/terms`} className="min-h-8 content-center">
+            <Link
+              href={`${localePrefix(locale)}/terms`}
+              className="min-h-8 content-center text-v2-ink-3 hover:text-v2-accent"
+            >
               {t(dict, "footer.terms")}
             </Link>
-            <a href="mailto:grievance@schooloye.in" className="min-h-8 content-center">
+            <a
+              href="mailto:grievance@schooloye.in"
+              className="min-h-8 content-center text-v2-ink-3 hover:text-v2-accent"
+            >
               {t(dict, "footer.grievance_officer", { email: "grievance@schooloye.in" })}
             </a>
           </div>

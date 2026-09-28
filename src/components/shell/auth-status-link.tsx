@@ -33,7 +33,7 @@ export function AuthStatusLink({
 }: {
   locale: string;
   className?: string;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "v2Primary" | "v2Secondary";
   onNavigate?: () => void;
 }) {
   const [isSignedIn, setIsSignedIn] = useState(false);

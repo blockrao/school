@@ -89,6 +89,8 @@ export function PrimaryNav({
   const items = primaryNavItems(dict, locale, areas, selectedCity);
 
   return (
+    // V2 visual foundation (Increment 9): consumed only from SiteHeader, one
+    // of the migrated chrome components — v2 tokens throughout.
     <nav className={cn("flex h-full items-stretch gap-0.5", className)}>
       {items.map((item) => {
         const active = isActive(pathname, item.href);
@@ -100,8 +102,8 @@ export function PrimaryNav({
             className={cn(
               "-mb-[3px] flex items-center border-b-3 px-3 text-body",
               active
-                ? "border-ruled-blue font-semibold text-ruled-blue"
-                : "border-transparent font-medium text-ink hover:text-ruled-blue",
+                ? "border-v2-accent font-semibold text-v2-accent"
+                : "border-transparent font-medium text-v2-ink hover:text-v2-accent",
             )}
           >
             {item.label}

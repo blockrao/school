@@ -66,6 +66,36 @@
   /* Layout widths seen across screens */
   --container-read: 760px;
   --container-page: 1320px;
+
+  /* ── V2 visual foundation (Increment 9) ──────────────────────────────────
+     Semantic tokens ported verbatim (light values) from
+     docs/spec/school-entity-page-v2-design.html's `:root,[data-so-theme=light]`
+     block. Namespaced `v2-*` so they coexist with the tokens above rather than
+     replacing them — this increment migrates only the shared site chrome
+     (SiteHeader/SiteFooter/PrimaryNav/MobileMenu/MobileBottomNav/CityPicker),
+     not page content, which keeps reading the un-prefixed tokens above until
+     its own migration. Dark values are applied as CSS-variable overrides
+     below (@layer base), not here — @theme only carries the light/default
+     value each token compiles to a utility for. */
+  --color-v2-bg: #f6f5f1;
+  --color-v2-surface: #ffffff;
+  --color-v2-sunk: #efede7;
+  --color-v2-line: #e4e1d9;
+  --color-v2-line-2: #cfcbc0;
+  --color-v2-ink: #1c1b19;
+  --color-v2-ink-2: #46443f;
+  --color-v2-ink-3: #6a675f;
+  --color-v2-accent: #2e5b9a;
+  --color-v2-accent-ink: #ffffff;
+  --color-v2-accent-soft: #e9eff7;
+  --color-v2-amber: #8a5300;
+  --color-v2-amber-soft: #fbefd9;
+
+  /* V2 typography — IBM Plex family, wired via next/font in layout.tsx
+     (variables below), kept separate from --font-display/--font-body so
+     unmigrated content keeps its current Anek/Mukta rendering. */
+  --font-v2-sans: var(--font-plex-sans), var(--font-plex-sans-devanagari), system-ui, sans-serif;
+  --font-v2-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 @layer base {
@@ -101,5 +131,47 @@
       animation: none !important;
       transition: none !important;
     }
+  }
+
+  /* ── V2 dark theme (Increment 9) ────────────────────────────────────────
+     Values ported verbatim from the design's `[data-so-theme=dark]` block.
+     Two activation paths, matching the artifact-design convention: automatic
+     (prefers-color-scheme, unless explicitly overridden to light) and manual
+     (data-theme="dark"|"light" on <html>, for a future toggle — none is
+     built in this increment, since one wasn't requested and the shell reads
+     fine on OS preference alone). Both override the light values above via
+     ordinary CSS-variable cascade, so every `bg-v2-*`/`text-v2-*`/
+     `border-v2-*` utility repaints with no component-level dark-mode code. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-v2-bg: #131312;
+      --color-v2-surface: #1b1b19;
+      --color-v2-sunk: #242421;
+      --color-v2-line: #302f2b;
+      --color-v2-line-2: #46443e;
+      --color-v2-ink: #eeece7;
+      --color-v2-ink-2: #c6c3bb;
+      --color-v2-ink-3: #9d9a91;
+      --color-v2-accent: #92b3e8;
+      --color-v2-accent-ink: #0e192b;
+      --color-v2-accent-soft: #1c2637;
+      --color-v2-amber: #e8b560;
+      --color-v2-amber-soft: #332710;
+    }
+  }
+  :root[data-theme="dark"] {
+    --color-v2-bg: #131312;
+    --color-v2-surface: #1b1b19;
+    --color-v2-sunk: #242421;
+    --color-v2-line: #302f2b;
+    --color-v2-line-2: #46443e;
+    --color-v2-ink: #eeece7;
+    --color-v2-ink-2: #c6c3bb;
+    --color-v2-ink-3: #9d9a91;
+    --color-v2-accent: #92b3e8;
+    --color-v2-accent-ink: #0e192b;
+    --color-v2-accent-soft: #1c2637;
+    --color-v2-amber: #e8b560;
+    --color-v2-amber-soft: #332710;
   }
 }

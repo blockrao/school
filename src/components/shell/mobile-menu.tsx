@@ -35,7 +35,7 @@ export function MobileMenu({
         aria-label={t(dict, "common.menu")}
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="flex h-11 w-11 items-center justify-center text-ink"
+        className="flex h-11 w-11 items-center justify-center text-v2-ink"
       >
         <svg
           width="22"
@@ -58,30 +58,28 @@ export function MobileMenu({
             aria-hidden="true"
             tabIndex={-1}
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ink/55"
+            className="absolute inset-0 bg-v2-ink/55"
           />
           <div
             data-testid="mobile-menu-panel"
-            className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-copy-white"
+            className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-v2-surface font-v2-sans"
           >
-            <div className="flex items-center justify-between border-b border-rule px-4 py-2">
-              <span className="font-display text-card font-bold text-ruled-blue">
-                {t(dict, "common.brand")}
-              </span>
+            <div className="flex items-center justify-between border-b border-v2-line px-4 py-2">
+              <span className="text-card font-bold text-v2-accent">{t(dict, "common.brand")}</span>
               <button
                 type="button"
                 aria-label={t(dict, "common.close_menu")}
                 onClick={() => setOpen(false)}
-                className="flex h-11 w-11 items-center justify-center text-body text-ink"
+                className="flex h-11 w-11 items-center justify-center text-body text-v2-ink"
               >
                 ×
               </button>
             </div>
 
-            <div className="border-b border-rule p-4">
+            <div className="border-b border-v2-line p-4">
               <AuthStatusLink
                 locale={locale}
-                variant="primary"
+                variant="v2Primary"
                 className="w-full"
                 onNavigate={() => setOpen(false)}
               />
@@ -93,12 +91,10 @@ export function MobileMenu({
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex min-h-15 flex-col justify-center border-l-3 border-transparent px-4 py-1.5 hover:bg-margin-paper"
+                  className="flex min-h-15 flex-col justify-center border-l-3 border-transparent px-4 py-1.5 hover:bg-v2-sunk"
                 >
-                  <span className="font-display text-section font-semibold text-ink">
-                    {item.label}
-                  </span>
-                  {item.note && <span className="text-meta text-muted-ink">{item.note}</span>}
+                  <span className="text-section font-semibold text-v2-ink">{item.label}</span>
+                  {item.note && <span className="text-meta text-v2-ink-3">{item.note}</span>}
                 </Link>
               ))}
             </nav>
