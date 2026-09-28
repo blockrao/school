@@ -133,11 +133,11 @@ Experience → Distribution.
 | D-087 | Freshness limits by fact type: admissions open/closing 3 days, upcoming/not announced 14; fees per session or 180 days; contacts 90; identity 365; Tier A first | 7 / 14 / "1–2 weeks" |
 | D-088 | Third-party rankings only on editorial guides, attributed; never on school pages, cards or search order | Rankings |
 | D-089 | Sponsored placements on city/list pages from 1 Dec with border + "Sponsored" label; never on a school page's facts or above a ≤7-day deadline | Sponsored timing |
-| D-090 | Render at L1+; index only at L3 (verified current-session admissions record, any status); `schools.status` only suppresses (hidden / closed / opt-out) | Publish/index gate |
+| D-090 | *(Index part superseded by D-114)* Render at L1+; index only at L3 (verified current-session admissions record, any status); `schools.status` only suppresses (hidden / closed / opt-out) | Publish/index gate |
 | D-091 | Data session owns table DDL until the data repo retires; then the `school` repo owns all migrations | Table ownership |
 | D-092 | Government schools listed and searchable as Tier C, `noindex` until they have admissions data | Product Spec open decision |
 | D-093 | Repo goes private once Vercel is on a paid plan | Platform Audit |
-| D-094 | `SITE_INDEXABLE` flips when ≥50 Jaipur schools are L3 and CI is green (target 15 Oct) | Audit, entity spec |
+| D-094 | *(Superseded by D-114)* `SITE_INDEXABLE` flips when ≥50 Jaipur schools are L3 and CI is green (target 15 Oct) | Audit, entity spec |
 | D-095 | Test prices for application help: ₹299/499, ₹1,499/2,499, ₹4,999+. **Still open (Prav): WhatsApp provider, season staffing** | Product Spec open decisions |
 | D-096 | City admissions page lives at `/[locale]/[city]/admissions` (sections: closing soon, opened this week, opening soon, open with no last date); filtered variants are noindex | Product Spec `/admissions-open` vs screen map |
 | D-097 | Locality pages are indexable only with ≥8 schools at L2+ and ≥2 at L3; otherwise rendered and linked but noindex | D-041 "where content justifies" vs all-indexable today |
@@ -157,6 +157,8 @@ Experience → Distribution.
 | D-111 | Clarifies D-073 vs D-091: table DDL is run by the data session (Claude Code in the data repo); sessions in this repo run views, `api` functions, grants, RLS and seeds only. The new `field_provenance` review column is named `review_state` to avoid clashing with the existing `review_status` enum | Authority ambiguity; enum name clash |
 | D-112 | No paid "Verified" tier (drops v3.1's "SchoolOye Verified ₹999/yr"). Paid school products may never be named or labelled Verified, Official or Partner, and never include "reputation management" that touches parent reports, the change log, stale markers or Sources | v3.1 §17 vs D-024, D-052, D-060, D-062, N-13 |
 | D-113 | Concierge is digital-only this season: no physical submission partners (CSC operators, couriers) and no offline support; revisit in the 30 Apr decision memo | v3.1 §21, Consumer Spine vs D-003 |
+| D-114 | **MVP index rule** (supersedes the index part of D-090, and D-094, D-097's L3 count, D-109): a school page is indexable once it has a name, address with locality/pincode, board, and a phone or website, each from a displayable source (L2). A current-session admissions record enriches the page but is not required. Pages below L2 render `noindex`. `SITE_INDEXABLE` flips as soon as the Jaipur pilot list is loaded at L2 and CI is green. Indexing stays limited to launched cities (Jaipur, then Gurugram); government schools follow the same rule (supersedes D-092's noindex) | Prav 28 Sep: MVP must get schools live and discoverable now |
+| D-115 | **MVP publishing rule** (amends N-14, D-025 for the MVP): directory, affiliation and contact facts from official registries (board lists, UDISE+ directory, state lists) or the school's own website publish directly with their source and checked date; ops spot-checks a sample weekly. Admission dates publish when they link to the school's own notice or website page, after a quick human glance (batch review). Values with no evidence link (AI research alone, hearsay) never publish. Precedence tables, review states and the fuller provenance plumbing (R-01, R-02) wait until after launch | Same |
 
 ---
 

@@ -65,11 +65,13 @@ fullest example). This file holds the rules that apply everywhere.
 
 ## 5. Indexing, sitemaps, crawlers
 
-- **Gate:** a school page is indexable only at L3 (D-090, coordinates at pincode precision or
+- **Gate (MVP, D-114):** a school page is indexable at L2 — name, address with locality/pincode, board,
+  phone or website, each sourced. *Earlier rule, superseded:* indexable only at L3 (D-090, coordinates at pincode precision or
   better, D-109); the page emits
   `<meta name="robots" content="noindex,follow">` otherwise. Government schools stay `noindex`
   until L3 (D-092).
-- **Launch switch:** `SITE_INDEXABLE` stays off until ≥50 Jaipur schools are L3 and CI is green
+- **Launch switch:** `SITE_INDEXABLE` flips once the Jaipur pilot list is at L2 and CI is green (D-114).
+  *Superseded:* ≥50 Jaipur schools at L3
   (D-094). While off, `robots.ts` disallows everything.
 - **Sitemaps:** route handlers per launched city (`sitemap-{city}.xml`) plus `sitemap-site.xml`,
   indexed by `sitemap.xml`. Only indexable URLs. `lastModified` = latest displayed-fact

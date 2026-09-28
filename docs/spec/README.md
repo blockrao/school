@@ -97,7 +97,7 @@ Verified by reading the code; each spec's §2 has the detail. Fix P0 items befor
 | Date | Milestone |
 |---|---|
 | 3 Oct | M0: data requests R-01–R-07 applied; Gurugram city assignment; P0 bugs fixed |
-| 15 Oct | Tracker live; M1 school page (admissions-first, index gate); call queue; `SITE_INDEXABLE` if ≥50 Jaipur L3 (D-094) |
+| 15 Oct | Tracker live; M1 school page (admissions-first, index gate); call queue; `SITE_INDEXABLE` on as soon as Jaipur pilot list is at L2 (D-114) — target this week |
 | 1 Nov | Concierge; claim v2 + widget; fee report intake; Gurugram pilot (D-080) |
 | 15 Nov | Hindi city + tracker pages (D-086) |
 | 1 Dec | Sponsored placements on list pages (D-089) |

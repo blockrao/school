@@ -95,14 +95,14 @@ header comment. Public pages never do this.
 |---|---|---|
 | L0 | Listed only | No page (appears in lists) |
 | L1 | + address, pincode | Renders "Details being verified", `noindex` |
-| L2 | + phone or website, + coordinates | Full page, `noindex` |
-| L3 | + a human-verified current-session admissions record (any status, incl. "not announced"); coordinates at pincode/locality precision or better (D-109) | Full page, **indexable** |
+| L2 | + board, + phone or website (coordinates at pincode/locality precision is enough) | Full page, **indexable** (MVP, D-114) |
+| L3 | + a human-verified current-session admissions record (any status, incl. "not announced"); coordinates at pincode/locality precision or better (D-109) | Full page, indexable; the target level for trust and alerts |
 | Suppressed | `schools.status` in hidden / closed / opt-out | Minimal notice, `noindex` (closed → 410) |
 
 `schools.status` is used **only** to suppress; it is not a publish flag. Levels are computed in
 `staging.schools_with_level` for analysis and from `api.public_schools` fields in the app; the
 planned `schools.index_state` column makes the gate explicit (`school-entity-page.md` §11.3).
-Government schools are Tier C and stay `noindex` until they reach L3 (D-092).
+Government schools follow the same L2 rule (D-114).
 Street/rooftop geocode precision is required only for distance features, never for the index gate (D-109).
 
 ## 5. Owner-run views (why base-table RLS doesn't hide rows)

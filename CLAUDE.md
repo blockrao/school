@@ -102,8 +102,8 @@ self-run.
   `sameAs`. Never `AggregateRating`/`Review`.
 - Fact block near the top in plain server-rendered HTML, each fact with source + checked date.
   Unknown values show "Not yet published", never guessed.
-- Index gate (D-090): render at L1+, index only at L3 (verified current-session admissions record).
-  `SITE_INDEXABLE` stays off until D-094's criteria are met.
+- Index gate (D-114, MVP): render at L1+; index at L2 (name, address + locality/pincode, board, phone or
+  website, each sourced). `SITE_INDEXABLE` flips once the Jaipur pilot list is at L2 and CI is green.
 - Sitemaps: `sitemap.xml` index → per-city route handlers + `sitemap-site.xml`, indexable URLs only,
   real `lastModified`.
 - `robots.ts`: allow search engines and AI crawlers on public routes; disallow `/my`, `/portal`,
