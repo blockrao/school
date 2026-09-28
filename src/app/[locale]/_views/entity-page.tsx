@@ -73,20 +73,30 @@ function schoolOrgType(maxClass: string | null): string {
   return "School";
 }
 
-function verificationLabel(verification: string): { label: string; honest: boolean } {
-  switch (verification) {
-    case "school_verified":
-      return { label: "Verified by school", honest: true };
-    case "ops_verified":
-      return { label: "Verified by SchoolOye", honest: true };
-    case "source_verified":
-      return {
-        label: "Sourced from official records — not yet confirmed by the school",
-        honest: true,
-      };
-    default:
-      return { label: "Unverified — sourced from public records", honest: true };
+/**
+ * Header record badge — D7 / D-052 (docs/guidelines/content-and-trust.md §3).
+ * Exactly two states: a school-verified page says "Official record"; every
+ * other page (unclaimed, or claimed but not yet confirmed by the school)
+ * says "Compiled by SchoolOye from public records". Never "Official" or a
+ * logo outside the first state, and never a fabricated date.
+ */
+function recordBadge(
+  verification: string,
+  verifiedAt: Date | null,
+): { label: string; official: boolean } {
+  const dateStr = verifiedAt
+    ? verifiedAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : null;
+  if (verification === "school_verified") {
+    return {
+      label: `Official record${dateStr ? ` · verified by school on ${dateStr}` : ""}`,
+      official: true,
+    };
   }
+  return {
+    label: `Compiled by SchoolOye from public records${dateStr ? ` · ${dateStr}` : ""}`,
+    official: false,
+  };
 }
 
 function LocalityPageBody({
@@ -347,7 +357,7 @@ export async function SchoolView({
   const pill = deadlineToPill(deadlineState(deadlineInput, now));
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
-  const verification = verificationLabel(school.verification);
+  const badge = recordBadge(school.verification, verifiedAt);
 
   const mapPoint =
     school.lat != null && school.lng != null
@@ -531,10 +541,10 @@ export async function SchoolView({
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <StatusPill status={pill.status}>{pill.label}</StatusPill>
           <span
-            className={`text-meta font-semibold ${school.verification === "school_verified" || school.verification === "ops_verified" ? "text-board-green" : "text-muted-ink"}`}
+            className={`text-meta font-semibold ${badge.official ? "text-board-green" : "text-muted-ink"}`}
           >
-            {school.verification === "school_verified" ? "✓ " : ""}
-            {verification.label}
+            {badge.official ? "✓ " : ""}
+            {badge.label}
           </span>
           <ShareButton title={name} />
           <SaveButton
