@@ -186,3 +186,30 @@ claim-only.
 **Not yet done:** no code written for Increment 4 yet — this section is the investigation Prav asked
 for, reported back before implementation starts, per the deferred-review discipline this whole
 session has followed.
+
+## 2026-09-28 — CORRECTION: the "/sign-in redirect is broken" finding above is false
+
+The claim-flow review above reported a "confirmed bug": every `redirect("/sign-in?next=...")` call
+site targets a route that supposedly doesn't exist outside `/en/sign-in`, with no middleware to
+rewrite it. **That conclusion was reached by searching for a file named `middleware.ts`, which does
+not exist in this repo — but the mechanism does, under a different name.** This repo runs Next.js 16,
+which renamed the middleware convention to `proxy.ts` (confirmed against
+`node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md`, and
+`node_modules/next/AGENTS.md` states this explicitly). `src/proxy.ts` exists, implements exactly
+this rewrite, and `"sign-in"` is explicitly listed in its `LOCALE_ROOTS` set — so a request to
+`/sign-in` is correctly, silently, server-side-rewritten to `/en/sign-in` on every request. **There
+is no bug. The `/sign-in` redirect used by the claim flow, `ops/orders`, `portal/edit-request`, and
+`auth/callback` all work correctly as written.**
+
+Root cause of the wrong finding, stated plainly because it's the third time this exact failure mode
+has hit this session (see the live-schema reconciliation entry above for the first two): checking
+for a familiar convention name instead of verifying against what this specific, intentionally-
+modified codebase actually does. The repo's own root `AGENTS.md` says as much on every session start
+("This is NOT the Next.js you know... breaking changes... read `node_modules/next/dist/docs/`
+before writing any code") — this is the first time that instruction was actually followed, and it
+immediately overturned a conclusion already reported to Prav as "confirmed." Going forward: before
+declaring any routing/framework-conventions finding, check `node_modules/next/AGENTS.md` and the
+relevant `dist/docs/` page first, not general Next.js knowledge.
+
+**Practical effect:** Increment 4 no longer includes an auth-redirect fix — there's nothing to fix.
+It is claim-flow completion only (states C, D, F, G from the review above).
