@@ -1,15 +1,21 @@
 # School entity page v2 — architecture & sequencing roadmap
 
-Status: **proposed, awaiting sign-off on Phase 0 before any implementation begins.**
+Status: **in progress. Increment 4 (claim flow, `914614f`) and Increment 5 (identity band +
+decision strip, `9de46f6`) are locked** — see `docs/ops/implementation-log.md` for what actually
+shipped and what was found along the way. This doc's Phase 0 and Phase 1 sections below have been
+corrected to match those findings (see the "2026-09-28 correction" notes inline); Phases 2–7 are
+still as originally proposed and unvalidated against live data — treat them as a starting sketch,
+not a locked plan, until each is actually scoped the way Phase 1 just was.
 
 Source of truth for the target design: `docs/spec/school-entity-page-v2-design.html` (committed
 `3af9412`). This roadmap translates that design into buildable, dependency-ordered phases. Each
-phase follows the existing discipline: build → inspect → validate → lock → next phase. Nothing
-past Phase 0 starts until the phase before it is locked.
+phase follows the existing discipline: build → inspect → validate → lock → next phase.
 
 Grounding: this roadmap is based on the *actual* current implementation (`entity-page.tsx`) and
-the *actual* live schema (`supabase/migrations/`), not on other spec docs, several of which are
-known to be stale (see `docs/decisions.md`, retired `911910b`).
+the *actual* live schema (checked directly against the live Supabase project — migration files
+alone have been shown to drift from what's actually live, e.g. `admission_cycles`' provenance-v2
+columns below), not on other spec docs, several of which are known to be stale (see
+`docs/decisions.md`, retired `911910b`).
 
 ## Why sequencing this way
 
@@ -26,21 +32,37 @@ not by visual prominence.
 
 Nearly every fact on the page carries a **provenance chip**: a short attribution line
 ("School-provided · Source verified", "Stated by the school", "Not yet verified", "Reported by 7
-parents") that the user can tap for source + change history. This is the same idea as
-`field_provenance`, generalized and finally surfaced in the UI. It has to exist before most other
-modules can be built *as designed* — building modules first and bolting provenance on after would
-mean redoing them. This is why it's Phase 0, not a later polish pass.
+parents") that the user can tap for source + change history.
+
+> **2026-09-28 correction (locked earlier this session, reconfirmed by Increment 5's live-schema
+> check):** this is **not** the same idea as a generalized `field_provenance` extension, and does
+> not need one. Provenance in this codebase is genuinely domain-specific — every trust-bearing
+> table already carries (or can carry) its own shape: `fee_items.verification`,
+> `school_media.approved`, and — checked live during Increment 5 — `admission_cycles` *already has*
+> `source_type`, `verification_status`, `last_checked_at`, `verified_at`, `verified_by` in
+> production today, with no migration file for them found locally (drift between the live DB and
+> committed migrations — worth a separate look, not blocking). The "provenance chip" is a **shared
+> UI convention that normalizes whatever shape each table already has** into one display
+> component, not a new data layer underneath them. `src/lib/decision-strip.ts` (Increment 5) is the
+> first real implementation of that normalizing pattern — `domain data → normalized display
+> value/status → presentation slot` — and should be the template for the provenance chip whenever
+> it's built, rather than a new `field_provenance` migration. The "extend `field_provenance` with
+> R-01 columns" line below is stale; do not build it.
 
 The design also introduces **`school_notices`**-shaped documents (admission notice, fee circular,
 transport notice) as the mechanism by which a school actually publishes updates. Several modules
 (admissions, fees, infrastructure certificates) read their "School-provided" data from a notice
 like this. This is also the concrete shape of the "school wants to update its info" self-service
-flow — so it belongs in Phase 0 too.
+flow. **This part is still accurate and still unbuilt** — confirmed by Increment 5's live check
+that `admission_cycles` has zero school-linked rows and `fee_items`/`school_media` have zero rows
+at all: schools genuinely have no real write path into the product today beyond the claim flow.
 
-## Phase 0 — Provenance + notices infrastructure (foundational)
+## Phase 0 — Notices infrastructure (foundational for self-service; provenance UI is not blocked on it)
 
-**Public:** provenance chip component (label + tap-to-expand source/date/history), used wherever a
-fact is shown. No new visible module yet — this rides along inside Phase 1's decision strip.
+**Public:** provenance chip component — a shared *display* convention (see the correction above),
+built by normalizing whatever verification/source shape each domain table already has, the same
+way `src/lib/decision-strip.ts` already does for the decision strip's slots. Not blocked on any
+schema change; could in principle be built standalone, without `school_notices`.
 
 **Ops:** notices review queue (approve/reject a school-submitted notice before it goes live);
 existing verification workflow extends to per-notice `verified_by`/`verified_at`.
@@ -48,30 +70,55 @@ existing verification workflow extends to per-notice `verified_by`/`verified_at`
 **School self-service:** a "Publish an update" flow — school uploads/enters a notice (type:
 admission | fee | transport | safety | other), the fact fields it affects, effective dates. This
 is the first real school-facing write path into the product (today: none exists — everything
-schools have is a "Claim this page" stub).
+schools have is the claim flow, completed in Increment 4).
 
-**Schema (proposed, needs your go before any migration):**
+**Schema (proposed, needs sign-off before any migration):**
 - `school_notices`: `id, school_id, notice_type enum, title, body, file_url, session_year, issued_at, submitted_by, submitted_at, review_state enum(pending|approved|rejected), reviewed_by, reviewed_at, created_at`
-- Extend `field_provenance` with the columns already scoped in `data-requests.md` R-01 (`review_state`, `observed_at`, `method`, `note`) — since we're finally building the thing that needs them.
+- ~~Extend `field_provenance` with the columns already scoped in `data-requests.md` R-01~~ — **stale, do not build**, see the correction above.
 
-**Depends on:** nothing. **Blocks:** everything else.
+**Depends on:** nothing. **Blocks:** the school-self-service half of Phases 2–4 (schools actually
+publishing admission/fee/facility updates) — but **does not block** the public-page provenance-chip
+UI itself, which can be built directly over existing per-table columns whenever it's picked up.
 
 ## Phase 1 — Identity, decision strip, coverage card, updates timeline
 
-Uses only data that already exists (`claim`, `verification`, `about_en`, board/grades/management),
-plus Phase 0's provenance chip.
+**Status: partially shipped.** Identity band (Increment 5) and the decision-strip presentation
+framework (Increment 5) are locked and in production. Coverage card and updates timeline are still
+unbuilt — deliberately held out of Increment 5 to keep it small, per Prav's explicit scope lock.
+
+Uses only data that already exists (`claim`, `verification`, `about_en`, board/grades/management).
+**Correction:** does not depend on Phase 0 after all — Increment 5 built and shipped without it,
+confirming the decoupling noted in Phase 0's correction above.
 
 **Public:**
-- Header/identity band, 3 states (Verified·school-managed / School-claimed·pending / Unclaimed) — design C1–C3.
-- "At a glance" decision strip — 6 fixed semantic slots (Admissions, Annual fee, Entry classes, Student–teacher ratio, Board result, Location), each rendering real data or a graceful "Not yet verified" fallback per slot (design C4–C5). Most slots have no backing data yet (fee, ratio, board result) — they render sparse until Phases 2–4 land.
-- Coverage card — recommend variant **A** ("record status": count + sources + missing-topics list) as the simplest to compute and maintain; B and C are presentational alternatives of the same underlying data, not separate work.
-- Updates timeline — derived from existing `field_provenance`/`audit_log` timestamps, filtered to a public-safe subset of changes.
+- ✅ **Shipped (Increment 5):** header/identity band, 3 states (Verified·school-managed /
+  School-claimed / Unclaimed) — design C1–C3. `src/lib/identity-band.ts`.
+- ✅ **Shipped (Increment 5), framework only:** "At a glance" decision strip — 6 fixed semantic
+  slots (Admissions, Annual fee, Entry classes, Student–teacher ratio, Board result, Location).
+  `src/lib/decision-strip.ts` + `src/components/ui/decision-strip.tsx`. As of this increment, only
+  **Location** and **Entry classes** render real data — the other four render "Not yet verified"
+  honestly, not because of a UI limitation but because the backing data/read-path genuinely doesn't
+  exist yet (see the Data-enablement backlog below and `docs/ops/implementation-log.md`'s Increment
+  5 scoping entry for the full finding per slot). Filling in the remaining four slots is
+  **data-enablement work, not a UI change** — do not scope it as "finish the decision strip."
+- ⬜ **Not built:** coverage card — recommend variant **A** ("record status": count + sources +
+  missing-topics list) as the simplest to compute and maintain; B and C are presentational
+  alternatives of the same underlying data, not separate work.
+- ⬜ **Not built:** updates timeline — derived from existing `field_provenance`/`audit_log`
+  timestamps, filtered to a public-safe subset of changes.
+- ⬜ **Backlogged, presentation-only (Prav's "Canonical Page Structural Refactor" list, captured in
+  the implementation log's Increment 5 lock entry):** integrate the photo into the identity header
+  as one unit rather than a separate pre-header block; finalize above-the-fold hierarchy; refine
+  identity banner wording/visual treatment; decision strip visual polish; section ordering; mobile
+  information hierarchy; conditional module rendering; canonical answer-first section structure.
 
 **Ops:** none new — this phase surfaces existing fields, doesn't add editable ones.
 
-**School self-service:** the "Claim this page" flow gets a real destination (today it's a dead-end CTA per the gap-list finding) — needs its own small scoping pass on what "claim" actually requires (official email domain match? affiliation letter upload via Phase 0's notice mechanism?).
+**School self-service:** the "Claim this page" flow now has a real destination — **done in
+Increment 4** (states A–D: duplicate-pending block, pending/rejected visibility, member CTA).
 
-**Depends on:** Phase 0 (provenance chip). **Blocks:** Phase 7 (comparison mode reuses the decision strip).
+**Depends on:** nothing (see correction above). **Blocks:** Phase 7 (comparison mode reuses the
+decision strip).
 
 ## Phase 2 — Admissions module
 
@@ -156,12 +203,33 @@ scoping — this is the closest thing to a "reviews" trust problem in the fees m
 
 ---
 
-## Recommended immediate next step
+## Data-enablement backlog
 
-Lock **Phase 0** as the next increment: the `school_notices` table, the `field_provenance` R-01
-column additions, the provenance-chip UI primitive, and the notice-review ops queue. This is the
-smallest slice that (a) doesn't require deciding fees yet, (b) gives schools their first real
-write path instead of a dead-end claim button, and (c) everything else in this roadmap depends on
-it.
+Captured verbatim from Prav's Increment 5 lock review (also recorded in
+`docs/ops/implementation-log.md`). Each is an independent data/product capability — **do not solve
+one merely to populate a currently-sparse decision-strip slot**; each stands on its own product
+merit:
 
-Waiting on your sign-off before writing any migration or code against this phase.
+- Establish a public `api.*` read path for school media (today: table exists, 0 rows, no view).
+- Establish an appropriate public read path for fee data (today: `fee_items` exists, 0 rows, no view).
+- Establish school-linked admission-cycle data (today: 10 `admission_cycles` rows, all
+  `school_id IS NULL` — exam-linked, not school-linked).
+- Eventually establish a school-verification state beyond "claimed" (today: 0 rows anywhere are
+  `verification = 'school_verified'`).
+- Board/result data source (today: no table exists anywhere in the schema).
+- Student–teacher ratio data source (today: no table exists anywhere in the schema).
+
+## Recommended next increment — open, not yet chosen
+
+Three independent tracks are now backlogged, none scoped or estimated yet:
+1. **Finish Phase 1** — coverage card + updates timeline (public-page work, no new schema, reuses
+   existing `field_provenance`/`audit_log` timestamps as originally planned).
+2. **Canonical Page Structural Refactor** (see Phase 1's backlog list above) — presentation-only,
+   no new data needed, addresses the photo/header-hierarchy note from the Increment 5 lock review.
+3. **Data-enablement** (see backlog above) — pick one item (most likely candidate: `school_notices`,
+   since it's the one piece that unblocks schools actually publishing real data, which in turn is
+   what would let admissions/fees/media move off "Not yet verified") and scope it properly before
+   any migration, the way Phase 1 was scoped before Increment 5.
+
+Not recommending one over the other here — that's a product call for Prav, not an engineering
+default.

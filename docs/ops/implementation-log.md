@@ -439,3 +439,57 @@ Implemented on the corrected scope above.
 **Explicitly not touched, per Prav's scope lock:** no coverage card, no updates timeline, no
 admissions/fees redesign, no provenance architecture change, no new ratio/result tables, no
 `field_provenance` change, no schema of any kind.
+
+## 2026-09-28 — Increment 5: LOCKED
+
+Prav reviewed the diff (`9de46f6`) and locked it as "Canonical Entity Page Foundation." His review
+specifically endorsed not inventing schema just to make the strip look complete — "instead of
+inventing data, creating speculative tables, or bending the architecture, engineering made the UI
+resilient to the actual state of the system... The canonical page should grow because the underlying
+school intelligence grows, not because we keep manufacturing UI fields." He also confirmed the real
+claimed-school test result (resolving to "School-claimed", not "Verified") as meaningful evidence
+that the three-state identity model doesn't accidentally collapse claimed and verified.
+
+**One correction to the mental model, not the code:** the "4 of 6 slots say Not yet verified" result
+is the state of Increment 5, not the final content model for the strip — Increment 5 established the
+*presentation architecture*, not the strip's full intelligence. Slots go from "Not yet verified" to
+real values only as the underlying data-enablement work below actually lands, never by special-casing
+the strip itself.
+
+**One UX note for later, explicitly not reopening this increment for it:** the identity photo
+currently renders as its own block above the existing header (photo + banner, then the pre-existing
+name/facts/actions header). Prav's canonical intent is for the photo to live *inside* the identity
+header as one unit (photo, name, location, facts, trust state, actions together), not as a separate
+pre-header section. Filed below under "Canonical Page Structural Refactor," not fixed now.
+
+**Backlog captured verbatim from Prav's review, for whenever these are picked up as increments —
+none of this is scoped or estimated yet, just recorded so it isn't lost:**
+
+*Canonical Page Structural Refactor* (presentation-only, no new data needed):
+- Integrate the photo naturally into the identity header (see UX note above).
+- Finalize the above-the-fold hierarchy.
+- Refine identity banner wording/visual treatment.
+- Decision Strip visual polish.
+- Section ordering.
+- Mobile information hierarchy.
+- Conditional module rendering.
+- Canonical answer-first section structure.
+
+*Data-enablement backlog* (each is an independent data/product capability — explicitly **not** to be
+solved merely to populate today's six slots):
+- Establish a public `api.*` read path for school media.
+- Establish an appropriate public read path for fee data.
+- Establish school-linked admission-cycle data (today's 10 `admission_cycles` rows are all
+  exam-linked, `school_id IS NULL` — see the scoping entry above).
+- Eventually establish a school-verification state beyond "claimed."
+- Board/result data source.
+- Student–teacher ratio data source.
+
+**Known limitation, recorded rather than hidden:** browser visual smoke test at mobile/desktop
+widths remains unavailable — this sandbox's egress proxy blocks a real browser from reaching the
+Supabase host.
+
+**Next:** per Prav's direction, move to the next increment rather than expanding this one. Roadmap
+doc (`docs/spec/school-entity-page-v2-roadmap.md`) is now due for the correction pass that was
+deferred until increments were locked — its Phase 0/2/5 schema assumptions and Phase 1 scope need
+updating to match everything found in Increments 4-5 before picking increment 6.
