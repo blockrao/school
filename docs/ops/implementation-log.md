@@ -1000,3 +1000,41 @@ own "availability ≠ depth of coverage" caveat — there's no data to be availa
 the previous entry (Jaipur vs. Gurugram/Delhi for the pilot) is no longer a technical-reachability
 question — it's purely which schools are worth Prav's research time first, since any verified
 school's data is discoverable nationally today, DAV Gurugram included.
+
+## 2026-09-28 — Prav's review of the false-finding entry: framing locked
+
+Prav reviewed the previous entry and refined how it should be preserved. Recorded verbatim
+(condensed) for the project history:
+
+**Both false findings, named explicitly rather than folded into one correction:**
+1. *"Jaipur is currently the only launched city."* Correct state: the live architecture is already
+   data-driven — multiple areas are launched because they have published schools; Gurugram is
+   already discoverable.
+2. *"Gurugram/Delhi cannot test the full discovery → admissions funnel because they are not
+   launched."* Correct state: they can. `/schools/{state}/{city}?admissions=open` already surfaces
+   schools in any area meeting the published-school condition; DAV Gurugram is already reachable
+   through that path today.
+
+**Root cause, in Prav's own framing (kept verbatim — this is the reusable lesson, not just "we were
+wrong"):** *"We inferred product/architecture state from an apparent naming convention (`is_launch`)
+and memory instead of inspecting the live routing/query path and current data."*
+
+**Explicitly not a new architecture decision.** The desired architecture was already implemented;
+the interpretation of it was wrong. Nothing was corrected in the runtime behavior — only in what I
+had told Prav about it.
+
+**Explicitly deferred, not rejected, per Prav's call:**
+- Renaming `is_launch`/`isLaunch` — real naming-clarity cleanup, contributed to the misreading, but
+  a separate architectural task from the admissions pilot. Not touching ~15 call sites for this.
+- An "operational priority market" table/field — pilot sequencing can be managed operationally
+  (i.e. by Prav's own judgment of where to spend research time) until there's an actual product need
+  for that state to be structured data.
+
+**Locked interpretation going forward:**
+- SchoolOye availability: broad/open wherever published school data exists.
+- City/district discoverability: data-driven, not editorially gated.
+- Operational focus (where HQ spends research/sales effort): centrally controlled, but not a
+  prerequisite for discovery.
+- Research depth: can vary by market without affecting whether a page exists.
+- Admissions pilot: can include Jaipur, Gurugram, Delhi, and Haryana immediately — no city-launch
+  gating to sequence behind.
