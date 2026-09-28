@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { listApplicationHelpProducts, listMyChildren } from "@/lib/db/application-help";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 import { addChild, startCheckout } from "../actions";
 
 // design-pending: the design's 7b (Package picker) assumes a child is already on
@@ -36,7 +37,9 @@ export default async function ApplicationHelpPackagePage({
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/admissions/help/package`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/admissions/help/package`)}`,
+    );
   }
 
   const [children, products] = await Promise.all([listMyChildren(), listApplicationHelpProducts()]);

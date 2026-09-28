@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/ui/state-message";
 import { listMyConversations } from "@/lib/db/messages";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 
 export const metadata: Metadata = {
   title: "Messages — SchoolOye",
@@ -14,7 +15,10 @@ export default async function MessagesInboxPage({ params }: PageProps<"/[locale]
   const { locale } = await params;
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/messages`)}`);
+  if (!user)
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/messages`)}`,
+    );
 
   const conversations = await listMyConversations();
 
@@ -28,7 +32,7 @@ export default async function MessagesInboxPage({ params }: PageProps<"/[locale]
             title="No messages yet"
             description="Conversations with teachers you've contacted, or parents who've contacted you, show up here."
             nextStepLabel="Browse teachers"
-            nextStepHref={`/${locale}/teachers`}
+            nextStepHref={`${localePrefix(locale)}/teachers`}
           />
         </div>
       ) : (
@@ -36,7 +40,7 @@ export default async function MessagesInboxPage({ params }: PageProps<"/[locale]
           {conversations.map((c) => (
             <Link
               key={c.id}
-              href={`/${locale}/my/messages/${c.id}`}
+              href={`${localePrefix(locale)}/my/messages/${c.id}`}
               className="flex items-center justify-between gap-3 rounded-md border border-rule bg-copy-white p-4 hover:border-ruled-blue"
             >
               <div>

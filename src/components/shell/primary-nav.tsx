@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CityOption } from "@/lib/city-preference";
 import { useSelectedCity } from "@/lib/city-preference";
+import { localePrefix } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 export type PrimaryNavItem = { label: string; href: string; note?: string };
@@ -21,17 +22,29 @@ export function primaryNavItems(
   areas: CityOption[],
   selectedCity: CityOption | undefined,
 ): PrimaryNavItem[] {
-  const admissionsHref = selectedCity?.href ?? areas[0]?.href ?? `/${locale}/schools`;
+  const admissionsHref = selectedCity?.href ?? areas[0]?.href ?? `${localePrefix(locale)}/schools`;
   return [
-    { label: "Schools", href: `/${locale}/schools`, note: "Search and compare every school" },
+    {
+      label: "Schools",
+      href: `${localePrefix(locale)}/schools`,
+      note: "Search and compare every school",
+    },
     {
       label: "Admissions",
       href: admissionsHref,
       note: "Open forms, deadlines, alerts",
     },
-    { label: "Exams", href: `/${locale}/exams`, note: "Entrance exams: eligibility, dates, fees" },
-    { label: "Teachers", href: `/${locale}/teachers`, note: "Profiles" },
-    { label: "Guides", href: `/${locale}/guides`, note: "Admission process, documents, boards" },
+    {
+      label: "Exams",
+      href: `${localePrefix(locale)}/exams`,
+      note: "Entrance exams: eligibility, dates, fees",
+    },
+    { label: "Teachers", href: `${localePrefix(locale)}/teachers`, note: "Profiles" },
+    {
+      label: "Guides",
+      href: `${localePrefix(locale)}/guides`,
+      note: "Admission process, documents, boards",
+    },
     { label: "For schools", href: "/for-schools", note: "Claim your page, post notices" },
   ];
 }

@@ -5,6 +5,7 @@ import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
 import { FieldError } from "@/components/ui/field-error";
 import { needsOnboarding } from "@/lib/db/onboarding";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { homePath, localePrefix } from "@/lib/urls";
 import { completeOnboarding } from "./actions";
 
 // design-pending — no design file for first-login onboarding (the design set only
@@ -75,13 +76,15 @@ export default async function OnboardingPage({
   const copy = COPY[locale] ?? COPY.en;
   const isHi = locale === "hi";
 
-  const next = first(rawSearchParams.next) ?? `/${locale}`;
+  const next = first(rawSearchParams.next) ?? homePath(locale);
   const errorCode = first(rawSearchParams.error);
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/onboarding?next=${next}`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/onboarding?next=${next}`)}`,
+    );
   }
 
   // Already done (e.g. the user navigated back here manually) — don't re-prompt.
@@ -127,7 +130,7 @@ export default async function OnboardingPage({
           <span lang={isHi ? "hi" : undefined}>
             {copy.consentPrefix}{" "}
             <Link
-              href={`/${locale}/terms`}
+              href={`${localePrefix(locale)}/terms`}
               target="_blank"
               className="font-semibold text-ruled-blue"
             >
@@ -135,7 +138,7 @@ export default async function OnboardingPage({
             </Link>{" "}
             {copy.consentJoiner}{" "}
             <Link
-              href={`/${locale}/privacy`}
+              href={`${localePrefix(locale)}/privacy`}
               target="_blank"
               className="font-semibold text-ruled-blue"
             >

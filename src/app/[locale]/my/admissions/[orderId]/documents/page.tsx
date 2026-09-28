@@ -9,6 +9,7 @@ import {
   listDocumentsForChild,
 } from "@/lib/db/application-help";
 import { createSessionClient } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 import { deleteDocument, uploadDocument } from "../actions";
 
 const CHECKLIST: { kind: string; label: string }[] = [
@@ -37,9 +38,9 @@ export default async function OrderDocumentsPage({
   const rawSearchParams = await searchParams;
 
   const order = await getMyOrder(orderId);
-  if (!order) redirect(`/${locale}/my/admissions`);
+  if (!order) redirect(`${localePrefix(locale)}/my/admissions`);
   if (order.status === "awaiting_payment") {
-    redirect(`/${locale}/admissions/help/checkout?order=${orderId}`);
+    redirect(`${localePrefix(locale)}/admissions/help/checkout?order=${orderId}`);
   }
 
   const [documents, applications] = await Promise.all([
@@ -145,7 +146,7 @@ export default async function OrderDocumentsPage({
                     )}
                     <div className="flex gap-2">
                       <Link
-                        href={`/${locale}/my/admissions/${orderId}/documents`}
+                        href={`${localePrefix(locale)}/my/admissions/${orderId}/documents`}
                         className="flex h-9 items-center rounded-md border border-line-blue px-3 text-meta font-semibold"
                       >
                         Cancel
@@ -166,7 +167,7 @@ export default async function OrderDocumentsPage({
                   </div>
                 ) : (
                   <Link
-                    href={`/${locale}/my/admissions/${orderId}/documents?confirm_delete=${doc.id}`}
+                    href={`${localePrefix(locale)}/my/admissions/${orderId}/documents?confirm_delete=${doc.id}`}
                     className="flex h-11 shrink-0 items-center rounded-md border border-line-blue px-3 text-meta font-semibold"
                   >
                     Remove
@@ -198,7 +199,7 @@ export default async function OrderDocumentsPage({
 
       <div className="mt-8 flex flex-col gap-1.5">
         <Link
-          href={`/${locale}/my/admissions`}
+          href={`${localePrefix(locale)}/my/admissions`}
           className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
         >
           {missingCount > 0 ? `Continue with ${missingCount} missing` : "Continue"}

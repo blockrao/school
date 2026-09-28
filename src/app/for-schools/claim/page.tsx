@@ -81,7 +81,7 @@ export default async function ClaimSearchPage({ searchParams }: PageProps<"/for-
               title="No schools match that name"
               description="Try a different spelling, or contact us if your school isn't listed yet."
               nextStepLabel="Browse all schools"
-              nextStepHref="/en/schools"
+              nextStepHref="/schools"
             />
           )}
         </div>

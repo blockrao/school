@@ -5,12 +5,12 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
-  getCitiesByDistrictIds,
   listPublicSchoolsByIds,
 } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
 import { istDayMonthLabel } from "@/lib/ist-date";
-import { schoolPath } from "@/lib/school-url";
+
+import { localePrefix, schoolPath } from "@/lib/urls";
 
 const COMPARE_LIMIT = 4;
 
@@ -40,16 +40,13 @@ export default async function ComparePage({
   });
 
   const schoolIds = orderedSchools.map((s) => s.id);
-  const districtIds = orderedSchools.flatMap((s) => (s.district_id != null ? [s.district_id] : []));
-  const [boardNames, admissionDeadlines, citiesByDistrict] = await Promise.all([
+  const [boardNames, admissionDeadlines] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
-    getCitiesByDistrictIds(districtIds),
   ]);
 
   function hrefFor(school: (typeof orderedSchools)[number]): string {
-    const city = school.district_id != null ? citiesByDistrict.get(school.district_id) : undefined;
-    return city ? schoolPath(locale, city.slug, school) : `/${locale}/schools`;
+    return schoolPath(locale, school.slug);
   }
 
   if (orderedSchools.length === 0) {
@@ -61,7 +58,7 @@ export default async function ComparePage({
             title="No schools selected"
             description="Pick up to 4 schools from search results to compare them side by side."
             nextStepLabel="Browse schools"
-            nextStepHref={`/${locale}/schools`}
+            nextStepHref={`${localePrefix(locale)}/schools`}
           />
         </div>
       </div>

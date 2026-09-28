@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 export default async function OpsOrdersPage() {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect("/en/sign-in?next=%2Fops%2Forders");
+  if (!user) redirect("/sign-in?next=%2Fops%2Forders");
 
   const { data: isStaff } = await supabase.rpc("is_staff");
-  if (!isStaff) redirect("/en");
+  if (!isStaff) redirect("/");
 
   const orders = await listAwaitingPaymentOrdersForStaff();
 
@@ -38,7 +38,7 @@ export default async function OpsOrdersPage() {
             title="Nothing waiting"
             description="No orders are currently awaiting payment confirmation."
             nextStepLabel="Back home"
-            nextStepHref="/en"
+            nextStepHref="/"
           />
         </div>
       ) : (

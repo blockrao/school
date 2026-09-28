@@ -25,13 +25,14 @@ import {
   publicSchoolBoardContract,
   publicSchoolContract,
   publicSchoolRankingContract,
+  publicSchoolRedirectContract,
   publicStateContract,
 } from "@/contracts";
 import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
-import { createApiSchemaClient, createPublicClient } from "@/lib/db/public";
-import { schoolPath } from "@/lib/school-url";
+import { createApiSchemaClient } from "@/lib/db/public";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
+import { cityPath, schoolPath } from "@/lib/urls";
 
 /**
  * Every public-facing data read in the app goes through this file — no page or
@@ -68,103 +69,86 @@ export type PublicSchoolFact = {
   verified_at: string | null;
 };
 
-/** Overview page data for one school. Null if not found. */
-export async function getPublicSchoolByIdSlug(id: string): Promise<{
+export type PublicSchoolBundle = {
   school: PublicSchool;
   board: PublicSchoolBoard | null;
+  /** Kept for shape compatibility; no public view exists for these (always empty). */
   identifiers: PublicSchoolIdentifier[];
   facts: PublicSchoolFact[];
-} | null> {
-  const api = createApiSchemaClient();
-  const publicClient = createPublicClient();
+};
 
+async function getPublicSchoolBundle(
+  column: "id" | "slug" | "school_code",
+  value: string | number,
+): Promise<PublicSchoolBundle | null> {
+  const api = createApiSchemaClient();
   const { data: schoolRow, error } = await api
     .from("public_schools")
     .select("*")
-    .eq("id", id)
+    .eq(column, value)
     .maybeSingle();
   if (error || !schoolRow) return null;
   const school = publicSchoolContract.parse(schoolRow);
-
-  // TODO: school_identifiers/field_provenance have no api.* view yet, and no
-  // raw-table grant after the grants-hardening migration — these return empty
-  // until proper views exist. Unused today (nothing in Overview needs them).
-  const [boardResult, identifiersResult, factsResult] = await Promise.all([
-    api.from("public_school_boards").select("*").eq("school_id", id).limit(1).maybeSingle(),
-    publicClient.from("school_identifiers").select("scheme, value").eq("school_id", id),
-    publicClient
-      .from("field_provenance")
-      .select("field, value, source_id, evidence_url, created_at, verified_at")
-      .eq("entity_table", "schools")
-      .eq("entity_id", id),
-  ]);
-
+  const { data: boardRow } = await api
+    .from("public_school_boards")
+    .select("*")
+    .eq("school_id", school.id)
+    .limit(1)
+    .maybeSingle();
   return {
     school,
-    board: boardResult.data ? publicSchoolBoardContract.parse(boardResult.data) : null,
-    identifiers: identifiersResult.data ?? [],
-    facts: factsResult.data ?? [],
+    board: boardRow ? publicSchoolBoardContract.parse(boardRow) : null,
+    identifiers: [],
+    facts: [],
   };
 }
 
+/** Overview page data for one school by its internal UUID. Null if not public. */
+export async function getPublicSchoolByIdSlug(id: string): Promise<PublicSchoolBundle | null> {
+  return getPublicSchoolBundle("id", id);
+}
+
+/** The canonical resolver for /school/{slug} (D-121). Null if not public. */
+export async function getPublicSchoolBySlug(slug: string): Promise<PublicSchoolBundle | null> {
+  return getPublicSchoolBundle("slug", slug);
+}
+
+/** Legacy /{city}/{slug}-{school_code} URLs resolve through school_code. */
+export async function getPublicSchoolByCode(code: number): Promise<PublicSchoolBundle | null> {
+  return getPublicSchoolBundle("school_code", code);
+}
+
 /**
- * Same shape as getPublicSchoolByIdSlug, keyed by the stable school_code
- * instead of the UUID — the canonical resolver for /[locale]/[city]/[slug]-[code].
- * Resolving by code (not slug text) means a later slug correction never
- * breaks the URL — see db/views/010_public_schools.sql's school_code note.
+ * Where a non-canonical school key should 301 to (merged schools, alias and
+ * retired slugs) — api.public_school_redirects. Null if the key is unknown.
  */
-export async function getPublicSchoolByCode(code: number): Promise<{
-  school: PublicSchool;
-  board: PublicSchoolBoard | null;
-  identifiers: PublicSchoolIdentifier[];
-  facts: PublicSchoolFact[];
-} | null> {
+export async function getSchoolRedirectSlug(key: {
+  slug?: string;
+  code?: number;
+  id?: string;
+}): Promise<string | null> {
   const api = createApiSchemaClient();
-  const publicClient = createPublicClient();
-
-  const { data: schoolRow, error } = await api
-    .from("public_schools")
-    .select("*")
-    .eq("school_code", code)
-    .maybeSingle();
-  if (error || !schoolRow) return null;
-  const school = publicSchoolContract.parse(schoolRow);
-
-  const [boardResult, identifiersResult, factsResult] = await Promise.all([
-    api.from("public_school_boards").select("*").eq("school_id", school.id).limit(1).maybeSingle(),
-    publicClient.from("school_identifiers").select("scheme, value").eq("school_id", school.id),
-    publicClient
-      .from("field_provenance")
-      .select("field, value, source_id, evidence_url, created_at, verified_at")
-      .eq("entity_table", "schools")
-      .eq("entity_id", school.id),
-  ]);
-
-  return {
-    school,
-    board: boardResult.data ? publicSchoolBoardContract.parse(boardResult.data) : null,
-    identifiers: identifiersResult.data ?? [],
-    facts: factsResult.data ?? [],
-  };
+  let query = api.from("public_school_redirects").select("*").limit(1);
+  if (key.slug) query = query.eq("from_slug", key.slug);
+  else if (key.code !== undefined) query = query.eq("from_code", key.code);
+  else if (key.id) query = query.eq("from_id", key.id);
+  else return null;
+  const { data } = await query.maybeSingle();
+  return data ? publicSchoolRedirectContract.parse(data).to_slug : null;
 }
 
 /**
- * A school's own canonical path, resolved from just its id — for callers (the
- * teacher profile page, the /for-schools claim flow) that hold a school_id/row
- * but aren't already scoped to one city the way the browse pages are. Null if
- * the school or its city can't be resolved.
+ * A school's canonical path from its id — for callers (teacher profile, claim
+ * flow) that hold only a school id. Null if the school isn't public.
  */
 export async function getSchoolCanonicalPath(
   schoolId: string,
   locale: string,
 ): Promise<string | null> {
   const result = await getPublicSchoolByIdSlug(schoolId);
-  if (!result) return null;
-  const { school } = result;
-  if (!school.district_id) return null;
-  const city = await getPublicCityByDistrictId(school.district_id);
-  if (!city) return null;
-  return schoolPath(locale, city.slug, school);
+  if (result) return schoolPath(locale, result.school.slug);
+  const redirectSlug = await getSchoolRedirectSlug({ id: schoolId });
+  return redirectSlug ? schoolPath(locale, redirectSlug) : null;
 }
 
 /**
@@ -240,6 +224,7 @@ export type PublicArea = {
   school_count: number;
   is_launch: boolean;
   district_id: number;
+  state_slug: string;
 };
 
 /**
@@ -280,8 +265,8 @@ export async function listLaunchedCityOptions(
     .map((area) => ({
       slug: area.slug,
       name: area.name,
-      stateSlug: slugify(area.state),
-      href: `/${locale}/${area.slug}`,
+      stateSlug: area.state_slug,
+      href: cityPath(locale, area.state_slug, area.slug),
     }));
 }
 
@@ -778,6 +763,7 @@ export type PublicTownArea = {
   townName: string;
   localityId: number;
   cityId: number;
+  citySlug: string;
   stateSlug: string;
   stateName: string;
   schoolCount: number;
@@ -826,6 +812,7 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
     townName: locality.name,
     localityId: locality.id,
     cityId: city.id,
+    citySlug: city.slug,
     stateSlug: slugify(state.name_en),
     stateName: state.name_en,
     schoolCount: locality.school_count,

@@ -7,6 +7,7 @@ import {
   type PublicSchool,
 } from "@/lib/db/public-adapter";
 import { siteUrl } from "@/lib/env.server";
+import { cityPath, localityPath, schoolPath } from "@/lib/urls";
 
 /**
  * Every city with its own child sitemap route file
@@ -75,26 +76,23 @@ export function xmlEscape(value: string): string {
 }
 
 /**
- * One <url> entry, English canonical with an English/Hindi hreflang pair —
- * shared by every sitemap-*.xml route (LAUNCH_CITY_SLUGS' city sitemaps and
- * sitemap-site.xml) so they stay byte-identical in shape. `path` is locale-free
- * (e.g. "/exams/rms-cet", not "/en/exams/rms-cet").
+ * One <url> entry: the canonical URL only (D-121 §10 — sitemaps list only 200,
+ * canonical, indexable URLs). No hreflang: no page is translated yet; when one
+ * is, its alternates are emitted in the page head. `path` is the unprefixed
+ * canonical path (e.g. "/exams/rms-cet"); "" is the home page.
  */
 export function urlEntry(siteUrl: string, path: string, lastModified?: Date): string {
-  const en = xmlEscape(`${siteUrl}/en${path}`);
-  const hi = xmlEscape(`${siteUrl}/hi${path}`);
+  const loc = xmlEscape(`${siteUrl}${path || "/"}`);
   const lastmod = lastModified ? `\n    <lastmod>${lastModified.toISOString()}</lastmod>` : "";
   return `  <url>
-    <loc>${en}</loc>${lastmod}
-    <xhtml:link rel="alternate" hreflang="en-IN" href="${en}" />
-    <xhtml:link rel="alternate" hreflang="hi-IN" href="${hi}" />
+    <loc>${loc}</loc>${lastmod}
   </url>`;
 }
 
 /** Wraps a list of urlEntry() strings in the sitemap urlset envelope. */
 export function urlSetXml(entries: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${entries.join("\n")}
 </urlset>
 `;
@@ -145,16 +143,19 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
   ]);
 
   const entries = [
-    urlEntry(siteUrl, `/${citySlug}`, maxVerifiedAt(indexableSchools)),
+    urlEntry(siteUrl, cityPath("en", city.stateSlug, city.citySlug), maxVerifiedAt(indexableSchools)),
     ...localities.map((locality) => {
-      const path = locality.isTown ? `/${locality.slug}` : `/${citySlug}/${locality.slug}`;
       const localitySchools = indexableSchools.filter((s) => s.locality_id === locality.id);
-      return urlEntry(siteUrl, path, maxVerifiedAt(localitySchools));
+      return urlEntry(
+        siteUrl,
+        localityPath("en", city.stateSlug, city.citySlug, locality.slug),
+        maxVerifiedAt(localitySchools),
+      );
     }),
     ...indexableSchools.map((school) =>
       urlEntry(
         siteUrl,
-        `/${citySlug}/${school.slug}-${school.school_code}`,
+        schoolPath("en", school.slug),
         school.last_verified_at ? new Date(school.last_verified_at) : undefined,
       ),
     ),

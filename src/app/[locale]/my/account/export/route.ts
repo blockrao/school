@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { LOCALES, localePrefix } from "@/lib/urls";
 
 /**
  * DPDP data-portability export — everything the app holds that's scoped to
@@ -9,12 +10,16 @@ import { createSessionClient, getSessionUser } from "@/lib/db/session";
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const locale = url.pathname.split("/")[1] || "en";
+  const first = url.pathname.split("/")[1];
+  const locale = (LOCALES as readonly string[]).includes(first) ? first : "en";
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
     return NextResponse.redirect(
-      new URL(`/${locale}/sign-in?next=${encodeURIComponent(url.pathname)}`, url.origin),
+      new URL(
+        `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(url.pathname)}`,
+        url.origin,
+      ),
     );
   }
 

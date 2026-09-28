@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
+import { localePrefix } from "@/lib/urls";
 import { signOut, updateName } from "./actions";
 
 // design-pending — no design file for an account-settings page. Minimal functional
@@ -105,7 +106,9 @@ export default async function AccountPage({
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/account`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/account`)}`,
+    );
   }
 
   const { data: profile } = await supabase
@@ -235,14 +238,14 @@ export default async function AccountPage({
         </h2>
         <div className="mt-3 flex flex-col gap-2">
           <a
-            href={`/${locale}/my/account/export`}
+            href={`${localePrefix(locale)}/my/account/export`}
             className="w-fit font-semibold text-ruled-blue"
             lang={isHi ? "hi" : undefined}
           >
             {copy.exportLink}
           </a>
           <Link
-            href={`/${locale}/my/account/delete`}
+            href={`${localePrefix(locale)}/my/account/delete`}
             className="w-fit font-semibold text-ink underline"
             lang={isHi ? "hi" : undefined}
           >
@@ -252,7 +255,7 @@ export default async function AccountPage({
       </div>
 
       <p className="mt-8 text-meta text-muted-ink">
-        <Link href={`/${locale}/my`} className="font-semibold text-ruled-blue">
+        <Link href={`${localePrefix(locale)}/my`} className="font-semibold text-ruled-blue">
           {isHi ? "अलर्ट प्रबंधित करें" : "Manage WhatsApp alerts"}
         </Link>
       </p>

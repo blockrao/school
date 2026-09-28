@@ -8,6 +8,7 @@ export const publicAreaContract = z.object({
   state: z.string(),
   school_count: z.number(),
   is_launch: z.boolean(),
+  state_slug: z.string(),
 });
 
 export type PublicArea = z.infer<typeof publicAreaContract>;

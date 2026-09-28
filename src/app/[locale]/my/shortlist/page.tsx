@@ -8,13 +8,13 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
-  getCitiesByDistrictIds,
   listPublicSchoolsByIds,
 } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
-import { schoolPath } from "@/lib/school-url";
+
+import { localePrefix, schoolPath } from "@/lib/urls";
 
 // design-pending: no matching file in design/ for a saved-schools list. Built from
 // the same SchoolCard grid every other listing page uses.
@@ -38,7 +38,9 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
   const user = await getSessionUser(supabase);
 
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/shortlist`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/shortlist`)}`,
+    );
   }
 
   const { data: rows } = await supabase
@@ -55,16 +57,13 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
     return school ? [school] : [];
   });
 
-  const districtIds = orderedSchools.flatMap((s) => (s.district_id != null ? [s.district_id] : []));
-  const [boardNames, admissionDeadlines, citiesByDistrict] = await Promise.all([
+  const [boardNames, admissionDeadlines] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
-    getCitiesByDistrictIds(districtIds),
   ]);
 
   function hrefFor(school: (typeof orderedSchools)[number]): string {
-    const city = school.district_id != null ? citiesByDistrict.get(school.district_id) : undefined;
-    return city ? schoolPath(locale, city.slug, school) : `/${locale}/schools`;
+    return schoolPath(locale, school.slug);
   }
 
   return (
@@ -112,7 +111,7 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
                 : "Save schools while browsing to compare them here later."
             }
             nextStepLabel={isHi ? "स्कूल खोजें" : "Browse schools"}
-            nextStepHref={`/${locale}/schools`}
+            nextStepHref={`${localePrefix(locale)}/schools`}
           />
         </div>
       )}

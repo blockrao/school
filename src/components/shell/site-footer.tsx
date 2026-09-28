@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listPublicAreas } from "@/lib/db/public-adapter";
+import { cityPath, localePrefix } from "@/lib/urls";
 
 /**
  * Only lists cities/pages with something real behind them. The design's footer includes
@@ -14,11 +15,6 @@ import { listPublicAreas } from "@/lib/db/public-adapter";
  */
 export async function SiteFooter({ locale }: { locale: string }) {
   const areas = await listPublicAreas();
-  // Bug fixed 2026-09-28: this used to link to `/${locale}/${slugify(area.state)}/${area.slug}`,
-  // a URL shape that has never existed as a route — only `/[locale]/[city]/` does
-  // (src/app/[locale]/[city]/page.tsx). With just Jaipur/Gurugram launched this went
-  // unnoticed since almost no one clicked a footer city link that wasn't already the
-  // default city; at 22 cities it would have been a visible, site-wide broken-link problem.
   const launchAreas = areas
     .filter((a) => a.is_launch)
     .sort((a, b) => b.school_count - a.school_count);
@@ -46,19 +42,34 @@ export async function SiteFooter({ locale }: { locale: string }) {
 
           <div className="flex flex-col gap-1">
             <span className="mb-1 text-meta font-semibold">Explore</span>
-            <Link href={`/${locale}/schools`} className="flex min-h-8 items-center text-body">
+            <Link
+              href={`${localePrefix(locale)}/schools`}
+              className="flex min-h-8 items-center text-body"
+            >
               Schools
             </Link>
-            <Link href={`/${locale}/exams`} className="flex min-h-8 items-center text-body">
+            <Link
+              href={`${localePrefix(locale)}/exams`}
+              className="flex min-h-8 items-center text-body"
+            >
               Entrance exams
             </Link>
-            <Link href={`/${locale}/teachers`} className="flex min-h-8 items-center text-body">
+            <Link
+              href={`${localePrefix(locale)}/teachers`}
+              className="flex min-h-8 items-center text-body"
+            >
               Teachers
             </Link>
-            <Link href={`/${locale}/guides`} className="flex min-h-8 items-center text-body">
+            <Link
+              href={`${localePrefix(locale)}/guides`}
+              className="flex min-h-8 items-center text-body"
+            >
               Guides
             </Link>
-            <Link href={`/${locale}/compare`} className="flex min-h-8 items-center text-body">
+            <Link
+              href={`${localePrefix(locale)}/compare`}
+              className="flex min-h-8 items-center text-body"
+            >
               Compare schools
             </Link>
           </div>
@@ -66,16 +77,19 @@ export async function SiteFooter({ locale }: { locale: string }) {
           <div className="flex flex-col gap-1">
             <span className="mb-1 text-meta font-semibold">Tools</span>
             <Link
-              href={`/${locale}/tools/age-eligibility`}
+              href={`${localePrefix(locale)}/tools/age-eligibility`}
               className="flex min-h-8 items-center text-body"
             >
               Check age eligibility
             </Link>
-            <Link href={`/${locale}/alerts`} className="flex min-h-8 items-center text-body">
+            <Link
+              href={`${localePrefix(locale)}/alerts`}
+              className="flex min-h-8 items-center text-body"
+            >
               WhatsApp alerts
             </Link>
             <Link
-              href={`/${locale}/admissions/help`}
+              href={`${localePrefix(locale)}/admissions/help`}
               className="flex min-h-8 items-center text-body"
             >
               Admission help
@@ -101,7 +115,7 @@ export async function SiteFooter({ locale }: { locale: string }) {
                     {stateAreas.map((area) => (
                       <Link
                         key={area.slug}
-                        href={`/${locale}/${area.slug}`}
+                        href={cityPath(locale, area.state_slug, area.slug)}
                         className="flex min-h-8 items-center text-body"
                       >
                         {area.name}
@@ -117,10 +131,10 @@ export async function SiteFooter({ locale }: { locale: string }) {
         <div className="flex flex-col gap-3 border-t border-rule pt-5 text-meta text-muted-ink md:flex-row md:items-center md:justify-between md:gap-6">
           <span>© 2026 SchoolOye</span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <Link href={`/${locale}/privacy`} className="min-h-8 content-center">
+            <Link href={`${localePrefix(locale)}/privacy`} className="min-h-8 content-center">
               Privacy
             </Link>
-            <Link href={`/${locale}/terms`} className="min-h-8 content-center">
+            <Link href={`${localePrefix(locale)}/terms`} className="min-h-8 content-center">
               Terms
             </Link>
             <a href="mailto:grievance@schooloye.in" className="min-h-8 content-center">

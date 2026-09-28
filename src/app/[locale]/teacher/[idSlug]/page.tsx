@@ -5,7 +5,6 @@ import { startConversation } from "@/app/[locale]/my/messages/actions";
 import { FieldError } from "@/components/ui/field-error";
 import { findConversation } from "@/lib/db/messages";
 import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
-import { localeCanonical } from "@/lib/seo";
 import { listPublicTeacherSchools } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import {
@@ -13,6 +12,8 @@ import {
   listPublicTeacherExperience,
   listPublicTeacherQualifications,
 } from "@/lib/db/teachers";
+import { localeCanonical } from "@/lib/seo";
+import { localePrefix } from "@/lib/urls";
 
 // design-pending (partial): adapted from design/Teacher Profile.dc.html 14a/14b
 // (claimed state). Not built: the "unclaimed" state (14c) — no staff-list
@@ -68,7 +69,7 @@ export default async function TeacherProfilePage({
   const teacher = await getPublicTeacherById(parsed.id);
   if (!teacher) notFound();
   if (teacher.slug !== parsed.slug) {
-    permanentRedirect(`/${locale}/teacher/${teacher.id}-${teacher.slug}`);
+    permanentRedirect(`${localePrefix(locale)}/teacher/${teacher.id}-${teacher.slug}`);
   }
 
   const [experience, qualifications, primarySchoolPath, verifiedSchoolLinks] = await Promise.all([
@@ -144,7 +145,7 @@ export default async function TeacherProfilePage({
 
       {isOwner && (
         <Link
-          href={`/${locale}/teacher/${idSlug}/manage`}
+          href={`${localePrefix(locale)}/teacher/${idSlug}/manage`}
           className="mt-4 inline-flex h-11 w-fit items-center rounded-md border border-ruled-blue px-4 font-semibold text-ruled-blue"
         >
           Manage your profile
@@ -154,7 +155,7 @@ export default async function TeacherProfilePage({
       {isOwner ? null : isClaimed ? (
         existingConversation ? (
           <Link
-            href={`/${locale}/my/messages/${existingConversation.id}`}
+            href={`${localePrefix(locale)}/my/messages/${existingConversation.id}`}
             className="mt-4 inline-flex h-11 w-fit items-center rounded-md bg-ruled-blue px-4 font-semibold text-copy-white"
           >
             View your conversation
@@ -189,7 +190,7 @@ export default async function TeacherProfilePage({
           </form>
         ) : (
           <Link
-            href={`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teacher/${idSlug}`)}`}
+            href={`${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/teacher/${idSlug}`)}`}
             className="mt-4 inline-flex h-11 w-fit items-center rounded-md bg-ruled-blue px-4 font-semibold text-copy-white"
           >
             Sign in to message {teacher.full_name}

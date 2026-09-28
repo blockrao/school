@@ -36,7 +36,7 @@ export default async function ClaimSchoolPage({
   if (!school) notFound();
 
   if (school.claim === "claimed") {
-    redirect((await getSchoolCanonicalPath(school.id, "en")) ?? "/en/schools");
+    redirect((await getSchoolCanonicalPath(school.id, "en")) ?? "/schools");
   }
 
   const errorCode = first(rawSearchParams.error);

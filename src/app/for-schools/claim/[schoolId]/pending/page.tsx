@@ -13,7 +13,7 @@ export default async function ClaimPendingPage({
   const { schoolId } = await params;
   const school = (await listPublicSchoolsByIds([schoolId])).at(0);
   if (!school) notFound();
-  const schoolPath = (await getSchoolCanonicalPath(school.id, "en")) ?? "/en/schools";
+  const schoolPath = (await getSchoolCanonicalPath(school.id, "en")) ?? "/schools";
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">

@@ -6,11 +6,12 @@ import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient } from "@/lib/db/session";
 import { normalizeIndianPhone } from "@/lib/phone";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { homePath, localePrefix } from "@/lib/urls";
 
 /** Only allow same-origin relative paths as a post-sign-in redirect target (no open redirect). */
 function safeNext(next: FormDataEntryValue | null, locale: string): string {
   const value = typeof next === "string" ? next : "";
-  return value.startsWith("/") && !value.startsWith("//") ? value : `/${locale}`;
+  return value.startsWith("/") && !value.startsWith("//") ? value : homePath(locale);
 }
 
 const requestSchema = z.object({
@@ -28,24 +29,26 @@ export async function requestOtp(formData: FormData) {
 
   const phone = parsed.success ? normalizeIndianPhone(parsed.data.phone) : null;
   if (!phone) {
-    redirect(`/${locale}/sign-in?error=invalid_phone&next=${encodeURIComponent(next)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?error=invalid_phone&next=${encodeURIComponent(next)}`,
+    );
   }
 
   // 5 OTP sends per number per 15 minutes — SMS costs money and can be used
   // to spam a phone number that isn't the requester's own.
   const allowed = await checkRateLimit("otp_send", phone, 5, 15 * 60);
   if (!allowed) {
-    redirect(`/${locale}/sign-in?error=rate_limited&next=${encodeURIComponent(next)}`);
+    redirect(`${localePrefix(locale)}/sign-in?error=rate_limited&next=${encodeURIComponent(next)}`);
   }
 
   const supabase = await createSessionClient();
   const { error } = await supabase.auth.signInWithOtp({ phone });
   if (error) {
-    redirect(`/${locale}/sign-in?error=send_failed&next=${encodeURIComponent(next)}`);
+    redirect(`${localePrefix(locale)}/sign-in?error=send_failed&next=${encodeURIComponent(next)}`);
   }
 
   redirect(
-    `/${locale}/sign-in?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}`,
+    `${localePrefix(locale)}/sign-in?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}`,
   );
 }
 
@@ -67,7 +70,7 @@ export async function verifySignInOtp(formData: FormData) {
 
   if (!parsed.success) {
     redirect(
-      `/${locale}/sign-in?phone=${encodeURIComponent(phoneParam)}&error=invalid_code&next=${encodeURIComponent(next)}`,
+      `${localePrefix(locale)}/sign-in?phone=${encodeURIComponent(phoneParam)}&error=invalid_code&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -77,7 +80,7 @@ export async function verifySignInOtp(formData: FormData) {
   const allowed = await checkRateLimit("otp_verify", parsed.data.phone, 8, 15 * 60);
   if (!allowed) {
     redirect(
-      `/${locale}/sign-in?phone=${encodeURIComponent(parsed.data.phone)}&error=rate_limited&next=${encodeURIComponent(next)}`,
+      `${localePrefix(locale)}/sign-in?phone=${encodeURIComponent(parsed.data.phone)}&error=rate_limited&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -90,7 +93,7 @@ export async function verifySignInOtp(formData: FormData) {
 
   if (error || !data.user) {
     redirect(
-      `/${locale}/sign-in?phone=${encodeURIComponent(parsed.data.phone)}&error=invalid_code&next=${encodeURIComponent(next)}`,
+      `${localePrefix(locale)}/sign-in?phone=${encodeURIComponent(parsed.data.phone)}&error=invalid_code&next=${encodeURIComponent(next)}`,
     );
   }
 

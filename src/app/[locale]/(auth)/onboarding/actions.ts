@@ -4,11 +4,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ACCOUNT_NOTICE_VERSION } from "@/lib/consent";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { homePath, localePrefix } from "@/lib/urls";
 
 /** Only allow same-origin relative paths as a post-onboarding redirect target (no open redirect). */
 function safeNext(next: FormDataEntryValue | null, locale: string): string {
   const value = typeof next === "string" ? next : "";
-  return value.startsWith("/") && !value.startsWith("//") ? value : `/${locale}`;
+  return value.startsWith("/") && !value.startsWith("//") ? value : homePath(locale);
 }
 
 const onboardingSchema = z.object({
@@ -31,13 +32,15 @@ export async function completeOnboarding(formData: FormData) {
       error: !consented ? "consent_required" : "invalid_name",
       next,
     });
-    redirect(`/${locale}/onboarding?${params.toString()}`);
+    redirect(`${localePrefix(locale)}/onboarding?${params.toString()}`);
   }
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/onboarding`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/onboarding`)}`,
+    );
   }
 
   await supabase

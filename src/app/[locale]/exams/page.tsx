@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { StatusPill } from "@/components/ui/badges";
 import { listPublicExams } from "@/lib/db/public-adapter";
-import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
+import { localePrefix } from "@/lib/urls";
 
 // Same reasoning as exams/[slug]: renders a live open/upcoming/closed status
 // per exam, so keep the revalidate window short rather than caching a stale pill.
@@ -41,7 +42,7 @@ export default async function ExamsIndexPage({ params }: PageProps<"/[locale]/ex
       {exams.length === 0 ? (
         <p className="mt-8 text-body text-muted-ink">
           No exams published yet. Check back soon, or{" "}
-          <Link href={`/${locale}/schools`} className="font-semibold text-ruled-blue">
+          <Link href={`${localePrefix(locale)}/schools`} className="font-semibold text-ruled-blue">
             browse schools
           </Link>{" "}
           in the meantime.
@@ -62,7 +63,7 @@ export default async function ExamsIndexPage({ params }: PageProps<"/[locale]/ex
             return (
               <Link
                 key={exam.slug}
-                href={`/${locale}/exams/${exam.slug}`}
+                href={`${localePrefix(locale)}/exams/${exam.slug}`}
                 className="flex flex-col gap-2 rounded-md border border-rule p-4 hover:border-ruled-blue"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">

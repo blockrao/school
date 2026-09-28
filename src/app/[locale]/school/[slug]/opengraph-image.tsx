@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { resolveEntity } from "./resolve";
+import { resolveSchoolSlug } from "../../_views/resolve";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -7,21 +7,18 @@ export const contentType = "image/png";
 export default async function Image({
   params,
 }: {
-  params: Promise<{ locale: string; city: string; entitySlug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { city: citySlug, entitySlug } = await params;
-  const resolved = await resolveEntity(citySlug, entitySlug);
+  const { slug } = await params;
+  const result = await resolveSchoolSlug(slug);
 
   let title = "SchoolOye";
   let subtitle = "Find the right school";
 
-  if (resolved?.kind === "school") {
-    const { school, board } = resolved.bundle;
+  if (result?.kind === "school") {
+    const { school, board } = result.resolved.bundle;
     title = school.name_en ?? "SchoolOye";
-    subtitle = [board?.board_name, resolved.city.cityName].filter(Boolean).join(" · ");
-  } else if (resolved?.kind === "locality") {
-    title = `Schools in ${resolved.locality.name}`;
-    subtitle = resolved.city.cityName;
+    subtitle = [board?.board_name, result.resolved.city?.cityName].filter(Boolean).join(" · ");
   }
 
   return new ImageResponse(

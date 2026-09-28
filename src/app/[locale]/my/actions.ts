@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 
 export async function unsubscribeAlert(formData: FormData) {
   const locale = String(formData.get("locale") ?? "en");
@@ -10,7 +11,9 @@ export async function unsubscribeAlert(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my`)}`,
+    );
   }
 
   await supabase
@@ -26,5 +29,5 @@ export async function unsubscribeAlert(formData: FormData) {
     .eq("purpose", "whatsapp_alerts")
     .is("withdrawn_at", null);
 
-  redirect(`/${locale}/my`);
+  redirect(`${localePrefix(locale)}/my`);
 }

@@ -2295,7 +2295,11 @@ export type Database = {
         | "claim_review"
         | "correction_request"
         | "seat_update";
-      provenance_source_type: "official" | "school_reported" | "schooloye_verified" | "user_submitted";
+      provenance_source_type:
+        | "official"
+        | "school_reported"
+        | "schooloye_verified"
+        | "user_submitted";
       user_role: "parent" | "school_admin" | "ops" | "admin";
       verification_status: "unverified" | "source_verified" | "ops_verified" | "school_verified";
       verification_status_v2: "unknown" | "pending" | "verified" | "conflicting";

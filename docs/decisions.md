@@ -82,9 +82,9 @@ Experience → Distribution.
 
 | ID | Decision | Date · source | Supersedes |
 |---|---|---|---|
-| D-040 | Canonical school URL `/[locale]/[city]/[slug]-[school_code]`; resolved by `school_code`; changed slug 308s; no state/district/locality in the path; old `/[locale]/school/[id]-[slug]` permanently redirects | 26 Sep · built | Product Spec `/school/[city]/[slug]`; old CLAUDE.md `/school/[id]-[slug]` |
+| D-040 | *(Superseded by D-121)* Canonical school URL `/[locale]/[city]/[slug]-[school_code]`; resolved by `school_code`; changed slug 308s; no state/district/locality in the path; old `/[locale]/school/[id]-[slug]` permanently redirects | 26 Sep · built | Product Spec `/school/[city]/[slug]`; old CLAUDE.md `/school/[id]-[slug]` |
 | D-041 | UI geography: city/town → locality → school. District is internal only. Locality is a filter on city pages; locality pages only where content justifies | late Sep · notes | Breadcrumbs "state → district → city → locality" |
-| D-042 | One evergreen `/admissions` and `/fees` per school (current session); past sessions at `/admissions/{yyyy-yy}` | 26 Sep · entity spec | Per-session URLs |
+| D-042 | *(URL superseded by D-121)* One evergreen `/admissions` and `/fees` per school (current session); past sessions at `/admissions/{yyyy-yy}` | 26 Sep · entity spec | Per-session URLs |
 | D-043 | Root domain is a city picker; no geo-IP redirect | 25 Sep · Directory Spec | — |
 | D-044 | Sitemaps: one route handler per launched city + `sitemap-site.xml`; real `lastModified`; indexable URLs only | 25–27 Sep · built | `sitemap.ts` |
 | D-045 | JSON-LD generated from views: `School` subtype, address, geo, identifier (SchoolOye School ID + board affiliation no.; never UDISE code), `sameAs`, `BreadcrumbList`, `Event` for admission windows. Never `AggregateRating`/`Review`/`employee` | 25–26 Sep | — |
@@ -139,7 +139,7 @@ Experience → Distribution.
 | D-093 | Repo goes private once Vercel is on a paid plan | Platform Audit |
 | D-094 | *(Superseded by D-114)* `SITE_INDEXABLE` flips when ≥50 Jaipur schools are L3 and CI is green (target 15 Oct) | Audit, entity spec |
 | D-095 | Test prices for application help: ₹299/499, ₹1,499/2,499, ₹4,999+. **Still open (Prav): WhatsApp provider, season staffing** | Product Spec open decisions |
-| D-096 | City admissions page lives at `/[locale]/[city]/admissions` (sections: closing soon, opened this week, opening soon, open with no last date); filtered variants are noindex | Product Spec `/admissions-open` vs screen map |
+| D-096 | *(URL superseded by D-121; new URL open)* City admissions page lives at `/[locale]/[city]/admissions` (sections: closing soon, opened this week, opening soon, open with no last date); filtered variants are noindex | Product Spec `/admissions-open` vs screen map |
 | D-097 | Locality pages are indexable only with ≥8 schools at L2+ and ≥2 at L3; otherwise rendered and linked but noindex | D-041 "where content justifies" vs all-indexable today |
 | D-098 | Alert timing: form opens → immediate; reminders 3 days before and deadline-day morning (08:00 IST); date changes immediate; weekly city digest Friday 18:00 IST | Product Spec D2 vs entity spec 7d/1d |
 | D-099 | RTE/EWS: pilot shows state RTE dates as sourced guide content (not modelled as exams); RTE updates go out in the city digest | Tracker RTE modelling question |
@@ -164,6 +164,7 @@ Experience → Distribution.
 | D-118 | **Repo `CLAUDE.md` removed** at Prav's request to cut friction during data loading. This register, `docs/spec/` and `docs/guidelines/` remain the reference; sessions should read `docs/decisions.md` first | Prav, other session 28 Sep (commit 4c76b65) |
 | D-119 | **Publish = `schools.status = 'published'`; show data as stored** (supersedes D-022's per-field source gate, D-025's verified-only admissions, D-082's UDISE+ limits, D-114, D-115 and the listing/sitemap completeness filters). `api.public_schools` returns every published school with every column as stored; boards and admission cycles are shown without source or verification filters (the `verification` value is still exposed for labels); a district is launched when it has a published school; every published school is listed and goes in its city sitemap. Source/date lines stay as display only | Prav 28 Sep: "we have the data in the tables, show them, don't keep any intelligence in between" |
 | D-120 | **Production is always indexable** (supersedes D-094/D-114's `SITE_INDEXABLE` switch): the switch is removed; robots.txt allows search engines and seven AI crawlers on public routes; only Vercel Preview deployments are noindex. Sitemaps list every published school, paged so no city is truncated. Publishing (`schools.status`) is set by the ops team | Prav 28 Sep |
+| D-121 | **Canonical URL & Routing Architecture v1 is frozen** (`docs/spec/urls-and-routing.md`): entities at `/school/{slug}`, `/teacher/{slug}`, `/exams/{slug}`; campus views `/admissions`, `/fees` (+ `/{yyyy-yy}` archives); discovery `/schools/{state}/{city}/{locality}`; English at root, `/{lang}/` only when translated; entity slugs minted once and immutable; the DB ID never appears in a URL or JSON-LD; every legacy URL 301s to canonical in one hop; apex host. Supersedes the URL parts of D-012, D-040, D-041 (state now in discovery paths), D-042, D-096. No new URL pattern without an architecture review | Prav 28 Sep (architecture guide) |
 
 ---
 

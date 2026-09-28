@@ -3,8 +3,9 @@ import { z } from "zod";
 /** Mirrors db/views/010_public_schools.sql — api.public_schools. */
 export const publicSchoolContract = z.object({
   id: z.string(),
-  /** Stable 6-digit numeric entity id — canonical URL suffix, never UDISE. */
+  /** Internal 6-digit id — never in a URL or JSON-LD (D-121); only resolves legacy URLs. */
   school_code: z.number(),
+  /** Permanent public locator: /school/{slug}. Minted once, write-once (D-121). */
   slug: z.string(),
   district_id: z.number().nullable(),
   city_id: z.number().nullable(),
@@ -34,6 +35,22 @@ export const publicSchoolContract = z.object({
   last_verified_at: z.string().nullable(),
   about_en: z.string().nullable(),
   about_hi: z.string().nullable(),
+  /** 'published' or 'closed' (closed schools stay live with a banner, D-121 §9). */
+  status: z.string(),
+  aliases: z.array(z.string()),
+  state_slug: z.string().nullable(),
+  city_slug: z.string().nullable(),
 });
+
+/** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */
+export const publicSchoolRedirectContract = z.object({
+  from_slug: z.string(),
+  from_code: z.number().nullable(),
+  from_id: z.string().nullable(),
+  to_slug: z.string(),
+  kind: z.string(),
+});
+
+export type PublicSchoolRedirect = z.infer<typeof publicSchoolRedirectContract>;
 
 export type PublicSchool = z.infer<typeof publicSchoolContract>;

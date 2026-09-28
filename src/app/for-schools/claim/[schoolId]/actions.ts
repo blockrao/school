@@ -28,7 +28,7 @@ export async function submitClaim(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/en/sign-in?next=${encodeURIComponent(claimPath)}`);
+    redirect(`/sign-in?next=${encodeURIComponent(claimPath)}`);
   }
 
   const school = (await listPublicSchoolsByIds([schoolId])).at(0);

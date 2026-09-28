@@ -1,13 +1,17 @@
 -- api.public_schools: the public site's school records.
 --
 -- Rule (Prav, 28 Sep 2026, D-119): a school is public when schools.status =
--- 'published'. Every column is shown exactly as stored in the table — no
+-- 'published'; 'closed' schools stay public with a banner (D-121 §9). Merged
+-- schools (merged_into set) are excluded — api.public_school_redirects sends them
+-- to the survivor. Every column is shown exactly as stored in the table — no
 -- per-field source filtering (the earlier field_provenance allow-list, incl.
 -- the UDISE+ blocks, is removed). Source/date lines on the page still come
 -- from field_provenance, for display only.
 --
--- school_code: stable 6-digit public id, canonical URL suffix
--- (/[city]/[slug]-[school_code]) and the "SchoolOye School ID" in JSON-LD.
+-- school_code: internal 6-digit id (D-121: never in a URL or JSON-LD). Still
+-- exposed so legacy /{city}/{slug}-{school_code} URLs can 301 to /school/{slug}.
+-- slug: the permanent public locator, minted once and write-once (see
+-- supabase/migrations/20260928120000_canonical_school_slugs.sql).
 --
 -- Must stay owner-run (created as `postgres`, rolbypassrls = true): the schools
 -- table's RLS would otherwise hide rows from anon.
@@ -43,7 +47,13 @@ select
   s.claim,
   s.last_verified_at,
   s.about_en,
-  s.about_hi
+  s.about_hi,
+  s.status::text as status,
+  s.aliases,
+  st.slug as state_slug,
+  d.slug as city_slug
 from schools s
 left join localities l on l.id = s.locality_id
-where s.status = 'published';
+left join districts d on d.id = s.district_id
+left join states st on st.id = d.state_id
+where s.status in ('published', 'closed') and s.merged_into is null;

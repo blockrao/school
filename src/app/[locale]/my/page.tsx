@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getPublicCityById, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
+import { localePrefix } from "@/lib/urls";
 import { unsubscribeAlert } from "./actions";
 
 // design-pending: no matching file in design/ for an account hub — the closest is
@@ -72,7 +73,9 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
   const user = await getSessionUser(supabase);
 
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my`)}`,
+    );
   }
 
   const { data: subscriptions } = await supabase
@@ -105,7 +108,7 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
         {copy.sendingTo} {formatIndianPhone(user.phone ?? "")}
       </p>
       <Link
-        href={`/${locale}/my/account`}
+        href={`${localePrefix(locale)}/my/account`}
         className="mt-2 inline-block w-fit font-semibold text-ruled-blue"
         lang={isHi ? "hi" : undefined}
       >
@@ -155,7 +158,7 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
               {copy.noAlerts}
             </span>
             <Link
-              href={`/${locale}/alerts`}
+              href={`${localePrefix(locale)}/alerts`}
               className="w-fit font-semibold text-ruled-blue"
               lang={isHi ? "hi" : undefined}
             >
@@ -167,21 +170,21 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
-          href={`/${locale}/my/shortlist`}
+          href={`${localePrefix(locale)}/my/shortlist`}
           className="inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
           lang={isHi ? "hi" : undefined}
         >
           {copy.shortlistLink}
         </Link>
         <Link
-          href={`/${locale}/my/admissions`}
+          href={`${localePrefix(locale)}/my/admissions`}
           className="inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
           lang={isHi ? "hi" : undefined}
         >
           {copy.admissionsLink}
         </Link>
         <Link
-          href={`/${locale}/my/messages`}
+          href={`${localePrefix(locale)}/my/messages`}
           className="inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
           lang={isHi ? "hi" : undefined}
         >

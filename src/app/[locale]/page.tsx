@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { localeAlternates, localeCanonical } from "@/lib/seo";
 import Form from "next/form";
 import Link from "next/link";
 import { StatusPill } from "@/components/ui/badges";
@@ -13,15 +12,14 @@ import {
   type PublicOpenAdmission,
 } from "@/lib/db/public-adapter";
 import { deadlineState } from "@/lib/deadline";
-import { schoolPath } from "@/lib/school-url";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
+import { cityPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 // South West Delhi stays built but unlinked — see CLAUDE.md. Which city renders
 // here is resolved per-request (see getSelectedCityArea): the user's own pick if
 // they've chosen one, otherwise the platform default.
-export async function generateMetadata({
-  params,
-}: PageProps<"/[locale]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
   const area = await getSelectedCityArea();
   const label = area?.cityName ?? "your city";
@@ -41,12 +39,10 @@ function admissionPillStatus(status: ReturnType<typeof deadlineState>["status"])
 
 function AdmissionRow({
   admission,
-  citySlug,
   locale,
   now,
 }: {
   admission: PublicOpenAdmission;
-  citySlug: string;
   locale: string;
   now: Date;
 }) {
@@ -58,10 +54,7 @@ function AdmissionRow({
 
   return (
     <Link
-      href={schoolPath(locale, citySlug, {
-        slug: admission.slug,
-        school_code: admission.schoolCode,
-      })}
+      href={schoolPath(locale, admission.slug)}
       className="flex min-h-17 border-b border-rule-soft hover:bg-margin-paper"
     >
       <div
@@ -100,7 +93,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   const schoolCount = schoolsResult.total;
   const districtLabel = area?.cityName ?? "your city";
-  const districtHref = area ? `/${locale}/${area.citySlug}` : `/${locale}/schools`;
+  const districtHref = area
+    ? cityPath(locale, area.stateSlug, area.citySlug)
+    : schoolsRootPath(locale);
 
   // Category chips reflect real filterable boards, not a fixed design list — the set
   // grows automatically as more boards get affiliations in this district.
@@ -120,7 +115,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </div>
 
         <Form
-          action={`/${locale}/schools`}
+          action={`${localePrefix(locale)}/schools`}
           className="flex h-13 items-stretch overflow-hidden rounded-md border border-line-blue-strong bg-copy-white md:h-15 md:max-w-(--container-read)"
         >
           <label className="flex min-w-0 flex-1 items-center gap-2.5 px-4">
@@ -183,7 +178,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <AdmissionRow
                 key={admission.schoolId}
                 admission={admission}
-                citySlug={area?.citySlug ?? ""}
                 locale={locale}
                 now={now}
               />
@@ -206,17 +200,17 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             {
               title: "Check age eligibility",
               description: "Which class your child can apply for",
-              href: `/${locale}/tools/age-eligibility`,
+              href: `${localePrefix(locale)}/tools/age-eligibility`,
             },
             {
               title: "Compare schools",
               description: "Fees, facilities and dates side by side",
-              href: `/${locale}/compare`,
+              href: `${localePrefix(locale)}/compare`,
             },
             {
               title: "Get WhatsApp alerts",
               description: "When forms open and before they close",
-              href: `/${locale}/alerts`,
+              href: `${localePrefix(locale)}/alerts`,
             },
           ].map((tool) => (
             <Link
@@ -240,7 +234,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
       <div className="flex flex-col gap-2.5 px-4 py-6 md:px-10 md:py-9">
         <Link
-          href={`/${locale}/exams`}
+          href={`${localePrefix(locale)}/exams`}
           className="flex items-center justify-between gap-3 rounded-md border border-rule bg-copy-white px-4 py-3.5 hover:border-ruled-blue"
         >
           <span className="flex flex-col">
@@ -256,7 +250,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </Link>
 
         <Link
-          href={`/${locale}/guides`}
+          href={`${localePrefix(locale)}/guides`}
           className="flex items-center justify-between gap-3 rounded-md border border-rule bg-copy-white px-4 py-3.5 hover:border-ruled-blue"
         >
           <span className="flex flex-col">

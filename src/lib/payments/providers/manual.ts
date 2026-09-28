@@ -1,5 +1,6 @@
 import "server-only";
 import type { PaymentProvider } from "@/lib/payments/provider";
+import { localePrefix } from "@/lib/urls";
 
 /**
  * Production default. Doesn't take payment details itself — the order sits at
@@ -11,7 +12,9 @@ import type { PaymentProvider } from "@/lib/payments/provider";
 export const manualProvider: PaymentProvider = {
   name: "manual",
   async createOrder(order, locale) {
-    return { redirectTo: `/${locale}/admissions/help/checkout/confirm?order=${order.id}` };
+    return {
+      redirectTo: `${localePrefix(locale)}/admissions/help/checkout/confirm?order=${order.id}`,
+    };
   },
   async verifyWebhook() {
     return null;

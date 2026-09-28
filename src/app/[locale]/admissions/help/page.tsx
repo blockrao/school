@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listApplicationHelpProducts } from "@/lib/db/application-help";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
+import { localePrefix } from "@/lib/urls";
 
 type Copy = {
   title: string;
@@ -140,7 +141,7 @@ export default async function ApplicationHelpLandingPage({
 
       <div className="mt-8 flex flex-col gap-1.5">
         <Link
-          href={`/${locale}/admissions/help/package`}
+          href={`${localePrefix(locale)}/admissions/help/package`}
           className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
           lang={isHi ? "hi" : undefined}
         >

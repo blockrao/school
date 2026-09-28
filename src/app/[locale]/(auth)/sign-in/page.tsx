@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FieldError } from "@/components/ui/field-error";
 import { OtpInput } from "@/components/ui/otp-input";
 import { formatIndianPhone } from "@/lib/phone";
+import { homePath, localePrefix } from "@/lib/urls";
 import { requestOtp, verifySignInOtp } from "./actions";
 import { signInWithPassword } from "./password-actions";
 
@@ -109,7 +110,7 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
   const isHi = locale === "hi";
 
   const phone = first(rawSearchParams.phone) ?? "";
-  const next = first(rawSearchParams.next) ?? `/${locale}`;
+  const next = first(rawSearchParams.next) ?? homePath(locale);
   const errorCode = first(rawSearchParams.error);
   const pErrorCode = first(rawSearchParams.perror);
 
@@ -163,7 +164,7 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
               {copy.verify}
             </button>
             <a
-              href={`/${locale}/sign-in?next=${encodeURIComponent(next)}`}
+              href={`${localePrefix(locale)}/sign-in?next=${encodeURIComponent(next)}`}
               className="text-meta font-semibold text-ruled-blue"
               lang={isHi ? "hi" : undefined}
             >
@@ -260,7 +261,7 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
                   {copy.signIn}
                 </button>
                 <Link
-                  href={`/${locale}/forgot-password`}
+                  href={`${localePrefix(locale)}/forgot-password`}
                   className="text-meta font-semibold text-ruled-blue"
                   lang={isHi ? "hi" : undefined}
                 >
@@ -270,7 +271,7 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
               <p className="text-meta text-muted-ink" lang={isHi ? "hi" : undefined}>
                 {copy.noAccount}{" "}
                 <Link
-                  href={`/${locale}/sign-up?next=${encodeURIComponent(next)}`}
+                  href={`${localePrefix(locale)}/sign-up?next=${encodeURIComponent(next)}`}
                   className="font-semibold text-ruled-blue"
                 >
                   {copy.createAccount}

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 
 const DOCUMENT_STORAGE_NOTICE_VERSION = "document-storage-2026-09";
 const DOCUMENT_RETENTION_MONTHS = 12;
@@ -29,7 +30,7 @@ export async function saveOrderIntake(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/${locale}/my/admissions/${orderId}/details?error=invalid`);
+    redirect(`${localePrefix(locale)}/my/admissions/${orderId}/details?error=invalid`);
   }
 
   const supabase = await createSessionClient();
@@ -39,10 +40,10 @@ export async function saveOrderIntake(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/${locale}/my/admissions/${orderId}/details?error=save_failed`);
+    redirect(`${localePrefix(locale)}/my/admissions/${orderId}/details?error=save_failed`);
   }
 
-  redirect(`/${locale}/my/admissions/${orderId}/documents`);
+  redirect(`${localePrefix(locale)}/my/admissions/${orderId}/documents`);
 }
 
 function retainUntil(): string {
@@ -69,14 +70,14 @@ export async function uploadDocument(formData: FormData) {
   });
 
   if (!parsed.success || !(file instanceof File) || file.size === 0) {
-    redirect(`/${locale}/my/admissions/${orderId}/documents?error=invalid`);
+    redirect(`${localePrefix(locale)}/my/admissions/${orderId}/documents?error=invalid`);
   }
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
     redirect(
-      `/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/admissions/${orderId}/documents`)}`,
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/admissions/${orderId}/documents`)}`,
     );
   }
 
@@ -91,7 +92,7 @@ export async function uploadDocument(formData: FormData) {
     .upload(storagePath, bytes, { contentType: (file as File).type || "application/octet-stream" });
 
   if (uploadError) {
-    redirect(`/${locale}/my/admissions/${orderId}/documents?error=upload_failed`);
+    redirect(`${localePrefix(locale)}/my/admissions/${orderId}/documents?error=upload_failed`);
   }
 
   const { error: insertError } = await supabase.from("documents").insert({
@@ -105,7 +106,7 @@ export async function uploadDocument(formData: FormData) {
 
   if (insertError) {
     await supabase.storage.from("documents").remove([storagePath]);
-    redirect(`/${locale}/my/admissions/${orderId}/documents?error=upload_failed`);
+    redirect(`${localePrefix(locale)}/my/admissions/${orderId}/documents?error=upload_failed`);
   }
 
   await supabase.from("consents").insert({
@@ -116,7 +117,7 @@ export async function uploadDocument(formData: FormData) {
     channel: "app",
   });
 
-  redirect(`/${locale}/my/admissions/${orderId}/documents`);
+  redirect(`${localePrefix(locale)}/my/admissions/${orderId}/documents`);
 }
 
 export async function deleteDocument(formData: FormData) {
@@ -129,5 +130,5 @@ export async function deleteDocument(formData: FormData) {
   await supabase.storage.from("documents").remove([storagePath]);
   await supabase.from("documents").delete().eq("id", docId);
 
-  redirect(`/${locale}/my/admissions/${orderId}/documents`);
+  redirect(`${localePrefix(locale)}/my/admissions/${orderId}/documents`);
 }

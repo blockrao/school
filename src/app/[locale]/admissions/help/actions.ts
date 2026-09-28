@@ -5,6 +5,7 @@ import { z } from "zod";
 import { nextAcademicYear } from "@/lib/age";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getPaymentProvider } from "@/lib/payments/provider";
+import { localePrefix } from "@/lib/urls";
 
 const CHILD_PROFILE_NOTICE_VERSION = "child-profile-2026-09";
 
@@ -23,13 +24,15 @@ export async function addChild(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/${locale}/admissions/help/package?error=invalid_child`);
+    redirect(`${localePrefix(locale)}/admissions/help/package?error=invalid_child`);
   }
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/admissions/help/package`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/admissions/help/package`)}`,
+    );
   }
 
   const { data: child, error } = await supabase
@@ -45,7 +48,7 @@ export async function addChild(formData: FormData) {
     .single();
 
   if (error || !child) {
-    redirect(`/${locale}/admissions/help/package?error=invalid_child`);
+    redirect(`${localePrefix(locale)}/admissions/help/package?error=invalid_child`);
   }
 
   await supabase.from("consents").insert({
@@ -56,7 +59,7 @@ export async function addChild(formData: FormData) {
     channel: "app",
   });
 
-  redirect(`/${locale}/admissions/help/package?child=${child.id}`);
+  redirect(`${localePrefix(locale)}/admissions/help/package?child=${child.id}`);
 }
 
 const checkoutSchema = z.object({
@@ -72,13 +75,15 @@ export async function startCheckout(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/${locale}/admissions/help/package?error=invalid_selection`);
+    redirect(`${localePrefix(locale)}/admissions/help/package?error=invalid_selection`);
   }
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/admissions/help/package`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/admissions/help/package`)}`,
+    );
   }
 
   const { data: orderId, error } = await supabase.rpc("create_application_order", {
@@ -87,10 +92,10 @@ export async function startCheckout(formData: FormData) {
   });
 
   if (error || !orderId) {
-    redirect(`/${locale}/admissions/help/package?error=order_failed`);
+    redirect(`${localePrefix(locale)}/admissions/help/package?error=order_failed`);
   }
 
-  redirect(`/${locale}/admissions/help/checkout?order=${orderId}`);
+  redirect(`${localePrefix(locale)}/admissions/help/checkout?order=${orderId}`);
 }
 
 export async function payForOrder(formData: FormData) {

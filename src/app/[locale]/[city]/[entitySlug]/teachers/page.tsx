@@ -1,100 +1,13 @@
-import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { EmptyState } from "@/components/ui/state-message";
-import { listPublicSchoolTeam } from "@/lib/db/school-team";
-import { schoolPath } from "@/lib/school-url";
-import { resolveEntity } from "../resolve";
+import { lp } from "@/lib/urls";
+import { legacyEntityTarget } from "../../../_views/resolve";
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/[locale]/[city]/[entitySlug]/teachers">): Promise<Metadata> {
-  const { city: citySlug, entitySlug } = await params;
-  const resolved = await resolveEntity(citySlug, entitySlug);
-  if (!resolved || resolved.kind !== "school") return { title: "Not found" };
-  const { school } = resolved.bundle;
-  const name = school.name_en ?? "School";
-  // Same shape as the Overview page's own canonical: locale-less canonical +
-  // explicit hreflang alternates, not a locale baked into the canonical URL.
-  const canonicalPath = `${schoolPath("en", citySlug, school).replace(/^\/en/, "")}/teachers`;
-
-  // An empty roster is exactly the thin-content case CLAUDE.md's trust rules
-  // warn against (same reasoning already applied to the deferred Fees/
-  // Facilities tabs) — index it only once the school actually has a
-  // published team, not on the strength of the URL existing.
-  const team = await listPublicSchoolTeam(school.id);
-  return {
-    title: `Teachers at ${name} — SchoolOye`,
-    alternates: {
-      canonical: canonicalPath,
-      languages: { "en-IN": `/en${canonicalPath}`, "hi-IN": `/hi${canonicalPath}` },
-    },
-    robots: { index: team.length > 0, follow: true },
-  };
-}
-
-/**
- * A school's published teacher roster — schools are mandated to publish
- * their teacher list, and a verified `school_teacher_affiliations` row
- * (mutual accept, see docs/screen-map.md) is the mechanism. Each card links
- * to that teacher's own canonical profile — this page never duplicates it.
- */
-export default async function SchoolTeachersPage({
+/** Legacy /{city}/{slug}-{code}/teachers → the teachers section of /school/{slug} (D-121 §4). */
+export default async function LegacyTeachersRedirect({
   params,
 }: PageProps<"/[locale]/[city]/[entitySlug]/teachers">) {
-  const { locale, city: citySlug, entitySlug } = await params;
-  const resolved = await resolveEntity(citySlug, entitySlug);
-  if (!resolved) notFound();
-  if (resolved.kind === "redirect") permanentRedirect(`/${locale}${resolved.to}`);
-  if (resolved.kind !== "school") notFound();
-
-  const { bundle } = resolved;
-  const { school } = bundle;
-  const overviewPath = schoolPath(locale, citySlug, school);
-  const team = await listPublicSchoolTeam(school.id);
-
-  return (
-    <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
-      <Link href={overviewPath} className="text-meta font-semibold text-ruled-blue">
-        ← {school.name_en ?? "School"}
-      </Link>
-      <h1 className="mt-1 font-display text-title-m md:text-title-d">
-        Teachers at {school.name_en ?? "this school"}
-      </h1>
-
-      {team.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            title="No teachers listed yet"
-            description="This school hasn't added its published teacher team yet."
-            nextStepLabel="Back to school page"
-            nextStepHref={overviewPath}
-          />
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
-          {team.map((t) => (
-            <Link
-              key={t.teacherId}
-              href={`/${locale}/teacher/${t.teacherId}-${t.slug}`}
-              className="flex gap-3 rounded-md border border-rule bg-copy-white p-3.5 hover:border-ruled-blue"
-            >
-              <div className="flex h-19 w-16 shrink-0 items-center justify-center rounded-md bg-margin-paper text-meta text-muted-ink">
-                Photo
-              </div>
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-display text-card font-semibold">{t.fullName}</span>
-                <span className="text-meta">
-                  {[t.subject, t.level].filter(Boolean).join(" · ")}
-                </span>
-                {t.headline && (
-                  <span className="mt-0.5 text-meta text-muted-ink">{t.headline}</span>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const { locale, city, entitySlug } = await params;
+  const target = await legacyEntityTarget(city, entitySlug);
+  if (!target?.startsWith("/school/")) notFound();
+  permanentRedirect(`${lp(locale, target)}#teachers-heading`);
 }

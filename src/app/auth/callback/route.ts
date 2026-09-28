@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient } from "@/lib/db/session";
+import { LOCALES } from "@/lib/urls";
 
 /** Not locale-prefixed — this is the stable URL baked into every signup-confirmation and password-reset email. */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/en";
-  const locale = next.split("/")[1] || "en";
+  const rawNext = url.searchParams.get("next") ?? "/";
+  // Same-site paths only — never an absolute or protocol-relative URL.
+  const next = /^\/(?!\/)/.test(rawNext) ? rawNext : "/";
+  const first = next.split("/")[1];
+  const locale = (LOCALES as readonly string[]).includes(first) ? first : "en";
 
   if (code) {
     const supabase = await createSessionClient();
@@ -22,5 +26,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL("/en/sign-in?error=invalid_code", url.origin));
+  return NextResponse.redirect(new URL("/sign-in?error=invalid_code", url.origin));
 }

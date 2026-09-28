@@ -49,6 +49,7 @@ Every Claude Code session building SchoolOye starts here.
 
 | Spec | Covers | Season milestone | State (27 Sep) |
 |---|---|---|---|
+| `urls-and-routing.md` | **Frozen** canonical URL & routing architecture (D-121): entity roots, slugs, redirects, lifecycle, CI invariants | phase 1 done 28 Sep | `/school/{slug}`, `/schools/{state}/{city}/{locality}`, `/exams/{slug}` live; campus views reserved (301); teacher slugs phase 3 |
 | `school-entity-page.md` | School page (Overview, `/admissions`, `/fees`), provenance precedence, parent fee reports, index gate, widget, SEO/AI layer; build milestones M0–M4 | M1 15 Oct · M2 1 Nov · M3 15 Dec | Overview built; tabs, fees, gate, widget not built |
 | `admissions-tracker.md` | City admissions page, status model, age checker, documents, RTE info, alerts + digest, report/request update | 15 Oct | Sign-up + age checker built; sending, city admissions page, reports not built |
 | `exams.md` | Exam hub + exam pages (RMS CET live), exam cycles/milestones, exam alerts | live; fixes by 15 Oct | Page live; view not in repo, no JSON-LD, colour violations |
@@ -87,10 +88,10 @@ Verified by reading the code; each spec's §2 has the detail. Fix P0 items befor
 | P2 | Messaging has no report/block (D-105); account export omits conversations/messages | `teachers.md` |
 | P2 | Several `/ops` actions ignore database write errors | `ops-console.md` |
 | P1 | JSON-LD `propertyID` said "Schooloy School ID" (`[entitySlug]/page.tsx`), against D-081 — **fixed** (28 Sep) | `school-entity-page.md` |
-| P1 | `localeAlternates()` (`src/lib/seo.ts`) always emits `hi-IN`, against D-086 | `school-entity-page.md` §11.7 |
+| P1 | `localeAlternates()` (`src/lib/seo.ts`) always emits `hi-IN`, against D-086 — **fixed** (28 Sep, D-121: no hreflang until a page is translated) | `urls-and-routing.md` |
 | P1 | No `cacheTag` anywhere in `src/`, so `/api/revalidate` is a no-op — edits don't refresh cached pages | `school-entity-page.md` §12.4 |
-| P2 | `public-adapter.ts` keeps two unused raw sub-queries (`school_identifiers`, `field_provenance`) against N-10 | `data-and-trust.md` |
-| P2 | `robots.ts` lists 4 AI crawlers; target list has 7 | `docs/guidelines/seo-geo.md` |
+| P2 | `public-adapter.ts` keeps two unused raw sub-queries (`school_identifiers`, `field_provenance`) against N-10 — **fixed** (28 Sep) | `data-and-trust.md` |
+| P2 | `robots.ts` lists 4 AI crawlers; target list has 7 — **fixed** (28 Sep) | `docs/guidelines/seo-geo.md` |
 
 ## Season timeline (from the specs)
 

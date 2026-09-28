@@ -11,11 +11,8 @@ import { listLaunchedCityOptions } from "@/lib/db/public-adapter";
  * flow that parents and school admins land on directly from search and ads — it needs
  * the same header/footer as every other public page, not a bare page.
  *
- * Fixed to the "en" default locale (matches DEFAULT_LOCALE in src/proxy.ts and the
- * hardcoded /en/... links already used inside this tree, e.g.
- * for-schools/claim/page.tsx's "Browse all schools" fallback) — there's no locale
- * segment here to read one from, and nav links only ever need to point into the
- * locale-prefixed site, not resolve the current page's own locale.
+ * Fixed to the "en" default locale (English lives at the root, D-121) — there's no
+ * locale segment here to read one from.
  */
 export default async function ForSchoolsLayout({ children }: LayoutProps<"/for-schools">) {
   const locale = "en";

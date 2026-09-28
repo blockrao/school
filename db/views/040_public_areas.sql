@@ -38,6 +38,7 @@ select
     select 1 from api.public_schools ps
     where ps.district_id = d.id
   ) as is_launch,
-  d.id as district_id
+  d.id as district_id,
+  st.slug as state_slug
 from districts d
 join states st on st.id = d.state_id;

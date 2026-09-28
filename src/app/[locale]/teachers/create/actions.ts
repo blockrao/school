@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { slugify } from "@/lib/slug";
+import { localePrefix } from "@/lib/urls";
 
 const OPEN_TO_OPTIONS = ["Tutoring", "Online classes", "Teacher workshops"] as const;
 
@@ -20,7 +21,7 @@ const profileSchema = z.object({
 
 export async function saveTeacherProfile(formData: FormData) {
   const locale = String(formData.get("locale") ?? "en");
-  const path = `/${locale}/teachers/create`;
+  const path = `${localePrefix(locale)}/teachers/create`;
 
   const parsed = profileSchema.safeParse({
     fullName: formData.get("fullName"),
@@ -41,7 +42,7 @@ export async function saveTeacherProfile(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(path)}`);
+    redirect(`${localePrefix(locale)}/sign-in?next=${encodeURIComponent(path)}`);
   }
 
   const { data: existing } = await supabase
@@ -86,5 +87,5 @@ export async function saveTeacherProfile(formData: FormData) {
     idSlug = created ? `${created.id}-${slug}` : undefined;
   }
 
-  redirect(`/${locale}/teacher/${idSlug}/manage`);
+  redirect(`${localePrefix(locale)}/teacher/${idSlug}/manage`);
 }

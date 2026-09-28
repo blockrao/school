@@ -28,7 +28,7 @@ export async function submitEditRequest(formData: FormData) {
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect(`/en/sign-in?next=${encodeURIComponent(path)}`);
+  if (!user) redirect(`/sign-in?next=${encodeURIComponent(path)}`);
 
   const { error } = await supabase.from("correction_requests").insert({
     school_id: schoolId,

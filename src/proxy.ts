@@ -2,29 +2,67 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { publicEnv } from "@/lib/env";
 
-// Mirrors the locale set in src/app/[locale]/layout.tsx — keep in sync.
-const LOCALES = ["en", "hi"] as const;
-const DEFAULT_LOCALE = "en";
+/**
+ * URL hygiene + language routing for docs/spec/urls-and-routing.md (D-121).
+ * Named `proxy`, not `middleware` (Next.js 16 file convention).
+ *
+ * Public URLs have no /en prefix: English lives at the root. The route tree
+ * still lives under src/app/[locale]/…, so this proxy:
+ *   1. normalises: uppercase → lowercase (301); trailing slashes are removed
+ *      by Next itself (permanent redirect);
+ *   2. /en and /en/{root}/… → 301 to the unprefixed canonical form;
+ *      /en/{legacy}/… (old city/school URLs that need a DB lookup to find their
+ *      canonical) → rewritten internally so the legacy route answers with ONE
+ *      301 straight to the canonical URL (one-hop rule, §8);
+ *   3. /hi/… → 404 until a page has a real Hindi translation (§6);
+ *   4. every other public path → rewritten internally to /en/… (no redirect).
+ * Then, on the narrow set of auth paths, refreshes the Supabase session.
+ */
 
-// Top-level routes that live outside src/app/[locale] (api, auth, dev, ops,
-// portal, for-schools — see src/app/) plus framework/crawler paths. None of
-// these ever take a locale prefix, so they're exempt from the redirect below.
+// First path segments of every route under src/app/[locale]/ that has a
+// canonical, unprefixed public form. Anything else under /en/ is a legacy
+// pattern answered by the legacy routes ([city], [city]/[entitySlug]).
+const LOCALE_ROOTS = new Set([
+  "school",
+  "schools",
+  "teacher",
+  "teachers",
+  "exams",
+  "admissions",
+  "alerts",
+  "compare",
+  "guides",
+  "tools",
+  "privacy",
+  "terms",
+  "my",
+  "sign-in",
+  "sign-up",
+  "forgot-password",
+  "reset-password",
+  "onboarding",
+]);
+
+// Routes outside src/app/[locale] plus framework/crawler files: passed through untouched.
 const NON_LOCALE_PREFIXES = ["/_next", "/api", "/auth", "/dev", "/ops", "/portal", "/for-schools"];
-const NON_LOCALE_EXACT = new Set(["/", "/favicon.ico", "/robots.txt"]);
+const NON_LOCALE_EXACT = new Set([
+  "/favicon.ico",
+  "/robots.txt",
+  "/llms.txt",
+  "/manifest.webmanifest",
+]);
 
-function needsLocaleRedirect(pathname: string): boolean {
-  if (NON_LOCALE_EXACT.has(pathname)) return false; // "/" → src/app/page.tsx's own redirect("/en")
-  if (/^\/sitemap.*\.xml$/.test(pathname)) return false; // already emitted as /en/... internally
-  if (NON_LOCALE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
-    return false;
-  }
-  const firstSegment = pathname.split("/")[1];
-  return !(LOCALES as readonly string[]).includes(firstSegment);
+function isNonLocale(pathname: string): boolean {
+  if (NON_LOCALE_EXACT.has(pathname)) return true;
+  if (/^\/sitemap[^/]*\.xml$/.test(pathname)) return true;
+  if (/\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith("/index.md")) return true; // static files
+  return NON_LOCALE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-// Paths where the Supabase auth cookie actually needs refreshing / checking.
-// Deliberately narrow: doing the Supabase round-trip on every public page
-// (home, exams, schools, ...) would add real latency and load for no benefit.
+/** Legacy /school/{uuid}-{slug} (pre-D-121) — needs a DB lookup, so it's rewritten, not stripped. */
+const LEGACY_SCHOOL_ID_RE = /^\/school\/[0-9a-f]{8}-[0-9a-f]{4}-/;
+
+// Paths (internal, /en/-prefixed form) where the Supabase auth cookie needs refreshing.
 const AUTH_MATCH = [
   /^\/[^/]+\/my(\/|$)/,
   /^\/[^/]+\/sign-in$/,
@@ -36,47 +74,61 @@ const AUTH_MATCH = [
   /^\/for-schools\/claim(\/|$)/,
 ];
 
-function needsAuthCheck(pathname: string): boolean {
-  return AUTH_MATCH.some((re) => re.test(pathname));
-}
+export type RouteDecision =
+  | { type: "pass" }
+  | { type: "redirect"; to: string }
+  | { type: "rewrite"; to: string };
 
 /**
- * Named `proxy`, not `middleware` — Next.js 16 renamed the file convention
- * (middleware.ts is deprecated). See node_modules/next/dist/docs/.../proxy.md.
- *
- * Two independent jobs, run in this order:
- *
- * 1. Locale redirect — any request whose first path segment isn't a known
- *    locale ("/exams/jnvst", an old external link, someone typing the URL by
- *    hand) gets redirected to the default locale. Without this,
- *    src/app/[locale]/layout.tsx receives "exams" as the locale param, fails
- *    its LOCALES check, and 404s — which is exactly what shipped as a live
- *    bug (bare /exams/jnvst and /exams/aissee both 404ing while the real,
- *    fully-built pages sat one path segment away at /en/exams/...).
- *    Cheap and pathname-only, so it runs before anything touches Supabase.
- *
- * 2. Supabase session refresh, scoped to AUTH_MATCH only. Also fails closed
- *    on /ops: redirects signed-out requests to sign-in before a single byte
- *    of an ops page renders. requireStaff() (src/lib/db/ops.ts) already does
- *    this per-page; this is a second, earlier layer so a future /ops page
- *    added without requireStaff() doesn't accidentally ship unauthenticated —
- *    defense in depth, not a replacement for the RLS policies that are the
- *    actual source of truth.
+ * Pure routing decision for a request path (unit-tested in src/proxy.test.ts).
+ * Every non-canonical form reaches its canonical URL in ONE hop (D-121 §8):
+ * paths that need a DB lookup (legacy city/school URLs) are rewritten to the
+ * legacy route, which issues the single 301 itself.
  */
-export async function proxy(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+export function routeDecision(pathname: string): RouteDecision {
+  if (isNonLocale(pathname)) return { type: "pass" };
 
-  if (needsLocaleRedirect(pathname)) {
-    const target = request.nextUrl.clone();
-    target.pathname = `/${DEFAULT_LOCALE}${pathname}`;
-    target.search = search;
-    return NextResponse.redirect(target, 307);
+  const path = pathname.toLowerCase();
+  if (path === "/en") return { type: "redirect", to: "/" };
+  if (path === "/hi" || path.startsWith("/hi/")) {
+    // No page is translated yet (§6): never serve an English mirror → 404.
+    return { type: "rewrite", to: "/en/__untranslated" };
   }
 
-  if (!needsAuthCheck(pathname)) return NextResponse.next();
+  const rest = path.startsWith("/en/") ? path.slice(3) : path;
+  const first = rest.split("/")[1] ?? "";
+  const isCanonicalRoot =
+    rest === "/" || (LOCALE_ROOTS.has(first) && !LEGACY_SCHOOL_ID_RE.test(rest));
 
-  let response = NextResponse.next({ request });
+  if (isCanonicalRoot) {
+    if (rest !== pathname) return { type: "redirect", to: rest }; // /en prefix and/or uppercase
+    return { type: "rewrite", to: rest === "/" ? "/en" : `/en${rest}` };
+  }
+  // Legacy or unknown pattern: the legacy route 301s to canonical (or 404s).
+  return { type: "rewrite", to: `/en${rest}` };
+}
 
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const decision = routeDecision(pathname);
+  if (decision.type === "redirect") {
+    const target = request.nextUrl.clone();
+    target.pathname = decision.to;
+    return NextResponse.redirect(target, 301);
+  }
+  const internalPath = decision.type === "rewrite" ? decision.to : null;
+
+  const makeResponse = () => {
+    if (internalPath === null || internalPath === pathname) return NextResponse.next({ request });
+    const url = request.nextUrl.clone();
+    url.pathname = internalPath;
+    return NextResponse.rewrite(url, { request });
+  };
+
+  const routePath = internalPath ?? pathname;
+  if (!AUTH_MATCH.some((re) => re.test(routePath))) return makeResponse();
+
+  let response = makeResponse();
   const supabase = createServerClient(
     publicEnv.NEXT_PUBLIC_SUPABASE_URL,
     publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
@@ -87,7 +139,7 @@ export async function proxy(request: NextRequest) {
           for (const { name, value } of cookiesToSet) {
             request.cookies.set(name, value);
           }
-          response = NextResponse.next({ request });
+          response = makeResponse();
           for (const { name, value, options } of cookiesToSet) {
             response.cookies.set(name, value, options);
           }
@@ -98,8 +150,9 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
 
+  // Fail closed on /ops before any ops page renders (defence in depth; RLS is the real gate).
   if (pathname.startsWith("/ops") && !data?.claims) {
-    const signInUrl = new URL("/en/sign-in", request.url);
+    const signInUrl = new URL("/sign-in", request.url);
     signInUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(signInUrl);
   }

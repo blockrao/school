@@ -7,6 +7,7 @@ import type { Application } from "@/lib/db/application-help";
 import { listApplicationsForOrders, listMyChildren, listMyOrders } from "@/lib/db/application-help";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 import { approveApplication } from "./actions";
 
 // Design (7f) shows 4 status tones via ApplicationStatusRow (already built in the
@@ -59,7 +60,9 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/admissions`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/admissions`)}`,
+    );
   }
 
   const [orders, children] = await Promise.all([listMyOrders(), listMyChildren()]);
@@ -89,7 +92,7 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
             title="No orders yet"
             description="Get help preparing and submitting school application forms."
             nextStepLabel="Get help applying"
-            nextStepHref={`/${locale}/admissions/help`}
+            nextStepHref={`${localePrefix(locale)}/admissions/help`}
           />
         </div>
       ) : (
@@ -108,7 +111,7 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
                   <div className="rounded-md border border-rule bg-copy-white p-4">
                     <p className="text-body">Waiting for payment confirmation.</p>
                     <Link
-                      href={`/${locale}/admissions/help/checkout?order=${order.id}`}
+                      href={`${localePrefix(locale)}/admissions/help/checkout?order=${order.id}`}
                       className="mt-2 inline-block font-semibold text-ruled-blue"
                     >
                       Go to checkout
@@ -120,7 +123,7 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
                       Payment received. Share your child's details to continue.
                     </p>
                     <Link
-                      href={`/${locale}/my/admissions/${order.id}/details`}
+                      href={`${localePrefix(locale)}/my/admissions/${order.id}/details`}
                       className="mt-2 inline-block font-semibold text-ruled-blue"
                     >
                       Continue

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 
 export async function approveApplication(formData: FormData) {
   const locale = String(formData.get("locale") ?? "en");
@@ -10,10 +11,12 @@ export async function approveApplication(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/admissions`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/admissions`)}`,
+    );
   }
 
   await supabase.rpc("approve_application", { p_application_id: applicationId });
 
-  redirect(`/${locale}/my/admissions`);
+  redirect(`${localePrefix(locale)}/my/admissions`);
 }

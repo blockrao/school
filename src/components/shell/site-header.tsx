@@ -6,6 +6,7 @@ import { LocaleSwitcher } from "@/components/shell/locale-switcher";
 import { MobileMenu } from "@/components/shell/mobile-menu";
 import { PrimaryNav } from "@/components/shell/primary-nav";
 import type { CityOption } from "@/lib/city-preference";
+import { homePath, localePrefix } from "@/lib/urls";
 
 export function SiteHeader({ locale, areas }: { locale: string; areas: CityOption[] }) {
   return (
@@ -14,7 +15,10 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
           <MobileMenu locale={locale} areas={areas} />
-          <Link href={`/${locale}`} className="font-display text-card font-bold text-ruled-blue">
+          <Link
+            href={homePath(locale)}
+            className="font-display text-card font-bold text-ruled-blue"
+          >
             SchoolOye
           </Link>
         </div>
@@ -26,12 +30,15 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
 
       {/* Desktop: logo, primary nav, search, city, locale switch, sign in */}
       <div className="hidden h-17 items-center gap-7 px-10 md:flex">
-        <Link href={`/${locale}`} className="font-display text-section font-bold text-ruled-blue">
+        <Link
+          href={homePath(locale)}
+          className="font-display text-section font-bold text-ruled-blue"
+        >
           SchoolOye
         </Link>
         <PrimaryNav locale={locale} areas={areas} />
         <Form
-          action={`/${locale}/schools`}
+          action={`${localePrefix(locale)}/schools`}
           className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-line-blue-strong bg-copy-white px-3"
         >
           <svg

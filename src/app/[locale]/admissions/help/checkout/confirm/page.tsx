@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getMyOrder } from "@/lib/db/application-help";
+import { localePrefix } from "@/lib/urls";
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -20,7 +21,7 @@ export default async function CheckoutConfirmPage({
   const orderId = first(rawSearchParams.order);
 
   const order = orderId ? await getMyOrder(orderId) : null;
-  if (!order) redirect(`/${locale}/admissions/help/package`);
+  if (!order) redirect(`${localePrefix(locale)}/admissions/help/package`);
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -33,7 +34,7 @@ export default async function CheckoutConfirmPage({
         share your child's details and documents here.
       </p>
       <Link
-        href={`/${locale}/my/admissions`}
+        href={`${localePrefix(locale)}/my/admissions`}
         className="mt-6 inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
       >
         Go to My Admissions

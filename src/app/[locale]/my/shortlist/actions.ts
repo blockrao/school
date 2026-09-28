@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { homePath, localePrefix } from "@/lib/urls";
 
 /** Same-origin path+query from the Referer header, so Save/Remove can redirect back to
  * whichever list page the button was clicked from without threading a `next` field
@@ -12,12 +13,12 @@ async function refererPath(locale: string): Promise<string> {
   const h = await headers();
   const referer = h.get("referer");
   const host = h.get("host");
-  if (!referer || !host) return `/${locale}`;
+  if (!referer || !host) return homePath(locale);
   try {
     const url = new URL(referer);
-    return url.host === host ? `${url.pathname}${url.search}` : `/${locale}`;
+    return url.host === host ? `${url.pathname}${url.search}` : homePath(locale);
   } catch {
-    return `/${locale}`;
+    return homePath(locale);
   }
 }
 
@@ -30,7 +31,7 @@ export async function toggleShortlist(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(back)}`);
+    redirect(`${localePrefix(locale)}/sign-in?next=${encodeURIComponent(back)}`);
   }
 
   if (wasSaved) {

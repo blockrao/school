@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { getConversation, listMessages } from "@/lib/db/messages";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 import { sendReply } from "../actions";
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default async function ConversationThreadPage({
   const user = await getSessionUser(supabase);
   if (!user) {
     redirect(
-      `/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/my/messages/${conversationId}`)}`,
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/my/messages/${conversationId}`)}`,
     );
   }
 
@@ -39,7 +40,10 @@ export default async function ConversationThreadPage({
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
-      <Link href={`/${locale}/my/messages`} className="text-meta font-semibold text-ruled-blue">
+      <Link
+        href={`${localePrefix(locale)}/my/messages`}
+        className="text-meta font-semibold text-ruled-blue"
+      >
         ← Messages
       </Link>
       <h1 className="mt-1 font-display text-title-m md:text-title-d">{otherPartyLabel}</h1>

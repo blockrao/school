@@ -201,7 +201,7 @@ export default async function PortalTeamPage({ searchParams }: PageProps<"/porta
                   <Link
                     // Portal is English-only for now (no /[locale] segment here) —
                     // "en" is the fixed default until the portal itself is localized.
-                    href={`/en/teacher/${member.teacherId}-${member.teacherSlug}`}
+                    href={`/teacher/${member.teacherId}-${member.teacherSlug}`}
                     className="font-semibold text-ruled-blue"
                   >
                     {member.teacherName}

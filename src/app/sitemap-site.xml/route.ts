@@ -2,7 +2,7 @@ import { listPublicAreas, listPublicExams } from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
 import { urlEntry, urlSetXml } from "@/lib/sitemap";
-import { slugify } from "@/lib/slug";
+import { statePath } from "@/lib/urls";
 
 /**
  * Site-wide static + data-driven pages that aren't scoped to one city —
@@ -32,12 +32,12 @@ export async function GET() {
   // that split the way it does for cities — see lib/sitemap.ts) — just more
   // entries in this one.
   const launchedStateSlugs = [
-    ...new Set(areas.filter((a) => a.is_launch).map((a) => slugify(a.state))),
+    ...new Set(areas.filter((a) => a.is_launch).map((a) => a.state_slug)),
   ];
 
   const entries = [
     urlEntry(siteUrl, ""),
-    ...launchedStateSlugs.map((slug) => urlEntry(siteUrl, `/${slug}`)),
+    ...launchedStateSlugs.map((slug) => urlEntry(siteUrl, statePath("en", slug))),
     urlEntry(siteUrl, "/teachers"),
     ...teachers.map((teacher) =>
       urlEntry(

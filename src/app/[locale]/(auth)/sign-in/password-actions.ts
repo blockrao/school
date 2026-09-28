@@ -5,11 +5,12 @@ import { z } from "zod";
 import { needsOnboarding, postSignInPath } from "@/lib/db/onboarding";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { homePath, localePrefix } from "@/lib/urls";
 
 /** Only allow same-origin relative paths as a post-auth redirect target (no open redirect). */
 function safeNext(next: FormDataEntryValue | null, locale: string): string {
   const value = typeof next === "string" ? next : "";
-  return value.startsWith("/") && !value.startsWith("//") ? value : `/${locale}`;
+  return value.startsWith("/") && !value.startsWith("//") ? value : homePath(locale);
 }
 
 /**
@@ -52,14 +53,18 @@ export async function signInWithPassword(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/${locale}/sign-in?perror=invalid_credentials&next=${encodeURIComponent(next)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?perror=invalid_credentials&next=${encodeURIComponent(next)}`,
+    );
   }
 
   // 8 attempts per email+IP per 15 minutes — same shape as OTP verify, the
   // real brute-force backstop against a 10+ char password.
   const allowed = await checkRateLimit("password_signin", parsed.data.email, 8, 15 * 60);
   if (!allowed) {
-    redirect(`/${locale}/sign-in?perror=rate_limited&next=${encodeURIComponent(next)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?perror=rate_limited&next=${encodeURIComponent(next)}`,
+    );
   }
 
   const supabase = await createSessionClient();
@@ -71,7 +76,9 @@ export async function signInWithPassword(formData: FormData) {
   // Deliberately the same generic message whether the email doesn't exist or
   // the password is wrong — never reveal which, that's an enumeration leak.
   if (error || !data.user) {
-    redirect(`/${locale}/sign-in?perror=invalid_credentials&next=${encodeURIComponent(next)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?perror=invalid_credentials&next=${encodeURIComponent(next)}`,
+    );
   }
 
   await supabase
@@ -105,14 +112,14 @@ export async function signUpWithPassword(formData: FormData) {
     const weak = parsed.error.issues.some((i) => i.path[0] === "password");
     const mismatch = parsed.error.issues.some((i) => i.path[0] === "confirmPassword");
     const code = weak ? "weak_password" : mismatch ? "password_mismatch" : "invalid_email";
-    redirect(`/${locale}/sign-up?error=${code}&next=${encodeURIComponent(next)}`);
+    redirect(`${localePrefix(locale)}/sign-up?error=${code}&next=${encodeURIComponent(next)}`);
   }
 
   // 5 sign-up attempts per email+IP per 15 minutes — this is the account-
   // creation path, so it also guards against scripted mass-registration.
   const allowed = await checkRateLimit("password_signup", parsed.data.email, 5, 15 * 60);
   if (!allowed) {
-    redirect(`/${locale}/sign-up?error=rate_limited&next=${encodeURIComponent(next)}`);
+    redirect(`${localePrefix(locale)}/sign-up?error=rate_limited&next=${encodeURIComponent(next)}`);
   }
 
   const origin = await requestOrigin();
@@ -131,11 +138,11 @@ export async function signUpWithPassword(formData: FormData) {
   // "check your email" screen regardless of outcome, same pattern the
   // existing magic-link flow already uses.
   if (error && error.code !== "user_already_exists") {
-    redirect(`/${locale}/sign-up?error=send_failed&next=${encodeURIComponent(next)}`);
+    redirect(`${localePrefix(locale)}/sign-up?error=send_failed&next=${encodeURIComponent(next)}`);
   }
 
   redirect(
-    `/${locale}/sign-up?email=${encodeURIComponent(parsed.data.email)}&next=${encodeURIComponent(next)}`,
+    `${localePrefix(locale)}/sign-up?email=${encodeURIComponent(parsed.data.email)}&next=${encodeURIComponent(next)}`,
   );
 }
 
@@ -152,7 +159,7 @@ export async function requestPasswordReset(formData: FormData) {
       const origin = await requestOrigin();
       const supabase = await createSessionClient();
       await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(`/${locale}/reset-password`)}`,
+        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(`${localePrefix(locale)}/reset-password`)}`,
       });
     }
   }
@@ -160,7 +167,7 @@ export async function requestPasswordReset(formData: FormData) {
   // Always the same response — never confirm whether the address has an
   // account (enumeration protection), and rate-limit failures fail
   // silently into the same screen for the same reason.
-  redirect(`/${locale}/forgot-password?sent=1`);
+  redirect(`${localePrefix(locale)}/forgot-password?sent=1`);
 }
 
 const resetSchema = z
@@ -176,18 +183,22 @@ export async function updatePassword(formData: FormData) {
 
   if (!parsed.success) {
     const weak = parsed.error.issues.some((i) => i.path[0] === "password");
-    redirect(`/${locale}/reset-password?error=${weak ? "weak_password" : "password_mismatch"}`);
+    redirect(
+      `${localePrefix(locale)}/reset-password?error=${weak ? "weak_password" : "password_mismatch"}`,
+    );
   }
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/reset-password`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/reset-password`)}`,
+    );
   }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
-    redirect(`/${locale}/reset-password?error=update_failed`);
+    redirect(`${localePrefix(locale)}/reset-password?error=update_failed`);
   }
 
   // Reset password everywhere it might be sitting compromised/forgotten —
@@ -195,5 +206,5 @@ export async function updatePassword(formData: FormData) {
   // proved control of the mailbox).
   await supabase.auth.signOut({ scope: "others" });
 
-  redirect(`/${locale}/my/account?saved=1`);
+  redirect(`${localePrefix(locale)}/my/account?saved=1`);
 }

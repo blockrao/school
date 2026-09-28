@@ -1,5 +1,6 @@
 import "server-only";
 import type { createSessionClient } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 
 /**
  * True once the user has a name on file and has accepted the current
@@ -29,5 +30,7 @@ export async function needsOnboarding(
 
 /** Where to send the user right after sign-in — onboarding first if incomplete, else `next`. */
 export function postSignInPath(pendingOnboarding: boolean, locale: string, next: string): string {
-  return pendingOnboarding ? `/${locale}/onboarding?next=${encodeURIComponent(next)}` : next;
+  return pendingOnboarding
+    ? `${localePrefix(locale)}/onboarding?next=${encodeURIComponent(next)}`
+    : next;
 }

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listSchoolRankings } from "@/lib/db/public-adapter";
-import { schoolPath } from "@/lib/school-url";
+
 import { localeAlternates, localeCanonical } from "@/lib/seo";
+import { schoolPath } from "@/lib/urls";
 
 const CITY_SLUG = "jaipur";
 
@@ -127,10 +128,7 @@ export default async function TopSchoolsInJaipurPage({
                   >
                     <div className="flex items-baseline justify-between gap-3">
                       <Link
-                        href={schoolPath(locale, row.city_slug, {
-                          slug: row.slug,
-                          school_code: row.school_code,
-                        })}
+                        href={schoolPath(locale, row.slug)}
                         className="font-display text-card font-semibold text-ruled-blue hover:underline"
                       >
                         {row.rank ? `#${row.rank}. ` : ""}

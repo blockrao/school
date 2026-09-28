@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { getMyOrder, listMyChildren } from "@/lib/db/application-help";
+import { localePrefix } from "@/lib/urls";
 import { saveOrderIntake } from "../actions";
 
 function first(value: string | string[] | undefined) {
@@ -20,9 +21,9 @@ export default async function OrderDetailsPage({
   const rawSearchParams = await searchParams;
 
   const order = await getMyOrder(orderId);
-  if (!order) redirect(`/${locale}/my/admissions`);
+  if (!order) redirect(`${localePrefix(locale)}/my/admissions`);
   if (order.status === "awaiting_payment") {
-    redirect(`/${locale}/admissions/help/checkout?order=${orderId}`);
+    redirect(`${localePrefix(locale)}/admissions/help/checkout?order=${orderId}`);
   }
 
   const children = await listMyChildren();

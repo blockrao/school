@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CityOption } from "@/lib/city-preference";
 import { useSelectedCity } from "@/lib/city-preference";
+import { homePath, localePrefix } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 type Tab = {
@@ -24,17 +25,17 @@ function isActive(pathname: string, href: string, exact: boolean) {
 export function MobileBottomNav({ locale, areas }: { locale: string; areas: CityOption[] }) {
   const pathname = usePathname();
   const city = useSelectedCity(areas);
-  const admissionsHref = city?.href ?? `/${locale}/schools`;
+  const admissionsHref = city?.href ?? `${localePrefix(locale)}/schools`;
 
   const tabs: Tab[] = [
     {
       label: "Home",
-      href: `/${locale}`,
+      href: homePath(locale),
       icon: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
     },
     {
       label: "Search",
-      href: `/${locale}/schools`,
+      href: `${localePrefix(locale)}/schools`,
       icon: (
         <>
           <circle cx="11" cy="11" r="6.5" />
@@ -54,12 +55,12 @@ export function MobileBottomNav({ locale, areas }: { locale: string; areas: City
     },
     {
       label: "Saved",
-      href: `/${locale}/my/shortlist`,
+      href: `${localePrefix(locale)}/my/shortlist`,
       icon: <path d="M6 3.5h12V21l-6-4-6 4z" />,
     },
     {
       label: "Account",
-      href: `/${locale}/my`,
+      href: `${localePrefix(locale)}/my`,
       icon: (
         <>
           <circle cx="12" cy="8" r="4" />

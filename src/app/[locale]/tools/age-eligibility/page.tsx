@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ageAtDate, nextAcademicYear, referenceDates } from "@/lib/age";
 import { getSelectedCityArea } from "@/lib/db/public-adapter";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
+import { localePrefix } from "@/lib/urls";
 
 // Ported from design/Age Checker.dc.html with one deliberate change: the design
 // shows a confident "Eligible for Nursery in 2027–28" verdict sourced from a
@@ -116,7 +117,7 @@ export default async function AgeEligibilityPage({
       </p>
 
       <Form
-        action={`/${locale}/tools/age-eligibility`}
+        action={`${localePrefix(locale)}/tools/age-eligibility`}
         className="mt-6 flex flex-wrap items-end gap-3"
       >
         <label className="flex flex-col gap-1">
@@ -179,7 +180,7 @@ export default async function AgeEligibilityPage({
       </p>
 
       <Link
-        href={`/${locale}/schools`}
+        href={`${localePrefix(locale)}/schools`}
         className="mt-6 inline-flex h-12 items-center rounded-md border border-ruled-blue px-5 font-semibold text-ruled-blue"
         lang={isHi ? "hi" : undefined}
       >

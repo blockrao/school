@@ -18,25 +18,24 @@ fullest example). This file holds the rules that apply everywhere.
 
 ## 2. URLs
 
-| Page | URL | Notes |
-|---|---|---|
-| Home / city picker | `/[locale]` | No geo-IP redirect (D-043) |
-| City | `/[locale]/[city]` | |
-| City admissions | `/[locale]/[city]/admissions` | Named landing page (D-053, D-096). Entity and service pages follow their own gates (D-108) |
-| Locality | `/[locale]/[city]/[locality]` | Indexable only with ≥8 L2+ and ≥2 L3 schools (D-097) |
-| School | `/[locale]/[city]/[slug]-[school_code]` | Resolved by `school_code`; wrong slug → 308 (D-040) |
-| School admissions / fees | `…/admissions`, `…/fees`; archive `…/admissions/{yyyy-yy}` | Evergreen (D-042) |
-| Exam | `/[locale]/exams/[slug]` | No city (D-012, D-101) |
-| Markdown twin | `…/index.md` | Follows the parent page's index state |
+**Frozen spec: `docs/spec/urls-and-routing.md` (D-121).** It governs every URL pattern, slug rule,
+redirect and lifecycle state. Summary:
 
-- District never appears in a URL, breadcrumb or label (D-041). No `[state]` segment.
-- Filter and sort parameters (`?board=`, `?class=`) are never canonical: `rel=canonical` to the
-  unfiltered page and `noindex` (N-08, D-053).
-- `/my`, `/portal`, `/ops`, `/api`, `/dev`, `/embed` are `noindex`.
+| Page | URL |
+|---|---|
+| School (canonical entity) | `/school/{slug}` |
+| School admissions / fees | `/school/{slug}/admissions`, `/fees`; archives `/admissions/{yyyy-yy}`, `/fees/{yyyy-yy}` |
+| Exam | `/exams/{slug}` |
+| Teacher | `/teacher/{slug}` (phase 3; today `/teacher/{id}-{slug}`) |
+| Discovery | `/schools`, `/schools/{state}`, `/schools/{state}/{city}`, `/schools/{state}/{city}/{locality}` |
+| Other languages | `/{lang}/…` only when that page is translated; otherwise 404 |
+
+- Filters are query parameters, `noindex`; pagination is self-canonical and indexable.
+- Every legacy URL 301s to its canonical form in one hop. No new pattern without review.
 
 ## 3. Metadata (`generateMetadata`)
 
-- One `<h1>` per page. Canonical is self-referencing and includes the locale prefix.
+- One `<h1>` per page. Canonical is absolute and self-referencing, with no `/en` prefix (D-121).
 - Title patterns (from view data only; drop any clause whose data is missing):
   - School: `{Name}, {Campus/Locality}: Admission {session}, Fees & Contact · SchoolOye`
     (drop "Admission {session}" when there is no current-session cycle).
@@ -46,15 +45,13 @@ fullest example). This file holds the rules that apply everywhere.
   - Exam: `{Exam} {session}: Dates, Eligibility, Fees · SchoolOye`
 - Description: the page's snapshot sentence, ≤155 characters.
 - OG image via `next/og`, showing the name and current admission status.
-- **hreflang:** emit `hi-IN` only when that page's Hindi content exists (`hi_ready`, D-086).
-  Otherwise emit `en-IN` only. Never point hreflang at an untranslated duplicate.
+- **hreflang:** only on pages with a translation: one entry per available language plus
+  `x-default` → English (D-121). Untranslated pages emit none.
 
 ## 4. Structured data
 
-- **School pages:** `School` subtype (`ElementarySchool` / `HighSchool` / `School`) with `@id`
-  `{canonical}#school`, `name`, `alternateName`, `address` (`PostalAddress`), `geo`, `telephone`,
-  `url` = the school's own website, `foundingDate`, `identifier` (`PropertyValue`: "SchoolOye School
-  ID" + board affiliation numbers — never the UDISE code, D-082), `sameAs` (verified official
+- **School pages:** `School` subtype (`ElementarySchool` / `HighSchool` / `School`) with `@id` = the canonical URL, `name`, `alternateName`, `address` (`PostalAddress`), `geo`, `telephone`,
+  `url` = the school's own website, `foundingDate`, `identifier` (board affiliation numbers only — no SchoolOye/DB ID, D-121), `sameAs` (verified official
   links: website, Maps, board record, socials), `parentOrganization` (brand), `event` (admission
   windows, tests), `BreadcrumbList`, and a `WebPage` node with `dateModified`.
 - **Exam pages:** `Event` per published milestone window + `BreadcrumbList`; organiser = the

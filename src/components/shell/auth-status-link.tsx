@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createBrowserSupabaseClient } from "@/lib/db/browser";
+import { localePrefix } from "@/lib/urls";
 
 /**
  * Renders the sign-in/account link, resolving signed-in state client-side
@@ -51,7 +52,10 @@ export function AuthStatusLink({
 
   return (
     <Button asChild variant={variant} className={className}>
-      <Link href={isSignedIn ? `/${locale}/my` : `/${locale}/sign-in`} onClick={onNavigate}>
+      <Link
+        href={isSignedIn ? `${localePrefix(locale)}/my` : `${localePrefix(locale)}/sign-in`}
+        onClick={onNavigate}
+      >
         {isSignedIn ? "My account" : "Sign in"}
       </Link>
     </Button>

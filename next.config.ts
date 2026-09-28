@@ -47,22 +47,22 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    // Canonical domain is https://www.schooloye.com. Host-matched, so Preview
-    // deployments (different *.vercel.app hostnames) are untouched.
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "schooloye.com" }],
-        destination: "https://www.schooloye.com/:path*",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "school-ten-ivory.vercel.app" }],
-        destination: "https://www.schooloye.com/:path*",
-        permanent: true,
-      },
-    ];
+    // One hostname (D-121 §11). The canonical host comes from NEXT_PUBLIC_SITE_URL
+    // (default www.schooloye.com; the spec's target is the apex, schooloye.com —
+    // switch by setting NEXT_PUBLIC_SITE_URL=https://schooloye.com AND making the
+    // apex the primary domain in Vercel, in the same deploy). The other variant and
+    // the production *.vercel.app alias 301 to it. Preview hosts are untouched.
+    const canonicalHost = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.schooloye.com")
+      .host;
+    const otherHosts = ["schooloye.com", "www.schooloye.com", "school-ten-ivory.vercel.app"].filter(
+      (host) => host !== canonicalHost,
+    );
+    return otherHosts.map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host }],
+      destination: `https://${canonicalHost}/:path*`,
+      permanent: true,
+    }));
   },
 };
 

@@ -1,7 +1,7 @@
 import "server-only";
-import { getCitiesByDistrictIds, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
-import { schoolPath } from "@/lib/school-url";
+import { schoolPath } from "@/lib/urls";
 
 export type AffiliationRow = {
   id: string;
@@ -190,15 +190,11 @@ export async function listPublicTeacherSchools(
   if (schoolIds.length === 0) return [];
 
   const schools = await listPublicSchoolsByIds(schoolIds);
-  const districtIds = schools.flatMap((s) => (s.district_id ? [s.district_id] : []));
-  const citiesByDistrict = await getCitiesByDistrictIds(districtIds);
-
   return schools.map((s) => {
-    const city = s.district_id ? citiesByDistrict.get(s.district_id) : undefined;
     return {
       schoolId: s.id,
       schoolName: s.name_en ?? "School",
-      path: city ? schoolPath(locale, city.slug, s) : null,
+      path: schoolPath(locale, s.slug),
     };
   });
 }

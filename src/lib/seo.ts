@@ -1,25 +1,28 @@
-// Shared metadata helpers so every page's canonical/hreflang is built the
-// same way, instead of each page hand-rolling its own (which is how every
-// page ended up with a canonical missing its locale prefix -- see git log
-// for "canonical" around 2026-09-26). Every page lives under
-// src/app/[locale]/..., so a page's own canonical URL always includes its
-// locale segment: the canonical for a page IS that page's URL, never a
-// different (and here, redirecting) one.
-//
-// LOCALES mirrors src/app/[locale]/layout.tsx -- keep in sync.
-const LOCALES = ["en", "hi"] as const;
-export type Locale = (typeof LOCALES)[number];
+// Shared metadata helpers so every page's canonical/hreflang is built the same
+// way (docs/spec/urls-and-routing.md §6, §10; D-121).
+import { lp } from "@/lib/urls";
 
-/** Builds this page's own canonical path, e.g. localeCanonical("en", "/exams/jnvst")
- * -> "/en/exams/jnvst". `path` is empty or starts with "/"; never include the
- * locale in `path` itself. Resolved against metadataBase (src/app/layout.tsx)
- * by Next's `alternates.canonical`, so this stays a relative path, not a full URL. */
+/**
+ * This page's own canonical path: English at the root, other languages under
+ * /{lang}/. `path` is the unprefixed path ("" or starting with "/"). Resolved
+ * to an absolute URL against metadataBase (src/app/layout.tsx).
+ */
 export function localeCanonical(locale: string, path = ""): string {
-  return `/${locale}${path}`;
+  return lp(locale, path);
 }
 
-/** Builds the hreflang alternates map for a path shared across all locales,
- * e.g. localeAlternates("/exams/jnvst") -> { "en-IN": "/en/exams/jnvst", "hi-IN": "/hi/exams/jnvst" }. */
-export function localeAlternates(path = ""): Record<string, string> {
-  return Object.fromEntries(LOCALES.map((locale) => [`${locale}-IN`, localeCanonical(locale, path)]));
+/**
+ * hreflang map for a page. Only pages that actually exist in more than one
+ * language get alternates: one entry per available language plus x-default →
+ * English. No page is translated yet, so this returns an empty map (no
+ * hreflang) unless `translated` lists the extra languages.
+ */
+export function localeAlternates(
+  path = "",
+  translated: readonly string[] = [],
+): Record<string, string> {
+  if (translated.length === 0) return {};
+  const map: Record<string, string> = { "en-IN": lp("en", path), "x-default": lp("en", path) };
+  for (const locale of translated) map[`${locale}-IN`] = lp(locale, path);
+  return map;
 }

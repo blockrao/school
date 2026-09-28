@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { createSessionClient, getSessionUser, type SessionUser } from "@/lib/db/session";
+import { homePath, localePrefix } from "@/lib/urls";
 
 type StaffGuardResult = {
   supabase: Awaited<ReturnType<typeof createSessionClient>>;
@@ -17,10 +18,10 @@ type StaffGuardResult = {
 export async function requireStaff(locale = "en"): Promise<StaffGuardResult> {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect(`/${locale}/sign-in?next=%2Fops`);
+  if (!user) redirect(`${localePrefix(locale)}/sign-in?next=%2Fops`);
 
   const { data: isStaff } = await supabase.rpc("is_staff");
-  if (!isStaff) redirect(`/${locale}`);
+  if (!isStaff) redirect(homePath(locale));
 
   return { supabase, user };
 }

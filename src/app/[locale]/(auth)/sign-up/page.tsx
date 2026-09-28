@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FieldError } from "@/components/ui/field-error";
+import { homePath, localePrefix } from "@/lib/urls";
 import { signUpWithPassword } from "../sign-in/password-actions";
 
 type Copy = {
@@ -85,7 +86,7 @@ export default async function SignUpPage({ params, searchParams }: PageProps<"/[
   const isHi = locale === "hi";
 
   const email = first(rawSearchParams.email) ?? "";
-  const next = first(rawSearchParams.next) ?? `/${locale}`;
+  const next = first(rawSearchParams.next) ?? homePath(locale);
   const errorCode = first(rawSearchParams.error);
 
   const errorMessage =
@@ -188,7 +189,7 @@ export default async function SignUpPage({ params, searchParams }: PageProps<"/[
           <p className="text-meta text-muted-ink" lang={isHi ? "hi" : undefined}>
             {copy.haveAccount}{" "}
             <Link
-              href={`/${locale}/sign-in?next=${encodeURIComponent(next)}`}
+              href={`${localePrefix(locale)}/sign-in?next=${encodeURIComponent(next)}`}
               className="font-semibold text-ruled-blue"
             >
               {copy.signIn}

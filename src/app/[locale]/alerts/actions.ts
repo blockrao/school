@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ALERTS_NOTICE_VERSION } from "@/lib/consent";
 import { getPublicCityBySlug } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { localePrefix } from "@/lib/urls";
 
 const subscribeSchema = z.object({
   locale: z.string().min(1),
@@ -28,18 +29,20 @@ export async function subscribeToAlerts(formData: FormData) {
   if (!parsed.success || !consented) {
     const params = new URLSearchParams({ error: !consented ? "consent_required" : "invalid" });
     if (schoolId && typeof schoolId === "string") params.set("school_id", schoolId);
-    redirect(`/${locale}/alerts?${params.toString()}`);
+    redirect(`${localePrefix(locale)}/alerts?${params.toString()}`);
   }
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/alerts`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/alerts`)}`,
+    );
   }
 
   const city = await getPublicCityBySlug(parsed.data.citySlug);
   if (!city) {
-    redirect(`/${locale}/alerts?error=invalid`);
+    redirect(`${localePrefix(locale)}/alerts?error=invalid`);
   }
 
   await supabase.from("consents").insert({
@@ -82,5 +85,5 @@ export async function subscribeToAlerts(formData: FormData) {
     });
   }
 
-  redirect(`/${locale}/alerts?confirmed=1`);
+  redirect(`${localePrefix(locale)}/alerts?confirmed=1`);
 }

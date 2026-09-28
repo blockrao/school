@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { localePrefix } from "@/lib/urls";
 
 const startSchema = z.object({
   teacherId: z.string().uuid(),
@@ -20,15 +21,19 @@ export async function startConversation(formData: FormData) {
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect(`/${locale}/sign-in`);
+  if (!user) redirect(`${localePrefix(locale)}/sign-in`);
 
   if (!parsed.success) {
-    redirect(`/${locale}/teacher/${formData.get("teacherIdSlug") ?? ""}?error=invalid_message`);
+    redirect(
+      `${localePrefix(locale)}/teacher/${formData.get("teacherIdSlug") ?? ""}?error=invalid_message`,
+    );
   }
 
   const allowed = await checkRateLimit("start_conversation", user.id, 10, 3600);
   if (!allowed) {
-    redirect(`/${locale}/teacher/${formData.get("teacherIdSlug") ?? ""}?error=rate_limited`);
+    redirect(
+      `${localePrefix(locale)}/teacher/${formData.get("teacherIdSlug") ?? ""}?error=rate_limited`,
+    );
   }
 
   let { data: conversation } = await supabase
@@ -45,7 +50,9 @@ export async function startConversation(formData: FormData) {
       .select("id")
       .single();
     if (error || !created) {
-      redirect(`/${locale}/teacher/${formData.get("teacherIdSlug") ?? ""}?error=message_failed`);
+      redirect(
+        `${localePrefix(locale)}/teacher/${formData.get("teacherIdSlug") ?? ""}?error=message_failed`,
+      );
     }
     conversation = created;
   }
@@ -56,7 +63,7 @@ export async function startConversation(formData: FormData) {
     body: parsed.data.body,
   });
 
-  redirect(`/${locale}/my/messages/${conversation?.id}`);
+  redirect(`${localePrefix(locale)}/my/messages/${conversation?.id}`);
 }
 
 const replySchema = z.object({
@@ -73,12 +80,14 @@ export async function sendReply(formData: FormData) {
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect(`/${locale}/sign-in`);
+  if (!user) redirect(`${localePrefix(locale)}/sign-in`);
   if (!parsed.success) return;
 
   const allowed = await checkRateLimit("send_message", user.id, 30, 3600);
   if (!allowed) {
-    redirect(`/${locale}/my/messages/${parsed.data.conversationId}?error=rate_limited`);
+    redirect(
+      `${localePrefix(locale)}/my/messages/${parsed.data.conversationId}?error=rate_limited`,
+    );
   }
 
   await supabase.from("messages").insert({
@@ -87,5 +96,5 @@ export async function sendReply(formData: FormData) {
     body: parsed.data.body,
   });
 
-  redirect(`/${locale}/my/messages/${parsed.data.conversationId}`);
+  redirect(`${localePrefix(locale)}/my/messages/${parsed.data.conversationId}`);
 }

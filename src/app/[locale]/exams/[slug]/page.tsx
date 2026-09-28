@@ -14,9 +14,11 @@ import type {
 import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
+import { siteUrl } from "@/lib/env.server";
 import { istDateLabel } from "@/lib/ist-date";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
+import { examPath, localePrefix } from "@/lib/urls";
 
 const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 
@@ -495,7 +497,7 @@ function ContactBlock({ exam }: { exam: PublicExamAdmission }) {
 }
 
 function WhatsAppShare({ exam }: { exam: PublicExamAdmission }) {
-  const text = `${exam.name_en} ${exam.academic_year} — dates, fees, syllabus & eligibility, verified: https://www.schooloye.com/en/exams/${exam.slug}`;
+  const text = `${exam.name_en} ${exam.academic_year} — dates, fees, syllabus & eligibility, verified: ${siteUrl}${examPath("en", exam.slug)}`;
   const href = `https://wa.me/?text=${encodeURIComponent(text)}`;
   return (
     <a
@@ -569,7 +571,7 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
         <EligibilityChecker
           id={ELIGIBILITY_CHECKER_ID}
           cycles={eligibilityCycles}
-          helpHref={`/${locale}/admissions/help`}
+          helpHref={`${localePrefix(locale)}/admissions/help`}
           shareHref={`https://wa.me/?text=${encodeURIComponent(
             `Check if your child is eligible for ${exam.name_en} ${exam.academic_year}: https://www.schooloye.com/${locale}/exams/${slug}#${ELIGIBILITY_CHECKER_ID}`,
           )}`}

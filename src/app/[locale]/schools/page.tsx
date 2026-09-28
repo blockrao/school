@@ -22,8 +22,9 @@ import {
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
-import { schoolPath } from "@/lib/school-url";
+
 import { titleCase } from "@/lib/text";
+import { localePrefix, schoolPath } from "@/lib/urls";
 
 // Browsing with no search text is scoped to the visitor's selected city
 // (getSelectedCityArea) — that's the right default for "show me schools near
@@ -120,12 +121,7 @@ export default async function SchoolsPage({
     siteWide ? getCitiesByDistrictIds(districtIds) : Promise.resolve(new Map()),
   ]);
 
-  function citySlugFor(school: (typeof schools)[number]): string {
-    if (!siteWide) return area?.citySlug ?? "";
-    return (school.district_id && citiesByDistrict.get(school.district_id)?.slug) || "";
-  }
-
-  const basePath = `/${locale}/schools`;
+  const basePath = `${localePrefix(locale)}/schools`;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function buildHref(
@@ -293,7 +289,7 @@ export default async function SchoolsPage({
                       lat: school.lat,
                       lng: school.lng,
                       label: school.name_en ?? "Name not yet published",
-                      href: schoolPath(locale, citySlugFor(school), school),
+                      href: schoolPath(locale, school.slug),
                       precision: school.geocode_precision ?? "pincode",
                     },
                   ]
@@ -336,7 +332,7 @@ export default async function SchoolsPage({
               return (
                 <SchoolCard
                   key={school.id}
-                  href={schoolPath(locale, citySlugFor(school), school)}
+                  href={schoolPath(locale, school.slug)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}
@@ -432,7 +428,7 @@ export default async function SchoolsPage({
             selectedCount={compareIds.length}
             totalCount={COMPARE_LIMIT}
             clearHref={buildHref({ compare: "" })}
-            compareHref={`/${locale}/compare?ids=${compareIds.join(",")}`}
+            compareHref={`${localePrefix(locale)}/compare?ids=${compareIds.join(",")}`}
           />
         </div>
       )}

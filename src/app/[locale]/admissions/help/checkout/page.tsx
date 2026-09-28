@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getMyOrder, getProductByCode } from "@/lib/db/application-help";
 import { getPaymentProvider } from "@/lib/payments/provider";
+import { localePrefix } from "@/lib/urls";
 import { payForOrder } from "../actions";
 
 function first(value: string | string[] | undefined) {
@@ -21,10 +22,10 @@ export default async function CheckoutPage({
   const orderId = first(rawSearchParams.order);
 
   const order = orderId ? await getMyOrder(orderId) : null;
-  if (!order) redirect(`/${locale}/admissions/help/package`);
+  if (!order) redirect(`${localePrefix(locale)}/admissions/help/package`);
 
   if (order.status !== "awaiting_payment") {
-    redirect(`/${locale}/my/admissions/${order.id}/details`);
+    redirect(`${localePrefix(locale)}/my/admissions/${order.id}/details`);
   }
 
   const product = await getProductByCode(order.product_code);

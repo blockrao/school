@@ -5,6 +5,7 @@ import { FieldError } from "@/components/ui/field-error";
 import { getSelectedCityArea, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
+import { localePrefix } from "@/lib/urls";
 import { subscribeToAlerts } from "./actions";
 
 // Adapted from design/WhatsApp Alerts.dc.html (steps 5a–5e), with two deliberate
@@ -99,8 +100,8 @@ export default async function AlertsPage({ params, searchParams }: PageProps<"/[
 
   if (!user) {
     const next = new URLSearchParams();
-    next.set("next", `/${locale}/alerts${schoolId ? `?school_id=${schoolId}` : ""}`);
-    redirect(`/${locale}/sign-in?${next.toString()}`);
+    next.set("next", `${localePrefix(locale)}/alerts${schoolId ? `?school_id=${schoolId}` : ""}`);
+    redirect(`${localePrefix(locale)}/sign-in?${next.toString()}`);
   }
 
   const [school, area] = await Promise.all([

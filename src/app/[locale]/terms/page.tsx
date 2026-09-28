@@ -15,7 +15,10 @@ export async function generateMetadata({
   const { locale } = await params;
   return {
     title: "Terms of Service — SchoolOye",
-    alternates: { canonical: localeCanonical(locale, "/terms"), languages: localeAlternates("/terms") },
+    alternates: {
+      canonical: localeCanonical(locale, "/terms"),
+      languages: localeAlternates("/terms"),
+    },
   };
 }
 

@@ -10,6 +10,7 @@ import {
 import { listTeacherAffiliations } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { listMyTeacherExperience, listMyTeacherQualifications } from "@/lib/db/teachers";
+import { localePrefix } from "@/lib/urls";
 import {
   acceptSchoolInvite,
   addExperience,
@@ -51,7 +52,7 @@ export default async function ManageTeacherProfilePage({
   const user = await getSessionUser(supabase);
   if (!user) {
     redirect(
-      `/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teacher/${idSlug}/manage`)}`,
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/teacher/${idSlug}/manage`)}`,
     );
   }
 
@@ -85,7 +86,7 @@ export default async function ManageTeacherProfilePage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-title-m md:text-title-d">Manage your profile</h1>
         <Link
-          href={`/${locale}/teacher/${canonicalIdSlug}`}
+          href={`${localePrefix(locale)}/teacher/${canonicalIdSlug}`}
           className="font-semibold text-ruled-blue"
         >
           View public profile
@@ -292,7 +293,10 @@ export default async function ManageTeacherProfilePage({
 
         <div className="mt-4">
           <h3 className="text-meta font-semibold text-muted-ink">Request to join a school</h3>
-          <form className="mt-2 flex gap-2" action={`/${locale}/teacher/${canonicalIdSlug}/manage`}>
+          <form
+            className="mt-2 flex gap-2"
+            action={`${localePrefix(locale)}/teacher/${canonicalIdSlug}/manage`}
+          >
             <input
               type="text"
               name="school_q"

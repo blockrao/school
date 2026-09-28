@@ -3,16 +3,19 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { LOCALES, lp } from "@/lib/urls";
 
 const enquirySchema = z.object({
   schoolId: z.string().min(1),
-  returnPath: z.string().min(1),
+  // Same-site path only (never an absolute or protocol-relative URL).
+  returnPath: z.string().regex(/^\/(?!\/)/),
   classCode: z.string().optional(),
   message: z.string().trim().min(1).max(1000),
 });
 
 export async function sendEnquiry(formData: FormData) {
-  const returnPath = String(formData.get("returnPath") ?? "");
+  const rawReturnPath = String(formData.get("returnPath") ?? "");
+  const returnPath = /^\/(?!\/)/.test(rawReturnPath) ? rawReturnPath : "/";
 
   const classCode = formData.get("classCode");
   const parsed = enquirySchema.safeParse({
@@ -29,8 +32,9 @@ export async function sendEnquiry(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    const locale = returnPath.split("/")[1] || "en";
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`${returnPath}#enquiry-heading`)}`);
+    const first = returnPath.split("/")[1];
+    const locale = (LOCALES as readonly string[]).includes(first) ? first : "en";
+    redirect(lp(locale, `/sign-in?next=${encodeURIComponent(`${returnPath}#enquiry-heading`)}`));
   }
 
   const { error } = await supabase.from("enquiries").insert({

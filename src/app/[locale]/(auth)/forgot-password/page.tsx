@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { localePrefix } from "@/lib/urls";
 import { requestPasswordReset } from "../sign-in/password-actions";
 
 type Copy = {
@@ -104,7 +105,7 @@ export default async function ForgotPasswordPage({
       )}
 
       <p className="mt-6 text-meta">
-        <Link href={`/${locale}/sign-in`} className="font-semibold text-ruled-blue">
+        <Link href={`${localePrefix(locale)}/sign-in`} className="font-semibold text-ruled-blue">
           {copy.backToSignIn}
         </Link>
       </p>

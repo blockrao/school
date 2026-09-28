@@ -8,6 +8,7 @@ import {
 } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getMyTeacherProfile } from "@/lib/db/teachers";
+import { localePrefix } from "@/lib/urls";
 import { saveTeacherProfile } from "./actions";
 
 const OPEN_TO_OPTIONS = ["Tutoring", "Online classes", "Teacher workshops"] as const;
@@ -31,13 +32,15 @@ export default async function CreateTeacherProfilePage({
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) {
-    redirect(`/${locale}/sign-in?next=${encodeURIComponent(`/${locale}/teachers/create`)}`);
+    redirect(
+      `${localePrefix(locale)}/sign-in?next=${encodeURIComponent(`${localePrefix(locale)}/teachers/create`)}`,
+    );
   }
 
   const [existing, area] = await Promise.all([getMyTeacherProfile(), getSelectedCityArea()]);
 
   if (existing) {
-    redirect(`/${locale}/teacher/${existing.id}-${existing.slug}/manage`);
+    redirect(`${localePrefix(locale)}/teacher/${existing.id}-${existing.slug}/manage`);
   }
 
   const [{ schools }, localities] = await Promise.all([

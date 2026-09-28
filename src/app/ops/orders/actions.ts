@@ -9,10 +9,10 @@ export async function markOrderPaidByStaff(formData: FormData) {
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
-  if (!user) redirect("/en/sign-in?next=%2Fops%2Forders");
+  if (!user) redirect("/sign-in?next=%2Fops%2Forders");
 
   const { data: isStaff } = await supabase.rpc("is_staff");
-  if (!isStaff) redirect("/en");
+  if (!isStaff) redirect("/");
 
   await markOrderPaid(orderId, `manual_${orderId}`);
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getMyOrder } from "@/lib/db/application-help";
 import { serverEnv } from "@/lib/env.server";
+import { localePrefix } from "@/lib/urls";
 import { simulatePayment } from "./actions";
 
 function first(value: string | string[] | undefined) {
@@ -35,7 +36,7 @@ export default async function MockCheckoutPage({
   const failed = first(rawSearchParams.result) === "failed";
 
   const order = orderId ? await getMyOrder(orderId) : null;
-  if (!order) redirect(`/${locale}/admissions/help/package`);
+  if (!order) redirect(`${localePrefix(locale)}/admissions/help/package`);
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">

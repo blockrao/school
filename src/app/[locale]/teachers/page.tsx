@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/state-message";
 import { getSelectedCityArea } from "@/lib/db/public-adapter";
-import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { listPublicTeacherSubjects, listPublicTeachers } from "@/lib/db/teachers";
+import { localeAlternates, localeCanonical } from "@/lib/seo";
+import { localePrefix } from "@/lib/urls";
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -42,7 +43,7 @@ export default async function TeachersDirectoryPage({
 
   function subjectHref(s?: string) {
     const qs = s ? `?subject=${encodeURIComponent(s)}` : "";
-    return `/${locale}/teachers${qs}`;
+    return `${localePrefix(locale)}/teachers${qs}`;
   }
 
   return (
@@ -85,7 +86,7 @@ export default async function TeachersDirectoryPage({
           {teachers.map((t) => (
             <Link
               key={t.id}
-              href={`/${locale}/teacher/${t.id}-${t.slug}`}
+              href={`${localePrefix(locale)}/teacher/${t.id}-${t.slug}`}
               className="flex gap-3 rounded-md border border-rule bg-copy-white p-3.5 hover:border-ruled-blue"
             >
               <div className="flex h-19 w-16 shrink-0 items-center justify-center rounded-md bg-margin-paper text-meta text-muted-ink">
@@ -112,7 +113,7 @@ export default async function TeachersDirectoryPage({
             }
             description="Teachers appear here only after they create their own profile and choose to be listed. We don't list anyone without their consent."
             nextStepLabel="I'm a teacher: create my profile"
-            nextStepHref={`/${locale}/teachers/create`}
+            nextStepHref={`${localePrefix(locale)}/teachers/create`}
           />
         </div>
       )}
@@ -125,7 +126,7 @@ export default async function TeachersDirectoryPage({
           </p>
         </div>
         <Link
-          href={`/${locale}/teachers/create`}
+          href={`${localePrefix(locale)}/teachers/create`}
           className="flex h-11 shrink-0 items-center rounded-md border border-ruled-blue px-4 font-semibold text-ruled-blue"
         >
           Create your profile
