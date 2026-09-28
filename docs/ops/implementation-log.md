@@ -1,0 +1,188 @@
+# Implementation log
+
+Running, append-only record of what's actually been built, investigated, decided, and found —
+kept so a future user guide and troubleshooting guide can be written from real history instead of
+reconstructed from memory or stale docs. Each entry: what happened, what it touches, and anything
+a future troubleshooter would want to know. Newest entries at the bottom.
+
+Related durable docs:
+- `docs/spec/school-entity-page-v2-design.html` — target design (source of truth for v2 look/feel).
+- `docs/spec/school-entity-page-v2-roadmap.md` — phased plan (superseded in its Phase 0/2/5 schema
+  assumptions by the live-schema reconciliation below — read this log for the correction before
+  trusting that doc's schema claims).
+- `docs/ops/2026-09-28-about-en-cleanup.md` — the about_en data cleanup audit trail.
+
+## 2026-09-28 — Increment 1: record badge
+
+Extracted `src/lib/record-badge.ts` (`recordBadge(claim, verification, verifiedAt)`), replacing an
+inline function in `entity-page.tsx` that only checked `verification`. Badge now correctly requires
+**both** `claim === 'claimed'` AND `verification === 'school_verified'` for "Official record" —
+`claim`/`verification` are independent DB enum columns, not coupled. Uses `istDateLabel()` (was
+incorrectly using server-local-timezone `toLocaleDateString`). 8 unit tests in
+`src/lib/record-badge.test.ts`. Commits `ac3fe4c`, `fd673a8`.
+
+## 2026-09-28 — Increment 2: About-section heading attribution
+
+`entity-page.tsx`'s About section now headed "From the school" (claimed) vs "About this school"
+(unclaimed), per spec §7.2 item 7 — previously always said "About {name}" regardless of who
+actually wrote the text. Commit `d92761e`.
+
+## 2026-09-28 — `about_en` data-quality cleanup
+
+Audited all 33 published `about_en` values; found the field had become a dumping ground for
+research/ops/dedup notes because (a) the content guideline was never surfaced at the editing point
+and (b) no dedicated internal-notes column exists anywhere on `schools`. 12 rows nulled, 12
+rewritten (Prav's exact approved text), 9 left alone. Full per-row audit trail:
+`docs/ops/2026-09-28-about-en-cleanup.md`. Commit `202d3a1`.
+
+**Surfaced a real architecture question** (see the two entries below): where should internal
+research/ops notes live if not in `about_en`? Investigated, decided, still not built (see 3B entry).
+
+## 2026-09-28 — Increment 3A: ops `about_en` editor guardrail
+
+Added `src/lib/word-count.ts` + `src/components/ui/word-counted-textarea.tsx`; wired into
+`src/app/ops/schools/[id]/page.tsx`'s `about_en` field with an inline hint (80-word limit, no
+promotional language) — informational only, doesn't block saving. `about_hi` left untouched
+(out of scope). Commit `61c93f3`.
+
+## 2026-09-28 — Increment 3B: internal research-notes architecture (decision only, not built)
+
+Investigated where internal research/QA/dedup notes should live. Ruled out `ops_tasks`,
+`data_quality_flags`, `about_en`, and a single mutable `schools.internal_notes` column. **Locked
+direction** (not yet built): a first-class, school-level, append-only, staff-only record,
+structurally adjacent to (sibling of) `field_provenance` — not a generic catch-all. Open question,
+not yet resolved: where the line falls between a context note ("investigate whether these are the
+same campus") and a resolution/decision ("confirmed same campus as record XYZ") — the latter may
+belong in an entity-resolution record instead of a notes table. **Do not build until this is
+resolved** — not urgent, no schema exists yet, nothing depends on it.
+
+## 2026-09-28 — Entity-resolution / dedup workflow investigation (read-only)
+
+Found: dedup matching (UDISE → board affiliation → fuzzy name+pincode+distance) is spec'd
+(`docs/decisions.md` D-030, since retired) but not implemented — the fuzzy-match SQL functions
+(`fuzzy_candidates_in_districts`, `saras_fuzzy_candidates`) exist but are called from nowhere in
+`src/`. `schools.merged_into` and `school_slug_redirects` are the only real merge-lineage schema,
+both bare pointers with no actor/timestamp/reason beyond a coarse enum. **No entity-level
+decision/resolution record exists anywhere in the schema** — the closest analog,
+`field_provenance.verified_by/verified_at`, is 0% filled in 85k live rows (see next entry) and is
+field-scoped, not entity-scoped. This directly informed the 3B open question above: there's nothing
+existing to align the notes-vs-decision boundary against.
+
+## 2026-09-28 — `docs/decisions.md` retired
+
+Removed per Prav's instruction (stale, superseded by live implementation + current spec). Still
+recoverable from git history (pre-removal commit `61c93f3`) if ever needed. Commit `911910b`.
+
+## 2026-09-28 — v2 design adopted as target; roadmap drafted (Phase 0/2/5 schema assumptions later corrected — see below)
+
+Saved `docs/spec/school-entity-page-v2-design.html` (a much more detailed design than the
+repo's pre-existing `design/*.dc.html` mockups — three data-completeness states, per-fact
+provenance chips, fee-disagreement handling). Wrote `docs/spec/school-entity-page-v2-roadmap.md`,
+an 8-phase sequencing plan. **The roadmap's Phase 0 (`school_notices` table) and its "Phase 2/5
+need new schema" framing were wrong** — see the live-schema reconciliation below, done before any
+of that schema work started. No migration was ever run against the wrong plan.
+
+**Also resolved**, not superseded: the fee "school-provided vs. parent-reported" architecture
+conflict (repo's old D3/D-013 vs. Prav's stated preference) — the v2 design's own answer is to show
+both when they disagree, choose neither as canonical, and label plainly. Prav confirmed: **D3/D-013
+→ superseded by the v2 fee-disagreement design.** Fees implementation itself remains deferred.
+
+## 2026-09-28 — Live-schema reconciliation (capability matrix)
+
+Full live-schema audit (`ybevzpryuvgxclkhdjld`, via direct SQL, not just migration-file grep —
+the migration-file-only approach had already caused two missed findings this session, see below)
+found that most of what the roadmap assumed was "missing schema" already exists, built and
+RLS-wired, just largely empty of data:
+
+- `admission_notices` (276 rows) — full school-member-submits → staff-reviews → `promoted_to_golden`
+  pipeline. This **is** the "school submits an update" mechanism Phase 0 was going to build fresh.
+- `admission_cycles` (10 rows) — already has `documents_required text[]`, `dob_from/dob_to` — the
+  age-checker and documents-checklist modules need zero new schema, only UI.
+- `seat_status` (0 rows) — same member-submits/staff-confirms shape, already wired.
+- `school_posts` (added by a migration dated 2026-09-26, easy to miss by only grepping the
+  baseline) — write + staff review for school-authored news/PR already done; the migration's own
+  comment says public display is "a follow-up." That's the real Phase 5 gap — not a new subsystem.
+- `field_provenance` (85,068 rows, checked live) — 19 distinct fields, all scoped to
+  `entity_table='schools'` only; `verified_by`/`verified_at` are **0% filled across all 85k rows** —
+  it's a pure ingestion-source log, never used as a review/decision mechanism in practice.
+  `licence_class` (`open`/`internal`) exists on the live table but is **not present in any migration
+  file** — confirmed schema drift (a column added directly against the live DB, never migrated) —
+  flagged, not yet acted on.
+- `fee_items` (0 rows) — confirmed **staff-write only, no member-insert policy** — unlike every
+  sibling table above, there is genuinely no school-side fee-submission path today. Real, specific,
+  recorded gap; not building it now (Fees stays deferred).
+- No table anywhere for board-results-by-year, safety certificates with expiry, or staff/teacher
+  count aggregates — these remain genuinely missing.
+- No reviews/ratings/parent-voice table or parent-identity-verification mechanism anywhere —
+  the one module with no existing analog to build from at all.
+
+**Locked as a result:** provenance stays a **shared UI display convention** reading each domain
+table's own existing verification/review column — not a `field_provenance` redesign, not a new
+generic table. School-submitted updates use **purpose-built domain tables** (the pattern already in
+use) — not a generic `school_notices` table. Admissions and News get **zero new schema** — the gap
+is UI/integration only.
+
+**Process note for troubleshooting:** two separate investigations this session initially
+under-reported what exists, because they searched `supabase/migrations/00000000000000_baseline.sql`
+plus grep rather than querying the live database directly or reading every dated migration file.
+Anyone auditing schema in this repo going forward should query `ybevzpryuvgxclkhdjld` directly
+(`list_tables`/`execute_sql`) rather than trusting a baseline-file grep — migrations dated after the
+baseline (e.g. `20260926092026_school_posts_news_and_pr.sql`) are easy to miss that way.
+
+## 2026-09-28 — Claim-flow state-machine review (in progress — investigation only so far, no code written yet)
+
+**Correction to an earlier claim in this same session:** the capability matrix said the "Claim this
+page" button is "a dead-end today." That was wrong — it was based on a sub-agent check that never
+looked at the `/for-schools/claim` route tree. The actual flow is substantially built:
+
+- `src/app/for-schools/claim/page.tsx` — search-by-name to find your school.
+- `src/app/for-schools/claim/[schoolId]/page.tsx` — claim form, 3 methods (official email / phone
+  on record / letterhead upload), redirects away immediately if `school.claim === 'claimed'`.
+- `src/app/for-schools/claim/[schoolId]/actions.ts` (`submitClaim`) — requires auth (redirects to
+  sign-in if anonymous), matches typed email/phone against what's on record (informational only,
+  doesn't gate the claim — staff make the real call), inserts into `school_claims`
+  (`status` defaults to `pending`), redirects to a pending-confirmation page.
+- `src/app/ops/claims/page.tsx` + `actions.ts` — staff review queue; `approveClaim` sets
+  `school_claims.status='claimed'`, inserts a `school_members` row (`role: 'admin'`), and sets
+  `schools.claim='claimed'`; `rejectClaim` sets `status='rejected'`.
+- `entity-page.tsx`'s "Is this your school? Claim it free" link is **already conditional** on
+  `school.claim !== "claimed"` — it already hides itself once claimed.
+
+**Confirmed bug, found during this review, sitewide (not claim-specific):** every `redirect("/sign-in?next=...")` call site in the app (`for-schools/claim/[schoolId]/actions.ts`,
+`ops/orders/actions.ts` + `page.tsx`, `portal/edit-request/actions.ts`, `auth/callback/route.ts`'s
+error path) targets bare `/sign-in`, but the real sign-in page only exists at
+`src/app/[locale]/(auth)/sign-in/page.tsx` (i.e. `/en/sign-in`). There is no middleware or root
+route rewriting an unprefixed path to a locale — confirmed by reading
+`src/app/[locale]/layout.tsx`, which explicitly `notFound()`s any locale not in `["en", "hi"]`.
+**So `/sign-in` 404s.** An anonymous visitor trying to submit a claim today hits this 404 partway
+through — the claim form itself works, but the auth handoff breaks the flow for anyone not already
+signed in. This is the single highest-leverage fix found so far, and it's shared plumbing, not
+claim-only.
+
+**State-machine findings, confirmed by reading the actual code (not the docs):**
+- **A. Anonymous → claim:** form renders fine (page-level check is only `claim==='claimed'`, no
+  auth check at render). Breaks on submit — see the `/sign-in` bug above.
+- **B. Logged-in user → claim:** works — inserts into `school_claims`, redirects to pending page.
+- **C. Already-submitted claim → claim again:** **no protection.** No unique constraint on
+  `school_claims(school_id, user_id)`, no pending-claim check in the page. A user (or two different
+  users) can submit multiple pending claims for the same school.
+- **D. Claim pending → what does the user see if they come back later?** Nothing indicates a claim
+  is in progress — `schools.claim` is never set to an intermediate "pending" value (only
+  `'unclaimed'` or `'claimed'` are ever written by this flow), so revisiting the claim URL shows the
+  same blank claim form again, with no "you already have a claim in review" messaging.
+- **E. Approved → becomes member:** confirmed correct — `school_members` insert +
+  `schools.claim='claimed'`, and the entity page's claim CTA correctly disappears afterward.
+- **F. Rejected → resubmit:** allowed (nothing blocks it), but **no messaging tells the user their
+  claim was rejected** — they'd just see the same blank form again.
+- **G. Already a member → CTA becomes "Manage school"?** Partially: the "Claim it free" link already
+  hides once `claim==='claimed'`, but there's no "Manage school" link put in its place — a claimed
+  school's admin has no obvious next step from the public page.
+- **H. Two people claim the same unclaimed school:** schema allows it (no uniqueness constraint on
+  `school_members(school_id, user_id)` prevents multiple different admins per school — composite PK
+  is `(school_id, user_id)`, so this may be intentional multi-admin support, not a bug) — but
+  combined with finding C, staff could unknowingly approve two independent claims from two strangers
+  before either party is aware of the other. No safeguard surfaces this to staff in the ops queue.
+
+**Not yet done:** no code written for Increment 4 yet — this section is the investigation Prav asked
+for, reported back before implementation starts, per the deferred-review discipline this whole
+session has followed.
