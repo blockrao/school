@@ -10,8 +10,10 @@ import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
+  getBoardCategoryLinksForDistrict,
   getBoardNamesBySchoolId,
   getPublicCityAreaBySlug,
+  getPublicStateAreaBySlug,
   getPublicTownAreaBySlug,
   getRedirectCitySlugForDistrictSlug,
   listDistrictFilterOptions,
@@ -46,12 +48,15 @@ function parseFilters(searchParams: { [key: string]: string | string[] | undefin
 }
 
 /**
- * Resolves the `[city]` segment three ways, in order: a real city, a town
- * (peer-level in the URL, e.g. /chomu), or a legacy district slug to redirect
- * from. District never reaches the UI — it's only used inside
+ * Resolves the `[city]` segment four ways, in order: a real city, a town
+ * (peer-level in the URL, e.g. /chomu), a state canonical page (e.g. /haryana
+ * — docs/seo-canonical-pages-spec.md; added 2026-09-28 by extending this same
+ * resolver rather than a sibling route, since Next 16 doesn't allow a second,
+ * differently-named dynamic segment at this directory level — see that doc's
+ * routing notes), or a legacy district slug to redirect from. District never
+ * reaches the UI — it's only used inside
  * getPublicCityAreaBySlug/getRedirectCitySlugForDistrictSlug to check the
- * launch flag and resolve old links. No state segment — city is the only
- * geography segment in the URL (see the routing decision log).
+ * launch flag and resolve old links.
  */
 async function resolvePlace(citySlug: string) {
   const city = await getPublicCityAreaBySlug(citySlug);
@@ -59,6 +64,9 @@ async function resolvePlace(citySlug: string) {
 
   const town = await getPublicTownAreaBySlug(citySlug);
   if (town) return { kind: "town" as const, town };
+
+  const state = await getPublicStateAreaBySlug(citySlug);
+  if (state) return { kind: "state" as const, state };
 
   return null;
 }
@@ -83,6 +91,15 @@ export async function generateMetadata({
       title: `Schools near ${town.townName}, ${town.stateName} — SchoolOye`,
       description: `Schools near ${town.townName}: fees, facilities and admission dates.`,
       alternates: { canonical: localeCanonical(locale, `/${citySlug}`) },
+    };
+  }
+
+  if (resolved.kind === "state") {
+    const { state } = resolved;
+    return {
+      title: `Schools in ${state.stateName} — SchoolOye`,
+      description: `${state.totalSchoolCount} schools across ${state.cities.length} ${state.cities.length === 1 ? "city" : "cities"} in ${state.stateName}: browse by city, fees, facilities and admission dates.`,
+      alternates: { canonical: `/${citySlug}` },
     };
   }
 
@@ -249,6 +266,92 @@ function TownPageBody({
   );
 }
 
+/**
+ * State canonical page (docs/seo-canonical-pages-spec.md): H1 "Schools in
+ * {State}", total count, and every launched city in the state as a card
+ * linking down to its city page — the state page's main internal-linking job.
+ * No filters, no school grid here — this page is a directory of cities, not
+ * of schools; a parent clicks through to a city to see actual schools.
+ */
+function StatePageBody({
+  locale,
+  state,
+}: {
+  locale: string;
+  state: NonNullable<Awaited<ReturnType<typeof getPublicStateAreaBySlug>>>;
+}) {
+  const statePath = `/${locale}/${state.stateSlug}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/${locale}` },
+      { "@type": "ListItem", position: 2, name: state.stateName, item: `${siteUrl}${statePath}` },
+    ],
+  };
+
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `Schools in ${state.stateName}`,
+    about: state.stateName,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: state.cities.map((city, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: city.name,
+        item: `${siteUrl}/${locale}/${city.slug}`,
+      })),
+    },
+  };
+
+  return (
+    <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
+        <Link href={`/${locale}`}>Home</Link>
+        <span className="mx-1.5" aria-hidden="true">
+          /
+        </span>
+        <span className="text-ink">{state.stateName}</span>
+      </nav>
+
+      <h1 className="font-display text-title-m md:text-title-d">Schools in {state.stateName}</h1>
+      <p className="mt-1 text-body text-muted-ink">
+        {state.totalSchoolCount} school{state.totalSchoolCount === 1 ? "" : "s"} across{" "}
+        {state.cities.length} {state.cities.length === 1 ? "city" : "cities"}
+      </p>
+
+      <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {state.cities.map((city) => (
+          <Link
+            key={city.slug}
+            href={`/${locale}/${city.slug}`}
+            className="flex flex-col gap-1 rounded-md border border-rule bg-copy-white p-4 hover:border-ruled-blue"
+          >
+            <span className="font-display text-card font-semibold text-ink">{city.name}</span>
+            <span className="text-body text-muted-ink">
+              {city.schoolCount} school{city.schoolCount === 1 ? "" : "s"}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default async function CityOrTownPage({
   params,
   searchParams,
@@ -263,6 +366,10 @@ export default async function CityOrTownPage({
     const redirectSlug = await getRedirectCitySlugForDistrictSlug(citySlug);
     if (redirectSlug) permanentRedirect(`/${locale}/${redirectSlug}`);
     notFound();
+  }
+
+  if (resolved.kind === "state") {
+    return <StatePageBody locale={locale} state={resolved.state} />;
   }
 
   if (resolved.kind === "town") {
@@ -302,7 +409,7 @@ export default async function CityOrTownPage({
 
   // district-scoped, not city_id-scoped: schools pending /ops locality
   // assignment still belong on the city's "all schools" listing.
-  const [{ schools, total }, filterOptions, localities] = await Promise.all([
+  const [{ schools, total }, filterOptions, localities, categoryLinks] = await Promise.all([
     listPublicSchoolsByDistrict(city.districtId, {
       boardId,
       maxClass,
@@ -312,6 +419,7 @@ export default async function CityOrTownPage({
     }),
     listDistrictFilterOptions(city.districtId),
     listPublicLocalitiesByCity(city.citySlug),
+    getBoardCategoryLinksForDistrict(city.districtId),
   ]);
 
   const schoolIds = schools.map((s) => s.id);
@@ -338,7 +446,12 @@ export default async function CityOrTownPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: city.stateName },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: city.stateName,
+        item: `${siteUrl}/${locale}/${city.stateSlug}`,
+      },
       { "@type": "ListItem", position: 2, name: city.cityName, item: `${siteUrl}${basePath}` },
     ],
   };
@@ -352,7 +465,7 @@ export default async function CityOrTownPage({
       />
 
       <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
-        <span>{city.stateName}</span>
+        <Link href={`/${locale}/${city.stateSlug}`}>{city.stateName}</Link>
         <span className="mx-1.5" aria-hidden="true">
           /
         </span>
@@ -379,6 +492,24 @@ export default async function CityOrTownPage({
               >
                 {locality.isTown ? `Near ${locality.name}` : locality.name}
                 <span className="text-meta text-muted-ink">({locality.schoolCount})</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {categoryLinks.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-meta font-semibold text-muted-ink">Browse by category</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {categoryLinks.map(({ board, count }) => (
+              <Link
+                key={board.id}
+                href={`${basePath}?board=${board.id}`}
+                className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
+              >
+                {board.name_en} schools
+                <span className="text-meta text-muted-ink">({count})</span>
               </Link>
             ))}
           </div>

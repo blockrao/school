@@ -1,7 +1,8 @@
-import { listPublicExams } from "@/lib/db/public-adapter";
+import { listPublicAreas, listPublicExams } from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
 import { urlEntry, urlSetXml } from "@/lib/sitemap";
+import { slugify } from "@/lib/slug";
 
 /**
  * Site-wide static + data-driven pages that aren't scoped to one city —
@@ -15,13 +16,28 @@ import { urlEntry, urlSetXml } from "@/lib/sitemap";
  * anonymous visitors — none of those belong in a sitemap.
  */
 export async function GET() {
-  const [exams, teachers] = await Promise.all([listPublicExams(), listPublicTeachers()]);
+  const [exams, teachers, areas] = await Promise.all([
+    listPublicExams(),
+    listPublicTeachers(),
+    listPublicAreas(),
+  ]);
 
   const teacherLastmod = (createdAt: string | null | undefined) =>
     createdAt ? new Date(createdAt) : undefined;
 
+  // State canonical pages (docs/seo-canonical-pages-spec.md) — a state is
+  // "launched" the moment any one of its cities is, so this is derived from
+  // the same is_launch data as the city sitemaps rather than a hardcoded
+  // list. Not its own per-state sitemap file (no routing constraint forces
+  // that split the way it does for cities — see lib/sitemap.ts) — just more
+  // entries in this one.
+  const launchedStateSlugs = [
+    ...new Set(areas.filter((a) => a.is_launch).map((a) => slugify(a.state))),
+  ];
+
   const entries = [
     urlEntry(siteUrl, ""),
+    ...launchedStateSlugs.map((slug) => urlEntry(siteUrl, `/${slug}`)),
     urlEntry(siteUrl, "/teachers"),
     ...teachers.map((teacher) =>
       urlEntry(
