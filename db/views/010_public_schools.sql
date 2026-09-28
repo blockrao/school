@@ -20,7 +20,7 @@
 -- like the fact columns above — it's an internal identifier, not a published
 -- fact about the school — and it's never guessed/omitted like UDISE. Used as
 -- the canonical URL suffix (/[city]/[slug]-[school_code]) and as the
--- "Schooloy School ID" PropertyValue in JSON-LD, so the app can resolve a
+-- "SchoolOye School ID" PropertyValue in JSON-LD, so the app can resolve a
 -- school by a stable id even if its slug text is later corrected.
 --
 -- Does NOT filter on schools.status. That field is an unused manual toggle —
