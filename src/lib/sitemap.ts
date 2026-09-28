@@ -143,7 +143,11 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
   ]);
 
   const entries = [
-    urlEntry(siteUrl, cityPath("en", city.stateSlug, city.citySlug), maxVerifiedAt(indexableSchools)),
+    urlEntry(
+      siteUrl,
+      cityPath("en", city.stateSlug, city.citySlug),
+      maxVerifiedAt(indexableSchools),
+    ),
     ...localities.map((locality) => {
       const localitySchools = indexableSchools.filter((s) => s.locality_id === locality.id);
       return urlEntry(

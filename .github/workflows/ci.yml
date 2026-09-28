@@ -8,6 +8,14 @@ on:
 permissions:
   contents: read
 
+# The build needs the public Supabase URL/publishable key (repo secrets of the same
+# names) and any non-empty REVALIDATE_SECRET.
+env:
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+  REVALIDATE_SECRET: ci-only-placeholder
+  NEXT_PUBLIC_SITE_URL: https://www.schooloye.com
+
 jobs:
   verify:
     runs-on: ubuntu-latest

@@ -20,7 +20,10 @@ type VerificationStatus = NonNullable<SchoolUpdate["verification_status"]>;
 // ops_verified / school_verified / unverified); until that form is split
 // into two real inputs, every write here keeps source_type +
 // verification_status derived from it so the new columns never go stale.
-const VERIFICATION_TO_PROVENANCE: Record<Verification, { sourceType: SourceType; status: VerificationStatus }> = {
+const VERIFICATION_TO_PROVENANCE: Record<
+  Verification,
+  { sourceType: SourceType; status: VerificationStatus }
+> = {
   unverified: { sourceType: "user_submitted", status: "unknown" },
   source_verified: { sourceType: "official", status: "verified" },
   ops_verified: { sourceType: "schooloye_verified", status: "verified" },
