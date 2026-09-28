@@ -330,10 +330,15 @@ export async function getSelectedAreaSlug(): Promise<string> {
   const launched = (await listPublicAreas()).filter((a) => a.is_launch);
   // "First launched area" isn't a stable notion — listPublicAreas() has no
   // ORDER BY, so its row order follows Postgres's own scan order (by
-  // district id), not launch priority. Jaipur is the platform's primary,
-  // fully-published market; other launched areas (e.g. Gurugram, added for
-  // city-picker testing with no published schools yet) must never become
-  // the silent default for a visitor with no cookie.
+  // district id), not launch priority. Jaipur is picked as the default
+  // deliberately: it's SchoolOye's primary/home market (2026-09-28 product
+  // decision — operational priority, not a technical availability
+  // distinction). is_launch itself (db/views/040_public_areas.sql, D-119) is
+  // purely data-driven — "does this district have ≥1 published school" — so
+  // every other launched area (Gurugram included, 480 published schools as
+  // of this writing) is real, published inventory, not a thinner or
+  // test-only area; Jaipur just isn't allowed to lose the default silently
+  // to whichever area Postgres happens to return first.
   const fallback = launched.find((a) => a.slug === "jaipur")?.slug ?? launched[0]?.slug ?? "jaipur";
   const store = await cookies();
   const cookieSlug = store.get(CITY_COOKIE_NAME)?.value;

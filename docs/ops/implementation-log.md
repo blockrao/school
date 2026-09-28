@@ -869,11 +869,17 @@ deadline. No schema, migration, RLS, or view change — presentation-layer logic
 existed before this session, is the exact "list of schools with admissions open" Prav asked for —
 DAV Gurugram's now-open Class XI cycle will surface there. The filter is not city-gated by anything
 in its own logic, but the pages that call it (`place-page.tsx`, `schools/[state]/[city]/page.tsx`)
-404 for any city where `is_launch = false`, and **Jaipur is currently the only launched city** — so
+404 for any city where `is_launch = false`, and ~~Jaipur is currently the only launched city~~ — so
 today this list is reachable only for Jaipur, even though DAV Gurugram's data is now correctly
 published and its own entity page works. This is a separate, larger decision (launching additional
 cities) from the admissions mechanism itself, not a bug in the mechanism — flagged for Prav to weigh
 in on next, not resolved here.
+
+> **Correction (same day, next entry below):** the strikethrough claim above is false and should
+> never have been written without a live check — `is_launch` has been data-driven since before this
+> session's Increment 1 (`db/views/040_public_areas.sql`, D-119: a district is launched when it has
+> ≥1 published school), and 23 areas already qualify, Gurugram included (480 published schools). See
+> the next log entry for the full correction and root cause.
 
 **Not built, deliberately, per the "Admissions Discovery & Action" reframing Prav approved:** no AI
 extraction, no self-service editor, no shared-calendar fan-out. The manual/incremental model —
@@ -915,3 +921,82 @@ reachable today, even though any individual school's own entity page — like DA
 reachable and correct regardless of city-launch status). This affects how "measurable parent
 activity" gets read during the pilot and is flagged as the next thing to settle before starting to
 pick schools.
+
+> **Correction (same day, next entry below):** "Jaipur is currently the only launched city" is
+> false — see the next log entry. 23 areas are already launched (data-driven, D-119), Gurugram
+> included, so the "city launch" sequencing point above is superseded: there is no separate city-
+> launch gate left to sequence behind for any district that already has published schools. The
+> pilot-market question in this entry stands on its own merits, not on a city-launch constraint.
+
+## 2026-09-28 — False finding, corrected: city-launch gating was already exactly what Prav asked for
+
+Prav's next message stated a new architecture decision — SchoolOye should launch nationally, not
+gate discovery pages by city-launch status — explicitly correcting what he understood, from my own
+last two log entries and my own chat replies, to be the current architecture ("Jaipur is currently
+the only launched city," "should not gate discovery pages by city launch status... previous
+city-launch gating assumption should be considered superseded").
+
+**Before touching any code, live-checked the actual current state, per this session's own
+established discipline — and it does not match what I'd been telling Prav.** Both statements above
+are false, and have been false since **before this session's Increment 1** (the commit implementing
+data-driven `is_launch` is the oldest commit in this repo's accessible history, `4010333`,
+predating even the record-badge work). Live query against `api.public_areas` right now:
+
+- **23 areas are already launched**, not 1: Delhi (1,184 published schools), Faridabad (983),
+  Hisar (528), Gurugram (480), Sonipat, Panipat, Palwal, Karnal, Rohtak, Jind, Bhiwani, Jhajjar,
+  Yamunanagar, Kaithal, Rewari, Ambala, Kurukshetra, Mahendragarh, Fatehabad, Nuh Mewat, Sirsa,
+  Jaipur (103), Panchkula, and Charkhi Dadri (2) — essentially every Delhi-NCR/Haryana/Rajasthan
+  district the crawl actually populated.
+- `db/views/040_public_areas.sql` (header dated D-119, 2026-09-28, already in place before this
+  session started) makes `is_launch` **purely data-driven**: `exists (select 1 from
+  api.public_schools ps where ps.district_id = d.id)` — a district is launched the moment it has
+  ≥1 published school, "with nothing here to keep manually in sync." It replaced an earlier
+  hardcoded `LAUNCH_DISTRICT_SLUGS`/`d.slug in ('jaipur', 'gurugram')` list — the very model I
+  described to Prav as current.
+- DAV Public School Gurugram (`2aeedc47-247c-41d4-bd84-4b46eaff1560`, the real-data test case from
+  the previous entries) sits in district_id 6, `area_slug = gurugram`, `is_launch = true`. Its page
+  and its now-open Class XI admissions cycle are **already fully discoverable today** via
+  `/schools/haryana/gurugram?admissions=open` — there is no city-launch gate standing between it and
+  a parent browsing that filter, and there never was, within this session.
+
+**Root cause: I stated an architectural fact from memory/summary without re-verifying it live,** the
+exact failure mode this session's own discipline exists to catch (see the D-119
+verification-gate false finding earlier in this log) — and this time I didn't catch it myself before
+saying it to Prav; he caught it by describing the "obsolete" model back to me, which is what
+prompted this check. No SQL, RLS, schema, or application code was broken by this — the two mistaken
+implementation-log paragraphs and one now-stale code comment
+(`getSelectedAreaSlug` in `public-adapter.ts`, which called Gurugram's inventory "test data... no
+published schools yet") are corrected inline and here.
+
+**What this means for Prav's new instruction:** the architecture he asked for — "`/schools/{state}/
+{city}` should work wherever there is sufficient underlying data, rather than returning 404 simply
+because a city isn't launched" — **already exists**, byte-for-byte, in `040_public_areas.sql`'s
+definition. There is no remaining code change to make for the core gating behavior: every page that
+checks `.isLaunch` (`resolve.ts`, `place-page.tsx`, the `schools/[state]/[city]` family) is already
+gating on "does this district have a published school," not on an editorial launch decision, and a
+district with genuinely zero published schools still correctly has no page to show (matching Prav's
+own "availability ≠ depth of coverage" caveat — there's no data to be available).
+
+**What's genuinely still misaligned, and worth a small follow-up pass:**
+- The field is still named `is_launch`/`isLaunch` everywhere (types, adapter, components), which
+  reads as an editorial toggle and is exactly what caused this confusion. A rename
+  (e.g. `hasPublishedSchools`/`isSupported`) would be more honest but touches ~15 call sites across
+  `public-adapter.ts`, `resolve.ts`, `place-page.tsx`, the `schools/[state]/[city]*` route files,
+  `sitemap.ts`, `city-picker.tsx`, `site-footer.tsx`, and `terms/page.tsx` — not done here, raised
+  for Prav to decide whether it's worth the diff.
+- Several docs (`docs/seo-canonical-pages-spec.md`, `docs/guidelines/seo-geo.md`,
+  `docs/spec/urls-and-routing.md`) still describe this in "launched city" editorial language from
+  before the D-119 rewrite. Not yet corrected — same "stale doc vs. live code" class as the D-119
+  admissions-gate cleanup, flagged as follow-up, not done in this pass.
+- No separate "operational priority market" concept exists yet, distinct from technical
+  availability. Prav's message wants "research depth / sales activity / enrichment" to be a
+  city-level rollout lever without gating the architecture — today there's no data structure for
+  that at all (Jaipur is only a soft default via `getSelectedAreaSlug`'s cookie fallback, now
+  correctly commented as a product choice, not a technical constraint). If Prav wants this tracked
+  formally (e.g. for sequencing the manual admissions pilot), it would be new, small, additive work —
+  not yet requested as an increment.
+
+**Practical effect on the open admissions-pilot question:** the market-sequencing concern raised in
+the previous entry (Jaipur vs. Gurugram/Delhi for the pilot) is no longer a technical-reachability
+question — it's purely which schools are worth Prav's research time first, since any verified
+school's data is discoverable nationally today, DAV Gurugram included.
