@@ -225,22 +225,11 @@ export async function getPublicStateBySlug(slug: string): Promise<PublicState | 
 }
 
 /**
- * Kept in sync with db/views/040_public_areas.sql's `is_launch` list — the launch
- * set lives in SQL (and here), never in a table. Update both together.
- *
- * Jaipur and Gurugram are the launch districts (Gurugram added for city-picker
- * testing — 534 schools already in the DB from the original bulk import).
- * South West Delhi stays fully built (data, routes, the Delhi Nursery Hub) but
- * unlinked — out of this set, not deleted.
- */
-const LAUNCH_DISTRICT_SLUGS = new Set(["jaipur", "gurugram"]);
-
-/**
  * Real Jaipur-district towns added by supabase/seeds/jaipur_school_assignment.sql
  * — ordinary `localities` rows, but rendered with the town page template ("Near
  * X") instead of the locality template. The list lives here, in this repo's
- * code — same pattern as LAUNCH_DISTRICT_SLUGS — kept in sync with the `is_town`
- * computation in db/views/050_public_localities.sql and 010_public_schools.sql.
+ * code — kept in sync with the `is_town` computation in
+ * db/views/050_public_localities.sql and 010_public_schools.sql.
  */
 const TOWN_LOCALITY_SLUGS = new Set(["dudu", "tunga", "bassi", "kishangarh-renwal", "chomu"]);
 
@@ -338,10 +327,23 @@ export async function listPublicSchoolsByDistrict(
   } = filters;
   const api = createApiSchemaClient();
 
+  // Publish gate (2026-09-28): a school only belongs on the listing once name,
+  // address and pincode actually RENDER — i.e. each has provenance from an
+  // allowed, non-aggregator source (010_public_schools.sql nulls out anything
+  // that doesn't). This was previously not enforced at all: the docstring
+  // above said "published" but the query never filtered, so every school in a
+  // launched district showed regardless of status or field completeness.
+  // schools.status mirrors this same rule (kept in sync by a DB-side update),
+  // but is NOT read here — the view doesn't expose status as a column, and
+  // the source-of-truth for "does it render" is the field itself being
+  // non-null, not a separate flag that can drift out of sync with it.
   let query = api
     .from("public_schools")
     .select("*", { count: "exact" })
-    .eq("district_id", districtId);
+    .eq("district_id", districtId)
+    .not("name_en", "is", null)
+    .not("address", "is", null)
+    .not("pincode", "is", null);
 
   if (searchQuery) {
     query = query.ilike("name_en", `%${searchQuery}%`);
@@ -610,6 +612,10 @@ export async function getPublicCityAreaBySlug(citySlug: string): Promise<PublicC
     .select("id", { count: "exact", head: true })
     .eq("district_id", district.id);
 
+  // is_launch is read live from api.public_areas (2026-09-28) rather than a
+  // hardcoded set — see that view's header for the data-driven policy.
+  const area = await getPublicAreaBySlug(district.slug);
+
   return {
     citySlug: city.slug,
     cityName: titleCase(city.name_en),
@@ -618,7 +624,7 @@ export async function getPublicCityAreaBySlug(citySlug: string): Promise<PublicC
     stateSlug: slugify(state.name_en),
     stateName: state.name_en,
     schoolCount: count ?? 0,
-    isLaunch: LAUNCH_DISTRICT_SLUGS.has(district.slug),
+    isLaunch: area?.is_launch ?? false,
   };
 }
 
@@ -668,6 +674,8 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
   const state = await getPublicStateById(district.state_id);
   if (!state) return null;
 
+  const area = await getPublicAreaBySlug(district.slug);
+
   return {
     townSlug: locality.slug,
     townName: locality.name,
@@ -676,7 +684,7 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
     stateSlug: slugify(state.name_en),
     stateName: state.name_en,
     schoolCount: locality.school_count,
-    isLaunch: LAUNCH_DISTRICT_SLUGS.has(district.slug),
+    isLaunch: area?.is_launch ?? false,
   };
 }
 
@@ -764,14 +772,31 @@ export async function listPublicLocalitiesByCity(
     .sort((a, b) => b.schoolCount - a.schoolCount);
 }
 
-/** Published schools assigned to one locality/town, for the locality page's school list. */
+/**
+ * Published schools assigned to one locality/town, for the locality page's
+ * school list. Same publish gate as listPublicSchoolsByDistrict (2026-09-28)
+ * — a discovery listing, so it needs the same name/address/pincode-renders
+ * filter, not just a locality match.
+ */
 export async function listPublicSchoolsByLocality(localityId: number): Promise<PublicSchool[]> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_schools").select("*").eq("locality_id", localityId);
+  const { data } = await api
+    .from("public_schools")
+    .select("*")
+    .eq("locality_id", localityId)
+    .not("name_en", "is", null)
+    .not("address", "is", null)
+    .not("pincode", "is", null);
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
-/** Schools by id, for the Compare page — order is not guaranteed to match `ids`, callers re-sort if needed. */
+/**
+ * Schools by id, for the Compare page — order is not guaranteed to match
+ * `ids`, callers re-sort if needed. Deliberately NOT gated like the discovery
+ * listings above: these ids come from the user's own shortlist/compare
+ * selection, not a browse query, so a school they already picked shouldn't
+ * disappear just because a fact is unsourced.
+ */
 export async function listPublicSchoolsByIds(ids: string[]): Promise<PublicSchool[]> {
   if (ids.length === 0) return [];
   const api = createApiSchemaClient();
@@ -779,7 +804,12 @@ export async function listPublicSchoolsByIds(ids: string[]): Promise<PublicSchoo
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
-/** Published schools matching a name, across every city — for a teacher's "request to join" search. */
+/**
+ * Published schools matching a name, across every city — for a teacher's
+ * "request to join" search. Deliberately NOT gated like the discovery
+ * listings above: a teacher must be able to find and claim their own real
+ * school even if its address/pincode aren't sourced yet.
+ */
 export async function searchPublicSchoolsByName(
   query: string,
   limit = 10,

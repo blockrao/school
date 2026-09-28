@@ -1,18 +1,36 @@
 import Link from "next/link";
 import { listPublicAreas } from "@/lib/db/public-adapter";
-import { slugify } from "@/lib/slug";
 
 /**
  * Only lists cities/pages with something real behind them. The design's footer includes
  * a multi-city switcher and a "Report an update" link — neither screen exists yet (not in
  * the current build order), so they're left out rather than linked to nothing. "Schools by
- * city" lists launch areas from listPublicAreas() (is_launch), not a hardcoded link. Privacy
- * and Terms are real (if placeholder-content) pages — see their own files — so they're
- * linked here now that the site is public.
+ * city" lists launch areas from listPublicAreas() (is_launch), not a hardcoded link — this
+ * grew from 2 to 22 cities on 2026-09-28 when is_launch became data-driven (see
+ * db/views/040_public_areas.sql), so cities are now grouped by state and sorted by school
+ * count within each group, rather than the flat unsorted list that worked fine at 2 entries.
+ * Privacy and Terms are real (if placeholder-content) pages — see their own files — so
+ * they're linked here now that the site is public.
  */
 export async function SiteFooter({ locale }: { locale: string }) {
   const areas = await listPublicAreas();
-  const launchAreas = areas.filter((a) => a.is_launch);
+  // Bug fixed 2026-09-28: this used to link to `/${locale}/${slugify(area.state)}/${area.slug}`,
+  // a URL shape that has never existed as a route — only `/[locale]/[city]/` does
+  // (src/app/[locale]/[city]/page.tsx). With just Jaipur/Gurugram launched this went
+  // unnoticed since almost no one clicked a footer city link that wasn't already the
+  // default city; at 22 cities it would have been a visible, site-wide broken-link problem.
+  const launchAreas = areas
+    .filter((a) => a.is_launch)
+    .sort((a, b) => b.school_count - a.school_count);
+  const areasByState = new Map<string, typeof launchAreas>();
+  for (const area of launchAreas) {
+    const group = areasByState.get(area.state);
+    if (group) {
+      group.push(area);
+    } else {
+      areasByState.set(area.state, [area]);
+    }
+  }
 
   return (
     <footer className="border-t border-rule bg-margin-paper px-4 pt-6 pb-24 md:px-10 md:pb-6 md:pt-10">
@@ -73,17 +91,24 @@ export async function SiteFooter({ locale }: { locale: string }) {
         </div>
 
         {launchAreas.length > 0 && (
-          <div className="flex flex-col gap-1.5 border-t border-rule pt-5">
+          <div className="flex flex-col gap-4 border-t border-rule pt-5">
             <span className="text-meta font-semibold">Schools by city</span>
-            <div className="flex flex-wrap gap-x-5">
-              {launchAreas.map((area) => (
-                <Link
-                  key={area.slug}
-                  href={`/${locale}/${slugify(area.state)}/${area.slug}`}
-                  className="flex min-h-8 items-center text-body"
-                >
-                  {area.name}
-                </Link>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from(areasByState.entries()).map(([state, stateAreas]) => (
+                <div key={state} className="flex flex-col gap-1.5">
+                  <span className="text-meta text-muted-ink">{state}</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {stateAreas.map((area) => (
+                      <Link
+                        key={area.slug}
+                        href={`/${locale}/${area.slug}`}
+                        className="flex min-h-8 items-center text-body"
+                      >
+                        {area.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

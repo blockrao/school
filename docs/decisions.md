@@ -159,6 +159,9 @@ Experience → Distribution.
 | D-113 | Concierge is digital-only this season: no physical submission partners (CSC operators, couriers) and no offline support; revisit in the 30 Apr decision memo | v3.1 §21, Consumer Spine vs D-003 |
 | D-114 | **MVP index rule** (supersedes the index part of D-090, and D-094, D-097's L3 count, D-109): a school page is indexable once it has a name, address with locality/pincode, board, and a phone or website, each from a displayable source (L2). A current-session admissions record enriches the page but is not required. Pages below L2 render `noindex`. `SITE_INDEXABLE` flips as soon as the Jaipur pilot list is loaded at L2 and CI is green. Indexing stays limited to launched cities (Jaipur, then Gurugram); government schools follow the same rule (supersedes D-092's noindex) | Prav 28 Sep: MVP must get schools live and discoverable now |
 | D-115 | **MVP publishing rule** (amends N-14, D-025 for the MVP): directory, affiliation and contact facts from official registries (board lists, UDISE+ directory, state lists) or the school's own website publish directly with their source and checked date; ops spot-checks a sample weekly. Admission dates publish when they link to the school's own notice or website page, after a quick human glance (batch review). Values with no evidence link (AI research alone, hearsay) never publish. Precedence tables, review states and the fuller provenance plumbing (R-01, R-02) wait until after launch | Same |
+| D-116 | **Launched cities are data-driven** (supersedes D-080's launch order for listing, sitemaps and navigation): a city/district is launched once at least one school there renders name + address + pincode from displayable sources (`api.public_areas.is_launch`). 22 districts qualify as of 28 Sep (Jaipur, Gurugram, Faridabad, Hisar, Sonipat, Panipat, Karnal, Rohtak, Rewari, Ambala, Bhiwani, Panchkula, Mahendragarh and nine Delhi districts). Each launched city has a sitemap route; season operations (tracker, calls, concierge) still start with Jaipur and Gurugram | Prav, other session 28 Sep (commits 0873587, 2681de5) |
+| D-117 | **Supabase access** (amends N-11): the Supabase MCP connector and CLI are allowed alongside terminal `DATABASE_URL` access. Destructive changes still need Prav's explicit yes with the SQL shown first. The app still never uses the service-role key | Prav, other session 28 Sep (commit db10f7f) |
+| D-118 | **Repo `CLAUDE.md` removed** at Prav's request to cut friction during data loading. This register, `docs/spec/` and `docs/guidelines/` remain the reference; sessions should read `docs/decisions.md` first | Prav, other session 28 Sep (commit 4c76b65) |
 
 ---
 
@@ -198,7 +201,7 @@ paid pass · gimmick hooks · multi-year revenue projections · JEE/NEET · YouT
 | Developer Spec | `docs/spec/` (start at `README.md`) | Architecture, data contract, one spec per feature, data requests |
 | Guidelines | `docs/guidelines/` | SEO/GEO, content and trust, design |
 | Status and ops | `docs/screen-map.md`, `docs/design-gaps.md`, `docs/ops/` | Build tracker; runbooks |
-| CLAUDE.md | repo root | Short rulebook loaded every session |
+| ~~CLAUDE.md~~ | removed 28 Sep (D-118) | Rules now live only in this register, `docs/spec/` and `docs/guidelines/` |
 
 **Superseded (archived, read-only):** Refined Strategy & Execution Blueprint, Launch Plan 2027–28,
 Product Specification v1.0, Master Strategy v3.1 → Master Document · Data & Technical

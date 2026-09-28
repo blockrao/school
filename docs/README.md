@@ -11,4 +11,4 @@
 | **Archive** | `archive/` | Snapshots and superseded docs — never cited as rules |
 
 **Authority order:** Decisions Register → Developer Spec → Guidelines → Master Document → archive.
-Repo root `CLAUDE.md` is the short rulebook that Claude Code loads every session; it points here.
+The repo-root `CLAUDE.md` was removed on 28 Sep (D-118). Start every session with `docs/decisions.md`.

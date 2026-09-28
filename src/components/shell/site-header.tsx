@@ -4,42 +4,16 @@ import { AuthStatusLink } from "@/components/shell/auth-status-link";
 import { CityPicker } from "@/components/shell/city-picker";
 import { LocaleSwitcher } from "@/components/shell/locale-switcher";
 import { MobileMenu } from "@/components/shell/mobile-menu";
-import type { PrimaryNavItem } from "@/components/shell/primary-nav";
 import { PrimaryNav } from "@/components/shell/primary-nav";
 import type { CityOption } from "@/lib/city-preference";
 
-/**
- * `admissionsHref` is the current *default* city's admissions page — computed
- * server-side from `areas[0]` (see layout.tsx). It doesn't react to a cookie
- * switch to a different launched city; that's fine while there's exactly one
- * launched city (nothing to switch to yet). Once a second city launches, make
- * this reactive too, the same way CityPicker already is.
- */
-export function primaryNavItems(locale: string, admissionsHref: string): PrimaryNavItem[] {
-  return [
-    { label: "Schools", href: `/${locale}/schools`, note: "Search and compare every school" },
-    {
-      label: "Admissions",
-      href: admissionsHref,
-      note: "Open forms, deadlines, alerts",
-    },
-    { label: "Exams", href: `/${locale}/exams`, note: "Entrance exams: eligibility, dates, fees" },
-    { label: "Teachers", href: `/${locale}/teachers`, note: "Profiles" },
-    { label: "Guides", href: `/${locale}/guides`, note: "Admission process, documents, boards" },
-    { label: "For schools", href: "/for-schools", note: "Claim your page, post notices" },
-  ];
-}
-
 export function SiteHeader({ locale, areas }: { locale: string; areas: CityOption[] }) {
-  const admissionsHref = areas[0]?.href ?? `/${locale}/schools`;
-  const items = primaryNavItems(locale, admissionsHref);
-
   return (
     <header className="sticky top-0 z-30 border-b border-rule bg-copy-white">
       {/* Mobile: hamburger, logo, city, locale switch */}
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
-          <MobileMenu locale={locale} items={items} />
+          <MobileMenu locale={locale} areas={areas} />
           <Link href={`/${locale}`} className="font-display text-card font-bold text-ruled-blue">
             SchoolOye
           </Link>
@@ -55,7 +29,7 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
         <Link href={`/${locale}`} className="font-display text-section font-bold text-ruled-blue">
           SchoolOye
         </Link>
-        <PrimaryNav items={items} />
+        <PrimaryNav locale={locale} areas={areas} />
         <Form
           action={`/${locale}/schools`}
           className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-line-blue-strong bg-copy-white px-3"
