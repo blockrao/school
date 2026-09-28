@@ -152,7 +152,7 @@ Every campus has one stable canonical URL; slugs cannot change accidentally; rel
 | Guide concept | Implementation |
 |---|---|
 | Immutable integer PK, never in URLs | `schools.id` is a UUID (internal). `schools.school_code` (6-digit) is also internal from now on — no longer in any URL or JSON-LD |
-| Entity slug, write-once | `schools.slug`: unique index, format check (`^[a-z0-9]+(-[a-z0-9]+)*$`, ≤ 60), write-once trigger, minted on insert by `mint_school_slug()` |
+| Entity slug, write-once | `schools.slug`: unique index, format check (`^[a-z0-9]+(-[a-z0-9]+)*$`, ≤ 60), write-once trigger, minted on insert by `mint_school_slug(school_slug_source(name))` — the source drops apostrophes, spells out standalone P/S, H/S, S/S and collapses initials (D-123) |
 | `aliases[]` | `schools.aliases text[]`; alias and retired slugs live in `school_slug_redirects` so a URL is never reused |
 | Merged / created in error | `schools.merged_into` → 301 to survivor |
 | Closed campus | `schools.status = 'closed'` stays public with a banner |
