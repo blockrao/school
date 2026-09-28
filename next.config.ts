@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 // Read directly (not via env.server.ts): this file runs in plain Node, outside
 // Next's react-server bundler condition, where the "server-only" import throws.
-const siteIndexable = process.env.SITE_INDEXABLE === "true";
+// Only Vercel Preview copies are kept out of search; production is always open.
+const isPreview = process.env.VERCEL_ENV === "preview";
 
 // OWASP secure-headers baseline. No third-party scripts/styles are loaded
 // anywhere in this app today (checked: no GTM/Sentry/analytics tags), so the
@@ -36,10 +37,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   async headers() {
-    if (siteIndexable) return [{ source: "/:path*", headers: securityHeaders }];
+    if (!isPreview) return [{ source: "/:path*", headers: securityHeaders }];
 
-    // Pre-launch: belt-and-braces alongside robots.ts — noindex every response,
-    // including ones robots.ts can't reach (API routes, error pages).
     return [
       {
         source: "/:path*",

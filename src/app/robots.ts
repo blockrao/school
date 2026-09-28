@@ -1,12 +1,22 @@
 import type { MetadataRoute } from "next";
 import { serverEnv, siteUrl } from "@/lib/env.server";
 
-const AI_CRAWLERS = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
+// Search engines and AI answer engines may crawl every public page.
+const AI_CRAWLERS = [
+  "GPTBot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "ClaudeBot",
+  "PerplexityBot",
+  "Perplexity-User",
+  "Google-Extended",
+];
 const DISALLOW = ["/dev", "/my", "/portal", "/ops", "/api"];
 
 export default function robots(): MetadataRoute.Robots {
-  // Launch-day switch — see docs/ops/deploy.md.
-  if (!serverEnv.SITE_INDEXABLE) {
+  // Vercel Preview deployments are copies of the site on *.vercel.app; keep them
+  // out of search so they never compete with www.schooloye.com.
+  if (serverEnv.VERCEL_ENV === "preview") {
     return { rules: [{ userAgent: "*", disallow: "/" }] };
   }
 

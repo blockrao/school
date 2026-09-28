@@ -31,17 +31,12 @@ production `*.vercel.app` alias (`school-ten-ivory.vercel.app`) to
 `https://www.schooloye.com` with a 308, matched by `Host` header — Preview
 deployment URLs don't match either host, so they're unaffected.
 
-## Launch-day switch: `SITE_INDEXABLE`
+## Search indexing
 
-Optional server env var, defaults to unset (treated as `false`, fails safe). While unset
-or not exactly `"true"`:
-- Every response gets `X-Robots-Tag: noindex, nofollow` (set in `next.config.ts`'s
-  `headers()`, so it covers API routes and error pages too, not just pages `robots.ts`
-  can reach).
-- `robots.ts` serves `disallow: /` for all user agents — nothing is crawlable.
-
-Set `SITE_INDEXABLE=true` in Vercel when the site is ready to go public. Do this
-deliberately, on launch day — not as part of a routine deploy.
+Production is always open to search engines and AI crawlers (D-120). The old
+`SITE_INDEXABLE` switch is removed; the Vercel env var can be deleted. Only Vercel
+Preview deployments (`VERCEL_ENV=preview`) send `X-Robots-Tag: noindex, nofollow` and
+a `disallow: /` robots.txt, so preview copies never compete with www.schooloye.com.
 
 ## Region
 Database: Supabase `ap-south-1` (Mumbai). Vercel functions: `bom1` (see `vercel.json`). Keep the two in sync (D-083).

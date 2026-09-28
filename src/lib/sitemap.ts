@@ -100,10 +100,18 @@ ${entries.join("\n")}
 `;
 }
 
-/** Every published school is indexable (D-119, 28 Sep 2026). */
-function isIndexable(_school: PublicSchool): boolean {
-  // D-119: every published school (api.public_schools) goes in the sitemap.
-  return true;
+/**
+ * Every published school in a district (D-119), paged in blocks of 1,000 so
+ * the database's per-request row cap never truncates a city's sitemap.
+ */
+async function listAllPublishedSchoolsInDistrict(districtId: number): Promise<PublicSchool[]> {
+  const pageSize = 1000;
+  const all: PublicSchool[] = [];
+  for (let page = 1; ; page++) {
+    const { schools } = await listPublicSchoolsByDistrict(districtId, { page, pageSize });
+    all.push(...schools);
+    if (schools.length < pageSize) return all;
+  }
 }
 
 function maxVerifiedAt(schools: PublicSchool[]): Date | undefined {
@@ -131,12 +139,10 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
     return new Response("Not found", { status: 404 });
   }
 
-  const [{ schools }, localities] = await Promise.all([
-    listPublicSchoolsByDistrict(city.districtId, { pageSize: 2000 }),
+  const [indexableSchools, localities] = await Promise.all([
+    listAllPublishedSchoolsInDistrict(city.districtId),
     listPublicLocalitiesByCity(citySlug, 3),
   ]);
-
-  const indexableSchools = schools.filter(isIndexable);
 
   const entries = [
     urlEntry(siteUrl, `/${citySlug}`, maxVerifiedAt(indexableSchools)),

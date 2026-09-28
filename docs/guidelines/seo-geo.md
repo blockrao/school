@@ -70,8 +70,7 @@ fullest example). This file holds the rules that apply everywhere.
   better, D-109); the page emits
   `<meta name="robots" content="noindex,follow">` otherwise. Government schools stay `noindex`
   until L3 (D-092).
-- **Launch switch:** `SITE_INDEXABLE` flips once the Jaipur pilot list is at L2 and CI is green (D-114).
-  *Superseded:* ≥50 Jaipur schools at L3
+- **Indexing:** production is always open to crawlers; only Vercel Preview is noindex (D-120).
   (D-094). While off, `robots.ts` disallows everything.
 - **Sitemaps:** route handlers per launched city (`sitemap-{city}.xml`) plus `sitemap-site.xml`,
   indexed by `sitemap.xml`. Only indexable URLs. `lastModified` = latest displayed-fact
