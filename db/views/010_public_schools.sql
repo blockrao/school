@@ -2,15 +2,15 @@
 --
 -- Publishing rule per fact-bearing column: shown only if at least one
 -- field_provenance row for that (school, field) traces to an allowed source.
---   OFFICIAL (government/board lists + SchoolOye's own first-party verification):
---     1 school_portal, 2 ops_call, 4 saras, 6 rajpsp, 7 delhi_doe, 8 haryana_edu,
---     9 cisce, 11 saras_archive, 12 haryana_edu_2026_ext
---   CONTACT fields (phone/email/website) additionally allow:
---     3 school_website (a matched school's own site)
---   Never allowed for anything: 5 udise (explicit rule — UDISE-sourced fields,
---   including the UDISE code itself, are never shown), 10 parent_report (not an
---   official or school-matched source), 13 jaipurcircle_localities (sister-project
---   sync, not this state's government/board data).
+--   DIRECTORY fields (name, address, pincode, management, gender, class range,
+--   established year) — MVP rule D-115, with D-082 for UDISE+:
+--     1 school_portal, 2 ops_call, 3 school_website, 4 saras, 5 udise (directory
+--     facts only, lowest official rank), 6 rajpsp, 7 delhi_doe, 8 haryana_edu,
+--     9 cisce, 11 saras_archive, 12 haryana_edu_2026_ext, 17 ops_web_verified
+--   CONTACT fields (phone/email/website): the same list WITHOUT 5 udise
+--     (UDISE contacts only under sources.licence_note conditions, D-082).
+--   Never allowed: 10 parent_report, 13 jaipurcircle_localities, 14 geonames,
+--   16 ai_web_research, 18 cforerankings. The UDISE code itself is never shown.
 --
 -- A field with no qualifying provenance renders null here — the app's fallback
 -- ("Not yet published") takes over, same as any other unknown fact.
@@ -20,7 +20,7 @@
 -- like the fact columns above — it's an internal identifier, not a published
 -- fact about the school — and it's never guessed/omitted like UDISE. Used as
 -- the canonical URL suffix (/[city]/[slug]-[school_code]) and as the
--- "Schooloy School ID" PropertyValue in JSON-LD, so the app can resolve a
+-- "SchoolOye School ID" PropertyValue in JSON-LD, so the app can resolve a
 -- school by a stable id even if its slug text is later corrected.
 --
 -- Does NOT filter on schools.status. That field is an unused manual toggle —
@@ -53,39 +53,39 @@ select
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'name_en'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.name_en else null end as name_en,
   s.name_hi,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'management'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.management else null end as management,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'gender'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.gender else null end as gender,
   s.medium,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'min_class'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.min_class else null end as min_class,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'max_class'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.max_class else null end as max_class,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'address'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.address else null end as address,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'pincode'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.pincode else null end as pincode,
   case when s.location is not null then ST_Y(s.location::geometry) else null end as lat,
   case when s.location is not null then ST_X(s.location::geometry) else null end as lng,
@@ -93,22 +93,22 @@ select
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'website'
-      and fp.source_id in (1, 2, 3, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 17)
   ) then s.website else null end as website,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'phone'
-      and fp.source_id in (1, 2, 3, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 17)
   ) then s.phone else null end as phone,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'email'
-      and fp.source_id in (1, 2, 3, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 17)
   ) then s.email else null end as email,
   case when exists (
     select 1 from field_provenance fp
     where fp.entity_table = 'schools' and fp.entity_id = s.id and fp.field = 'established_year'
-      and fp.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12)
+      and fp.source_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17)
   ) then s.established_year else null end as established_year,
   s.tier,
   s.verification,
