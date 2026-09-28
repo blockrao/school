@@ -77,7 +77,7 @@ A person, not an institution; three rules differ from campus:
 
 ## 6. Language
 
-- English at root; other languages under `/{lang}/` (BCP-47). A translated URL exists only when the translation exists; otherwise 404, never an English mirror.
+- English at root; other languages under `/{lang}/` (BCP-47). A translated URL exists only when the translation exists; no English content is ever rendered at a `/{lang}/` URL. **Implementation note, 28 Sep 2026:** this is served as a 301 to the English canonical when `/{lang}/{X}` has a real English equivalent at `{X}` (not a hard 404) — §8's one-hop-to-canonical rule applies here too, and Google had already indexed `/hi/exams/aissee` and `/hi/exams/jnvst` before this section's policy went live, so a hard 404 there was discarding real search traffic. An `/{lang}/{X}` with no valid English equivalent at all still 404s.
 - Every translated page emits `hreflang` for each available language plus `x-default` → English.
 
 ## 7. Discovery and facets

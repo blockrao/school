@@ -50,9 +50,24 @@ describe("routeDecision", () => {
     });
   });
 
-  it("404s untranslated /hi pages instead of serving an English mirror", () => {
-    expect(routeDecision("/hi")).toEqual({ type: "rewrite", to: "/en/__untranslated" });
+  it("redirects /hi pages with a real English equivalent to it, in one hop (never renders a mirror at /hi/)", () => {
+    expect(routeDecision("/hi")).toEqual({ type: "redirect", to: "/" });
+    expect(routeDecision("/hi/exams/aissee")).toEqual({
+      type: "redirect",
+      to: "/exams/aissee",
+    });
     expect(routeDecision("/hi/school/dps-jaipur")).toEqual({
+      type: "redirect",
+      to: "/school/dps-jaipur",
+    });
+    expect(routeDecision("/HI/Exams/AISSEE")).toEqual({
+      type: "redirect",
+      to: "/exams/aissee",
+    });
+  });
+
+  it("still 404s an /hi path with no valid English equivalent", () => {
+    expect(routeDecision("/hi/jaipur/dps-jaipur-100179")).toEqual({
       type: "rewrite",
       to: "/en/__untranslated",
     });

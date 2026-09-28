@@ -84,7 +84,21 @@ export function routeDecision(pathname: string): RouteDecision {
   const path = pathname.toLowerCase();
   if (path === "/en") return { type: "redirect", to: "/" };
   if (path === "/hi" || path.startsWith("/hi/")) {
-    // No page is translated yet (§6): never serve an English mirror → 404.
+    // No page is translated yet (§6): never RENDER English content at a
+    // /hi/ URL. That's not the same as giving a visitor nothing, though —
+    // Google indexed /hi/exams/aissee and /hi/exams/jnvst before this
+    // policy existed, and real search traffic is landing on those URLs
+    // right now (reported 2026-09-28). A hard 404 there discards that
+    // traffic and the search equity with it. So: an /hi/{X} whose {X} is a
+    // real canonical English path 301s to {X} — a redirect to the real
+    // page, not a mirror rendered at /hi/ — same one-hop-to-canonical rule
+    // §8 already applies everywhere else. Only a /hi/{X} with no valid
+    // English equivalent still 404s via the /en/__untranslated rewrite.
+    const hiRest = path === "/hi" ? "/" : path.slice(3);
+    const hiFirst = hiRest.split("/")[1] ?? "";
+    if (hiRest === "/" || LOCALE_ROOTS.has(hiFirst)) {
+      return { type: "redirect", to: hiRest };
+    }
     return { type: "rewrite", to: "/en/__untranslated" };
   }
 
