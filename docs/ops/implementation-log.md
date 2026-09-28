@@ -1669,3 +1669,24 @@ unambiguously from the classes used) rather than an actual rendered screenshot a
 
 **Status: remediation complete, committed and pushed. Increment 10 remains UNLOCKED pending Prav's
 review of this remediation, per explicit instruction not to lock until reviewed.**
+
+## Increment 10 — Canonical School Intelligence Page V2 — LOCKED
+
+Prav reviewed the Increment 10 audit and the Increment 10R remediation and approved lock:
+
+Canonical school page V2 is functionally integrated with the existing domain layer and responsive
+visual foundation. It now includes decision-oriented identity, shortcuts, admissions and eligibility
+where data exists, admission activity, conditional newsroom content, provenance, controlled school
+actions, location/map, coverage, claim conversion, and responsive desktop/mobile composition.
+
+No new generic fact/provenance/knowledge-graph architecture was introduced. Fees, Events, Jobs, Parent
+Voice, advanced activity composition, admissions timeline visualization and advanced sticky navigation
+remain separate future capabilities.
+
+"What's happening" (the design's C19 unified card) is treated as a future composition layer — current
+activity domains (Admissions, Recent admission updates, News) render independently when populated,
+rather than being merged into a single card or given a shared `/events`/`/news` hub architecture.
+
+**Verification**: 137/137 tests, typecheck clean, lint clean, zero migration/RLS changes.
+
+**Status: 🔒 LOCKED by Prav.**
