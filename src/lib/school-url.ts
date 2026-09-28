@@ -3,7 +3,7 @@ import "server-only";
 /**
  * Canonical school URL: /[locale]/[citySlug]/[schoolSlug]-[schoolCode].
  * school_code (not the UUID) is the stable resolution key — see
- * db/views/010_public_schools.sql and the School Entity Page spec doc.
+ * db/views/010_public_schools.sql and docs/spec/school-entity-page.md.
  */
 export function schoolPath(
   locale: string,

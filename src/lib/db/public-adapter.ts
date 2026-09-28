@@ -39,7 +39,7 @@ import { titleCase } from "@/lib/text";
  * (CI-enforced) for the rule.
  *
  * Reads ONLY `api.*` views (via createApiSchemaClient()) — the curated,
- * source-redacted, owner-run surface (see docs/DATA_ACCESS.md), including small
+ * source-redacted, owner-run surface (see docs/spec/data-and-trust.md), including small
  * passthrough views for pure reference data that has no redaction rules of its
  * own (public_districts/public_states/public_cities/public_boards —
  * db/views/045_reference_views.sql) and api.public_school_boards

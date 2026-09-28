@@ -3,7 +3,7 @@
 Flow steps with no matching file in `design/`. Each got a minimal functional version built
 only from existing `src/components/ui` primitives and tokens (no new visual patterns),
 marked `// design-pending` at its entry point. Replace with the real design and remove the
-row here once one exists — see "NEW DESIGNS ROUTINE" in CLAUDE.md working style.
+row here once one exists — see `docs/guidelines/design.md` §2.
 
 | Screen | Flow | What it needs to do | Built from | Route |
 |---|---|---|---|---|

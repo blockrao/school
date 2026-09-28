@@ -1,5 +1,5 @@
 -- api.public_corridors: roads/corridors (Ajmer Road, Tonk Road, etc.) kept
--- distinct from localities per docs/city-mapping-seed.md. No schools are
+-- distinct from localities per docs/archive/2026-09/city-mapping-seed.md. No schools are
 -- assigned to a corridor directly today (locality_corridors is unpopulated) —
 -- this view exists so corridor names/slugs are available wherever a locality
 -- or landmark description references one, without a second, ad hoc query.

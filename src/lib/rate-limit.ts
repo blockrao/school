@@ -14,7 +14,7 @@ import { createSessionClient } from "@/lib/db/session";
  * the limiter itself should not be able to lock every user out of signing in.
  * The real backstop against abuse either way is Supabase Auth's own
  * project-level SMS/email rate limits (configured in the dashboard, not
- * here — see docs/access-control-design.md).
+ * here — see docs/spec/access-control.md).
  */
 export async function checkRateLimit(
   bucket: string,
