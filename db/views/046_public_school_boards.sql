@@ -15,7 +15,18 @@ select
   b.name_en as board_name,
   b.code as board_code,
   sa.affiliation_no,
-  src.name as source,
+  case src.code
+    when 'saras' then 'CBSE affiliation record (SARAS)'
+    when 'saras_archive' then 'CBSE affiliation record (SARAS)'
+    when 'cisce' then 'CISCE school list'
+    when 'rajpsp' then 'Rajasthan education department'
+    when 'haryana_edu' then 'Haryana education department'
+    when 'haryana_edu_2026_ext' then 'Haryana education department'
+    when 'delhi_doe' then 'Delhi Directorate of Education'
+    when 'school_portal' then 'Verified by school'
+    when 'ops_call' then 'Confirmed with school by phone'
+    else src.name
+  end as source,
   null::timestamptz as checked_at
 from school_affiliations sa
 join boards b on b.id = sa.board_id
