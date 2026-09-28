@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
+import { CoverageCard } from "@/components/ui/coverage-card";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
 import { FieldError } from "@/components/ui/field-error";
@@ -16,6 +17,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
+import { buildCoverage } from "@/lib/coverage";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
@@ -358,6 +360,17 @@ export async function SchoolView({
     cityName: city?.cityName ?? null,
   });
 
+  const coverageTopics = buildCoverage(decisionSlots, {
+    hasIdentity: school.name_en != null,
+    hasBoardAffiliation: board?.board_name != null,
+    hasContact: Boolean(
+      (school.phone && school.phone.length > 0) ||
+        (school.email && school.email.length > 0) ||
+        school.website,
+    ),
+    hasStaff: team.length > 0,
+  });
+
   const mapPoint =
     school.lat != null && school.lng != null
       ? {
@@ -579,6 +592,15 @@ export async function SchoolView({
       <div className="py-6">
         <h2 className="mb-3 font-display text-card font-semibold">At a glance</h2>
         <DecisionStrip slots={decisionSlots} />
+      </div>
+
+      <div className="pb-6">
+        <CoverageCard
+          schoolName={name}
+          topics={coverageTopics}
+          schoolId={school.id}
+          isClaimed={school.claim === "claimed"}
+        />
       </div>
 
       <div className="grid gap-6 py-6 md:grid-cols-[1.6fr_1fr]">

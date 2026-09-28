@@ -493,3 +493,83 @@ Supabase host.
 doc (`docs/spec/school-entity-page-v2-roadmap.md`) is now due for the correction pass that was
 deferred until increments were locked — its Phase 0/2/5 schema assumptions and Phase 1 scope need
 updating to match everything found in Increments 4-5 before picking increment 6.
+
+## 2026-09-28 — Increment 6 selection: fresh review, not the roadmap's old ordering
+
+Per Prav's instruction not to pick the next increment off the roadmap's original sequencing, ran an
+explicit comparison of the corrected roadmap's open tracks against five criteria (value now,
+data-readiness today, risk removed, foundation for admissions/fees, small-and-lockable). Full table
+in the conversation; the live check that decided it: `audit_log` (candidate backing for "updates
+timeline") has 170,236 real rows but — same architectural gap as `fee_items`/`school_media` — no
+`api.*` view, and its raw shape (`actor` uuid, `before`/`after` JSON diffs) needs a deliberate
+public-safe redaction design before it could be exposed at all. That's real scoping work, not a
+quick add, so "finish Phase 1" doesn't score as small the way it first looked.
+
+**Selected: Coverage card** (Phase 1's remaining public-page piece, design variant A). Wins on all
+five: needs zero new queries (it's a restatement of facts Increment 5 already established), doesn't
+touch schema, and extends the same normalizer pattern (`domain data → normalized status →
+presentation`) Increment 5 just proved out. Sequencing after: structural refactor (Increment 7),
+then a dedicated `school_notices` scoping pass — not bundled into any "next increment," matching the
+same caution the original roadmap already gave Phase 6.
+
+**Scope locked by Prav before code, tightened from the design's original mockup:**
+- No numerical completeness score (no `7/10`, no `70%`, no progress bar, no ranking) — "the
+  underlying data is too uneven for that to be meaningful."
+- Two plain buckets: "What SchoolOye knows" (a usable fact exists) / "Still being verified"
+  (currently unavailable) — **known is never equated with verified**.
+- Single source of truth: reuse Increment 5's `decisionSlots` for Admissions, Classes offered,
+  Location, Annual fee, and Board results — do not re-derive any of them. Identity, Board &
+  affiliation, Contact, and Staff use the exact existing page conditions (the same ones the "School
+  facts"/"Location"/"Contact" sections already use for their own `NotYetPublished` fallback).
+- "Are you from this school?" reuses the existing claim flow. "Know something? Tell us" is a plain
+  `mailto:help@schooloye.in` link — an existing pattern already used on two other pages, zero new
+  infrastructure, chosen explicitly over building any anonymous contribution mechanism (there is
+  none today — `correction_requests` is member-only via `/portal/edit-request`).
+- Explicitly excluded: anonymous `correction_requests`, a public contribution form, any new table,
+  any new `api.*` view, facilities/fee/admission-linking ingestion, a completeness score, new
+  SEO/indexation behavior, generic AI-generated "missing information" copy.
+
+**Built:**
+- `src/lib/coverage.ts` — `buildCoverage(decisionSlots, pageFacts)`, ten topics, pure and
+  unit-tested. Five topics (`admissions`, `classes_offered`, `location`, `annual_fee`,
+  `board_results`) read their status straight off the same `DecisionSlot[]` the decision strip
+  already computed for that render. Four (`identity`, `board_affiliation`, `contact`, `staff`) come
+  from the same boolean conditions already in `entity-page.tsx`'s JSX. One (`facilities_safety`) has
+  no dynamic input at all — `school_facilities` has zero rows and no `api.*` view (same gap found
+  for fee/media in Increment 5), so it's permanently "being verified" until that data-enablement
+  work happens, mirroring `unsupportedSlot`'s reasoning in `decision-strip.ts`.
+- `src/components/ui/coverage-card.tsx` — purely presentational, splits topics into the two buckets,
+  renders the claim link (plain `<Link>` to `/for-schools/claim/{id}`, shown only when unclaimed —
+  **not** a second `<ClaimStatusLink>` instance; that component's own doc comment assumes exactly
+  one instance per page, one client-side session/membership lookup, and the header already renders
+  it — a second instance would double that cost and duplicate the CTA text for no benefit, so this
+  reuses the underlying claim *flow* via a plain server-rendered link instead, which is safe because
+  the claim page itself already handles the pending/rejected redirect server-side, from Increment
+  4) and the `mailto:` "Tell us" link.
+- Wired into `entity-page.tsx` right after the decision strip: `coverageTopics` computed alongside
+  `decisionSlots`, reusing `team` (already fetched for the Teachers section) for `hasStaff` and
+  `board`/`school.phone`/`email`/`website` (already read elsewhere on the page) for the other three
+  page-derived facts.
+
+**Verification performed:**
+- `pnpm run typecheck` — clean. `pnpm run lint` — two import-order fixes (`@/lib/coverage` sorts
+  before `@/lib/db/public-adapter` and before `@/lib/decision-strip`, same Biome
+  `assist/source/organizeImports` rule as the last two increments), then clean (280 files).
+  `pnpm test` — **117/117 pass** (111 existing + 6 new for `src/lib/coverage.test.ts`: fixed
+  ten-topic order and ids, a fully-sparse school has every topic `being_verified`, the five
+  slot-derived topics track `decisionSlots` exactly without re-deriving them, the four page-fact
+  topics are independent of each other and of slot data, and `facilities_safety` is unconditionally
+  `being_verified` regardless of every other input).
+- **Real-data regression check** against the same two real schools used in Increment 5's
+  verification (not just unit tests): confirmed via live queries that both St. Xavier's (unclaimed)
+  and R.K. International (claimed) have a website (no phone/email) → Contact information known for
+  both; both have a CBSE board record → Board & affiliation known for both; both have zero active
+  rows in `school_teacher_affiliations` → Staff correctly `being_verified` for both. Matches what
+  the pure function's unit tests already predict for this exact input shape — confirms the page's
+  wiring (not just the function in isolation) pulls the right fields.
+- No schema, migration, RLS, or new `api.*` view — confirmed by inspection (no `.from()` call added
+  anywhere; `coverage.ts` takes only the same `decisionSlots` and already-fetched page facts as
+  input).
+- **Not yet done:** browser smoke test at mobile/desktop widths — same accepted, recorded limitation
+  as Increments 4/5 (this sandbox's egress proxy blocks a real browser from reaching the Supabase
+  host).
