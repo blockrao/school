@@ -109,8 +109,7 @@ self-run.
 - `robots.ts`: allow search engines and AI crawlers on public routes; disallow `/my`, `/portal`,
   `/ops`, `/api`, `/dev`. Filtered/faceted URLs are handled with canonical + `noindex` meta, not robots.
 - `public/llms.txt` + `/[locale]/[city]/[slug]-[code]/index.md` (markdown twin of the fact block).
-- *Code not yet matching these rules (fix, don't copy):* JSON-LD `propertyID` still says
-  "Schooloy School ID"; `localeAlternates()` always emits `hi-IN`; no `cacheTag` exists yet, so
+- *Code not yet matching these rules (fix, don't copy):* `localeAlternates()` always emits `hi-IN`; no `cacheTag` exists yet, so
   `/api/revalidate` is a no-op; `robots.ts` lists 4 AI crawlers (target list in
   `docs/guidelines/seo-geo.md`). Full list: `docs/spec/README.md` → Known issues.
 
