@@ -547,7 +547,6 @@ export default async function EntityPage({
               <div>
                 <dt className="text-meta font-semibold text-muted-ink">Board</dt>
                 <dd>{board?.board_name ?? <NotYetPublished />}</dd>
-                {board?.source && <p className="text-meta text-slate">Source: {board.source}</p>}
               </div>
               <div>
                 <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>
@@ -635,20 +634,20 @@ export default async function EntityPage({
             )}
           </section>
 
-          {mapPoint && (
+          {(school.address || mapPoint) && (
             <section aria-labelledby="location-heading" className="flex flex-col gap-3">
               <h2 id="location-heading" className="font-display text-card font-semibold">
                 Location
               </h2>
-              <AreaMapLazy
-                points={[mapPoint]}
-                centerLat={mapPoint.lat}
-                centerLng={mapPoint.lng}
-                zoom={14}
-              />
-              <p className="text-meta text-muted-ink">
-                {school.address ?? "Address not yet published"} — approximate area, not an exact pin
-                (geocoded to {school.geocode_precision ?? "pincode"} precision).
+              <p className="text-body">
+                {school.address ?? "Address not yet published"}
+                {mapPoint && (
+                  <span className="text-meta text-muted-ink">
+                    {" "}
+                    — approximate area, not an exact pin (geocoded to{" "}
+                    {school.geocode_precision ?? "pincode"} precision).
+                  </span>
+                )}
               </p>
             </section>
           )}
