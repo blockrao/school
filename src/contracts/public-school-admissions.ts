@@ -20,6 +20,12 @@ export const publicSchoolAdmissionContract = z.object({
   last_checked_at: z.string().nullable(),
   verification: z.string(),
   days_to_close: z.number().nullable(),
+  // Increment 10 — appended, not inserted, to match the view's actual column order
+  // (Postgres requires new `create or replace view` columns after the last existing
+  // one; see db/views/020_public_school_admissions.sql's header).
+  dob_from: z.string().nullable(),
+  dob_to: z.string().nullable(),
+  documents_required: z.array(z.string()),
 });
 
 export type PublicSchoolAdmission = z.infer<typeof publicSchoolAdmissionContract>;

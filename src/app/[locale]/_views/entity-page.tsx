@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
 import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
@@ -24,6 +25,8 @@ import {
   getBoardNamesBySchoolId,
   getPublicAdmissionsBySchoolId,
   type getPublicLocalityBySlug,
+  getPublicSchoolNewsBySchoolId,
+  getRecentAdmissionUpdatesBySchoolId,
   listLocalityNeighbors,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
@@ -32,6 +35,7 @@ import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
+import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
@@ -304,13 +308,49 @@ export async function SchoolView({
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
 
-  const [admissions, shortlistedIdsSet, similarSchoolsRaw, team] = await Promise.all([
-    getPublicAdmissionsBySchoolId(school.id),
-    getShortlistedSchoolIds([school.id]),
-    school.locality_id ? listPublicSchoolsByLocality(school.locality_id) : Promise.resolve([]),
-    listPublicSchoolTeam(school.id),
-  ]);
+  const [admissions, shortlistedIdsSet, similarSchoolsRaw, team, news, recentAdmissionUpdates] =
+    await Promise.all([
+      getPublicAdmissionsBySchoolId(school.id),
+      getShortlistedSchoolIds([school.id]),
+      school.locality_id ? listPublicSchoolsByLocality(school.locality_id) : Promise.resolve([]),
+      listPublicSchoolTeam(school.id),
+      // Increment 10 — api.public_school_news (db/views/095_public_school_news.sql):
+      // already filtered to review='approved'/published school/published_at not null.
+      getPublicSchoolNewsBySchoolId(school.id),
+      // Increment 10 — api.public_admission_updates (db/views/096_public_admission_updates.sql):
+      // already scoped to admission_cycles-only, allowlisted fields, real changes only.
+      getRecentAdmissionUpdatesBySchoolId(school.id),
+    ]);
   const similarSchools = similarSchoolsRaw.filter((s) => s.id !== school.id).slice(0, 4);
+
+  // Increment 10 — eligibility checker input. Mirrors exams/[slug]/page.tsx's
+  // toEligibilityCycles exactly (same shape, same deadlineState/deadlineToPill use);
+  // only cycles that actually carry a dob window render a checkable row. There's no
+  // per-cycle id exposed by api.public_school_admissions (unlike the exams view's
+  // cycle_id) — academic_year+class_code is already this page's de-facto cycle key
+  // (used as the admissions list's own React key above), and is unique within one
+  // school's admissions list.
+  const eligibilityCycles: EligibilityCycle[] = admissions
+    .filter((cycle) => cycle.dob_from && cycle.dob_to)
+    .map((cycle) => {
+      const pill = deadlineToPill(
+        deadlineState(
+          {
+            opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
+            closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
+          },
+          now,
+        ),
+      );
+      return {
+        id: `${cycle.academic_year}-${cycle.class_code}`,
+        label: `${cycle.academic_year} · Class ${cycle.class_code.replace(/^c/, "")}`,
+        dobFrom: cycle.dob_from,
+        dobTo: cycle.dob_to,
+        applyStatus: pill.status,
+        formUrl: cycle.form_url,
+      };
+    });
 
   const enquirySent = rawSearchParams.enquiry_sent === "1";
   const enquiryError = rawSearchParams.enquiry_error === "failed";
@@ -514,9 +554,15 @@ export async function SchoolView({
   // section that doesn't actually render.
   const sections: { id: string; label: string; show: boolean }[] = [
     { id: "admissions-heading", label: "Admissions", show: true },
+    {
+      id: "admission-updates-heading",
+      label: "Recent updates",
+      show: recentAdmissionUpdates.length > 0,
+    },
     { id: "facts-heading", label: "School facts", show: true },
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
+    { id: "news-heading", label: "News", show: news.length > 0 },
     { id: "coverage-heading", label: "What SchoolOye knows", show: true },
     { id: "similar-heading", label: "Similar schools", show: similarSchools.length > 0 },
     { id: "contact-heading", label: "Contact", show: true },
@@ -859,7 +905,61 @@ export async function SchoolView({
                 // already gives this a proper "Not yet verified" treatment.
                 <span className="text-meta text-slate">· Dates not announced</span>
               )}
+              {/* Increment 10 — admissions-deepening. Reuses the exact component/props
+                shape already built and shipped for exams/[slug]/page.tsx unchanged;
+                only the data source (this school's own admissions, filtered to cycles
+                that actually carry a dob window) differs. Renders nothing when no
+                cycle has dob_from/dob_to populated yet (the current production data —
+                see the Increment 10 migration-application log entry). */}
+              {eligibilityCycles.length > 0 && (
+                <EligibilityChecker
+                  cycles={eligibilityCycles}
+                  helpHref={lp(locale, "/admissions/help")}
+                  shareHref={`https://wa.me/?text=${encodeURIComponent(
+                    `Check if your child is eligible for ${name}: ${siteUrl}${canonicalPath}`,
+                  )}`}
+                  className="mt-3"
+                />
+              )}
             </section>
+
+            {/* Increment 10 — "Recent admission updates". Reads only
+              api.public_admission_updates (db/views/096_public_admission_updates.sql),
+              which already excludes school-level audit noise, raw before/after, actor,
+              and no-op rows — nothing further to filter here. Sits directly after
+              Admissions since it's the same subject (this school's admission cycles),
+              not lumped in with News (school-authored content) below. */}
+            {recentAdmissionUpdates.length > 0 && (
+              <section aria-labelledby="admission-updates-heading" className="flex flex-col gap-3">
+                <h2 id="admission-updates-heading" className="font-display text-card font-semibold">
+                  Recent admission updates
+                </h2>
+                <ul className="flex flex-col gap-2">
+                  {recentAdmissionUpdates.map((u) => (
+                    <li
+                      key={u.audit_id}
+                      className="flex flex-col gap-0.5 rounded-md border border-rule p-3"
+                    >
+                      <span className="text-body">
+                        {u.change_type === "created"
+                          ? "Admission cycle added"
+                          : "Admission updated"}
+                        {" — "}
+                        {u.academic_year} · Class {u.class_code.replace(/^c/, "")}
+                        {u.new_status ? ` — now ${u.new_status.replace(/_/g, " ")}` : ""}
+                      </span>
+                      <span className="text-meta text-muted-ink">
+                        {new Date(u.occurred_at).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {(school.address || mapPoint) && (
               <section aria-labelledby="location-heading" className="flex flex-col gap-3">
@@ -919,6 +1019,62 @@ export async function SchoolView({
                         {[t.subject, t.level].filter(Boolean).join(" · ")}
                       </span>
                     </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Increment 10 — News. Reads only api.public_school_news
+              (db/views/095_public_school_news.sql), already scoped to approved,
+              published posts for this school. Placed as another "answer" section
+              (content about the school itself), before the coverage/trust block,
+              per the same locked hierarchy the comment below describes — this is a
+              placement call made without re-walking the full design-block order
+              during this pass; flagged for a look if the reference design places
+              News elsewhere. */}
+            {news.length > 0 && (
+              <section aria-labelledby="news-heading" className="flex flex-col gap-3">
+                <h2 id="news-heading" className="font-display text-card font-semibold">
+                  News
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {news.map((post) => (
+                    <article
+                      key={post.id}
+                      className="flex flex-col gap-1 rounded-md border border-rule p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-display font-semibold">{post.title}</span>
+                        {post.kind === "press" && (
+                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+                            Press
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-body text-muted-ink">{post.body}</p>
+                      <div className="flex items-center gap-2 text-meta text-muted-ink">
+                        <span>
+                          {new Date(post.published_at).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {post.source_url && (
+                          <>
+                            <span>·</span>
+                            <a
+                              href={post.source_url}
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                              className="font-semibold text-ruled-blue"
+                            >
+                              Source ↗
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </article>
                   ))}
                 </div>
               </section>

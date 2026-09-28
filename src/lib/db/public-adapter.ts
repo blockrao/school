@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import {
+  type PublicAdmissionUpdate,
   type PublicExamAdmission,
   type PublicExamApplicationStep,
   type PublicExamCentre,
@@ -13,7 +14,9 @@ import {
   type PublicSchool,
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
+  type PublicSchoolNews,
   type PublicSchoolRanking,
+  publicAdmissionUpdateContract,
   publicAreaContract,
   publicBoardContract,
   publicCityContract,
@@ -24,6 +27,7 @@ import {
   publicSchoolAdmissionContract,
   publicSchoolBoardContract,
   publicSchoolContract,
+  publicSchoolNewsContract,
   publicSchoolRankingContract,
   publicSchoolRedirectContract,
   publicStateContract,
@@ -675,6 +679,43 @@ export async function getPublicAdmissionsBySchoolId(
     .eq("school_id", schoolId)
     .order("closes_on", { ascending: true, nullsFirst: false });
   return (data ?? []).map((row) => publicSchoolAdmissionContract.parse(row));
+}
+
+/**
+ * Approved, published news/press posts for one school, newest first — reads only
+ * `api.public_school_news` (db/views/095_public_school_news.sql), which already
+ * filters to `review = 'approved'` and a published school; nothing further to filter
+ * here.
+ */
+export async function getPublicSchoolNewsBySchoolId(schoolId: string): Promise<PublicSchoolNews[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_school_news")
+    .select("*")
+    .eq("school_id", schoolId)
+    .order("published_at", { ascending: false });
+  return (data ?? []).map((row) => publicSchoolNewsContract.parse(row));
+}
+
+/**
+ * Recent admission-cycle changes for one school, most recent first — reads only
+ * `api.public_admission_updates` (db/views/096_public_admission_updates.sql), which
+ * already scopes to admission_cycles-only audit rows with a real change in the
+ * allowlisted fields. `limit` defaults to 5 — this is a "recent updates" strip, not a
+ * full history browser.
+ */
+export async function getRecentAdmissionUpdatesBySchoolId(
+  schoolId: string,
+  limit = 5,
+): Promise<PublicAdmissionUpdate[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_admission_updates")
+    .select("*")
+    .eq("school_id", schoolId)
+    .order("occurred_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []).map((row) => publicAdmissionUpdateContract.parse(row));
 }
 
 export type PublicCity = { id: number; name_en: string; slug: string; districtId: number };
