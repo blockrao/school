@@ -879,3 +879,39 @@ in on next, not resolved here.
 extraction, no self-service editor, no shared-calendar fan-out. The manual/incremental model —
 staff or Prav personally verifies a school and writes the fact directly — is what this entry
 validates end-to-end for one real school.
+
+## 2026-09-28 — 🟢 LOCKED: admissions display correction (`4f8afa9`); next experiment decided
+
+Prav reviewed and locked the previous entry's fix. Recorded verbatim as his decision:
+
+> The existing canonical admissions data model and page already support the parent-facing
+> experience we want, provided trustworthy admission-cycle data gets into `admission_cycles`. No
+> new admissions architecture is required to test this.
+
+**Decision: run a manually-verified admissions pilot, not an ingestion engine.** Take roughly
+50–100 important schools across the initial target markets, manually research per school (is
+admissions open, which class, academic year, deadline, official application URL, source, last
+checked), and write only genuinely-verified cycles into `admission_cycles` — the same mechanism
+already proven end-to-end on DAV Public School Gurugram. Measure before automating: how many
+schools actually have open admissions, how much useful information is obtainable per school, how
+often parents click the admissions CTA, which classes draw interest, how often dates change, and
+how much research effort one school costs. If the pilot's numbers justify it, automate the
+**research/discovery workflow** next (crawler/search → "possible admissions update" → research
+queue → human verification → `admission_cycles` → SchoolOye) — AI as a research assistant
+surfacing leads, never as the publishing authority. If the numbers don't justify it, the cost of
+finding that out is a manual pilot, not months of backend engineering.
+
+**City launch is explicitly kept a separate decision from this pilot.** `?admissions=open` already
+works technically for any city, but Prav does not want to launch Gurugram/Delhi/Haryana discovery
+merely to make the filter light up on thin, mostly-unverified inventory. Sequencing locked:
+(1) validate the admissions experience with manually-verified cycles, (2) measure demand,
+(3) decide which cities have enough verified inventory to justify launching discovery there,
+(4) only then enable those cities' discovery pages. `school_notices` / promotion-pipeline
+normalization is explicitly de-prioritized again in favor of this pilot.
+
+**Not yet decided with Prav:** which markets/schools to prioritize for the pilot given Jaipur is
+currently the only launched city (so it's the only place the `admissions=open` discovery list is
+reachable today, even though any individual school's own entity page — like DAV Gurugram's — is
+reachable and correct regardless of city-launch status). This affects how "measurable parent
+activity" gets read during the pilot and is flagged as the next thing to settle before starting to
+pick schools.
