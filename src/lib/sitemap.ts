@@ -53,6 +53,16 @@ export const LAUNCH_CITY_SLUGS = [
   "north-delhi",
   "new-delhi",
   "central-delhi",
+  "charkhi-dadri",
+  "fatehabad",
+  "jhajjar",
+  "jind",
+  "kaithal",
+  "kurukshetra",
+  "nuh-mewat",
+  "palwal",
+  "sirsa",
+  "yamunanagar",
 ];
 
 export function xmlEscape(value: string): string {
