@@ -3,11 +3,20 @@ import "server-only";
 /**
  * One entry per launched city, each with its own child sitemap route
  * (`src/app/sitemap-<slug>.xml/route.ts`) and a matching line in the index
- * (`src/app/sitemap.xml/route.ts`). Same pattern/sync-reminder as
- * LAUNCH_DISTRICT_SLUGS in public-adapter.ts and DISTRICT_SLUG on the home and
- * teacher-create pages. A literal per-city route file (not a dynamic segment)
- * because Next.js App Router doesn't support a folder name that mixes a
- * literal `.xml` suffix with a dynamic segment (`sitemap-[city].xml`).
+ * (`src/app/sitemap.xml/route.ts`). A literal per-city route file (not a
+ * dynamic segment) because Next.js App Router doesn't support a folder name
+ * that mixes a literal `.xml` suffix with a dynamic segment
+ * (`sitemap-[city].xml`).
+ *
+ * KNOWN GAP (2026-09-28): api.public_areas.is_launch is now computed from
+ * live data (db/views/040_public_areas.sql) and lists 22 launched districts,
+ * but this constant is still a hand-maintained list of 1 ("jaipur") — the
+ * routing itself (getPublicCityAreaBySlug) already follows the real
+ * is_launch flag, so the other 21 launched cities ARE reachable and
+ * unblocked for crawlers (robots.ts), just not yet proactively listed in a
+ * sitemap. Needs a route file per newly-launched city (copy
+ * sitemap-jaipur.xml/route.ts's pattern) plus an entry here and in the
+ * sitemap index — not done in this pass.
  */
 export const LAUNCH_CITY_SLUGS = ["jaipur"];
 
