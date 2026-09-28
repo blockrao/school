@@ -1404,3 +1404,30 @@ flow, admissions, school data, or database schema. `layout.tsx`'s only change is
 
 **Status: awaiting Prav's product/architecture review and explicit lock decision. Increment 10 has
 not been started, per instruction.**
+
+## Increment 9 — LOCKED
+
+Prav reviewed the pre-lock audit and approved: token naming, shell consistency, V1/V2 coexistence
+scoping, domain/data/SEO/schema isolation, and validation results all accepted as-is. One follow-up
+requested before lock: fix the remaining `:focus-visible` outline color gap (migrated shell links
+outside Button's so-* variants were still showing the v1 `ruled-blue` outline color) to use
+`--so-accent` instead, scoped to the migrated components only — not the global `:focus-visible` rule,
+so unmigrated v1 pages are unaffected.
+
+Applied `focus-visible:outline-so-accent` to all 23 remaining interactive elements across the migrated
+shell: SiteHeader's brand links (mobile + desktop) and search input, PrimaryNav's nav links,
+MobileMenu's hamburger/close buttons and nav links, MobileBottomNav's tabs, CityPicker's trigger button
+and listbox options, and all 13 SiteFooter links (nav, tools, for-schools, city-by-state, copyright/
+privacy/terms/grievance). Button's `soPrimary`/`soSecondary` variants already had this from the original
+Increment 9 work. Re-ran typecheck (clean), lint (clean, 280 files), and tests (123/123 passing) after
+the change — no regressions. Commit `31704cf`.
+
+**Status: 🔒 LOCKED by Prav.**
+
+Next: Increment 10 — Canonical School Page V2. Prav has previewed the direction (treat the supplied
+school-page HTML as the binding visual acceptance spec — desktop/mobile layouts, 360px mobile behavior,
+light/dark states, data states, provenance treatment, CTA hierarchy, fee presentation, section ordering,
+spacing/typography, responsive behavior — with no "reinterpret as merely similar" latitude), and flagged
+one architectural priority: reuse existing SchoolOye data/domain capabilities wherever they already
+satisfy the design, rather than creating new tables just to match the mockup visually. Awaiting Prav's
+formal Increment 10 kickoff/spec before starting any of that work.
