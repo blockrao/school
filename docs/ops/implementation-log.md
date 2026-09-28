@@ -573,3 +573,15 @@ same caution the original roadmap already gave Phase 6.
 - **Not yet done:** browser smoke test at mobile/desktop widths — same accepted, recorded limitation
   as Increments 4/5 (this sandbox's egress proxy blocks a real browser from reaching the Supabase
   host).
+
+## 2026-09-28 — Increment 6: LOCKED
+
+Prav reviewed the diff (`2c66d04`) and locked it. Specifically called out the zero-new-`.from()`-calls
+result as the important signal: "the Coverage Card has become a projection of the existing
+entity-page truth rather than another competing definition of school completeness... a healthy
+pattern we should preserve for future presentation work."
+
+**Next:** Increment 7 — structural refactor of the canonical page (photo/header integration,
+above-the-fold hierarchy, section ordering, mobile hierarchy, decision-strip visual polish,
+conditional module rendering) — named explicitly by Prav, not chosen from a fresh comparison this
+time. `school_notices` stays deferred as its own dedicated scoping pass after that, not bundled in.
