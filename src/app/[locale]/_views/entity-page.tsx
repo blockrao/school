@@ -28,6 +28,7 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
+import { recordBadge } from "@/lib/record-badge";
 import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
@@ -71,32 +72,6 @@ function schoolOrgType(maxClass: string | null): string {
   if (maxNum != null && maxNum <= 5) return "ElementarySchool";
   if (maxNum != null && maxNum >= 9) return "HighSchool";
   return "School";
-}
-
-/**
- * Header record badge — D7 / D-052 (docs/guidelines/content-and-trust.md §3).
- * Exactly two states: a school-verified page says "Official record"; every
- * other page (unclaimed, or claimed but not yet confirmed by the school)
- * says "Compiled by SchoolOye from public records". Never "Official" or a
- * logo outside the first state, and never a fabricated date.
- */
-function recordBadge(
-  verification: string,
-  verifiedAt: Date | null,
-): { label: string; official: boolean } {
-  const dateStr = verifiedAt
-    ? verifiedAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-    : null;
-  if (verification === "school_verified") {
-    return {
-      label: `Official record${dateStr ? ` · verified by school on ${dateStr}` : ""}`,
-      official: true,
-    };
-  }
-  return {
-    label: `Compiled by SchoolOye from public records${dateStr ? ` · ${dateStr}` : ""}`,
-    official: false,
-  };
 }
 
 function LocalityPageBody({
@@ -357,7 +332,7 @@ export async function SchoolView({
   const pill = deadlineToPill(deadlineState(deadlineInput, now));
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
-  const badge = recordBadge(school.verification, verifiedAt);
+  const badge = recordBadge(school.claim, school.verification, verifiedAt);
 
   const mapPoint =
     school.lat != null && school.lng != null
