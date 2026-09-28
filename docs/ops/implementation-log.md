@@ -1431,3 +1431,92 @@ spacing/typography, responsive behavior — with no "reinterpret as merely simil
 one architectural priority: reuse existing SchoolOye data/domain capabilities wherever they already
 satisfy the design, rather than creating new tables just to match the mockup visually. Awaiting Prav's
 formal Increment 10 kickoff/spec before starting any of that work.
+
+## Increment 10 — Canonical School Intelligence Page V2
+
+### False finding — "nearby schools" ≠ `listLocalityNeighbors()`
+
+During the Step 2/3 mapping, the Explore subagent's audit (and my own Step 3 table, which carried the
+finding forward without independently checking it) classified "Nearby & similar schools" as **Adapt**:
+reuse `listLocalityNeighbors()` / `api.public_locality_neighbors` as a distance-sorted upgrade to the
+existing similar-schools block. On reading the view's actual SQL during implementation, this is wrong:
+`public_locality_neighbors` is a **locality-to-locality adjacency table** (which localities border which
+other localities), not a school-to-school or school-to-point distance capability. It has no relationship
+to individual schools at all.
+
+**Root cause**: I carried forward the sub-agent's Step 2 audit finding into the Step 3 mapping without
+checking the view's actual join logic myself. The name plausibly suggested school proximity; the schema
+did not.
+
+**Correction**: "Nearby & similar schools" has no existing distance-sorted capability to adapt. The
+entity page's existing `similarSchools` (same-locality/same-board heuristic, not distance) is unchanged
+in this increment. A real distance-sorted "nearby schools" feature remains a genuine future gap, not
+something Increment 10 can ship by reuse. No code change resulted from this finding — it only corrects
+the mapping table Prav reviewed; recorded here per this project's standing rule to preserve false
+findings rather than silently overwrite them.
+
+### False finding / reconciliation — `field_provenance` "empty/unused"
+
+The Step 2 audit subagent's report stated `field_provenance` is "empty/unused." Prav flagged this against
+an earlier-session finding of ~85k rows and required direct verification against live production data
+before either claim was accepted or discarded.
+
+**Verification** (via `mcp__Supabase__execute_sql` against project `ybevzpryuvgxclkhdjld`): the table is
+**not empty** — 85,068 rows exist, from a bulk UDISE+ import snapshot. Both claims were partially right
+for different reasons: the table has real data (not empty), but it is "unused" in the sense that matters
+for a public UI — zero rows have any public read path (no RLS policy, no `api.*` view), and 100% of rows
+have `verified_at IS NULL` and `verified_by IS NULL` — i.e. none of the 85k rows represents a verification
+event; they are import metadata, not verification records. Roughly a quarter also carry
+`licence_class = 'internal'`, which would not be public-safe even if a read path existed.
+
+**Consequence**: this reconciliation is why `classifySchoolProvenance`/`classifyAdmissionProvenance`
+(`src/lib/provenance.ts`) are deliberately NOT wired to `field_provenance` — doing so would require both
+a new public read path (an access-control change, stopped for per this increment's rule) and would still
+misrepresent import metadata as verification. The four-tier ProvenanceChip is driven only by the
+`verification`/`claim` enum columns already exposed on `schools` and `admission_cycles`.
+
+### Schema-clean implementation — commit `a2a19e5`
+
+Implemented the portion of the Step 3 plan requiring no schema, RLS, or `api.*` view changes:
+
+- **Shortcuts row + sticky sub-nav**: plain anchor-link (`<a href="#id">`) navigation to page sections,
+  built from a `sections` array already derived from existing page data (no new query). No scrollspy or
+  hide-on-scroll JS — a deliberate simplification, documented in-file, not a silently dropped requirement.
+- **ProvenanceChip v1** (`src/lib/provenance.ts`, `src/components/ui/provenance-chip.tsx`,
+  `src/lib/provenance.test.ts`): four-tier classifier (`school_verified` / `ops_checked` /
+  `source_checked` / `unverified`) per Prav's refined semantic mapping, wired to the school header and to
+  each admission-cycle row. Both call sites use columns already exposed by existing queries/views
+  (`schools.claim`/`verification`, `api.public_school_admissions.verification`/`last_checked_at`) — no
+  schema or view change needed for this wiring.
+- **Map wiring**: `AreaMapLazy` wired into the Location section using the existing `mapPoint` data,
+  previously computed but not rendered.
+- **Sticky rail**: the right-hand `<aside>` made `md:sticky md:top-20`.
+- **Footer trust disclaimer**: static paragraph clarifying "verified" means SchoolOye checked a fact
+  against its source, not a rating/recommendation, and that SchoolOye carries no paid listings.
+- **CoverageCard `variant="ledger"`** (`src/components/ui/coverage-card.tsx`): added as an opt-in prop,
+  default `"buckets"` unchanged, reproducing the design's "coverage B" one-row-per-topic layout using the
+  same `CoverageTopic[]` data (no new fields fabricated — the design's per-topic source/date labels are
+  not rendered, since that data isn't tracked at that granularity). **Not yet activated** on the live
+  entity page — the call site still uses the default `"buckets"` variant. Open item for Prav: whether to
+  switch to `variant="ledger"` now or keep buckets.
+- Whole page localized to so-* v2 tokens via an added `[container-type:inline-size] bg-so-bg
+  font-so-sans text-so-ink` wrapper, without touching global `<body>`/`<html>` — preserves Increment 9's
+  v1/v2 coexistence rule.
+
+**Explicitly not touched**: JSON-LD (`schoolJsonLd`/`breadcrumbJsonLd`/`faqJsonLd`), auth/session logic,
+any Supabase query, any migration file, any RLS policy. Verified via `git diff --stat` (exactly 5 files:
+`entity-page.tsx`, `coverage-card.tsx`, `provenance-chip.tsx` [new], `provenance.ts` [new],
+`provenance.test.ts` [new]) and by grep for JSON-LD/query/auth symbols.
+
+**Validation**: `pnpm run typecheck` clean; `pnpm run lint` (biome) clean, 283 files, no fixes needed;
+`pnpm test` 127/127 passing across 17 files (up from 123/16 — new `provenance.test.ts`). No regressions.
+
+**Deliberately isolated from this commit** (per Prav's instruction not to let "schema-clean" become
+"commit everything before review"): News (`school_posts`), Recent admission updates (`admission_cycles`
+audit projection), and the `api.public_school_admissions` column extension (`documents_required`,
+`dob_from`, `dob_to`) all require new public read surfaces and are held out as separate migration
+proposals for independent review — see "Three pending migration proposals" below. No migration file was
+created or applied in this commit.
+
+**Status: schema-clean portion complete, committed (`a2a19e5`) and pushed. Awaiting Prav's review of the
+three migration proposals before any of News / Recent admission updates / Admissions deepening ships.**
