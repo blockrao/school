@@ -5,6 +5,7 @@ import { EligibilityChecker } from "@/components/admissions/eligibility-checker"
 import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
+import { ClaimCard } from "@/components/ui/claim-card";
 import { CoverageCard } from "@/components/ui/coverage-card";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
@@ -19,6 +20,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
+import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
 import { buildCoverage } from "@/lib/coverage";
 import {
   getAdmissionDeadlinesBySchoolId,
@@ -37,6 +39,7 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
+import { normalizeExternalUrl } from "@/lib/external-url";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
@@ -434,6 +437,12 @@ export async function SchoolView({
         }
       : null;
 
+  // Increment 10R — every external href/JSON-LD URL built from the stored
+  // `website` value goes through this once, here, rather than being
+  // re-normalized (or not) at each call site. See external-url.ts's header
+  // for why: most stored website values have no scheme.
+  const websiteUrl = normalizeExternalUrl(school.website);
+
   const orgType = schoolOrgType(school.max_class);
   const schoolJsonLd = {
     "@context": "https://schema.org",
@@ -477,7 +486,7 @@ export async function SchoolView({
       ? { areaServed: { "@type": "Place", name: school.locality_name } }
       : {}),
     url: `${siteUrl}${canonicalPath}`,
-    ...(school.website ? { sameAs: school.website } : {}),
+    ...(websiteUrl ? { sameAs: websiteUrl } : {}),
   };
 
   const breadcrumbJsonLd = {
@@ -552,17 +561,25 @@ export async function SchoolView({
   // the exact same condition already used to render that section further
   // down the page — never a duplicated/looser check that could link to a
   // section that doesn't actually render.
+  // Increment 10R — reordered to match the page's actual top-to-bottom DOM
+  // order exactly (the Increment 10 audit found this list didn't: it listed
+  // Admissions before School facts while the page has always rendered Facts
+  // first). A destination-aware nav that misstates document order is a
+  // correctness bug, not a style choice — this list is the single source of
+  // truth for both the shortcuts row and the sticky sub-nav below, so fixing
+  // it here fixes both at once. Keep this in sync with the JSX order any
+  // time a main-column section is added, removed, or moved.
   const sections: { id: string; label: string; show: boolean }[] = [
+    { id: "facts-heading", label: "School facts", show: true },
     { id: "admissions-heading", label: "Admissions", show: true },
     {
       id: "admission-updates-heading",
       label: "Recent updates",
       show: recentAdmissionUpdates.length > 0,
     },
-    { id: "facts-heading", label: "School facts", show: true },
+    { id: "news-heading", label: "News", show: news.length > 0 },
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
-    { id: "news-heading", label: "News", show: news.length > 0 },
     { id: "coverage-heading", label: "What SchoolOye knows", show: true },
     { id: "similar-heading", label: "Similar schools", show: similarSchools.length > 0 },
     { id: "contact-heading", label: "Contact", show: true },
@@ -750,9 +767,9 @@ export async function SchoolView({
               Call
             </a>
           )}
-          {school.website && (
+          {websiteUrl && (
             <a
-              href={school.website}
+              href={websiteUrl}
               target="_blank"
               rel="noopener noreferrer nofollow"
               className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
@@ -923,12 +940,25 @@ export async function SchoolView({
               )}
             </section>
 
+            {/* Increment 10R — Claim card, mobile position. Design (C16/D2): "Claim
+              card ... after Fees on mobile" — Fees itself stays deferred (Prav's
+              standing decision), so this sits where Fees would otherwise have been:
+              directly after Admissions. `md:hidden` — the desktop instance renders
+              in the right rail instead (see the `<aside>` below); same component,
+              same data, two responsive positions rather than one reflowed layout. */}
+            {school.claim === "unclaimed" && (
+              <ClaimCard schoolId={school.id} schoolName={name} className="md:hidden" />
+            )}
+
             {/* Increment 10 — "Recent admission updates". Reads only
               api.public_admission_updates (db/views/096_public_admission_updates.sql),
               which already excludes school-level audit noise, raw before/after, actor,
               and no-op rows — nothing further to filter here. Sits directly after
-              Admissions since it's the same subject (this school's admission cycles),
-              not lumped in with News (school-authored content) below. */}
+              Admissions since it's the same subject (this school's admission cycles).
+              Increment 10R: the description line now names every allowlisted field
+              that actually changed (status/opens_on/closes_on/results_on), not just
+              status — a row where only a date changed used to render as a
+              content-free "Admission updated" line with nothing saying what changed. */}
             {recentAdmissionUpdates.length > 0 && (
               <section aria-labelledby="admission-updates-heading" className="flex flex-col gap-3">
                 <h2 id="admission-updates-heading" className="font-display text-card font-semibold">
@@ -946,7 +976,9 @@ export async function SchoolView({
                           : "Admission updated"}
                         {" — "}
                         {u.academic_year} · Class {u.class_code.replace(/^c/, "")}
-                        {u.new_status ? ` — now ${u.new_status.replace(/_/g, " ")}` : ""}
+                      </span>
+                      <span className="text-meta text-muted-ink">
+                        {describeAdmissionUpdateChanges(u)}
                       </span>
                       <span className="text-meta text-muted-ink">
                         {new Date(u.occurred_at).toLocaleDateString("en-IN", {
@@ -958,6 +990,64 @@ export async function SchoolView({
                     </li>
                   ))}
                 </ul>
+              </section>
+            )}
+
+            {/* Increment 10R — News, moved up from just-before-Coverage (flagged in the
+              Increment 10 audit as inconsistent with the design's "What's happening"
+              grouping, C19) to sit directly alongside Admissions/Recent admission
+              updates instead — the page's other "what's currently happening at this
+              school" content. This does not build the design's unified card or the
+              /events, /news hub routes it references (Events stays out of scope per
+              Prav's standing decision; a school-page-local News list is what's
+              authorized) — it only repositions the existing, unchanged News section
+              to a hierarchy position consistent with that grouping. Still renders
+              nothing when empty — no placeholder box. */}
+            {news.length > 0 && (
+              <section aria-labelledby="news-heading" className="flex flex-col gap-3">
+                <h2 id="news-heading" className="font-display text-card font-semibold">
+                  News
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {news.map((post) => (
+                    <article
+                      key={post.id}
+                      className="flex flex-col gap-1 rounded-md border border-rule p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-display font-semibold">{post.title}</span>
+                        {post.kind === "press" && (
+                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+                            Press
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-body text-muted-ink">{post.body}</p>
+                      <div className="flex items-center gap-2 text-meta text-muted-ink">
+                        <span>
+                          {new Date(post.published_at).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {post.source_url && (
+                          <>
+                            <span>·</span>
+                            <a
+                              href={post.source_url}
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                              className="font-semibold text-ruled-blue"
+                            >
+                              Source ↗
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
               </section>
             )}
 
@@ -1024,62 +1114,6 @@ export async function SchoolView({
               </section>
             )}
 
-            {/* Increment 10 — News. Reads only api.public_school_news
-              (db/views/095_public_school_news.sql), already scoped to approved,
-              published posts for this school. Placed as another "answer" section
-              (content about the school itself), before the coverage/trust block,
-              per the same locked hierarchy the comment below describes — this is a
-              placement call made without re-walking the full design-block order
-              during this pass; flagged for a look if the reference design places
-              News elsewhere. */}
-            {news.length > 0 && (
-              <section aria-labelledby="news-heading" className="flex flex-col gap-3">
-                <h2 id="news-heading" className="font-display text-card font-semibold">
-                  News
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {news.map((post) => (
-                    <article
-                      key={post.id}
-                      className="flex flex-col gap-1 rounded-md border border-rule p-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-display font-semibold">{post.title}</span>
-                        {post.kind === "press" && (
-                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
-                            Press
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-body text-muted-ink">{post.body}</p>
-                      <div className="flex items-center gap-2 text-meta text-muted-ink">
-                        <span>
-                          {new Date(post.published_at).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                        {post.source_url && (
-                          <>
-                            <span>·</span>
-                            <a
-                              href={post.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="font-semibold text-ruled-blue"
-                            >
-                              Source ↗
-                            </a>
-                          </>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
-
             {/* Increment 7: Coverage Card moved here — after the substantive
               "answer" sections (Admissions, About, School facts, Location,
               Teachers) and before Similar schools/discovery, per the locked
@@ -1123,6 +1157,13 @@ export async function SchoolView({
             only. `top-20` clears the sticky sub-nav above (h-12 + border)
             plus a small gap so the rail never sits flush under it. */}
           <aside className="flex flex-col gap-4 md:sticky md:top-20 md:self-start">
+            {/* Increment 10R — Claim card, desktop position (design D2: "Claim card
+              moves to the rail" for a sparse/unclaimed record). `hidden md:flex` —
+              the mobile instance renders inline after Admissions instead (above). */}
+            {school.claim === "unclaimed" && (
+              <ClaimCard schoolId={school.id} schoolName={name} className="hidden md:flex" />
+            )}
+
             <section
               aria-labelledby="contact-heading"
               className="flex flex-col gap-2 rounded-md border border-rule p-4"
@@ -1149,14 +1190,14 @@ export async function SchoolView({
                 </div>
                 <div>
                   <span className="text-meta font-semibold text-muted-ink">Website: </span>
-                  {school.website ? (
+                  {websiteUrl ? (
                     <a
-                      href={school.website}
+                      href={websiteUrl}
                       className="font-semibold text-ruled-blue"
                       target="_blank"
                       rel="noopener noreferrer nofollow"
                     >
-                      {school.website.replace(/^https?:\/\//, "")}
+                      {websiteUrl.replace(/^https?:\/\//, "")}
                     </a>
                   ) : (
                     <NotYetPublished />
