@@ -88,3 +88,16 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
   public data) that would need the same client-side-personalization
   treatment, or full Cache Components, to unlock. Flagged, not done this
   pass.
+
+  2026-09-28 sitemap audit: Gurugram was a fully launched city
+  (`LAUNCH_DISTRICT_SLUGS` in public-adapter.ts already had it, city page and
+  schools live) but `LAUNCH_CITY_SLUGS` in `lib/sitemap.ts` only listed
+  Jaipur, and no `sitemap-gurugram.xml` route existed — every Gurugram city/
+  locality/school page was invisible to Search Console via the sitemap.
+  Fixed: added `sitemap-gurugram.xml/route.ts` (mirrors sitemap-jaipur.xml)
+  and registered "gurugram" in `LAUNCH_CITY_SLUGS`. Also found, NOT fixed
+  this pass (touches the same still-dynamic pages flagged above): the
+  school teacher-roster page (`/[city]/[entitySlug]/teachers`) is
+  conditionally indexable (`robots: { index: team.length > 0 }`) but isn't
+  emitted into any sitemap at all — moot today since no school has an
+  active teacher affiliation yet, but a real gap once that data exists.
