@@ -7,10 +7,30 @@ const isPreview = process.env.VERCEL_ENV === "preview";
 
 // OWASP secure-headers baseline. No third-party scripts/styles are loaded
 // anywhere in this app today (checked: no GTM/Sentry/analytics tags), so the
-// CSP can stay strict — 'unsafe-inline' is kept only for style-src, which
-// Tailwind's inlined critical CSS needs without a nonce-based setup. Supabase
-// is reached from the browser client (src/lib/db/browser.ts), so connect-src
-// allows *.supabase.co for the REST/Auth/Realtime calls it makes.
+// CSP can stay strict — 'unsafe-inline' is kept for style-src (Tailwind's
+// inlined critical CSS needs it without a nonce-based setup) AND for
+// script-src.
+//
+// script-src MUST allow inline execution: Next.js's own App Router runtime
+// ships its RSC flight-data payload and hydration bootstrap as inline
+// <script> tags on every page (this is not a third-party script, it's how
+// React hydrates at all). Without 'unsafe-inline' here, the browser silently
+// refuses every one of those inline scripts (CSP violation, logged to the
+// console, not surfaced anywhere in the UI) and the page never hydrates —
+// every Client Component's event handlers (CityPicker, MobileMenu's
+// hamburger, the mobile bottom nav, etc.) go dead while the HTML still looks
+// complete, which reads as "the button doesn't do anything" rather than an
+// error. Found 2026-09-28 while chasing exactly that report.
+//
+// The properly strict fix is a per-request nonce generated in src/proxy.ts
+// (script-src 'nonce-{value}' 'strict-dynamic') per Next's CSP guide
+// (node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md),
+// but that requires every page under it to render dynamically — Next only
+// applies a nonce during server-side rendering of a per-request CSP header,
+// so static generation/ISR (which D-121's discovery/entity pages rely on for
+// caching) is incompatible with it. Revisit as a deliberate architecture call
+// if stricter script-src is ever required; don't flip this back without also
+// solving that dynamic-rendering tradeoff.
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -21,7 +41,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
