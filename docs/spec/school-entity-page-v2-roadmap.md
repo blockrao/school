@@ -1,11 +1,18 @@
 # School entity page v2 — architecture & sequencing roadmap
 
-Status: **in progress. Increment 4 (claim flow, `914614f`) and Increment 5 (identity band +
-decision strip, `9de46f6`) are locked** — see `docs/ops/implementation-log.md` for what actually
-shipped and what was found along the way. This doc's Phase 0 and Phase 1 sections below have been
-corrected to match those findings (see the "2026-09-28 correction" notes inline); Phases 2–7 are
-still as originally proposed and unvalidated against live data — treat them as a starting sketch,
-not a locked plan, until each is actually scoped the way Phase 1 just was.
+Status: **in progress. This status line was stale for several increments — see the "2026-09-28
+reconciliation" note in `docs/ops/implementation-log.md` for the correction.** Locked so far:
+Increment 4 (claim flow, `914614f`), Increment 5 (identity band + decision strip, `9de46f6`),
+Increment 6 (coverage card, `2c66d04`), Increment 7 (canonical page structural refactor, `edc16cf`),
+and the admissions display-correction increment (`4f8afa9`, closed-cycle/primary-cycle fixes from
+the DAV Public School Gurugram real-data test). Phase 1 (identity, decision strip, **coverage
+card**) is now fully shipped except the updates timeline — this doc's Phase 1 section below still
+says "not built" for coverage card, which is now wrong; see the implementation log for the live
+status per section, not this doc's Phase 1 checklist. Phase 0 and Phases 2–7 remain as originally
+proposed and unvalidated against live data — treat them as a starting sketch, not a locked plan,
+until each is actually scoped. **None of Phases 0, 2, 3, 4, 5, or 6 has any implementation today** —
+confirmed by decoding the actual design artifact and reading the live page section-by-section
+(2026-09-28), not by re-reading this roadmap's own paraphrase of it.
 
 Source of truth for the target design: `docs/spec/school-entity-page-v2-design.html` (committed
 `3af9412`). This roadmap translates that design into buildable, dependency-ordered phases. Each

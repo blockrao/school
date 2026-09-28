@@ -1038,3 +1038,72 @@ had told Prav about it.
 - Research depth: can vary by market without affecting whether a page exists.
 - Admissions pilot: can include Jaipur, Gurugram, Delhi, and Haryana immediately — no city-launch
   gating to sequence behind.
+
+## 2026-09-28 — Design reconciliation: canonical page vs. `school-entity-page-v2-design.html`
+
+Prav flagged that the live canonical page is "not even close to" the agreed design. Checked by
+decoding the actual design artifact rather than trusting `school-entity-page-v2-roadmap.md`'s
+summary of it (that roadmap doc is itself stale — still headed "Increment 4 and 5 locked" — so it
+predates Increments 6-7 and everything in this log since). `school-entity-page-v2-design.html` is a
+compressed multi-file artifact snapshot (html+css+js), not plain markup — decoded it directly
+(gzip+base64 inside the committed file) to extract the real section list rather than re-reading the
+roadmap's paraphrase of it.
+
+**The design's actual section order, top to bottom:** Identity header → "What's happening at
+{name}" (events + News) → Official notices → At a glance (decision strip) → Admissions module →
+Fees module → "What SchoolOye knows about {name}" (coverage) → Academics & outcomes →
+Infrastructure & safety → Contact → Parent voice (reviews) → nearby/similar schools → Updates
+timeline.
+
+**Live page today, section by section:**
+- ✅ Identity header — built (Increment 5).
+- ❌ **"What's happening" (events + News feed) — not built at all.** No `events` table, no
+  News-to-school tagging. Matches Phase 5, never started.
+- ❌ **Official notices — not built at all.** No `school_notices` table exists (Phase 0, the
+  foundational schema for school self-service publishing) — this is also why schools have no real
+  write path into the product beyond the claim flow, a gap noted repeatedly in earlier entries.
+- ✅ At a glance / decision strip — built (Increment 5), 2-3 of 6 slots carry real data
+  (Location, Entry classes, and now Admissions when a verified cycle exists); the rest render an
+  honest "Not yet verified."
+- 🟡 **Admissions module — built as a fraction of the design.** Live version: cycle list +
+  deadline margin + form URL + fee, per cycle (today's fixes made this trustworthy for the closed-
+  vs-open case). Design also specifies: entry classes/seats/age table, an inline "check age
+  eligibility" tool, application process steps, and a documents checklist. A standalone age-
+  eligibility checker already exists (`/tools/age-eligibility`, `eligibility-checker.tsx`) but is
+  **not embedded on the school page** — it's a separate, unlinked tool today.
+- ❌ **Fees module — not built at all.** `fee_items` has 0 rows, no public read path, no school
+  submission path. Explicitly deferred (Phase 3) pending the fee-disagreement design decision noted
+  in the roadmap (school-provided vs. parent-reported "two figures" UI) — that decision itself was
+  never confirmed with Prav.
+- ✅ "What SchoolOye knows" / coverage card — built (Increment 6), matches the design's intent
+  (record status: count + sources + missing-topics), variant A as the roadmap recommended.
+- ❌ **Academics & outcomes — not built at all.** No table anywhere for board results by year or
+  staff counts by category. Matches Phase 4, never started.
+- ❌ **Infrastructure & safety — not built at all.** `school_facilities` exists, 0 rows, unused; no
+  safety-certificate-with-expiry table exists anywhere. Matches Phase 4, never started.
+- ✅ Contact — built, plus an enquiry form the design doesn't explicitly call out as its own module
+  (may be folded into Contact in the design; not re-verified against the design's Contact section
+  detail in this pass).
+- ❌ **Parent voice (reviews) — not built at all.** No reviews subsystem exists. Matches Phase 6,
+  never started — the roadmap itself calls this the most architecturally novel, highest-risk phase.
+- ✅ Similar/nearby schools — built.
+- ❌ **Updates timeline — not built.** Was explicitly held out of Increment 5's scope; still not
+  picked up since (Phase 1 backlog item, `field_provenance`/`audit_log`-derived, no new schema
+  needed).
+
+**Honest summary: roughly half the design's named sections have zero implementation today** —
+events/notices feed, official notices, fees, academics & outcomes, infrastructure & safety, parent
+voice, and the updates timeline are all fully unbuilt. Of what is built, only the decision strip and
+the new Admissions fix are "real data, not a mock"; identity, coverage, and similar-schools sections
+work as designed; Admissions is a real but partial implementation of its design module.
+
+**This is not a surprise finding relative to the roadmap's own tracking** — Phases 0 and 2-6 have
+been marked unbuilt in `school-entity-page-v2-roadmap.md` since it was written, and the "Recommended
+next increment" section at the bottom of that doc has said "not yet chosen with Prav" since before
+today's admissions detour. What's actually wrong is that **the roadmap doc itself was never updated
+after Increment 6 or 7 shipped**, so anyone reading it (including a fresh session) would get a
+stale status. Flagged as the immediate next step — correct the roadmap doc's status header and
+Phase 1 entry to reflect Increments 6-7, then get an explicit decision from Prav on which of the six
+unbuilt sections (events/notices, fees, academics, infrastructure, parent voice, updates timeline)
+is the next one to actually build, rather than continuing to treat the admissions detour as if it
+were the whole roadmap.
