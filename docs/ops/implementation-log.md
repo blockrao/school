@@ -287,3 +287,32 @@ client now has a third caller beyond `/my`/`/portal`/`/ops`).
 
 **Explicitly not touched, per Prav's scope lock:** no schema change, no migration, no new RLS
 policy, no auth/`/sign-in` work (already confirmed working — see the correction entry above).
+
+## 2026-09-28 — Increment 4: LOCKED
+
+Prav reviewed the diff (`914614f`) and verification results and locked the increment as complete,
+subject only to a normal browser smoke check of item D's CTA transition (see caution below) — not a
+blocker to the lock itself. His review specifically called out that this increment validated a
+standing architectural principle for SchoolOye: reuse the existing domain model (`school_claims`'
+own lifecycle) rather than inventing new state (a `claim_pending` column, a new status table, a
+generic workflow engine) merely to make the UI easier to build. No new state was introduced.
+
+**Recorded as debt, not acted on:** the `school_claims(school_id, user_id)` lookup is a sequential
+scan (no index beyond the table's own `id` PK — see the EXPLAIN ANALYZE findings above). Cheap today
+at ~2 rows; explicitly *not* worth indexing now — Prav's own words: "Do not add an index now just
+because EXPLAIN says seq scan. That's premature optimization at this scale." Revisit when claim
+volume becomes material.
+
+**Outstanding, not yet performed:** real-browser smoke test of `ClaimStatusLink`'s hydration
+transition (`Claim it free` → session resolves → `Manage school` / `Claim pending` / `Claim again`),
+to check for a visible flicker for signed-in visitors. Still blocked in this sandbox (egress proxy
+blocks the Supabase host from a real browser render) — the same limitation recorded for this
+increment's other browser-level checks above. Analysis without a live render: a flicker, if any,
+only affects signed-in visitors on this page (the default state already matches what a signed-out
+visitor should see, so there's nothing to swap for the common case). If Prav's own browser check
+shows a visible flicker, the fix stays inside `ClaimStatusLink` (e.g. hold a neutral/skeleton state
+until `getSession()` resolves) — not a change to the entity page's static/ISR rendering.
+
+**Next increment:** per Prav's direction, work moves back to the public school entity page —
+Decision Strip + public page shell (v2 design, roadmap Phase 1) — rather than further claim
+infrastructure.
