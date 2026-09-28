@@ -552,7 +552,11 @@ export async function SchoolView({
           {school.about_en && (
             <section aria-labelledby="about-heading" className="flex flex-col gap-2">
               <h2 id="about-heading" className="font-display text-card font-semibold">
-                About {name}
+                {/* D7 / spec §7.2 item 7: claimed pages show the school's own text under
+                    "From the school"; unclaimed pages show SchoolOye's factual summary
+                    under "About this school" — never attribute unverified text to the
+                    school itself. */}
+                {school.claim === "claimed" ? "From the school" : "About this school"}
               </h2>
               <p className="text-body leading-relaxed">{school.about_en}</p>
             </section>
