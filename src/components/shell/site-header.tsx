@@ -28,7 +28,10 @@ export function SiteHeader({
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
           <MobileMenu locale={locale} areas={areas} dict={dict} />
-          <Link href={homePath(locale)} className="text-card font-bold text-so-accent">
+          <Link
+            href={homePath(locale)}
+            className="text-card font-bold text-so-accent focus-visible:outline-so-accent"
+          >
             {t(dict, "common.brand")}
           </Link>
         </div>
@@ -40,7 +43,10 @@ export function SiteHeader({
 
       {/* Desktop: logo, primary nav, search, city, locale switch, sign in */}
       <div className="hidden h-17 items-center gap-7 px-10 md:flex">
-        <Link href={homePath(locale)} className="text-section font-bold text-so-accent">
+        <Link
+          href={homePath(locale)}
+          className="text-section font-bold text-so-accent focus-visible:outline-so-accent"
+        >
           {t(dict, "common.brand")}
         </Link>
         <PrimaryNav locale={locale} areas={areas} dict={dict} />
@@ -68,7 +74,7 @@ export function SiteHeader({
               type="search"
               name="q"
               placeholder={t(dict, "common.search_placeholder")}
-              className="w-full min-w-0 bg-transparent text-body text-so-ink outline-none placeholder:text-so-ink3"
+              className="w-full min-w-0 bg-transparent text-body text-so-ink outline-none placeholder:text-so-ink3 focus-visible:outline-so-accent"
             />
           </label>
         </Form>

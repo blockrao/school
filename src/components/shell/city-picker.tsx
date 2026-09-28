@@ -42,7 +42,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2 text-body font-medium text-so-ink"
+        className="flex items-center gap-1 px-2 text-body font-medium text-so-ink focus-visible:outline-so-accent"
       >
         {current?.name ?? "Choose city"}
         <svg
@@ -84,7 +84,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
                     aria-selected={active}
                     onClick={() => selectCity(area)}
                     className={cn(
-                      "flex w-full items-center justify-between px-3.5 py-2.5 text-left text-body",
+                      "flex w-full items-center justify-between px-3.5 py-2.5 text-left text-body focus-visible:outline-so-accent",
                       active
                         ? "bg-so-sunk font-semibold text-so-accent"
                         : "text-so-ink hover:bg-so-sunk",

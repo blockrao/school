@@ -35,7 +35,7 @@ export function MobileMenu({
         aria-label={t(dict, "common.menu")}
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="flex h-11 w-11 items-center justify-center text-so-ink"
+        className="flex h-11 w-11 items-center justify-center text-so-ink focus-visible:outline-so-accent"
       >
         <svg
           width="22"
@@ -70,7 +70,7 @@ export function MobileMenu({
                 type="button"
                 aria-label={t(dict, "common.close_menu")}
                 onClick={() => setOpen(false)}
-                className="flex h-11 w-11 items-center justify-center text-body text-so-ink"
+                className="flex h-11 w-11 items-center justify-center text-body text-so-ink focus-visible:outline-so-accent"
               >
                 ×
               </button>
@@ -91,7 +91,7 @@ export function MobileMenu({
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex min-h-15 flex-col justify-center border-l-3 border-transparent px-4 py-1.5 hover:bg-so-sunk"
+                  className="flex min-h-15 flex-col justify-center border-l-3 border-transparent px-4 py-1.5 hover:bg-so-sunk focus-visible:outline-so-accent"
                 >
                   <span className="text-section font-semibold text-so-ink">{item.label}</span>
                   {item.note && <span className="text-meta text-so-ink3">{item.note}</span>}

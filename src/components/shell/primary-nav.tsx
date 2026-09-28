@@ -100,7 +100,7 @@ export function PrimaryNav({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "-mb-[3px] flex items-center border-b-3 px-3 text-body",
+              "-mb-[3px] flex items-center border-b-3 px-3 text-body focus-visible:outline-so-accent",
               active
                 ? "border-so-accent font-semibold text-so-accent"
                 : "border-transparent font-medium text-so-ink hover:text-so-accent",

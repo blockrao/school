@@ -94,7 +94,7 @@ export function MobileBottomNav({
             href={tab.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 border-t-3 text-meta",
+              "flex flex-col items-center justify-center gap-0.5 border-t-3 text-meta focus-visible:outline-so-accent",
               active
                 ? "border-so-accent font-semibold text-so-accent"
                 : "border-transparent font-medium text-so-ink3",

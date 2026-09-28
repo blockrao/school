@@ -47,31 +47,31 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
             </span>
             <Link
               href={`${localePrefix(locale)}/schools`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.schools")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/exams`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.entrance_exams")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/teachers`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.teachers")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/guides`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.guides")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/compare`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.compare_schools")}
             </Link>
@@ -83,19 +83,19 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
             </span>
             <Link
               href={`${localePrefix(locale)}/tools/age-eligibility`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.check_age_eligibility")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/alerts`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.whatsapp_alerts")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/admissions/help`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.admission_help")}
             </Link>
@@ -107,7 +107,7 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
             </span>
             <Link
               href="/for-schools"
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.claim_school_free")}
             </Link>
@@ -128,7 +128,7 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
                       <Link
                         key={area.slug}
                         href={cityPath(locale, area.state_slug, area.slug)}
-                        className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent"
+                        className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
                       >
                         {area.name}
                       </Link>
@@ -145,19 +145,19 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
           <div className="flex flex-wrap gap-x-5 gap-y-1">
             <Link
               href={`${localePrefix(locale)}/privacy`}
-              className="min-h-8 content-center text-so-ink3 hover:text-so-accent"
+              className="min-h-8 content-center text-so-ink3 hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.privacy")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/terms`}
-              className="min-h-8 content-center text-so-ink3 hover:text-so-accent"
+              className="min-h-8 content-center text-so-ink3 hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.terms")}
             </Link>
             <a
               href="mailto:grievance@schooloye.in"
-              className="min-h-8 content-center text-so-ink3 hover:text-so-accent"
+              className="min-h-8 content-center text-so-ink3 hover:text-so-accent focus-visible:outline-so-accent"
             >
               {t(dict, "footer.grievance_officer", { email: "grievance@schooloye.in" })}
             </a>
