@@ -82,6 +82,36 @@ that still needs building, not just confirming.
 
 </details>
 
+## City/district merge (2026-09-28): `city_id` now backfilled everywhere
+
+Every school row was missing `city_id` outside Jaipur/Gurugram (only 149 of 10,668 rows
+had it set) even though `district_id` was populated broadly — `city_id` was effectively
+useless as a filter. Per product decision, city and district are being treated as
+equivalent "for now": one `cities` row now exists per `districts` row (31 new rows
+inserted, `name_en`/`slug` copied straight from the district, `is_launch = false`), and
+every school's `city_id` was backfilled from its `district_id` via that 1:1 mapping.
+Result: 0 schools now lack a `city_id` (26 Jaipur-pincode rows that had no `district_id`
+at all were also fixed — `district_id = 75`, `city_id = 1` — while backfilling this).
+
+This surfaced a latent bug in the process: `schools_city_id_slug_key` is a `(city_id,
+slug)` unique constraint, and with `city_id` mostly `NULL` before this, duplicate slugs
+within the same district were silently allowed (Postgres treats each `NULL` as distinct).
+109 schools had a slug colliding with another school in the same district once a real
+`city_id` was assigned — their slugs were disambiguated with a short id suffix
+(`-xxxxxxxx`). This isn't a URL break: canonical URLs resolve by `school_code`/id, not by
+slug text (`010_public_schools.sql`'s header), so a stale slug elsewhere just 308s.
+
+**Did not implement:** a "City / District" UI label. `src/lib/db/public-adapter.ts`
+(`PublicCityArea.districtId`) and `CLAUDE.md` (now deleted, but this was explicit in it)
+both treat district as internal-only, never rendered. With every `cities` row now named
+identically to the district it was created from (1:1, same `name_en`), `cityName` alone
+already reads correctly everywhere ("Jaipur", "Gurugram", "Faridabad", "South West
+Delhi") — a "City / District" label would show as a redundant "Jaipur / Jaipur". If a
+real distinction is wanted later (e.g. Jaipur district's Chomu/Kotputli/Bassi towns vs.
+Jaipur city proper — `public_schools.locality_is_town` already flags this at the
+locality level), that's a locality/town-page concern, not a reason to duplicate the
+district name next to the city name on every page.
+
 ## Everything else in the frozen baseline
 
 The deferred-items table (full fact-versioning ledger, automated change detection, entity
