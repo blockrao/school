@@ -72,6 +72,10 @@ export async function GET(
   );
 
   return new Response(lines.join("\n"), {
-    headers: { "Content-Type": "text/markdown; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/markdown; charset=utf-8",
+      // The HTML page is the one to index; this twin is for AI agents (D-121).
+      Link: `<${canonicalUrl}>; rel="canonical"`,
+    },
   });
 }
