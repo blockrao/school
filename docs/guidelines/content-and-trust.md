@@ -2,7 +2,7 @@
 
 **Applies to:** every parent- or school-facing string, label and message (web, WhatsApp, OG images).
 **Updated:** 27 Sep 2026 · **Decisions:** N-13, D-010, D-024, D-026, D-049, D-052, D-062, D-081,
-D-084, D-086, D-087, D-088, D-089, D-100, D-107, D-110
+D-084, D-086, D-087, D-088, D-089, D-100, D-107, D-110, D-112
 
 ## 1. Trust law (never break)
 
@@ -14,6 +14,7 @@ D-084, D-086, D-087, D-088, D-089, D-100, D-107, D-110
 - **SchoolOye does not sell admissions.** Concierge copy says "paperwork assistance"; it never
   implies a seat, better chances or a relationship with a school (D-010).
 - Claiming a page is free and never changes search position (D-060).
+- Paid school products are never named or labelled "Verified", "Official" or "Partner" (D-112).
 
 ## 2. Provenance labels (one line under each fact)
 

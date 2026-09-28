@@ -9,7 +9,8 @@ with an entry here, this register wins until a new entry supersedes it.
   decision gets a new entry that names the one it replaces, and the old one is marked superseded.
 - **Reading/commenting copy:** "SchoolOye — Decisions Register" in Claude Docs. This file is canonical.
 - **Last consolidated:** 27 Sep 2026, from 12 planning docs, 17 repo docs, SQL view headers,
-  Product Specification v1.0 (23 Sep) and the project notes. *Master Strategy v3.1 not yet folded in.*
+  Product Specification v1.0 (23 Sep) and the project notes. Master Strategy v3.1 folded in 28 Sep
+  (D-112, D-113; its remaining ideas are mapped in the Master Document §4 and §12).
 
 ---
 
@@ -154,6 +155,8 @@ Experience → Distribution.
 | D-109 | The L3 index gate needs coordinates at pincode/locality precision or better; street/rooftop precision is required only for distance features | Street precision made D-094 unreachable |
 | D-110 | Alert quiet hours are 21:00–08:00 IST; the deadline-day reminder goes at 08:00 IST (D-098) | Tracker quiet window blocked D-098 |
 | D-111 | Clarifies D-073 vs D-091: table DDL is run by the data session (Claude Code in the data repo); sessions in this repo run views, `api` functions, grants, RLS and seeds only. The new `field_provenance` review column is named `review_state` to avoid clashing with the existing `review_status` enum | Authority ambiguity; enum name clash |
+| D-112 | No paid "Verified" tier (drops v3.1's "SchoolOye Verified ₹999/yr"). Paid school products may never be named or labelled Verified, Official or Partner, and never include "reputation management" that touches parent reports, the change log, stale markers or Sources | v3.1 §17 vs D-024, D-052, D-060, D-062, N-13 |
+| D-113 | Concierge is digital-only this season: no physical submission partners (CSC operators, couriers) and no offline support; revisit in the 30 Apr decision memo | v3.1 §21, Consumer Spine vs D-003 |
 
 ---
 
