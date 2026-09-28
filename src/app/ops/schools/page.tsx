@@ -87,6 +87,13 @@ export default async function OpsSchoolsPage({
       <p className="mt-1 text-body text-muted-ink">
         Search any school, open its full record, verify the facts, and publish.
       </p>
+      {/* Plain <a>: a file download, not a client-side navigation. */}
+      <a
+        href="/ops/export/schools"
+        className="mt-2 inline-flex min-h-10 items-center text-body font-semibold text-ruled-blue"
+      >
+        Download all school URLs (CSV)
+      </a>
 
       <form className="mt-6 flex flex-wrap items-end gap-3" action="/ops/schools">
         <label className="flex flex-col gap-1">
