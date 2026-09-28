@@ -86,7 +86,7 @@ Verified by reading the code; each spec's §2 has the detail. Fix P0 items befor
 | P2 | No audit triggers on `update_reports`, `correction_requests`, `admission_notices`, `ops_tasks` (N-06) | `ops-console.md` |
 | P2 | Messaging has no report/block (D-105); account export omits conversations/messages | `teachers.md` |
 | P2 | Several `/ops` actions ignore database write errors | `ops-console.md` |
-| P1 | JSON-LD `propertyID` said "Schooloy School ID" (`[entitySlug]/page.tsx`), against D-081 — **fixed in PR #3** | `school-entity-page.md` |
+| P1 | JSON-LD `propertyID` said "Schooloy School ID" (`[entitySlug]/page.tsx`), against D-081 — **fixed** (28 Sep) | `school-entity-page.md` |
 | P1 | `localeAlternates()` (`src/lib/seo.ts`) always emits `hi-IN`, against D-086 | `school-entity-page.md` §11.7 |
 | P1 | No `cacheTag` anywhere in `src/`, so `/api/revalidate` is a no-op — edits don't refresh cached pages | `school-entity-page.md` §12.4 |
 | P2 | `public-adapter.ts` keeps two unused raw sub-queries (`school_identifiers`, `field_provenance`) against N-10 | `data-and-trust.md` |
