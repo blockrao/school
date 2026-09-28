@@ -1107,3 +1107,52 @@ Phase 1 entry to reflect Increments 6-7, then get an explicit decision from Prav
 unbuilt sections (events/notices, fees, academics, infrastructure, parent voice, updates timeline)
 is the next one to actually build, rather than continuing to treat the admissions detour as if it
 were the whole roadmap.
+
+## 2026-09-28 — Real root cause of "not even close to the design": a second, unimplemented visual system
+
+Prav attached the design HTML directly and asked to port the canonical page to match it, with
+"coming soon" placeholders for anything unbuilt. Before starting, decoded the attachment (same
+compressed-artifact format as `school-entity-page-v2-design.html` — confirmed byte-identical
+content) and inspected its actual markup, not just its section headings as in the previous
+reconciliation entry. That surfaced something bigger than "missing sections":
+
+**The design uses a completely different visual system than what's live anywhere on the site
+today**, not a variation of it:
+- Design: CSS custom properties `--so-bg`, `--so-surface`, `--so-ink`, `--so-accent`, `--so-amber`,
+  etc. (light/dark pairs), font stack **IBM Plex Sans / IBM Plex Sans Devanagari / IBM Plex Mono**,
+  container-query-driven responsive type (`clamp(...,...cqi,...)`), a `data-so-theme` attribute for
+  theming.
+- Live site (`src/app/globals.css`, `src/app/layout.tsx`): a completely different, older token set —
+  `--color-ruled-blue`, `--color-margin-paper`, `--color-board-green`, etc. (the "school notebook"
+  brief), fonts **Anek Latin/Devanagari + Mukta**, ordinary Tailwind breakpoints, no container
+  queries.
+- Confirmed via grep: **zero occurrences of "IBM Plex", "so-bg", "so-accent", or any `--so-*` token
+  anywhere in `src/`.** The v2 visual design has never been implemented, not partially, not on any
+  page — every component built in Increments 1-7 (badges, cards, the decision strip, coverage card,
+  header, footer, nav) uses the old "notebook" theme's tokens (`font-display`, `text-ruled-blue`,
+  `border-rule`, `bg-margin-paper`, etc.).
+
+**This is the real answer to "not even close to the design."** It isn't primarily about the six
+missing content sections from the previous reconciliation entry (though those are also real) — it's
+that every section that *does* exist, including ones built to spec content-wise (identity, decision
+strip, coverage card), is wearing the wrong skin entirely. A visitor comparing the live page to the
+design would see a different font, different colors, different spacing system, and no dark mode —
+on every element, not just the missing ones.
+
+**Why this changes the scope of "port the existing page to match this HTML":** the design's own
+mockup bakes in shared site chrome — a full header (logo, search bar, "Tracker/Saved/Compare" nav)
+and presumably footer — using the v2 tokens. That chrome is shared across every page on the site
+(`SiteHeader`, `SiteFooter`, `MobileBottomNav` per earlier increments' references), not scoped to
+the entity page. Re-theming only the entity page's own content sections while leaving the shared
+header/footer on the old "notebook" tokens would leave every visit to the school page showing two
+different visual languages stitched together — old-theme chrome, new-theme content. Re-theming the
+shared chrome too means every other page (search, city pages, home, claim flow, ops) inherits the
+same token swap whether or not it's been individually re-verified against a v2 design for that page
+that doesn't exist.
+
+**Raised to Prav rather than decided here:** whether this is (a) a full site-wide token/font swap to
+the v2 system, done once as its own foundational increment ahead of any content-section work, or
+(b) scoped narrowly to the entity page's own content, accepting a visually inconsistent chrome/
+content seam until the rest of the site is redesigned to match. Not proceeding with either without
+his call — this is a large, hard-to-cheaply-reverse decision (a full re-theme touches every shared
+component; a scoped version means redoing the chrome later anyway), not an implementation detail.
