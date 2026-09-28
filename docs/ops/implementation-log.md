@@ -1286,3 +1286,121 @@ other surface (home, search, claim, teachers, ops) has no scheduled increment ye
 
 ### 9. Commit
 `2156bf2`.
+
+## Increment 9 — Pre-Lock Audit (8-Point Review)
+
+Prav requested a final pre-lock audit before deciding whether to lock Increment 9, with 8 specific
+points and an explicit instruction not to begin Increment 10 until after his review of this report.
+
+### 1. Token naming decision
+Renamed `--color-v2-*` / `v2-*` utilities / `v2Primary`/`v2Secondary` / `data-theme` to the design's
+literal names: `--color-so-*`, `so-*` utility classes, `soPrimary`/`soSecondary`, `data-so-theme`.
+No architectural reason existed to keep a separate `v2-*` scheme — the design reference already
+defines its own semantic names (`--so-bg`, `--so-ink`, `--so-accent`, etc.), and inventing a second
+naming layer on top would only add translation overhead with no benefit. No alias layer was created;
+the old names no longer exist anywhere in the codebase (verified by grep — only 2 harmless residual
+matches: the literal design filename `school-entity-page-v2-design.html`, and an explanatory code
+comment about why `v2-*` wasn't used). Applied across all 9 files Increment 9 touched. Committed
+separately from the original Increment 9 work (`2f1cf37`) so the rename has its own history entry.
+
+### 2. Global body/page ownership decision
+`<html>`, `<body>`, the global `a`/`a:hover` rule, and the global `:focus-visible` outline rule
+remain untouched and v1-scoped (`--color-copy-white`, `--color-ink`, `--font-body`,
+`--color-ruled-blue`). This is intentional, not an oversight: most existing page content relies on
+inherited `<body>` font-family and default link/text color rather than setting its own, so changing
+those globally would silently reskin every unmigrated page before its own content migration
+(Increment 10+) has happened. V2/so-* is correctly positioned as the *eventual* global system — the
+migration path is: shell first (this increment), then page-by-page content migration, then finally
+retarget `<html>`/`<body>`/the global `a`/`:focus-visible` rules to so-* once no page still depends on
+the v1 defaults. Forcing that switch now would violate the increment's explicit scope boundary and
+was correctly not done.
+
+One minor consistency gap found under this point: migrated plain links and buttons outside the two
+`Button` "so" variants (soPrimary/soSecondary) don't carry an explicit `focus-visible:outline-so-accent`
+override, so their keyboard-focus ring still resolves through the global v1 `:focus-visible` rule
+(`outline-color: var(--color-ruled-blue)`, `#2f4b9a`) rather than `--color-so-accent` (`#2e5b9a`).
+Severity: very low — the two hex values are nearly visually identical and both pass AA contrast on
+their respective surfaces — but noted here rather than silently left out of the audit.
+
+### 3. Theme cascade verification
+Checked all 4 activation combinations via CSS specificity analysis (no live browser available in this
+sandbox):
+- OS light, no override → `@theme`'s `:root { }` block applies (specificity 0,1,0). Correct light values.
+- OS dark, no override → `@media (prefers-color-scheme: dark) { :root:not([data-so-theme="light"]) { ... } }`
+  applies (specificity 0,2,0, wins over the plain `:root` regardless of source order). Correct dark values.
+- OS light, `data-so-theme="dark"` set → `:root[data-so-theme="dark"] { ... }` applies (specificity
+  0,2,0, outside any media query so it always matches once the attribute is present). Correct dark values.
+- OS dark, `data-so-theme="light"` set → the `:not([data-so-theme="light"])` selector inside the dark
+  media query no longer matches, so nothing overrides `@theme`'s light `:root` values. Correct light values.
+No ambiguous precedence in any case; the one theoretical tie (`:root:not(...)` vs `:root[data-so-theme="dark"]`,
+both 0,2,0) can't actually occur in the same evaluation, and even if it could, both blocks carry
+identical dark values, so there is no divergent-outcome risk. No toggle UI was built, per instruction —
+the architecture supports one being added later purely by setting the `data-so-theme` attribute, with
+no component-level changes required.
+
+### 4. Font-loading architecture audit
+Three separate `next/font/google` calls (`IBM_Plex_Sans`, `IBM_Plex_Sans_Devanagari`, `IBM_Plex_Mono`),
+each with a distinct `variable` name, correct subsets (`latin`, `devanagari`, `latin`), and weights
+matching the design reference's own Google Fonts `@import` exactly (400/500/600 for both Sans variants,
+400/500 for Mono) rather than pulling the full weight range. Fallback chains are sensible
+(`system-ui, sans-serif` / `ui-monospace, monospace`). No duplicate loading — grepped for repeated
+`next/font/google` imports of the same family, none found. Font infrastructure was not changed to work
+around the sandbox build failure, per instruction. Confirmed the Anek/Mukta font-fetch failure predates
+this increment: `pnpm run build` fails with the identical "Failed to fetch [FontName] from Google
+Fonts" error for all 6 fonts — the 3 pre-existing (Anek Latin, Anek Devanagari, Mukta, declared before
+Increment 9 and completely untouched by it) and the 3 new IBM Plex fonts alike. Same error class,
+same root cause (sandbox has no egress to fonts.googleapis.com), not a regression introduced by this
+increment's font additions.
+
+### 5. Static shell consistency audit
+Checked SiteHeader, SiteFooter, PrimaryNav, MobileMenu, MobileBottomNav, CityPicker, AuthStatusLink,
+and Button's two so-* variants:
+- Raw/hardcoded colors: `grep -nE "#[0-9a-fA-F]{3,6}|rgb\(|rgba\(|\[#"` across all 7 shell files plus
+  `button.tsx` returned zero matches. No hardcoded colors were introduced anywhere in the migrated code.
+- Legacy font declarations: grepped for `font-(anek|mukta|display|body)` and `--font-anek`/`--font-mukta`
+  across the same files — zero matches. No migrated component references a v1 font token.
+- Old `v2-*`/`data-theme` references: none remain (see point 1).
+- Dark-mode value consistency: the `@media (prefers-color-scheme: dark)` block and the
+  `:root[data-so-theme="dark"]` block carry identical values for all 13 tokens — verified line-by-line,
+  no divergence.
+- The one real finding is the focus-visible-outline-color gap noted under point 2 above.
+Overall: the migrated shell consistently consumes the so-* semantic token system with no stray v1
+references, no hardcoded values, and no inconsistent dark-mode values. No unrelated code was rewritten.
+
+### 6. Product/domain regression check
+`git diff --stat` against the pre-audit `HEAD` shows exactly the same 9 files Increment 9 touched,
+now with the rename applied on top — nothing else. Confirmed no changes to: URLs/routing (`src/lib/urls.ts`
+untouched), SEO metadata or JSON-LD (no `metadata`/`generateMetadata`/schema files in the diff),
+Supabase queries or RLS (no `db/` or `lib/db/` files in the diff except none — `site-footer.tsx`'s
+existing `listPublicAreas()` call and rendering logic are unchanged, only its CSS classes changed),
+auth behavior (`auth-status-link.tsx`'s `getSession()` logic and sign-in/account routing are untouched;
+only its `variant` prop's type union and the `Button` component it renders changed classes), claim
+flow, admissions, school data, or database schema. `layout.tsx`'s only change is a code comment
+(`font-v2-sans` → `font-so-sans` in a comment string) — the actual font-loading calls and `<html>`/
+`<body>` structure are byte-identical to before the rename.
+
+### 7. Validation results (post-rename)
+- `pnpm run typecheck` (`next typegen && tsc --noEmit`): ✅ clean, no errors.
+- `pnpm run lint` (`biome check .`): ✅ clean — 280 files checked, no fixes applied.
+- `pnpm test` (`vitest run`): ✅ 123/123 tests passed across 16 test files.
+- `pnpm run build`: not re-run after the rename beyond what's already documented — the pre-existing
+  Google Fonts sandbox egress failure (point 4) is the only blocker and is unrelated to this rename;
+  no visual rendering verification is claimed, per instruction, since this environment cannot render
+  the site live.
+
+### 8. Remaining risks
+- The focus-visible-outline-color gap (point 2/5) — very low severity, near-identical hex values,
+  both pass AA — but worth closing in a later pass by adding `focus-visible:outline-so-accent` to the
+  plain migrated links, for exact consistency rather than a color coincidence.
+- The v1/v2 dual-token-system period continues until Increment 10+ fully migrates page content — this
+  is expected and by design, not a defect, but means two visual systems coexist in the codebase until
+  that work completes.
+- Live visual/responsive/dark-mode rendering has still not been verified in an actual browser in this
+  sandbox (Google Fonts egress blocked); all verification to date is analytical (CSS specificity,
+  computed contrast ratios, grep-based consistency checks) rather than observed.
+
+### 9. Commit
+`2f1cf37`.
+
+**Status: awaiting Prav's product/architecture review and explicit lock decision. Increment 10 has
+not been started, per instruction.**
