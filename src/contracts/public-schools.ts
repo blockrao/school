@@ -3,7 +3,7 @@ import { z } from "zod";
 /** Mirrors db/views/010_public_schools.sql — api.public_schools. */
 export const publicSchoolContract = z.object({
   id: z.string(),
-  /** Internal 6-digit id — never in a URL or JSON-LD (D-121); only resolves legacy URLs. */
+  /** Internal 6-digit id — never in a URL or JSON-LD (D-121). */
   school_code: z.number(),
   /** Permanent public locator: /school/{slug}. Minted once, write-once (D-121). */
   slug: z.string(),

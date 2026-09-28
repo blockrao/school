@@ -10,18 +10,16 @@ import { publicEnv } from "@/lib/env";
  * still lives under src/app/[locale]/…, so this proxy:
  *   1. normalises: uppercase → lowercase (301); trailing slashes are removed
  *      by Next itself (permanent redirect);
- *   2. /en and /en/{root}/… → 301 to the unprefixed canonical form;
- *      /en/{legacy}/… (old city/school URLs that need a DB lookup to find their
- *      canonical) → rewritten internally so the legacy route answers with ONE
- *      301 straight to the canonical URL (one-hop rule, §8);
+ *   2. /en and /en/{root}/… → 301 to the unprefixed canonical form (kept as a
+ *      safety net for sign-in/email links; the old /{city}/… school and city
+ *      addresses were never indexed and now 404, D-122);
  *   3. /hi/… → 404 until a page has a real Hindi translation (§6);
  *   4. every other public path → rewritten internally to /en/… (no redirect).
  * Then, on the narrow set of auth paths, refreshes the Supabase session.
  */
 
 // First path segments of every route under src/app/[locale]/ that has a
-// canonical, unprefixed public form. Anything else under /en/ is a legacy
-// pattern answered by the legacy routes ([city], [city]/[entitySlug]).
+// canonical, unprefixed public form. Anything else is not a public URL (404).
 const LOCALE_ROOTS = new Set([
   "school",
   "schools",
@@ -59,9 +57,6 @@ function isNonLocale(pathname: string): boolean {
   return NON_LOCALE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-/** Legacy /school/{uuid}-{slug} (pre-D-121) — needs a DB lookup, so it's rewritten, not stripped. */
-const LEGACY_SCHOOL_ID_RE = /^\/school\/[0-9a-f]{8}-[0-9a-f]{4}-/;
-
 // Paths (internal, /en/-prefixed form) where the Supabase auth cookie needs refreshing.
 const AUTH_MATCH = [
   /^\/[^/]+\/my(\/|$)/,
@@ -81,9 +76,7 @@ export type RouteDecision =
 
 /**
  * Pure routing decision for a request path (unit-tested in src/proxy.test.ts).
- * Every non-canonical form reaches its canonical URL in ONE hop (D-121 §8):
- * paths that need a DB lookup (legacy city/school URLs) are rewritten to the
- * legacy route, which issues the single 301 itself.
+ * Every non-canonical form reaches its canonical URL in ONE hop (D-121 §8).
  */
 export function routeDecision(pathname: string): RouteDecision {
   if (isNonLocale(pathname)) return { type: "pass" };
@@ -97,14 +90,13 @@ export function routeDecision(pathname: string): RouteDecision {
 
   const rest = path.startsWith("/en/") ? path.slice(3) : path;
   const first = rest.split("/")[1] ?? "";
-  const isCanonicalRoot =
-    rest === "/" || (LOCALE_ROOTS.has(first) && !LEGACY_SCHOOL_ID_RE.test(rest));
+  const isCanonicalRoot = rest === "/" || LOCALE_ROOTS.has(first);
 
   if (isCanonicalRoot) {
     if (rest !== pathname) return { type: "redirect", to: rest }; // /en prefix and/or uppercase
     return { type: "rewrite", to: rest === "/" ? "/en" : `/en${rest}` };
   }
-  // Legacy or unknown pattern: the legacy route 301s to canonical (or 404s).
+  // Unknown pattern → 404 (pre-D-121 addresses were never indexed and were removed, D-122).
   return { type: "rewrite", to: `/en${rest}` };
 }
 

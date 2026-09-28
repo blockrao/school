@@ -8,8 +8,7 @@
 -- the UDISE+ blocks, is removed). Source/date lines on the page still come
 -- from field_provenance, for display only.
 --
--- school_code: internal 6-digit id (D-121: never in a URL or JSON-LD). Still
--- exposed so legacy /{city}/{slug}-{school_code} URLs can 301 to /school/{slug}.
+-- school_code: internal 6-digit id (D-121: never in a URL or JSON-LD).
 -- slug: the permanent public locator, minted once and write-once (see
 -- supabase/migrations/20260928120000_canonical_school_slugs.sql).
 --

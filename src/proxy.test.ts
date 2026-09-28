@@ -41,17 +41,13 @@ describe("routeDecision", () => {
     expect(routeDecision("/EN/Exams/RMS-CET")).toEqual({ type: "redirect", to: "/exams/rms-cet" });
   });
 
-  it("hands legacy patterns to the legacy routes, which 301 once", () => {
+  it("sends removed pre-D-121 addresses to a 404, not a redirect (D-122)", () => {
+    // /en/{city}/… and /{city}/… have no route any more → Next's not-found page.
     expect(routeDecision("/en/jaipur")).toEqual({ type: "rewrite", to: "/en/jaipur" });
     expect(routeDecision("/jaipur/dps-jaipur-100179")).toEqual({
       type: "rewrite",
       to: "/en/jaipur/dps-jaipur-100179",
     });
-    expect(routeDecision("/en/school/0a1b2c3d-1111-2222-3333-444455556666-dps")).toEqual({
-      type: "rewrite",
-      to: "/en/school/0a1b2c3d-1111-2222-3333-444455556666-dps",
-    });
-    expect(routeDecision("/Jaipur")).toEqual({ type: "rewrite", to: "/en/jaipur" });
   });
 
   it("404s untranslated /hi pages instead of serving an English mirror", () => {

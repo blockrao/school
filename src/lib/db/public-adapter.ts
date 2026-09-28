@@ -78,7 +78,7 @@ export type PublicSchoolBundle = {
 };
 
 async function getPublicSchoolBundle(
-  column: "id" | "slug" | "school_code",
+  column: "id" | "slug",
   value: string | number,
 ): Promise<PublicSchoolBundle | null> {
   const api = createApiSchemaClient();
@@ -111,11 +111,6 @@ export async function getPublicSchoolByIdSlug(id: string): Promise<PublicSchoolB
 /** The canonical resolver for /school/{slug} (D-121). Null if not public. */
 export async function getPublicSchoolBySlug(slug: string): Promise<PublicSchoolBundle | null> {
   return getPublicSchoolBundle("slug", slug);
-}
-
-/** Legacy /{city}/{slug}-{school_code} URLs resolve through school_code. */
-export async function getPublicSchoolByCode(code: number): Promise<PublicSchoolBundle | null> {
-  return getPublicSchoolBundle("school_code", code);
 }
 
 /**

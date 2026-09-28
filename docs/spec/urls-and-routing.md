@@ -92,6 +92,7 @@ A person, not an institution; three rules differ from campus:
 
 - Every URL ever served 301s to its current canonical form in one hop, indefinitely. Redirect maps are permanent infrastructure.
 - Legacy patterns (`/en/…`, `/{city}/{slug}`, `/school/{id}-{slug}`, `/school/{slug}-{code}`, alias slugs) → canonical.
+  *Amended by D-122 (28 Sep 2026):* the pre-launch `/{city}/…` and `/school/{id}-{slug}` addresses were never indexed and now 404; only `/en/…` and alias/merged slugs redirect.
 - Normalise: uppercase → lowercase; `www` → apex; `http` → `https`; trailing slash → none.
 - A URL that has represented one entity is never reused for another.
 
@@ -157,7 +158,7 @@ Every campus has one stable canonical URL; slugs cannot change accidentally; rel
 | Closed campus | `schools.status = 'closed'` stays public with a banner |
 | English at root, `/hi/` only when translated | Internal route tree stays `src/app/[locale]/…`; `src/proxy.ts` rewrites unprefixed paths to `/en/…` internally, 301s `/en/…` to the unprefixed form, and 404s `/hi/…` until a page is translated |
 | Discovery | `/schools/{state}/{city}` uses the district slug as `{city}` (D-116); `/schools/{state}/{city}/{locality}` for localities with published schools |
-| Legacy URLs | `/en/…`, `/{city}`, `/{city}/{slug}-{code}`, `/{city}/{locality}`, `/{town}`, `/school/{uuid}-{slug}` → one 301 to canonical |
+| Legacy URLs | `/en/…` → one 301 to the unprefixed form. Pre-launch `/{city}/…` and `/school/{uuid}-{slug}` addresses 404 (D-122) |
 
 Next.js emits **308** for `permanentRedirect()`; the proxy emits **301**. Both are permanent and treated the same by search engines.
 

@@ -5,7 +5,7 @@
 **Decisions:** D-013, D-014, D-023, D-024, D-031, D-040, D-042, D-045, D-052, D-080–D-090, D-098, D-100, D-103, D-107, D-108, D-109 · **Guidelines:** `docs/guidelines/seo-geo.md`, `docs/guidelines/content-and-trust.md`
 
 
-> **URLs changed (28 Sep 2026, D-121).** The school page is now `/school/{slug}` and discovery lives under `/schools/{state}/{city}/{locality}`; English has no `/en` prefix. `docs/spec/urls-and-routing.md` is the frozen authority for every URL, slug and redirect rule. Older `/[locale]/[city]/[slug]-[school_code]` references below describe the previous scheme; those URLs now 301 to the new ones.
+> **URLs changed (28 Sep 2026, D-121).** The school page is now `/school/{slug}` and discovery lives under `/schools/{state}/{city}/{locality}`; English has no `/en` prefix. `docs/spec/urls-and-routing.md` is the frozen authority for every URL, slug and redirect rule. Older `/[locale]/[city]/[slug]-[school_code]` references below describe the previous scheme; those URLs were never indexed and now 404 (D-122).
 
 ## 1. Overview
 
