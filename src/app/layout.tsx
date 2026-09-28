@@ -31,7 +31,7 @@ const mukta = Mukta({
 // V2 visual foundation (Increment 9) — additive, alongside the Anek/Mukta
 // fonts above, not a replacement: only the migrated shared chrome
 // (SiteHeader/SiteFooter/nav/mobile nav) opts into these via the
-// `font-v2-sans`/`font-v2-mono` utilities (globals.css). Weights match the
+// `font-so-sans`/`font-so-mono` utilities (globals.css). Weights match the
 // design reference's own Google Fonts import exactly (400/500/600 for Sans
 // and Sans Devanagari, 400/500 for Mono) rather than pulling every weight.
 const plexSans = IBM_Plex_Sans({

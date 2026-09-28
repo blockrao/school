@@ -23,12 +23,12 @@ export function SiteHeader({
     // V2 visual foundation (Increment 9): this is the "global shell boundary" —
     // re-themed with --v2 tokens/IBM Plex, while <main> (page content) keeps
     // reading the un-prefixed v1 tokens until its own migration increment.
-    <header className="sticky top-0 z-30 border-b border-v2-line bg-v2-surface font-v2-sans">
+    <header className="sticky top-0 z-30 border-b border-so-line bg-so-surface font-so-sans">
       {/* Mobile: hamburger, logo, city, locale switch */}
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
           <MobileMenu locale={locale} areas={areas} dict={dict} />
-          <Link href={homePath(locale)} className="text-card font-bold text-v2-accent">
+          <Link href={homePath(locale)} className="text-card font-bold text-so-accent">
             {t(dict, "common.brand")}
           </Link>
         </div>
@@ -40,13 +40,13 @@ export function SiteHeader({
 
       {/* Desktop: logo, primary nav, search, city, locale switch, sign in */}
       <div className="hidden h-17 items-center gap-7 px-10 md:flex">
-        <Link href={homePath(locale)} className="text-section font-bold text-v2-accent">
+        <Link href={homePath(locale)} className="text-section font-bold text-so-accent">
           {t(dict, "common.brand")}
         </Link>
         <PrimaryNav locale={locale} areas={areas} dict={dict} />
         <Form
           action={`${localePrefix(locale)}/schools`}
-          className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-v2-line-2 bg-v2-surface px-3"
+          className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-so-line2 bg-so-surface px-3"
         >
           <svg
             aria-hidden="true"
@@ -57,7 +57,7 @@ export function SiteHeader({
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
-            className="shrink-0 text-v2-ink-3"
+            className="shrink-0 text-so-ink3"
           >
             <circle cx="11" cy="11" r="6.5" />
             <path d="M16 16l5 5" />
@@ -68,14 +68,14 @@ export function SiteHeader({
               type="search"
               name="q"
               placeholder={t(dict, "common.search_placeholder")}
-              className="w-full min-w-0 bg-transparent text-body text-v2-ink outline-none placeholder:text-v2-ink-3"
+              className="w-full min-w-0 bg-transparent text-body text-so-ink outline-none placeholder:text-so-ink3"
             />
           </label>
         </Form>
         <div className="flex items-center gap-2">
           <CityPicker areas={areas} />
           <LocaleSwitcher />
-          <AuthStatusLink locale={locale} variant="v2Secondary" className="h-11 border-v2-accent" />
+          <AuthStatusLink locale={locale} variant="soSecondary" className="h-11 border-so-accent" />
         </div>
       </div>
     </header>

@@ -23,7 +23,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
   // so the UI doesn't imply choice that doesn't exist.
   if (areas.length === 1) {
     return (
-      <span className={cn("px-2 text-body font-medium text-v2-ink", className)}>
+      <span className={cn("px-2 text-body font-medium text-so-ink", className)}>
         {current?.name}
       </span>
     );
@@ -42,7 +42,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2 text-body font-medium text-v2-ink"
+        className="flex items-center gap-1 px-2 text-body font-medium text-so-ink"
       >
         {current?.name ?? "Choose city"}
         <svg
@@ -72,7 +72,7 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
           <div
             role="listbox"
             aria-label="Choose your city"
-            className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-md border border-v2-line bg-v2-surface font-v2-sans shadow-lg"
+            className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-md border border-so-line bg-so-surface font-so-sans shadow-lg"
           >
             {areas.map((area) => {
               const active = area.slug === current?.slug;
@@ -86,12 +86,12 @@ export function CityPicker({ areas, className }: { areas: CityOption[]; classNam
                     className={cn(
                       "flex w-full items-center justify-between px-3.5 py-2.5 text-left text-body",
                       active
-                        ? "bg-v2-sunk font-semibold text-v2-accent"
-                        : "text-v2-ink hover:bg-v2-sunk",
+                        ? "bg-so-sunk font-semibold text-so-accent"
+                        : "text-so-ink hover:bg-so-sunk",
                     )}
                   >
                     {area.name}
-                    <span className="text-meta text-v2-ink-3">
+                    <span className="text-meta text-so-ink3">
                       {area.stateSlug !== area.slug ? area.stateSlug : ""}
                     </span>
                   </button>

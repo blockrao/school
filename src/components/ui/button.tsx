@@ -15,10 +15,10 @@ const buttonVariants = cva(
         // migrated shared chrome only (SiteHeader's AuthStatusLink,
         // MobileMenu's AuthStatusLink). Existing primary/secondary are
         // unchanged and still used by every unmigrated page.
-        v2Primary:
-          "bg-v2-accent text-v2-accent-ink font-v2-sans hover:opacity-90 focus-visible:outline-v2-accent",
-        v2Secondary:
-          "border border-v2-line-2 bg-v2-surface text-v2-ink font-v2-sans hover:bg-v2-sunk focus-visible:outline-v2-accent",
+        soPrimary:
+          "bg-so-accent text-so-accent-ink font-so-sans hover:opacity-90 focus-visible:outline-so-accent",
+        soSecondary:
+          "border border-so-line2 bg-so-surface text-so-ink font-so-sans hover:bg-so-sunk focus-visible:outline-so-accent",
       },
       size: {
         default: "h-12 px-5",

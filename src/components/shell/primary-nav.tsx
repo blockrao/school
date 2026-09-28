@@ -102,8 +102,8 @@ export function PrimaryNav({
             className={cn(
               "-mb-[3px] flex items-center border-b-3 px-3 text-body",
               active
-                ? "border-v2-accent font-semibold text-v2-accent"
-                : "border-transparent font-medium text-v2-ink hover:text-v2-accent",
+                ? "border-so-accent font-semibold text-so-accent"
+                : "border-transparent font-medium text-so-ink hover:text-so-accent",
             )}
           >
             {item.label}

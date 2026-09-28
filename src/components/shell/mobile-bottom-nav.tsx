@@ -83,7 +83,7 @@ export function MobileBottomNav({
   return (
     // V2 visual foundation (Increment 9): part of the migrated global shell.
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t border-v2-line bg-v2-surface pb-1 font-v2-sans md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t border-so-line bg-so-surface pb-1 font-so-sans md:hidden"
       aria-label={t(dict, "bottom_nav.primary_label")}
     >
       {tabs.map((tab, index) => {
@@ -96,8 +96,8 @@ export function MobileBottomNav({
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 border-t-3 text-meta",
               active
-                ? "border-v2-accent font-semibold text-v2-accent"
-                : "border-transparent font-medium text-v2-ink-3",
+                ? "border-so-accent font-semibold text-so-accent"
+                : "border-transparent font-medium text-so-ink3",
             )}
           >
             <svg
