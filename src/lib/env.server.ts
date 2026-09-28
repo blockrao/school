@@ -44,7 +44,7 @@ export const serverEnv = serverEnvSchema.parse({
 /** Absolute canonical origin, for every URL that must be absolute (metadataBase,
  * JSON-LD, sitemap entries, the robots.txt `sitemap` directive). Prefers the
  * real domain (NEXT_PUBLIC_SITE_URL, Production only) so canonical/JSON-LD/
- * sitemap output always points at www.schooloye.com regardless of which
+ * sitemap output always points at the production host regardless of which
  * deployment renders the request; falls back to Vercel's own production
  * *.vercel.app domain, then localhost, for Preview/local. */
 export const siteUrl = serverEnv.NEXT_PUBLIC_SITE_URL

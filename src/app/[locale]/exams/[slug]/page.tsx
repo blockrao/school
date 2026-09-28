@@ -574,7 +574,7 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
           cycles={eligibilityCycles}
           helpHref={`${localePrefix(locale)}/admissions/help`}
           shareHref={`https://wa.me/?text=${encodeURIComponent(
-            `Check if your child is eligible for ${exam.name_en} ${exam.academic_year}: https://www.schooloye.com/${locale}/exams/${slug}#${ELIGIBILITY_CHECKER_ID}`,
+            `Check if your child is eligible for ${exam.name_en} ${exam.academic_year}: ${siteUrl}${examPath(locale, slug)}#${ELIGIBILITY_CHECKER_ID}`,
           )}`}
           className="mt-6"
         />

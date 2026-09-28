@@ -15,7 +15,7 @@ const DISALLOW = ["/dev", "/my", "/portal", "/ops", "/api"];
 
 export default function robots(): MetadataRoute.Robots {
   // Vercel Preview deployments are copies of the site on *.vercel.app; keep them
-  // out of search so they never compete with www.schooloye.com.
+  // out of search so they never compete with the production host.
   if (serverEnv.VERCEL_ENV === "preview") {
     return { rules: [{ userAgent: "*", disallow: "/" }] };
   }

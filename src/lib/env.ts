@@ -3,7 +3,7 @@ import { z } from "zod";
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
-  // The canonical production origin (https://www.schooloye.com) — set in Vercel
+  // The canonical production origin (https://schooloye.com) — set in Vercel
   // for the Production environment only. Optional so Preview/local builds (which
   // don't set it) still succeed; src/lib/env.server.ts's `siteUrl` falls back to
   // Vercel's own per-deployment URL when this is unset.
