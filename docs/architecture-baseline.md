@@ -39,7 +39,29 @@ baseline isn't re-litigated in the abstract: it's checked against what's real.
 - **Faceted-nav / canonical control.** Locality/city pages link to entities but are never
   their canonical URL — already the discipline the baseline asked for.
 
-## One genuine gap: no generic Exam/Cycle entity yet
+## Correction (2026-09-28): the exam entity already exists
+
+The claim below — that exams needed a standalone entity not yet built — was **wrong**,
+found by inspecting the live database directly rather than the migration files in this
+repo. `db/views/` and `supabase/migrations/` are stale on this point: the tables exist in
+the live schema without a matching migration file checked in here.
+
+Live tables, confirmed via direct schema inspection: `exams` (evergreen entity, 3 rows),
+`admission_cycles` (referenced via `exam_id` for exam-scoped cycles), `exam_cycle_milestones`
+(ordered timeline stages — application window, admit card, exam date, result),
+`exam_participating_schools`, `exam_centres`, `exam_fee_tiers`, `exam_reservation_splits`.
+This is exactly the `exam` → `exam_cycle` → `entry` shape the frozen baseline asked for.
+
+**Real action item, replacing the one below:** this repo's `db/views/` and
+`supabase/migrations/` do not reflect these tables at all — no `CREATE OR REPLACE VIEW`
+exists for them, so nothing in `api.*` currently exposes exam data to the app, and
+`src/lib/db/public-adapter.ts`'s comment about "joining exams instead of schools" for
+`api.public_exam_admissions` has no backing SQL anywhere in this repo. Write the missing
+views/grants for the exam tables — this is a views/publishing-rules gap (this repo's job),
+not a table-modeling gap (the data repo's job, already done).
+
+<details>
+<summary>Original (incorrect) entry, kept for history</summary>
 
 The baseline doc (following the original strategy doc's RMS CET example) calls for exams
 as their own evergreen entity — `exam` → `exam_cycle` → `entry` — independent of any one
@@ -57,6 +79,8 @@ modeled.
 exam content or an exam page against them — not as a special case of
 `admission_cycles`, and not as a flat page. This is the one item from the frozen baseline
 that still needs building, not just confirming.
+
+</details>
 
 ## Everything else in the frozen baseline
 
