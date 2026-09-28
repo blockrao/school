@@ -1520,3 +1520,48 @@ created or applied in this commit.
 
 **Status: schema-clean portion complete, committed (`a2a19e5`) and pushed. Awaiting Prav's review of the
 three migration proposals before any of News / Recent admission updates / Admissions deepening ships.**
+
+### Three migrations — applied
+
+Prav reviewed the drafts above, required two corrections, and approved application:
+
+1. **`api.public_school_news`** — applied as drafted, no changes requested.
+2. **`api.public_admission_updates`** — revised before application: dropped `form_url`/`new_form_url`
+   from the allowlist and the diff computation entirely (V1 allowlist is now `status`, `opens_on`,
+   `closes_on`, `results_on` only — extendable later, explicitly); wrapped every date extraction in
+   `NULLIF(after->>'field', '')::date` so a malformed/empty string in the audit JSON can't fail the
+   whole view.
+3. **`api.public_school_admissions`** — corrected before application. The first draft placed
+   `dob_from`/`dob_to`/`documents_required` before the existing computed `days_to_close` column, which
+   Postgres itself rejected on apply (`cannot change name of view column "days_to_close" to "dob_from"`
+   — `CREATE OR REPLACE VIEW` only allows appending new output columns after the *last* existing one, not
+   splicing them in earlier). Re-verified the live view definition via `pg_get_viewdef` immediately
+   before writing the corrected migration (byte-identical to `db/views/020_public_school_admissions.sql`
+   — no drift), then appended the three new columns after `days_to_close` instead. This is recorded here
+   because the first draft's claim ("adds columns, doesn't remove, rename, or reorder any existing
+   ones") was not accurate for the SQL as first written — worth keeping as a reminder that "additive"
+   claims need to be checked against Postgres's actual view-replacement rules, not just eyeballed.
+
+All three applied via `mcp__Supabase__apply_migration` against project `ybevzpryuvgxclkhdjld`. Post-apply
+verification: `pg_get_viewdef` on all three matches the intended SQL exactly; `anon`/`authenticated`
+SELECT grants confirmed on all three via `information_schema.role_table_grants`; Supabase security
+advisor shows no new findings attributable to any of the three views. `pnpm run typecheck`/`lint`/`test`
+all clean (127/127) — expected, since no application code changed in this step.
+
+**Data-completeness findings surfaced by the representative queries** (not defects in the migrations):
+- `school_posts` has **zero rows** in production — the table exists (from the 26 Sep migration) but
+  nothing has been authored into it yet, so News has no real content to render until schools/ops start
+  posting.
+- Of the 12 `admission_cycles` rows carrying `dob_from`/`dob_to`/`documents_required` data, only 2 have
+  a non-null `school_id` at all (the rest are unlinked import rows, likely from an NVS/JNV batch not yet
+  matched to a `schools` row) — and neither of those 2 linked rows has that data populated. So the
+  Admissions-deepening UI (eligibility checker) has real plumbing but no real school currently has data
+  to show through it in production.
+
+No migration file was written under `supabase/migrations/` for these three changes yet — they exist only
+as applied Postgres objects (via the Supabase MCP tool) at this point; a repo migration file capturing
+them can be added as a follow-up if Prav wants the repo's migration history to reflect this.
+
+**Status: three migrations applied and verified. Proceeding to the three previously-blocked UI pieces
+(News, Recent admission updates, Admissions deepening), reported separately below per Prav's request to
+audit the new public-data contracts distinctly from their UI consumers.**
