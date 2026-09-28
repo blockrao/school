@@ -11,6 +11,8 @@ import { SchoolCard } from "@/components/ui/school-card";
 import { ShareButton } from "@/components/ui/share-button";
 import { EmptyState } from "@/components/ui/state-message";
 import type { PublicSchoolAdmission } from "@/contracts";
+import { getDictionary } from "@/i18n/dictionary";
+import { t, tEnum } from "@/i18n/t";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
@@ -24,6 +26,7 @@ import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
+import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { localeCanonical } from "@/lib/seo";
 import {
@@ -295,6 +298,7 @@ export async function SchoolView({
   rawSearchParams: { [key: string]: string | string[] | undefined };
 }) {
   const now = new Date();
+  const dict = await getDictionary(locale);
   // --- School entity page ---
   const { city, bundle } = resolved;
   const { school, board } = bundle;
@@ -507,9 +511,14 @@ export async function SchoolView({
           )}
         </h1>
         <p className="text-body text-muted-ink">
-          {[board?.board_name, grades, school.management, school.gender]
+          {[
+            board?.board_name,
+            grades,
+            tEnum(dict, "management", school.management),
+            tEnum(dict, "gender", school.gender),
+          ]
             .filter(Boolean)
-            .join(" · ") || "Not yet published"}
+            .join(" · ") || t(dict, "common.not_yet_published")}
           {school.locality_name
             ? ` · ${school.locality_name}${city ? `, ${city.cityName}` : ""}`
             : city
@@ -567,7 +576,9 @@ export async function SchoolView({
             </h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-body">
               <div>
-                <dt className="text-meta font-semibold text-muted-ink">Board</dt>
+                <dt className="text-meta font-semibold text-muted-ink">
+                  {t(dict, "school_page.board_heading")}
+                </dt>
                 <dd>{board?.board_name ?? <NotYetPublished />}</dd>
               </div>
               <div>
@@ -634,7 +645,9 @@ export async function SchoolView({
                         </span>
                         <span className="text-meta text-muted-ink">
                           {cycle.form_mode === "online" ? "Online form" : "Offline form"}
-                          {cycle.registration_fee != null ? ` · ₹${cycle.registration_fee}` : ""}
+                          {cycle.registration_fee != null
+                            ? ` · ${formatCurrency(cycle.registration_fee)}`
+                            : ""}
                         </span>
                         {cycle.form_url && (
                           <a
@@ -659,15 +672,15 @@ export async function SchoolView({
           {(school.address || mapPoint) && (
             <section aria-labelledby="location-heading" className="flex flex-col gap-3">
               <h2 id="location-heading" className="font-display text-card font-semibold">
-                Location
+                {t(dict, "school_page.location_heading")}
               </h2>
               <p className="text-body">
-                {school.address ?? "Address not yet published"}
+                {school.address ?? t(dict, "common.address_not_yet_published")}
                 {mapPoint && (
                   <span className="text-meta text-muted-ink">
-                    {" "}
-                    — approximate area, not an exact pin (geocoded to{" "}
-                    {school.geocode_precision ?? "pincode"} precision).
+                    {t(dict, "school_page.location_precision_note", {
+                      precision: school.geocode_precision ?? "pincode",
+                    })}
                   </span>
                 )}
               </p>

@@ -1,6 +1,6 @@
 [
-  "src/app/[locale]/[city]/[entitySlug]/page.tsx",
-  "src/app/[locale]/[city]/page.tsx",
+  "src/app/[locale]/_views/entity-page.tsx",
+  "src/app/[locale]/_views/place-page.tsx",
   "src/app/[locale]/admissions/help/checkout/confirm/page.tsx",
   "src/app/[locale]/admissions/help/checkout/mock/page.tsx",
   "src/app/[locale]/admissions/help/checkout/page.tsx",
@@ -15,6 +15,7 @@
   "src/app/[locale]/my/admissions/page.tsx",
   "src/app/[locale]/page.tsx",
   "src/app/[locale]/privacy/page.tsx",
+  "src/app/[locale]/school/[slug]/page.tsx",
   "src/app/[locale]/schools/page.tsx",
   "src/app/[locale]/teacher/[idSlug]/manage/page.tsx",
   "src/app/[locale]/teacher/[idSlug]/page.tsx",

@@ -54,7 +54,11 @@ export function primaryNavItems(
       href: `${localePrefix(locale)}/guides`,
       note: t(dict, "nav.guides_note"),
     },
-    { label: t(dict, "nav.for_schools"), href: "/for-schools", note: t(dict, "nav.for_schools_note") },
+    {
+      label: t(dict, "nav.for_schools"),
+      href: "/for-schools",
+      note: t(dict, "nav.for_schools_note"),
+    },
   ];
 }
 

@@ -25,7 +25,10 @@ export function SiteHeader({
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
           <MobileMenu locale={locale} areas={areas} dict={dict} />
-          <Link href={homePath(locale)} className="font-display text-card font-bold text-ruled-blue">
+          <Link
+            href={homePath(locale)}
+            className="font-display text-card font-bold text-ruled-blue"
+          >
             {t(dict, "common.brand")}
           </Link>
         </div>
@@ -37,7 +40,10 @@ export function SiteHeader({
 
       {/* Desktop: logo, primary nav, search, city, locale switch, sign in */}
       <div className="hidden h-17 items-center gap-7 px-10 md:flex">
-        <Link href={homePath(locale)} className="font-display text-section font-bold text-ruled-blue">
+        <Link
+          href={homePath(locale)}
+          className="font-display text-section font-bold text-ruled-blue"
+        >
           {t(dict, "common.brand")}
         </Link>
         <PrimaryNav locale={locale} areas={areas} dict={dict} />
