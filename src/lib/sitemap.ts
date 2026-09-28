@@ -9,7 +9,7 @@ import "server-only";
  * because Next.js App Router doesn't support a folder name that mixes a
  * literal `.xml` suffix with a dynamic segment (`sitemap-[city].xml`).
  */
-export const LAUNCH_CITY_SLUGS = ["jaipur"];
+export const LAUNCH_CITY_SLUGS = ["jaipur", "gurugram"];
 
 export function xmlEscape(value: string): string {
   return value
