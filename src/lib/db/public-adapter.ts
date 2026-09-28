@@ -264,6 +264,26 @@ export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | nu
   return areas.find((a) => a.slug === slug) ?? null;
 }
 
+/**
+ * Launched areas shaped for the shared shell (SiteHeader/MobileBottomNav/SiteFooter's
+ * city picker) — every layout that renders that shell needs exactly this. Was
+ * duplicated ad hoc in src/app/[locale]/layout.tsx; pulled in here (2026-09-28) when
+ * src/app/for-schools/layout.tsx needed the identical list, so the two can't drift.
+ */
+export async function listLaunchedCityOptions(
+  locale: string,
+): Promise<{ slug: string; name: string; stateSlug: string; href: string }[]> {
+  const areas = await listPublicAreas();
+  return areas
+    .filter((area) => area.is_launch)
+    .map((area) => ({
+      slug: area.slug,
+      name: area.name,
+      stateSlug: slugify(area.state),
+      href: `/${locale}/${area.slug}`,
+    }));
+}
+
 export type PublicStateAreaCity = { slug: string; name: string; schoolCount: number };
 
 export type PublicStateArea = {
