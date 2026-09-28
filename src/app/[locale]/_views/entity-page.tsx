@@ -5,8 +5,10 @@ import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
+import { DecisionStrip } from "@/components/ui/decision-strip";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
+import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { ShareButton } from "@/components/ui/share-button";
@@ -26,9 +28,11 @@ import { listPublicSchoolTeam } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import { buildDecisionStrip } from "@/lib/decision-strip";
 import { siteUrl } from "@/lib/env.server";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
+import { identityBand } from "@/lib/identity-band";
 import { recordBadge } from "@/lib/record-badge";
 import { localeCanonical } from "@/lib/seo";
 import {
@@ -334,6 +338,25 @@ export async function SchoolView({
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
   const badge = recordBadge(school.claim, school.verification, verifiedAt);
+  const identity = identityBand(school.claim, school.verification);
+  const decisionSlots = buildDecisionStrip({
+    admission: primaryAdmission
+      ? {
+          academic_year: primaryAdmission.academic_year,
+          class_code: primaryAdmission.class_code,
+          opens_on: primaryAdmission.opens_on,
+          closes_on: primaryAdmission.closes_on,
+          status: primaryAdmission.status,
+        }
+      : null,
+    school: {
+      min_class: school.min_class,
+      max_class: school.max_class,
+      locality_name: school.locality_name,
+      address: school.address,
+    },
+    cityName: city?.cityName ?? null,
+  });
 
   const mapPoint =
     school.lat != null && school.lng != null
@@ -490,6 +513,18 @@ export async function SchoolView({
         <span className="text-ink">{name}</span>
       </nav>
 
+      <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:gap-4">
+        <PhotoPlaceholder className="hidden h-24 w-32 shrink-0 sm:block" />
+        <div className="flex flex-col gap-0.5">
+          <span
+            className={`text-meta font-semibold ${identity.state === "verified" ? "text-board-green" : "text-muted-ink"}`}
+          >
+            {identity.heading}
+          </span>
+          <span className="text-meta text-slate">{identity.description}</span>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-2 border-b border-rule pb-6">
         <h1 className="font-display text-title-m md:text-title-d">
           {name}
@@ -539,6 +574,11 @@ export async function SchoolView({
           </Link>
           <ClaimStatusLink schoolId={school.id} isClaimed={school.claim === "claimed"} />
         </div>
+      </div>
+
+      <div className="py-6">
+        <h2 className="mb-3 font-display text-card font-semibold">At a glance</h2>
+        <DecisionStrip slots={decisionSlots} />
       </div>
 
       <div className="grid gap-6 py-6 md:grid-cols-[1.6fr_1fr]">

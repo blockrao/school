@@ -316,3 +316,126 @@ until `getSession()` resolves) — not a change to the entity page's static/ISR 
 **Next increment:** per Prav's direction, work moves back to the public school entity page —
 Decision Strip + public page shell (v2 design, roadmap Phase 1) — rather than further claim
 infrastructure.
+
+## 2026-09-28 — Increment 5 scoping: live inventory before code
+
+Before writing anything, checked the actual live schema/data behind the six decision-strip slots
+(design C4–C5) and the identity-band photo slot (C1–C3), per Prav's requirement to inspect
+`school_media.kind` and `fee_items` semantics before wiring either.
+
+**What's actually there, confirmed against the live DB (not migration files or the roadmap doc):**
+- `fee_items` and `school_media` both have **zero rows in production** — not "sparse", genuinely
+  empty. No `CHECK` constraint on `kind` (`school_media`) or `component` (`fee_items`) either — both
+  are free-text with no established taxonomy anywhere: no code writes to either table, no column
+  comment, nothing in any migration. So "inspect actual `kind`/component values" has nothing to
+  inspect yet — this isn't a shortcut, there's genuinely no convention to discover.
+- **More consequential finding:** this codebase enforces, via a CI script
+  (`scripts/check-public-adapter-imports.mjs`) and `public-adapter.ts`'s own header comment, that
+  *every* public read goes through a curated `api.*` view — no raw-table reads, no exceptions
+  (`school_identifiers`/`field_provenance` are the existing precedent: no view yet → the adapter
+  function returns empty and says so in a comment, rather than reading the raw table). **Neither
+  `fee_items` nor `school_media` has an `api.*` view.** Building either query this increment would
+  mean adding a new view (schema-adjacent, explicitly out of scope) or breaking an established,
+  CI-enforced convention. Neither is acceptable inside the locked scope, so — independent of the
+  "no live rows" finding above — the fee and photo slots have no honest way to be wired to real data
+  this increment regardless of what Prav's fee-semantics guardrail question turns up.
+- **`admission_cycles` currently has 10 rows, all with `school_id = NULL`** (they carry `exam_id`
+  instead — entrance-exam cycles, not school-specific ones). `api.public_school_admissions` (the
+  view the existing admissions pill already reads) joins on `ac.school_id = s.id`, so it returns
+  zero rows for every school today. Not a new problem introduced by this increment — the page's
+  existing deadline pill already reflects this — but means the Admissions slot, while correctly
+  wired to real infrastructure, will show "Not yet verified" for every real school in production
+  right now, same as Fee/Ratio/Board result, until a school-linked cycle actually exists.
+  - Minor, related note found in passing: `admission_cycles` already carries the richer
+    provenance-v2 columns (`source_type`, `verification_status`, `last_checked_at`, `verified_at`,
+    `verified_by`) live in production, with no migration file for them found locally — `fee_items`
+    only has the older `verification` enum. This reconfirms what was locked earlier this session:
+    provenance is genuinely domain-specific (each table gets whatever shape its own work landed),
+    not a shared table — and means the stale roadmap's Phase 0 ("extend `field_provenance`") isn't
+    just outdated, it's solving a problem admissions has already outgrown on its own.
+  - Minor hygiene note, not blocking: `fee_items`/`school_media` grants to `anon`/`authenticated`
+    include `INSERT`/`UPDATE`/`DELETE` (broader than `school_claims` had before its narrowing
+    migration) — but RLS policies (`fees_staff_write`/`media_staff_write`, gated on `is_staff()`)
+    correctly block any actual write, so this isn't a live hole, just untidy compared to the
+    grants-narrowing pattern already applied to `school_claims`. Flagged for a future cleanup pass,
+    not acted on here (no schema/grants change in this increment's scope).
+- Confirmed genuinely ready with real, non-empty data: `Location` and `Entry classes`, both already
+  sourced from `api.public_schools` (10,668 rows) — the same view the rest of this page already
+  reads.
+
+**Net effect on scope (a narrowing, not an expansion — Prav's "no new schema" already implied this,
+this is just the concrete reason why):** the six-slot strip ships with 2 of 6 slots
+(`Location`, `Entry classes`) genuinely able to show real data today, and 4 slots
+(`Admissions`, `Annual fee`, `Student–teacher ratio`, `Board result`) rendering an honest "Not yet
+verified" — 3 of those 4 for lack of any table at all or (fees) lack of a readable view, and
+`Admissions` specifically because the one view that exists has no school-linked rows yet. The photo
+slot renders its sparse "no photo yet" placeholder unconditionally this increment, with no query
+against `school_media` at all — documented as a TODO for whenever `api.public_school_media` (or
+similar) exists.
+
+## 2026-09-28 — Increment 5: Identity Band + Decision Strip
+
+Implemented on the corrected scope above.
+
+**Built:**
+- `src/lib/identity-band.ts` — `identityBand(claim, verification)`, the three-state banner (design
+  C1–C3), built entirely from the same two columns `recordBadge` already reads. No new field.
+  `claim_status` is a 4-value enum at the type level (unclaimed/pending/claimed/rejected) but
+  `schools.claim` itself only ever holds `unclaimed` or `claimed` in practice (confirmed against
+  live data — every one of the 10,668 rows is one of those two; `pending`/`rejected` only ever live
+  on `school_claims.status`) — anything not exactly `'claimed'` is treated as unclaimed, matching
+  `recordBadge`'s own defensive style.
+- `src/lib/decision-strip.ts` — `buildDecisionStrip()` plus one builder per slot
+  (`buildAdmissionsSlot`, `buildEntryClassesSlot`, `buildLocationSlot`, `unsupportedSlot`). This is
+  the architectural piece Prav explicitly locked: **the strip is a presentation layer over existing
+  domain facts, not a new data model** — `domain data → normalized display value/status →
+  DecisionSlot`. Each builder owns its own source table's shape and trust semantics; the rendering
+  component (`src/components/ui/decision-strip.tsx`) only ever sees the normalized `DecisionSlot`
+  shape and has no idea which table, or whether any table, backed a given slot. Keeps the component
+  reusable later (comparison mode, roadmap Phase 7) without re-deriving verification rules per slot
+  per caller.
+- `src/components/ui/decision-strip.tsx` — purely presentational, six-cell grid, renders whatever
+  `buildDecisionStrip()` hands it.
+- Reused `src/components/ui/photo-placeholder.tsx` (already existed, built for teacher pages) for
+  the campus-photo sparse state instead of writing a new one.
+- Wired into `entity-page.tsx`: identity banner + photo placeholder above the existing header block
+  (kept the existing Increment-1 `recordBadge` chip in the action row as-is — this is an addition
+  per the design, not a replacement of already-locked work), and the decision strip as a new "At a
+  glance" section between the header and the existing two-column content grid.
+
+**Verification performed:**
+- `pnpm run typecheck` — clean. `pnpm run lint` — one import-order fix (`@/lib/decision-strip` sorts
+  after `@/lib/deadline`, same Biome `assist/source/organizeImports` rule as Increment 4), then
+  clean (277 files). `pnpm test` — **111/111 pass** (97 existing + 14 new for
+  `src/lib/decision-strip.test.ts`, covering every builder's available/unverified branches, the
+  fixed six-slot order, and that fee/ratio/board-result stay unverified even when every other input
+  is fully populated).
+- **Real-data verification against all four requested scenarios**, against live production rows —
+  reported honestly rather than manufactured:
+  - **Unclaimed, sparse school** (St. Xavier's Senior Secondary School, C-Scheme): `claim=unclaimed`
+    → identity band "Unclaimed"; `min_class`/`max_class` null → Entry classes unverified; no
+    school-linked admission cycle → Admissions unverified; `locality_name`/`address` present →
+    Location available. Matches expected output exactly.
+  - **Claimed school** (R.K. International School, the one real claimed row in production):
+    `claim=claimed`, `verification=unverified` → identity band correctly resolves to
+    "School-claimed" (not "Verified · school-managed" — confirms the two-column check works on a
+    real row, not just the unit tests' synthetic ones). Same sparse pattern otherwise.
+  - **A school with real grade data** (Gyan Deep Sr.sec. and others, `min_class='c1'`,
+    `max_class='c12'`): confirms `buildEntryClassesSlot`'s "available" branch fires on real values
+    (`formatGradeRange` → "Class 1–12"), not just in the unit tests.
+  - **"Fully populated" and "verified" school:** **no such row exists in production** —
+    `verification='school_verified'` has zero rows, and no `admission_cycles` row has a `school_id`
+    at all. Stated plainly rather than papered over: these two branches are verified by the 14 unit
+    tests' synthetic inputs only, because the product genuinely has no real example of either state
+    yet. This is a fact about the current dataset, not a gap in this increment's testing.
+  - Confirmed no misleading "verified" language appears anywhere for an unsupported slot —
+    `unsupportedSlot` always renders the literal string "Not yet verified", and the "School-claimed"
+    identity state says "verification in progress", never "verified".
+- **Not yet done:** browser smoke test of the header/strip at mobile and desktop widths — still
+  blocked in this sandbox (egress proxy blocks the Supabase host from a real browser render), same
+  accepted limitation recorded for Increments 4/5's other browser-level checks. Everything else on
+  Prav's required-verification list is complete.
+
+**Explicitly not touched, per Prav's scope lock:** no coverage card, no updates timeline, no
+admissions/fees redesign, no provenance architecture change, no new ratio/result tables, no
+`field_provenance` change, no schema of any kind.
