@@ -585,3 +585,80 @@ pattern we should preserve for future presentation work."
 above-the-fold hierarchy, section ordering, mobile hierarchy, decision-strip visual polish,
 conditional module rendering) — named explicitly by Prav, not chosen from a fresh comparison this
 time. `school_notices` stays deferred as its own dedicated scoping pass after that, not bundled in.
+
+## 2026-09-28 — Increment 7: Canonical page structural refactor
+
+**Scope locked by Prav before code** (full detail in his scope message; summarized here): establish
+one information hierarchy, remove redundant presentation of the same fact, optimize the mobile
+decision path — without changing the data model. Required a component/content-inventory pass first
+(every visible fact mapped to Header / Decision / Detailed section / Coverage / Action) to find
+objective duplicates rather than refactoring by visual instinct. Two additional items Prav approved
+after I flagged them as open questions: remove the header's `StatusPill` (its job — "is admissions
+open now" — is already the Decision Strip's Admissions slot; render removed, component/logic kept
+since `StatusPill` is still a legitimate owner elsewhere — see below), and move the freshness/verified
+line out of "School facts" into the header, next to the record badge, so the three trust signals
+(Identity banner = entity/claim state, Record badge + freshness = provenance/origin, Coverage = what's
+known) sit next to each other instead of scattered across the page.
+
+**Built** (all in `src/app/[locale]/_views/entity-page.tsx`, presentation-only — no new
+`.from()` calls, no new fields read):
+- Removed the header's admissions-urgency `StatusPill` render (and its now-unused local
+  `deadlineInput`/`pill` computation) — duplicated the Decision Strip's Admissions slot exactly.
+  `StatusPill`, `deadlineState`, and `deadlineToPill` are still imported and used elsewhere in this
+  same file (the search-results `SchoolCard` grid above the fold), so nothing was deleted from the
+  codebase — only this one rendering site.
+- Moved the freshness/verified-at line from under "School facts" to the header, next to the record
+  badge span. Reused `recordBadge`'s existing `verifiedAt` value and the same `FreshnessLine`
+  component and ternary — `<FreshnessLine .../>` when `verifiedAt` is set, an explicit
+  `"Not yet verified"` span otherwise. **Caught and fixed a self-introduced regression here**: my
+  first pass at this move only kept the truthy branch (`{verifiedAt && <FreshnessLine .../>}`) and
+  silently dropped the `"Not yet verified"` fallback for the null case, meaning every unverified
+  school (which, per Increment 6's real-data check, is currently every school in production) would
+  show no provenance signal in the header at all. Restored the explicit ternary with the fallback
+  span before running any verification — recorded here per the standing instruction to log my own
+  mistakes rather than silently correct them.
+- Removed the Coverage Card from directly under the Decision Strip and added a compact action layer
+  in its place: `Call` (`tel:`, only when `school.phone[0]` exists), `Website` (only when
+  `school.website` exists), `Directions` (Google Maps search link, only when `mapPoint` — pre-existing,
+  untouched — resolves), `Enquire` (anchor to the existing enquiry form, unconditional). All reuse
+  data already fetched for the header/Contact/map sections; no new query.
+- Removed the "Grades" row from "School facts" (identical string already shown in the header and the
+  Decision Strip's Entry classes slot — no added value) and the "Fee range" row (Decision Strip and
+  Coverage already say "Not yet verified" for this; a third identical row added nothing).
+- Made the empty-Admissions state compact: when `admissions.length === 0`, the section's `<h2>` drops
+  to `text-meta font-semibold text-muted-ink` styling and the body becomes an inline
+  `"· Dates not announced"` span instead of a full heading + paragraph block — matches the
+  "proportionate, not full-content-looking" rule for empty modules.
+- Moved `<CoverageCard>` from directly under the Decision Strip to after the Teachers section and
+  before Similar Schools, per the locked hierarchy: identity → decision → action → answers →
+  coverage/trust → discovery.
+- Left the Contact/Enquiry `<aside>` and the claim-CTA duplication (plain `<Link>` in `CoverageCard`
+  alongside the header's `<ClaimStatusLink>`) untouched, per Prav's explicit "no problem with that
+  duplication" and "keep as already approved" instructions.
+
+**Verification performed:**
+- `pnpm run typecheck` — clean, no errors.
+- `pnpm run lint` (`biome check .`) — clean on first run, 280 files, no import-order fixes needed
+  (no new imports added this increment — only JSX/logic reorganization of existing imports).
+- `pnpm test` — **117/117 pass**, unchanged from Increment 6 (presentation-only refactor of already
+  battle-tested pure functions; no new testable logic introduced).
+- **Real-data regression check** via live SQL against `api.public_schools` /
+  `api.public_school_admissions`: confirmed **zero schools in production currently have
+  `last_verified_at` set**, meaning the header's "Not yet verified" fallback (the exact branch my
+  self-caught regression had deleted) is not a rare edge case — it is the universal current state
+  for every school on the live site, which makes this the most important check performed this
+  increment. Also confirmed zero schools currently have any school-linked admission rows (matches
+  the `admission_cycles.school_id = NULL` finding from Increment 5), so the compact empty-Admissions
+  state is likewise the universal current rendering, not a rare path. Separately confirmed real rows
+  exist for both action-layer branches: St. Xavier's Senior Secondary School and R.K. International
+  School (the same two schools used in Increments 5/6's checks) each have a website and no phone —
+  `Website` renders, `Call` does not; other schools (e.g. S R Dayanand Sen. Sec. School) have a
+  `phone[0]` value — `Call` renders for those. `Enquire` is unconditional. `Directions` depends on
+  the pre-existing, untouched `mapPoint` computation, not re-verified here since Increment 7 didn't
+  touch it.
+- No schema, migration, RLS, or new query architecture — confirmed by inspection: every line changed
+  is JSX structure, conditional className logic, or moving an existing element; no `.from()`,
+  `.select()`, or new field reference was added anywhere in the diff.
+- **Not yet done:** browser smoke test at mobile/desktop widths — same accepted, recorded limitation
+  as every prior increment this session (this sandbox's egress proxy blocks a real browser from
+  reaching the Supabase host).

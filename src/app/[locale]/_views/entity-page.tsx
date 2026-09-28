@@ -332,11 +332,14 @@ export async function SchoolView({
     : [];
 
   const primaryAdmission: PublicSchoolAdmission | undefined = admissions[0];
-  const deadlineInput = {
-    opensAt: primaryAdmission?.opens_on ? new Date(primaryAdmission.opens_on) : null,
-    closesAt: primaryAdmission?.closes_on ? new Date(primaryAdmission.closes_on) : null,
-  };
-  const pill = deadlineToPill(deadlineState(deadlineInput, now));
+
+  // Increment 7: the header used to carry its own admissions-urgency
+  // StatusPill (computed from primaryAdmission's dates via deadlineToPill),
+  // duplicating exactly what the Decision Strip's Admissions slot already
+  // shows. Removed the header's render per the ownership decision — Header
+  // stays compact identity context, Decision Strip is the canonical owner
+  // of "is admissions open right now." The underlying admissions data/query
+  // is unchanged; only this one rendering was removed.
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
   const badge = recordBadge(school.claim, school.verification, verifiedAt);
@@ -562,14 +565,28 @@ export async function SchoolView({
               ? ` · ${city.cityName}`
               : ""}
         </p>
+        {/* Increment 7: provenance/freshness grouped here with the record badge —
+            "where did this record come from, and when" is one trust signal, not
+            a School-facts row and a separate header chip. Reuses recordBadge's
+            own verifiedAt/date logic; FreshnessLine falls back to "Not yet
+            verified" text exactly as it did under School facts before. */}
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <StatusPill status={pill.status}>{pill.label}</StatusPill>
           <span
             className={`text-meta font-semibold ${badge.official ? "text-board-green" : "text-muted-ink"}`}
           >
             {badge.official ? "✓ " : ""}
             {badge.label}
           </span>
+          {verifiedAt ? (
+            <FreshnessLine
+              source="SchoolOye verification"
+              retrievedAt={verifiedAt}
+              verifiedAt={verifiedAt}
+              now={now}
+            />
+          ) : (
+            <span className="text-meta text-slate">Not yet verified</span>
+          )}
           <ShareButton title={name} />
           <SaveButton
             schoolId={school.id}
@@ -594,13 +611,47 @@ export async function SchoolView({
         <DecisionStrip slots={decisionSlots} />
       </div>
 
-      <div className="pb-6">
-        <CoverageCard
-          schoolName={name}
-          topics={coverageTopics}
-          schoolId={school.id}
-          isClaimed={school.claim === "claimed"}
-        />
+      {/* Increment 7: compact action layer, ahead of the detailed sections — each
+          action renders only when its backing fact exists, same conditional
+          pattern the rest of the page already uses (School facts, Location).
+          Reuses data already fetched for the header/Contact card; the detailed
+          Contact card and full enquiry form stay further down for anyone who
+          wants more than a single tap. */}
+      <div className="flex flex-wrap gap-2 pb-6">
+        {school.phone?.[0] && (
+          <a
+            href={`tel:${school.phone[0]}`}
+            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+          >
+            Call
+          </a>
+        )}
+        {school.website && (
+          <a
+            href={school.website}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+          >
+            Website
+          </a>
+        )}
+        {mapPoint && (
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${mapPoint.lat},${mapPoint.lng}`}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+          >
+            Directions
+          </a>
+        )}
+        <a
+          href="#enquiry-heading"
+          className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+        >
+          Enquire
+        </a>
       </div>
 
       <div className="grid gap-6 py-6 md:grid-cols-[1.6fr_1fr]">
@@ -633,19 +684,16 @@ export async function SchoolView({
                 <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>
                 <dd>{affiliationNo ?? <NotYetPublished />}</dd>
               </div>
-              <div>
-                <dt className="text-meta font-semibold text-muted-ink">Grades</dt>
-                <dd>{grades}</dd>
-              </div>
+              {/* Increment 7: "Grades" row removed — it rendered the exact same
+                  `grades` string already shown in the header and the Decision
+                  Strip's Entry classes slot, with no added value (unlike Board,
+                  which adds the affiliation number here). "Fee range" row
+                  removed too — the Decision Strip and Coverage Card both already
+                  say "Not yet verified" for this; a third identical row added
+                  nothing. See docs/ops/implementation-log.md Increment 7. */}
               <div>
                 <dt className="text-meta font-semibold text-muted-ink">Established</dt>
                 <dd>{school.established_year ?? <NotYetPublished />}</dd>
-              </div>
-              <div>
-                <dt className="text-meta font-semibold text-muted-ink">Fee range</dt>
-                <dd>
-                  <NotYetPublished />
-                </dd>
               </div>
               <div>
                 <dt className="text-meta font-semibold text-muted-ink">Medium</dt>
@@ -658,20 +706,20 @@ export async function SchoolView({
                 </dd>
               </div>
             </dl>
-            {verifiedAt ? (
-              <FreshnessLine
-                source="SchoolOye verification"
-                retrievedAt={verifiedAt}
-                verifiedAt={verifiedAt}
-                now={now}
-              />
-            ) : (
-              <span className="text-meta text-slate">Not yet verified</span>
-            )}
           </section>
 
-          <section aria-labelledby="admissions-heading" className="flex flex-col gap-3">
-            <h2 id="admissions-heading" className="font-display text-card font-semibold">
+          <section
+            aria-labelledby="admissions-heading"
+            className={admissions.length > 0 ? "flex flex-col gap-3" : "flex items-center gap-2"}
+          >
+            <h2
+              id="admissions-heading"
+              className={
+                admissions.length > 0
+                  ? "font-display text-card font-semibold"
+                  : "text-meta font-semibold text-muted-ink"
+              }
+            >
               Admissions
             </h2>
             {admissions.length > 0 ? (
@@ -713,7 +761,12 @@ export async function SchoolView({
                 })}
               </div>
             ) : (
-              <p className="text-body text-muted-ink">Dates not announced</p>
+              // Increment 7: compact, inline unavailable state — this used to be a
+              // full-weight section (its own heading + block) for a one-line
+              // null result, the same "looks substantive but says nothing" issue
+              // flagged for empty modules generally. The Decision Strip above
+              // already gives this a proper "Not yet verified" treatment.
+              <span className="text-meta text-slate">· Dates not announced</span>
             )}
           </section>
 
@@ -758,6 +811,20 @@ export async function SchoolView({
               </div>
             </section>
           )}
+
+          {/* Increment 7: Coverage Card moved here — after the substantive
+              "answer" sections (Admissions, About, School facts, Location,
+              Teachers) and before Similar schools/discovery, per the locked
+              page hierarchy: identity -> decision -> action -> answers ->
+              coverage/trust -> discovery. It used to sit directly under the
+              Decision Strip, ahead of any substantive content, which read
+              more like a database-completeness report than a school page. */}
+          <CoverageCard
+            schoolName={name}
+            topics={coverageTopics}
+            schoolId={school.id}
+            isClaimed={school.claim === "claimed"}
+          />
 
           {similarSchools.length > 0 && (
             <section aria-labelledby="similar-heading" className="flex flex-col gap-3">
