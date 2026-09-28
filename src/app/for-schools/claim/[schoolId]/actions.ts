@@ -36,6 +36,25 @@ export async function submitClaim(formData: FormData) {
     redirect("/for-schools/claim");
   }
 
+  // Increment 4: don't let the same user queue up a second pending claim for
+  // the same school (no DB constraint for this — school_id isn't unique on
+  // its own because legitimate co-administrators are allowed, see
+  // school_members' composite PK). Checked before any file upload work so a
+  // resubmission attempt on top of an existing pending claim doesn't waste
+  // an upload. A prior *rejected* claim doesn't match 'pending', so
+  // resubmission after rejection is unaffected.
+  const { data: existingPending } = await supabase
+    .from("school_claims")
+    .select("id")
+    .eq("school_id", schoolId)
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+  if (existingPending) {
+    redirect(`${claimPath}/pending`);
+  }
+
   let evidence: Json;
 
   if (parsed.data.method === "document") {

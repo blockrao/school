@@ -213,3 +213,77 @@ relevant `dist/docs/` page first, not general Next.js knowledge.
 
 **Practical effect:** Increment 4 no longer includes an auth-redirect fix — there's nothing to fix.
 It is claim-flow completion only (states C, D, F, G from the review above).
+
+## 2026-09-28 — Increment 4: claim-flow completion (A–D)
+
+Implemented Prav's final locked scope — exactly four items, no schema/migration/RLS/auth work:
+
+- **A. Duplicate pending claim.** `submitClaim` (`.../claim/[schoolId]/actions.ts`) now checks for an
+  existing `school_claims` row with `status='pending'` for that `(school_id, user_id)` pair *before*
+  any file upload, and redirects straight to the pending page if one exists. No new DB constraint —
+  `school_id` alone isn't unique (legitimate co-administrators via `school_members`' composite PK),
+  so this stays an application-level check, not a schema change.
+- **B. Pending-state visibility on revisit.** `ClaimSchoolPage` now reads the latest `school_claims`
+  row for the signed-in user server-side (safe here — this page is already dynamic/per-user, unlike
+  the public entity page) and redirects to the pending page if `status='pending'`, instead of
+  silently re-showing a blank form.
+- **C. Rejected → resubmit.** Same lookup: if the latest claim is `status='rejected'`, the page
+  renders normally (resubmission was never blocked) but now shows a banner — "Your earlier claim
+  wasn't approved... you can submit a new claim below" — instead of silently repeating the form with
+  no acknowledgment of the prior rejection.
+- **D. Existing-member "Manage school" CTA.** New client component `src/components/claim-status-link.tsx`
+  replaces the old unconditional "Is this your school? Claim it free" link on the public entity page.
+  Resolves state client-side, after first paint (same pattern as `AuthStatusLink`) — the entity page
+  is statically rendered/ISR'd, so a server-side session read here would force the whole page
+  dynamic. Renders one of: "Manage school" (→ `/portal`, for confirmed `school_members`), "Claim
+  pending", "Claim again" (rejected), or the original CTA — nothing for a signed-out visitor beyond
+  one `getSession()` call.
+
+**Verification performed:**
+- `pnpm run typecheck` — clean.
+- `pnpm run lint` — one import-order fix needed (`@/lib/db/public-adapter` must sort before
+  `@/lib/db/session`; Biome's `assist/source/organizeImports` isn't auto-fixed by `format --write`),
+  then clean (273 files checked).
+- `pnpm test` — all 97 existing tests pass (no new unit tests added — this repo has no
+  Supabase-mocking test infrastructure, confirmed by grep; inventing one for this increment would
+  have been scope creep, so DB-dependent logic was verified live instead, below).
+- **Live-SQL verification (reversible, using a temporary test row, deleted afterward — no residue
+  left in the production DB):**
+  - Inserted a temporary `school_claims` row (`status='pending'`) for the existing test user against
+    an unclaimed school. Confirmed the exact query shape used in `submitClaim` (item A) finds it,
+    and that a *different* user querying the same school correctly finds nothing — multi-admin /
+    second-claimant capability is preserved, exactly as Prav required.
+  - Confirmed the exact query shape used in `ClaimSchoolPage` (item B) returns `status: 'pending'`
+    for that row.
+  - Updated the row to `status='rejected'`; confirmed the same lookup now returns `status:
+    'rejected'` (item C), and confirmed the duplicate-pending check (item A) no longer blocks this
+    user — resubmission after rejection works.
+  - Deleted the temporary row. Confirmed zero residual test rows remain for that school.
+  - **Item D query-cost inspection (explicitly requested by Prav — "don't assume the queries are
+    cheap merely because RLS permits them"):** ran `EXPLAIN (ANALYZE, BUFFERS)` on both queries
+    `ClaimStatusLink` issues.
+    - `school_members` membership lookup: **Index Only Scan** on `school_members_pkey`
+      `(school_id, user_id)` — exact composite-PK match, 0 heap fetches, ~2ms. Cheap, as expected.
+    - `school_claims` status lookup: **Seq Scan** — this table has no index beyond its own `id`
+      primary key (only `school_claims_pkey` exists; confirmed via `pg_indexes`). Not a concern
+      *today*: the table holds only 2 rows total in production, so the scan cost is negligible
+      (~1ms). Flagged here as a forward-looking note for whoever picks up fees/admissions-scale work
+      later — if `school_claims` grows substantially, add an index on `(school_id, user_id)` (or a
+      partial index on `status='pending'`) before this becomes a real query. **Not done in this
+      increment** — no schema change was in scope.
+    - Confirmed via a real query that the one existing `claimed` row correctly joins to its
+      `school_members` row (same `school_id`/`user_id`) — the 'member' branch resolves correctly.
+    - This component renders once per page (the entity page's own CTA, not reused in any
+      listing/card), so there's no N+1 pattern to worry about regardless.
+- Browser-level test: still environmentally blocked in this sandbox (egress proxy blocks the
+  Supabase host from a real browser session) — recorded as an accepted limitation, per the
+  verification hierarchy established earlier this session; live-SQL verification substitutes for it
+  here as it did for items A/B/C.
+
+**Files touched:** `src/app/for-schools/claim/[schoolId]/actions.ts`,
+`src/app/for-schools/claim/[schoolId]/page.tsx`, `src/components/claim-status-link.tsx` (new),
+`src/app/[locale]/_views/entity-page.tsx`, `src/lib/db/browser.ts` (doc-comment update only — this
+client now has a third caller beyond `/my`/`/portal`/`/ops`).
+
+**Explicitly not touched, per Prav's scope lock:** no schema change, no migration, no new RLS
+policy, no auth/`/sign-in` work (already confirmed working — see the correction entry above).

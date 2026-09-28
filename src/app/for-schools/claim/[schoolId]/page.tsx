@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { getSchoolCanonicalPath, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatGradeRange } from "@/lib/grades";
 import { maskEmail, maskPhone } from "@/lib/mask";
 import { submitClaim } from "./actions";
@@ -39,6 +40,33 @@ export default async function ClaimSchoolPage({
     redirect((await getSchoolCanonicalPath(school.id, "en")) ?? "/schools");
   }
 
+  // Increment 4 (B/C): this page is already per-user/dynamic (submitClaim
+  // needs a signed-in user anyway), so it's safe to read the session here —
+  // unlike the public entity page, this isn't statically rendered/ISR'd.
+  // schools.claim never reaches an intermediate "pending" value (only the
+  // redirect above ever fires from 'claimed'), so the only way to know a
+  // claim is already in flight is to check school_claims directly. Since the
+  // 'claimed' redirect already fired above, any existing row here can only
+  // be 'pending' or 'rejected' — an approved one would have set
+  // schools.claim='claimed' and short-circuited already.
+  const supabase = await createSessionClient();
+  const user = await getSessionUser(supabase);
+  let rejectedClaim = false;
+  if (user) {
+    const { data: existingClaim } = await supabase
+      .from("school_claims")
+      .select("status")
+      .eq("school_id", school.id)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingClaim?.status === "pending") {
+      redirect(`/for-schools/claim/${school.id}/pending`);
+    }
+    rejectedClaim = existingClaim?.status === "rejected";
+  }
+
   const errorCode = first(rawSearchParams.error);
   const errorMessage =
     errorCode === "missing_file"
@@ -69,6 +97,15 @@ export default async function ClaimSchoolPage({
           Not your school? Search again
         </Link>
       </div>
+
+      {rejectedClaim && (
+        <div className="mt-6 rounded-md border border-line-blue-strong bg-margin-paper p-3.5">
+          <p className="font-semibold text-ink">Your earlier claim wasn't approved</p>
+          <p className="mt-1 text-meta text-muted-ink">
+            You can submit a new claim below with different details.
+          </p>
+        </div>
+      )}
 
       <h1 className="mt-6 font-display text-section font-semibold">
         How should we check you work here?

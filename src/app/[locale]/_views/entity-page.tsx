@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
@@ -536,14 +537,7 @@ export async function SchoolView({
           >
             Compare
           </Link>
-          {school.claim !== "claimed" && (
-            <Link
-              href={`/for-schools/claim/${school.id}`}
-              className="font-semibold text-ruled-blue"
-            >
-              Is this your school? Claim it free
-            </Link>
-          )}
+          <ClaimStatusLink schoolId={school.id} isClaimed={school.claim === "claimed"} />
         </div>
       </div>
 
