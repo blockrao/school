@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/state-message";
-import { getSelectedCityArea, listPublicSchoolsByDistrict } from "@/lib/db/public-adapter";
+import { getCitiesByDistrictIds, searchPublicSchoolsSiteWide } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
+import { titleCase } from "@/lib/text";
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -18,11 +19,14 @@ export default async function ClaimSearchPage({ searchParams }: PageProps<"/for-
   const rawSearchParams = await searchParams;
   const q = first(rawSearchParams.q);
 
-  const area = await getSelectedCityArea();
-  const { schools } =
-    q && area
-      ? await listPublicSchoolsByDistrict(area.districtId, { query: q, pageSize: 20 })
-      : { schools: [] };
+  // Site-wide, not scoped to the visitor's selected city (2026-09-28, same fix as
+  // /schools' own search) — a school admin claiming their school needs to find it
+  // regardless of which city happens to be selected in their browser right now.
+  const { schools } = q
+    ? await searchPublicSchoolsSiteWide({ query: q, pageSize: 20 })
+    : { schools: [] };
+  const districtIds = schools.map((s) => s.district_id).filter((id) => id != null);
+  const citiesByDistrict = q ? await getCitiesByDistrictIds(districtIds) : new Map();
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -62,6 +66,11 @@ export default async function ClaimSearchPage({ searchParams }: PageProps<"/for-
                     <span className="text-meta text-muted-ink">
                       {formatGradeRange(school.min_class, school.max_class)}
                       {school.locality_name ? ` · ${school.locality_name}` : ""}
+                      {(() => {
+                        const cityName =
+                          school.district_id && citiesByDistrict.get(school.district_id)?.name_en;
+                        return cityName ? ` · ${titleCase(cityName)}` : "";
+                      })()}
                     </span>
                   </Link>
                 </li>

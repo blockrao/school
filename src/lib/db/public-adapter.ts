@@ -239,6 +239,7 @@ export type PublicArea = {
   state: string;
   school_count: number;
   is_launch: boolean;
+  district_id: number;
 };
 
 /**
@@ -366,17 +367,24 @@ export async function getSelectedCityArea(): Promise<PublicCityArea | null> {
   return getPublicCityAreaBySlug(slug);
 }
 
-/** Published schools in a district, for the district listing page. Newest first. */
-export async function listPublicSchoolsByDistrict(
-  districtId: number,
-  filters: {
-    query?: string;
-    boardId?: number;
-    maxClass?: string;
-    admissionsOpen?: boolean;
-    page?: number;
-    pageSize?: number;
-  } = {},
+type PublicSchoolFilters = {
+  query?: string;
+  boardId?: number;
+  maxClass?: string;
+  admissionsOpen?: boolean;
+  page?: number;
+  pageSize?: number;
+};
+
+/**
+ * Shared query behind listPublicSchoolsByDistrict (one city) and
+ * searchPublicSchoolsSiteWide (every launched city, 2026-09-28) — `districtIds`
+ * omitted/empty means no district restriction at all, which callers must not
+ * do accidentally (see searchPublicSchoolsSiteWide's own guard).
+ */
+async function queryPublicSchools(
+  districtIds: number[] | undefined,
+  filters: PublicSchoolFilters,
 ): Promise<{ schools: PublicSchool[]; total: number }> {
   const {
     query: searchQuery,
@@ -388,20 +396,18 @@ export async function listPublicSchoolsByDistrict(
   } = filters;
   const api = createApiSchemaClient();
 
-  // Publish gate (2026-09-28): a school only belongs on the listing once name,
-  // address and pincode actually RENDER — i.e. each has provenance from an
-  // allowed, non-aggregator source (010_public_schools.sql nulls out anything
-  // that doesn't). This was previously not enforced at all: the docstring
-  // above said "published" but the query never filtered, so every school in a
-  // launched district showed regardless of status or field completeness.
-  // schools.status mirrors this same rule (kept in sync by a DB-side update),
-  // but is NOT read here — the view doesn't expose status as a column, and
-  // the source-of-truth for "does it render" is the field itself being
-  // non-null, not a separate flag that can drift out of sync with it.
-  let query = api
-    .from("public_schools")
-    .select("*", { count: "exact" })
-    .eq("district_id", districtId);
+  // Publish gate (D-119, 2026-09-28): api.public_schools itself now filters to
+  // schools.status = 'published' (010_public_schools.sql) with every column
+  // shown as stored — no per-field source/provenance gating here anymore, so
+  // this query doesn't need its own null checks on top of the view.
+  let query = api.from("public_schools").select("*", { count: "exact" });
+
+  if (districtIds !== undefined) {
+    query = query.in(
+      "district_id",
+      districtIds.length > 0 ? districtIds : [-1], // no launched districts → no results, never "every district"
+    );
+  }
 
   if (searchQuery) {
     query = query.ilike("name_en", `%${searchQuery}%`);
@@ -439,6 +445,38 @@ export async function listPublicSchoolsByDistrict(
     schools: (data ?? []).map((row) => publicSchoolContract.parse(row)),
     total: count ?? 0,
   };
+}
+
+/** Published schools in a district, for the district listing page. Newest first. */
+export async function listPublicSchoolsByDistrict(
+  districtId: number,
+  filters: PublicSchoolFilters = {},
+): Promise<{ schools: PublicSchool[]; total: number }> {
+  return queryPublicSchools([districtId], filters);
+}
+
+/**
+ * Published schools across every launched city (2026-09-28) — what the header
+ * search box and /schools page's `q` search actually need. Before this
+ * existed, the only "search" was listPublicSchoolsByDistrict scoped to
+ * getSelectedCityArea() — a visitor typing a school name that happened to be
+ * in a different launched city than their currently-selected one got zero
+ * results, even though the school was live on the site. Deliberately
+ * restricted to launched districts only (listLaunchedDistrictIds), not every
+ * district with a publish-gate pass: a result whose city page 404s
+ * (city.isLaunch === false) would be worse than not surfacing it at all.
+ */
+export async function searchPublicSchoolsSiteWide(
+  filters: PublicSchoolFilters,
+): Promise<{ schools: PublicSchool[]; total: number }> {
+  const districtIds = await listLaunchedDistrictIds();
+  return queryPublicSchools(districtIds, filters);
+}
+
+/** district_id of every launched area — see api.public_areas.is_launch. */
+export async function listLaunchedDistrictIds(): Promise<number[]> {
+  const areas = await listPublicAreas();
+  return areas.filter((a) => a.is_launch).map((a) => a.district_id);
 }
 
 /**

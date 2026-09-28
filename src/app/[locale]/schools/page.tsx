@@ -12,17 +12,25 @@ import { EmptyState } from "@/components/ui/state-message";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
+  getCitiesByDistrictIds,
   getSelectedCityArea,
   listDistrictFilterOptions,
+  listPublicBoards,
   listPublicSchoolsByDistrict,
+  searchPublicSchoolsSiteWide,
 } from "@/lib/db/public-adapter";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath } from "@/lib/school-url";
+import { titleCase } from "@/lib/text";
 
-// Search is scoped to one city at a time, not site-wide — resolved per-request
-// via getSelectedCityArea (the user's own pick, or the platform default).
+// Browsing with no search text is scoped to the visitor's selected city
+// (getSelectedCityArea) — that's the right default for "show me schools near
+// me". A name search (`q`) is site-wide across every launched city instead
+// (searchPublicSchoolsSiteWide, 2026-09-28) — a visitor typing a school name
+// wants that school, not just the subset of it that happens to be in whatever
+// city they last picked.
 const PAGE_SIZE = 24;
 const COMPARE_LIMIT = 4;
 
@@ -44,7 +52,18 @@ function parseParams(searchParams: { [key: string]: string | string[] | undefine
   return { q, boardId, maxClass, admissionsOpen, page, compareIds, view };
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: PageProps<"/[locale]/schools">): Promise<Metadata> {
+  const { q } = parseParams(await searchParams);
+  if (q) {
+    return {
+      title: `"${q}" — School search — SchoolOye`,
+      description: `Schools matching "${q}" across every SchoolOye city.`,
+      robots: { index: false, follow: true },
+    };
+  }
+
   const area = await getSelectedCityArea();
   const label = area?.cityName ?? "your city";
   return {
@@ -69,30 +88,42 @@ export default async function SchoolsPage({
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
 
   const area = await getSelectedCityArea();
+  const siteWide = Boolean(q);
 
-  const [{ schools, total }, filterOptions] = area
-    ? await Promise.all([
-        listPublicSchoolsByDistrict(area.districtId, {
-          query: q,
-          boardId,
-          maxClass,
-          admissionsOpen,
-          page,
-          pageSize: PAGE_SIZE,
-        }),
-        listDistrictFilterOptions(area.districtId),
-      ])
-    : [
-        { schools: [], total: 0 },
-        { boards: [], maxClasses: [] },
-      ];
+  const schoolFilters = { query: q, boardId, maxClass, admissionsOpen, page, pageSize: PAGE_SIZE };
+
+  const [{ schools, total }, filterOptions] = await Promise.all([
+    siteWide
+      ? searchPublicSchoolsSiteWide(schoolFilters)
+      : area
+        ? listPublicSchoolsByDistrict(area.districtId, schoolFilters)
+        : Promise.resolve({ schools: [], total: 0 }),
+    // Board/grade filter options: a name search spans every launched city, so its
+    // dropdowns can't be scoped to one district's own boards/grades the way plain
+    // browsing's can — listPublicBoards() is the same site-wide reference list
+    // searchPublicSchoolsSiteWide's own boardId filter already checks against.
+    // Grade stays empty in search mode rather than showing one city's grade set as
+    // if it applied everywhere.
+    siteWide
+      ? listPublicBoards().then((boards) => ({ boards, maxClasses: [] as string[] }))
+      : area
+        ? listDistrictFilterOptions(area.districtId)
+        : Promise.resolve({ boards: [], maxClasses: [] }),
+  ]);
 
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
+  const districtIds = schools.map((s) => s.district_id).filter((id) => id != null);
+  const [boardNames, admissionDeadlines, shortlistedIds, citiesByDistrict] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
     getShortlistedSchoolIds(schoolIds),
+    siteWide ? getCitiesByDistrictIds(districtIds) : Promise.resolve(new Map()),
   ]);
+
+  function citySlugFor(school: (typeof schools)[number]): string {
+    if (!siteWide) return area?.citySlug ?? "";
+    return (school.district_id && citiesByDistrict.get(school.district_id)?.slug) || "";
+  }
 
   const basePath = `/${locale}/schools`;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -136,7 +167,7 @@ export default async function SchoolsPage({
   return (
     <div className="mx-auto max-w-(--container-page) px-4 py-6 pb-24 md:px-10 md:py-9 md:pb-9">
       <h1 className="font-display text-title-m md:text-title-d">
-        Schools in {area?.cityName ?? "your city"}
+        {siteWide ? `Search results for "${q}"` : `Schools in ${area?.cityName ?? "your city"}`}
       </h1>
 
       <Form action={basePath} className="mt-4 flex flex-wrap items-end gap-3">
@@ -262,7 +293,7 @@ export default async function SchoolsPage({
                       lat: school.lat,
                       lng: school.lng,
                       label: school.name_en ?? "Name not yet published",
-                      href: schoolPath(locale, area?.citySlug ?? "", school),
+                      href: schoolPath(locale, citySlugFor(school), school),
                       precision: school.geocode_precision ?? "pincode",
                     },
                   ]
@@ -289,7 +320,11 @@ export default async function SchoolsPage({
             {schools.map((school) => {
               const board = boardNames.get(school.id);
               const grades = formatGradeRange(school.min_class, school.max_class);
-              const meta = board ? `${board} · ${grades}` : grades;
+              const rawCityName = siteWide
+                ? (school.district_id && citiesByDistrict.get(school.district_id)?.name_en) || null
+                : null;
+              const cityName = rawCityName ? titleCase(rawCityName) : null;
+              const meta = [board, grades, cityName].filter(Boolean).join(" · ");
 
               const closesOn = admissionDeadlines.get(school.id);
               const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
@@ -301,7 +336,7 @@ export default async function SchoolsPage({
               return (
                 <SchoolCard
                   key={school.id}
-                  href={schoolPath(locale, area?.citySlug ?? "", school)}
+                  href={schoolPath(locale, citySlugFor(school), school)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   now={now}

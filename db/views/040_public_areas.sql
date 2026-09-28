@@ -4,13 +4,10 @@
 -- has exactly one `cities` row per the 2026-09-28 city/district merge, so district
 -- remains the real launch unit and the two stay interchangeable).
 --
--- is_launch policy (2026-09-28, replaces the earlier hardcoded list): a district is
--- "supported" when it has at least one school that actually renders name+address+
--- pincode — i.e. a real, visible listing exists there, not just a raw DB row with
--- those fields non-null (schools.status tracks the latter and is NOT what this
--- checks). Computed by joining api.public_schools, which already applies the
--- field-level source-provenance gate (010_public_schools.sql) — so a district only
--- drops in or out of launch as its underlying sourcing quality actually changes,
+-- is_launch policy (D-119, 2026-09-28): a district is "supported" when it has at
+-- least one school with schools.status = 'published' — computed by checking
+-- api.public_schools (010_public_schools.sql), which is exactly that filter, so a
+-- district only drops in or out of launch as schools are published/unpublished,
 -- with nothing here to keep manually in sync.
 --
 -- Previously: a hardcoded `d.slug in ('jaipur', 'gurugram')` list, kept in sync by
@@ -18,9 +15,8 @@
 -- now gone — getPublicCityAreaBySlug/getPublicTownAreaBySlug read is_launch from
 -- this view directly instead of maintaining a parallel list.
 --
--- Does not filter school_count on schools.status — see 010_public_schools.sql's
--- header for why. Must stay owner-run (same note applies, and this view now reads
--- api.public_schools, which carries the same requirement).
+-- Must stay owner-run (schools has RLS; see 010_public_schools.sql's header —
+-- this view reads api.public_schools, which carries the same requirement).
 --
 -- NOTE: this view is still district-sourced (slug/name below are the district's).
 -- It reads identically to the city today because every city's name_en/slug was
