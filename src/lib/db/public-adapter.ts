@@ -264,6 +264,47 @@ export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | nu
   return areas.find((a) => a.slug === slug) ?? null;
 }
 
+export type PublicStateAreaCity = { slug: string; name: string; schoolCount: number };
+
+export type PublicStateArea = {
+  stateSlug: string;
+  stateName: string;
+  cities: PublicStateAreaCity[];
+  totalSchoolCount: number;
+};
+
+/**
+ * State canonical page's data (docs/seo-canonical-pages-spec.md) — every launched
+ * city in the state, with an honest (render-gated, not raw) count each, sorted
+ * by count descending. Built from listPublicAreas() (already state-per-area,
+ * no slug column on states so state.name is matched via slugify — same
+ * approach as getPublicStateBySlug) rather than a new query. A state with no
+ * launched cities returns null: it isn't a real page yet, just like a district
+ * with is_launch=false isn't a real city page.
+ */
+export async function getPublicStateAreaBySlug(stateSlug: string): Promise<PublicStateArea | null> {
+  const areas = (await listPublicAreas()).filter(
+    (a) => a.is_launch && slugify(a.state) === stateSlug,
+  );
+  if (areas.length === 0) return null;
+
+  const cities = await Promise.all(
+    areas.map(async (area) => {
+      const district = await getPublicDistrictBySlug(area.slug);
+      const schoolCount = district ? await countRenderableSchoolsByDistrict(district.id) : 0;
+      return { slug: area.slug, name: area.name, schoolCount };
+    }),
+  );
+  cities.sort((a, b) => b.schoolCount - a.schoolCount);
+
+  return {
+    stateSlug,
+    stateName: areas[0].state,
+    cities,
+    totalSchoolCount: cities.reduce((sum, c) => sum + c.schoolCount, 0),
+  };
+}
+
 /**
  * Which launched city the current request should show: the user's own choice
  * (CITY_COOKIE_NAME, set by src/components/shell/city-picker.tsx) if it's
@@ -383,6 +424,29 @@ export async function listPublicSchoolsByDistrict(
   };
 }
 
+/**
+ * Head-count-only version of listPublicSchoolsByDistrict's publish gate — for
+ * SEO-facing pages (state/city canonical pages) that need an honest count
+ * without paging through rows. PublicCityArea.schoolCount and
+ * api.public_areas.school_count are both raw/unfiltered (every school row in
+ * the district, published or not) — using those on a public-facing "N schools
+ * in Gurugram" figure would repeat the same illusion that led to the is_launch
+ * rewrite (2026-09-28): a big number that doesn't match what a visitor can
+ * actually click through to. This mirrors the exact three `.not(...)` filters
+ * in listPublicSchoolsByDistrict so the two never drift apart.
+ */
+export async function countRenderableSchoolsByDistrict(districtId: number): Promise<number> {
+  const api = createApiSchemaClient();
+  const { count } = await api
+    .from("public_schools")
+    .select("id", { count: "exact", head: true })
+    .eq("district_id", districtId)
+    .not("name_en", "is", null)
+    .not("address", "is", null)
+    .not("pincode", "is", null);
+  return count ?? 0;
+}
+
 export type PublicDistrictFilterOptions = { boards: PublicBoard[]; maxClasses: string[] };
 
 /** Only the boards and grade ranges actually present in this district — never a dead dropdown option. */
@@ -421,6 +485,35 @@ export async function listPublicBoards(): Promise<PublicBoard[]> {
   const api = createApiSchemaClient();
   const { data } = await api.from("public_boards").select("*");
   return (data ?? []).map((row) => publicBoardContract.parse(row));
+}
+
+export type PublicBoardCategoryLink = { board: PublicBoard; count: number };
+
+/**
+ * "Browse by category" links for a city/state page (docs/seo-canonical-pages-spec.md) —
+ * per docs/seo-canonical-pages-spec.md, board affiliation is the one category that's
+ * both real and not source-gated (school_affiliations isn't subject to the
+ * field_provenance/UDISE rule that blocks management/gender/established_year),
+ * so it's the only "Top {Board} Schools in {Area}" style link that ships in this
+ * pass. Reuses listDistrictFilterOptions' already-detected board list, then adds
+ * a real per-board count and drops any board with zero — never links to an
+ * empty result. Board name is used verbatim (e.g. "CBSE"), never re-labelled
+ * with an invented ranking word.
+ */
+export async function getBoardCategoryLinksForDistrict(
+  districtId: number,
+): Promise<PublicBoardCategoryLink[]> {
+  const { boards } = await listDistrictFilterOptions(districtId);
+  const links = await Promise.all(
+    boards.map(async (board) => {
+      const { total } = await listPublicSchoolsByDistrict(districtId, {
+        boardId: board.id,
+        pageSize: 1,
+      });
+      return { board, count: total };
+    }),
+  );
+  return links.filter((link) => link.count > 0).sort((a, b) => b.count - a.count);
 }
 
 export type PublicOpenAdmission = {
