@@ -70,6 +70,8 @@ header comment. Public pages never do this.
 
 ## 3. Publishing rules (enforced in view SQL, not React)
 
+> **Current rule (D-119, 28 Sep 2026):** a school is public when `schools.status = 'published'`, and every field is shown as stored. Rules 1–5 below are **suspended**; kept for reference if gating returns.
+
 1. **Source gate (D-022):** a fact is shown only if its provenance traces to a displayable source
    group for that fact type; otherwise the UI shows "Not yet published" (D-049).
 2. **Source groups and precedence (D-023):** replace the hard-coded source-id lists in

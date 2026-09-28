@@ -90,7 +90,7 @@ export async function getPublicSchoolByIdSlug(id: string): Promise<{
   // raw-table grant after the grants-hardening migration — these return empty
   // until proper views exist. Unused today (nothing in Overview needs them).
   const [boardResult, identifiersResult, factsResult] = await Promise.all([
-    api.from("public_school_boards").select("*").eq("school_id", id).maybeSingle(),
+    api.from("public_school_boards").select("*").eq("school_id", id).limit(1).maybeSingle(),
     publicClient.from("school_identifiers").select("scheme, value").eq("school_id", id),
     publicClient
       .from("field_provenance")
@@ -131,7 +131,7 @@ export async function getPublicSchoolByCode(code: number): Promise<{
   const school = publicSchoolContract.parse(schoolRow);
 
   const [boardResult, identifiersResult, factsResult] = await Promise.all([
-    api.from("public_school_boards").select("*").eq("school_id", school.id).maybeSingle(),
+    api.from("public_school_boards").select("*").eq("school_id", school.id).limit(1).maybeSingle(),
     publicClient.from("school_identifiers").select("scheme, value").eq("school_id", school.id),
     publicClient
       .from("field_provenance")
@@ -401,10 +401,7 @@ export async function listPublicSchoolsByDistrict(
   let query = api
     .from("public_schools")
     .select("*", { count: "exact" })
-    .eq("district_id", districtId)
-    .not("name_en", "is", null)
-    .not("address", "is", null)
-    .not("pincode", "is", null);
+    .eq("district_id", districtId);
 
   if (searchQuery) {
     query = query.ilike("name_en", `%${searchQuery}%`);
@@ -452,18 +449,15 @@ export async function listPublicSchoolsByDistrict(
  * the district, published or not) — using those on a public-facing "N schools
  * in Gurugram" figure would repeat the same illusion that led to the is_launch
  * rewrite (2026-09-28): a big number that doesn't match what a visitor can
- * actually click through to. This mirrors the exact three `.not(...)` filters
- * in listPublicSchoolsByDistrict so the two never drift apart.
+ * actually click through to. D-119: api.public_schools already holds only published schools, so this
+ * is a plain count with the same district filter as listPublicSchoolsByDistrict.
  */
 export async function countRenderableSchoolsByDistrict(districtId: number): Promise<number> {
   const api = createApiSchemaClient();
   const { count } = await api
     .from("public_schools")
     .select("id", { count: "exact", head: true })
-    .eq("district_id", districtId)
-    .not("name_en", "is", null)
-    .not("address", "is", null)
-    .not("pincode", "is", null);
+    .eq("district_id", districtId);
   return count ?? 0;
 }
 
@@ -893,13 +887,7 @@ export async function listPublicLocalitiesByCity(
  */
 export async function listPublicSchoolsByLocality(localityId: number): Promise<PublicSchool[]> {
   const api = createApiSchemaClient();
-  const { data } = await api
-    .from("public_schools")
-    .select("*")
-    .eq("locality_id", localityId)
-    .not("name_en", "is", null)
-    .not("address", "is", null)
-    .not("pincode", "is", null);
+  const { data } = await api.from("public_schools").select("*").eq("locality_id", localityId);
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 

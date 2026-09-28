@@ -100,21 +100,10 @@ ${entries.join("\n")}
 `;
 }
 
-/**
- * A school counts as indexable (L2+) once it has enough for a real page:
- * address + pincode, a contact point (phone or website), and coordinates.
- * Mirrors staging.schools_with_level's L1→L2 gate (db/views/100_staging_schools.sql)
- * — that view is analysis-only (claude_ro), so production recomputes the same
- * rule from api.public_schools' own fields instead of reading it.
- */
-function isIndexable(school: PublicSchool): boolean {
-  return (
-    school.address != null &&
-    school.pincode != null &&
-    ((school.phone != null && school.phone.length > 0) || school.website != null) &&
-    school.lat != null &&
-    school.lng != null
-  );
+/** Every published school is indexable (D-119, 28 Sep 2026). */
+function isIndexable(_school: PublicSchool): boolean {
+  // D-119: every published school (api.public_schools) goes in the sitemap.
+  return true;
 }
 
 function maxVerifiedAt(schools: PublicSchool[]): Date | undefined {

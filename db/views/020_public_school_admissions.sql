@@ -1,3 +1,5 @@
+-- D-119 (28 Sep 2026): every admission cycle of a published school is shown as stored;
+-- `verification` is exposed so the page can label it. No verification filter.
 -- api.public_school_admissions: admission cycles, shown only once a human (staff or
 -- the school itself) has confirmed them — not merely source_verified from an
 -- automated extraction. "Approved" = verification in ('ops_verified','school_verified').
@@ -28,4 +30,4 @@ select
   case when ac.closes_on is not null then ac.closes_on - current_date else null end as days_to_close
 from schools s
 join admission_cycles ac on ac.school_id = s.id
-where ac.verification in ('ops_verified', 'school_verified');
+where s.status = 'published';

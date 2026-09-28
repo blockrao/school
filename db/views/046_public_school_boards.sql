@@ -30,5 +30,4 @@ select
   null::timestamptz as checked_at
 from school_affiliations sa
 join boards b on b.id = sa.board_id
-left join sources src on src.id = sa.source_id
-where sa.source_id in (1, 2, 4, 6, 7, 8, 9, 11, 12);
+left join sources src on src.id = sa.source_id;

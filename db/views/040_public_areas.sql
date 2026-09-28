@@ -1,3 +1,4 @@
+-- D-119 (28 Sep 2026): a district is launched when it has at least one published school.
 -- api.public_areas: launch-area directory, built from districts (not the `cities`
 -- table — `cities.is_launch` only covers Jaipur/Gurugram today; every district now
 -- has exactly one `cities` row per the 2026-09-28 city/district merge, so district
@@ -35,14 +36,12 @@ select
   st.name_en as state,
   (
     select count(*)::int from schools s
-    where s.district_id = d.id
+    where s.district_id = d.id and s.status = 'published'
   ) as school_count,
   exists (
     select 1 from api.public_schools ps
     where ps.district_id = d.id
-      and ps.name_en is not null
-      and ps.address is not null
-      and ps.pincode is not null
-  ) as is_launch
+  ) as is_launch,
+  d.id as district_id
 from districts d
 join states st on st.id = d.state_id;
