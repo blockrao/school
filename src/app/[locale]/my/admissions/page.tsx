@@ -7,6 +7,7 @@ import type { Application } from "@/lib/db/application-help";
 import { listApplicationsForOrders, listMyChildren, listMyOrders } from "@/lib/db/application-help";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { formatCurrency } from "@/lib/format";
 import { localePrefix } from "@/lib/urls";
 import { approveApplication } from "./actions";
 
@@ -104,7 +105,7 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
             return (
               <div key={order.id} className="flex flex-col gap-3">
                 <p className="text-meta font-semibold text-muted-ink">
-                  {child?.first_name ?? "Child"} · ₹{order.amount_inr.toLocaleString("en-IN")}
+                  {child?.first_name ?? "Child"} · {formatCurrency(order.amount_inr)}
                 </p>
 
                 {order.status === "awaiting_payment" ? (

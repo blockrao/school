@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { NotYetPublished } from "@/components/ui/freshness-line";
 import { EmptyState } from "@/components/ui/state-message";
+import { getDictionary } from "@/i18n/dictionary";
+import { tEnum } from "@/i18n/t";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
@@ -31,6 +33,7 @@ export default async function ComparePage({
   const { locale } = await params;
   const rawSearchParams = await searchParams;
   const ids = (first(rawSearchParams.ids) || "").split(",").filter(Boolean).slice(0, COMPARE_LIMIT);
+  const dict = await getDictionary(locale);
 
   const schools = await listPublicSchoolsByIds(ids);
   // Preserve the URL's order (selection order), not whatever the query returned.
@@ -71,8 +74,11 @@ export default async function ComparePage({
   }[] = [
     { label: "Board", render: (s) => boardNames.get(s.id) ?? <NotYetPublished /> },
     { label: "Grades", render: (s) => formatGradeRange(s.min_class, s.max_class) },
-    { label: "Management", render: (s) => s.management ?? <NotYetPublished /> },
-    { label: "Gender", render: (s) => s.gender ?? <NotYetPublished /> },
+    {
+      label: "Management",
+      render: (s) => tEnum(dict, "management", s.management) || <NotYetPublished />,
+    },
+    { label: "Gender", render: (s) => tEnum(dict, "gender", s.gender) || <NotYetPublished /> },
     {
       label: "Medium",
       render: (s) => (s.medium && s.medium.length > 0 ? s.medium.join(", ") : <NotYetPublished />),

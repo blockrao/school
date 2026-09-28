@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { FieldError } from "@/components/ui/field-error";
 import { listApplicationHelpProducts, listMyChildren } from "@/lib/db/application-help";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { formatCurrency } from "@/lib/format";
 import { localePrefix } from "@/lib/urls";
 import { addChild, startCheckout } from "../actions";
 
@@ -158,9 +159,7 @@ export default async function ApplicationHelpPackagePage({
                     {PACKAGE_DESCRIPTIONS[product.code] ?? ""}
                   </span>
                 </div>
-                <span className="font-bold text-card">
-                  ₹{product.price_inr.toLocaleString("en-IN")}
-                </span>
+                <span className="font-bold text-card">{formatCurrency(product.price_inr)}</span>
               </label>
             ))}
           </fieldset>

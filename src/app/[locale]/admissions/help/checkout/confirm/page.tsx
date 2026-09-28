@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getMyOrder } from "@/lib/db/application-help";
+import { formatCurrency } from "@/lib/format";
 import { localePrefix } from "@/lib/urls";
 
 function first(value: string | string[] | undefined) {
@@ -27,7 +28,7 @@ export default async function CheckoutConfirmPage({
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
       <h1 className="font-display text-title-m md:text-title-d">Order received</h1>
       <p className="mt-2 text-body text-muted-ink">
-        Order {order.id.slice(0, 8)} · ₹{order.amount_inr.toLocaleString("en-IN")}
+        Order {order.id.slice(0, 8)} · {formatCurrency(order.amount_inr)}
       </p>
       <p className="mt-4 rounded-md border border-rule bg-copy-white p-4 text-body">
         We'll confirm payment details with you shortly. Once payment is confirmed, you'll be able to

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Dictionary } from "@/i18n/dictionary";
+import { t } from "@/i18n/t";
 import { listPublicAreas } from "@/lib/db/public-adapter";
 import { cityPath, localePrefix } from "@/lib/urls";
 
@@ -13,7 +15,7 @@ import { cityPath, localePrefix } from "@/lib/urls";
  * Privacy and Terms are real (if placeholder-content) pages — see their own files — so
  * they're linked here now that the site is public.
  */
-export async function SiteFooter({ locale }: { locale: string }) {
+export async function SiteFooter({ locale, dict }: { locale: string; dict: Dictionary }) {
   const areas = await listPublicAreas();
   const launchAreas = areas
     .filter((a) => a.is_launch)
@@ -33,80 +35,83 @@ export async function SiteFooter({ locale }: { locale: string }) {
       <div className="mx-auto flex max-w-(--container-page) flex-col gap-7">
         <div className="grid gap-7 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div className="flex flex-col gap-2">
-            <span className="font-display text-section font-bold text-ruled-blue">SchoolOye</span>
-            <p className="max-w-80 text-body text-muted-ink">
-              Dates come from each school's own published notice. Sponsored listings are always
-              labelled. No rankings or star ratings.
-            </p>
+            <span className="font-display text-section font-bold text-ruled-blue">
+              {t(dict, "common.brand")}
+            </span>
+            <p className="max-w-80 text-body text-muted-ink">{t(dict, "footer.tagline")}</p>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="mb-1 text-meta font-semibold">Explore</span>
+            <span className="mb-1 text-meta font-semibold">
+              {t(dict, "footer.explore_heading")}
+            </span>
             <Link
               href={`${localePrefix(locale)}/schools`}
               className="flex min-h-8 items-center text-body"
             >
-              Schools
+              {t(dict, "footer.schools")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/exams`}
               className="flex min-h-8 items-center text-body"
             >
-              Entrance exams
+              {t(dict, "footer.entrance_exams")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/teachers`}
               className="flex min-h-8 items-center text-body"
             >
-              Teachers
+              {t(dict, "footer.teachers")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/guides`}
               className="flex min-h-8 items-center text-body"
             >
-              Guides
+              {t(dict, "footer.guides")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/compare`}
               className="flex min-h-8 items-center text-body"
             >
-              Compare schools
+              {t(dict, "footer.compare_schools")}
             </Link>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="mb-1 text-meta font-semibold">Tools</span>
+            <span className="mb-1 text-meta font-semibold">{t(dict, "footer.tools_heading")}</span>
             <Link
               href={`${localePrefix(locale)}/tools/age-eligibility`}
               className="flex min-h-8 items-center text-body"
             >
-              Check age eligibility
+              {t(dict, "footer.check_age_eligibility")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/alerts`}
               className="flex min-h-8 items-center text-body"
             >
-              WhatsApp alerts
+              {t(dict, "footer.whatsapp_alerts")}
             </Link>
             <Link
               href={`${localePrefix(locale)}/admissions/help`}
               className="flex min-h-8 items-center text-body"
             >
-              Admission help
+              {t(dict, "footer.admission_help")}
             </Link>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="mb-1 text-meta font-semibold">For schools</span>
+            <span className="mb-1 text-meta font-semibold">
+              {t(dict, "footer.for_schools_heading")}
+            </span>
             <Link href="/for-schools" className="flex min-h-8 items-center text-body">
-              Claim your school free
+              {t(dict, "footer.claim_school_free")}
             </Link>
           </div>
         </div>
 
         {launchAreas.length > 0 && (
           <div className="flex flex-col gap-4 border-t border-rule pt-5">
-            <span className="text-meta font-semibold">Schools by city</span>
+            <span className="text-meta font-semibold">{t(dict, "footer.schools_by_city")}</span>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from(areasByState.entries()).map(([state, stateAreas]) => (
                 <div key={state} className="flex flex-col gap-1.5">
@@ -129,16 +134,16 @@ export async function SiteFooter({ locale }: { locale: string }) {
         )}
 
         <div className="flex flex-col gap-3 border-t border-rule pt-5 text-meta text-muted-ink md:flex-row md:items-center md:justify-between md:gap-6">
-          <span>© 2026 SchoolOye</span>
+          <span>{t(dict, "footer.copyright", { year: 2026 })}</span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
             <Link href={`${localePrefix(locale)}/privacy`} className="min-h-8 content-center">
-              Privacy
+              {t(dict, "footer.privacy")}
             </Link>
             <Link href={`${localePrefix(locale)}/terms`} className="min-h-8 content-center">
-              Terms
+              {t(dict, "footer.terms")}
             </Link>
             <a href="mailto:grievance@schooloye.in" className="min-h-8 content-center">
-              Grievance officer: grievance@schooloye.in
+              {t(dict, "footer.grievance_officer", { email: "grievance@schooloye.in" })}
             </a>
           </div>
         </div>

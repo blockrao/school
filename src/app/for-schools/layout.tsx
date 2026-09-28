@@ -1,6 +1,7 @@
 import { MobileBottomNav } from "@/components/shell/mobile-bottom-nav";
 import { SiteFooter } from "@/components/shell/site-footer";
 import { SiteHeader } from "@/components/shell/site-header";
+import { getDictionary } from "@/i18n/dictionary";
 import { listLaunchedCityOptions } from "@/lib/db/public-adapter";
 
 /**
@@ -16,14 +17,14 @@ import { listLaunchedCityOptions } from "@/lib/db/public-adapter";
  */
 export default async function ForSchoolsLayout({ children }: LayoutProps<"/for-schools">) {
   const locale = "en";
-  const areas = await listLaunchedCityOptions(locale);
+  const [areas, dict] = await Promise.all([listLaunchedCityOptions(locale), getDictionary(locale)]);
 
   return (
     <>
-      <SiteHeader locale={locale} areas={areas} />
+      <SiteHeader locale={locale} areas={areas} dict={dict} />
       <main className="flex-1">{children}</main>
-      <SiteFooter locale={locale} />
-      <MobileBottomNav locale={locale} areas={areas} />
+      <SiteFooter locale={locale} dict={dict} />
+      <MobileBottomNav locale={locale} areas={areas} dict={dict} />
     </>
   );
 }

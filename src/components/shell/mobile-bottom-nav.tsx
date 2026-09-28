@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Dictionary } from "@/i18n/dictionary";
+import { t } from "@/i18n/t";
 import type { CityOption } from "@/lib/city-preference";
 import { useSelectedCity } from "@/lib/city-preference";
 import { homePath, localePrefix } from "@/lib/urls";
@@ -22,19 +24,27 @@ function isActive(pathname: string, href: string, exact: boolean) {
  * needs a saved school's real deadline — that data doesn't exist yet (no auth/shortlist
  * flow built), so the dot is intentionally omitted rather than faked. Revisit at Flow 2.10.
  */
-export function MobileBottomNav({ locale, areas }: { locale: string; areas: CityOption[] }) {
+export function MobileBottomNav({
+  locale,
+  areas,
+  dict,
+}: {
+  locale: string;
+  areas: CityOption[];
+  dict: Dictionary;
+}) {
   const pathname = usePathname();
   const city = useSelectedCity(areas);
   const admissionsHref = city?.href ?? `${localePrefix(locale)}/schools`;
 
   const tabs: Tab[] = [
     {
-      label: "Home",
+      label: t(dict, "bottom_nav.home"),
       href: homePath(locale),
       icon: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
     },
     {
-      label: "Search",
+      label: t(dict, "bottom_nav.search"),
       href: `${localePrefix(locale)}/schools`,
       icon: (
         <>
@@ -44,7 +54,7 @@ export function MobileBottomNav({ locale, areas }: { locale: string; areas: City
       ),
     },
     {
-      label: "Admissions",
+      label: t(dict, "bottom_nav.admissions"),
       href: admissionsHref,
       icon: (
         <>
@@ -54,12 +64,12 @@ export function MobileBottomNav({ locale, areas }: { locale: string; areas: City
       ),
     },
     {
-      label: "Saved",
+      label: t(dict, "bottom_nav.saved"),
       href: `${localePrefix(locale)}/my/shortlist`,
       icon: <path d="M6 3.5h12V21l-6-4-6 4z" />,
     },
     {
-      label: "Account",
+      label: t(dict, "bottom_nav.account"),
       href: `${localePrefix(locale)}/my`,
       icon: (
         <>
@@ -73,7 +83,7 @@ export function MobileBottomNav({ locale, areas }: { locale: string; areas: City
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t border-rule bg-copy-white pb-1 md:hidden"
-      aria-label="Primary"
+      aria-label={t(dict, "bottom_nav.primary_label")}
     >
       {tabs.map((tab, index) => {
         const active = isActive(pathname, tab.href, index === 0);

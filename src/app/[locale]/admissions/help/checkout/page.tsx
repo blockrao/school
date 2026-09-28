@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getMyOrder, getProductByCode } from "@/lib/db/application-help";
+import { formatCurrency } from "@/lib/format";
 import { getPaymentProvider } from "@/lib/payments/provider";
 import { localePrefix } from "@/lib/urls";
 import { payForOrder } from "../actions";
@@ -33,7 +34,8 @@ export default async function CheckoutPage({
 
   const gstRate = product?.gst_rate ?? 0;
   const gstAmount = Math.round((order.amount_inr * gstRate) / (100 + gstRate));
-  const ctaLabel = provider.name === "mock" ? `Pay ₹${order.amount_inr} (test)` : "Continue";
+  const ctaLabel =
+    provider.name === "mock" ? `Pay ${formatCurrency(order.amount_inr)} (test)` : "Continue";
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -42,15 +44,15 @@ export default async function CheckoutPage({
       <div className="mt-6 rounded-md border border-rule bg-copy-white">
         <div className="flex justify-between border-b border-rule-soft p-3.5">
           <span>{product?.name ?? order.product_code}</span>
-          <span className="font-semibold">₹{order.amount_inr.toLocaleString("en-IN")}</span>
+          <span className="font-semibold">{formatCurrency(order.amount_inr)}</span>
         </div>
         <div className="flex justify-between border-b border-rule-soft p-3.5 text-meta text-muted-ink">
           <span>GST ({product?.gst_rate ?? 18}%, included)</span>
-          <span>₹{gstAmount.toLocaleString("en-IN")}</span>
+          <span>{formatCurrency(gstAmount)}</span>
         </div>
         <div className="flex justify-between p-3.5">
           <span className="font-semibold">You pay now</span>
-          <span className="font-bold text-card">₹{order.amount_inr.toLocaleString("en-IN")}</span>
+          <span className="font-bold text-card">{formatCurrency(order.amount_inr)}</span>
         </div>
       </div>
 

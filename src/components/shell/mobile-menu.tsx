@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { AuthStatusLink } from "@/components/shell/auth-status-link";
 import { primaryNavItems } from "@/components/shell/primary-nav";
+import type { Dictionary } from "@/i18n/dictionary";
+import { t } from "@/i18n/t";
 import type { CityOption } from "@/lib/city-preference";
 import { useSelectedCity } from "@/lib/city-preference";
 
@@ -13,16 +15,24 @@ import { useSelectedCity } from "@/lib/city-preference";
  * from `areas` (like PrimaryNav) rather than taking a precomputed list, so
  * its Admissions link also tracks the visitor's actual selected city.
  */
-export function MobileMenu({ locale, areas }: { locale: string; areas: CityOption[] }) {
+export function MobileMenu({
+  locale,
+  areas,
+  dict,
+}: {
+  locale: string;
+  areas: CityOption[];
+  dict: Dictionary;
+}) {
   const [open, setOpen] = useState(false);
   const selectedCity = useSelectedCity(areas);
-  const items = primaryNavItems(locale, areas, selectedCity);
+  const items = primaryNavItems(dict, locale, areas, selectedCity);
 
   return (
     <>
       <button
         type="button"
-        aria-label="Menu"
+        aria-label={t(dict, "common.menu")}
         aria-expanded={open}
         onClick={() => setOpen(true)}
         className="flex h-11 w-11 items-center justify-center text-ink"
@@ -55,10 +65,12 @@ export function MobileMenu({ locale, areas }: { locale: string; areas: CityOptio
             className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-copy-white"
           >
             <div className="flex items-center justify-between border-b border-rule px-4 py-2">
-              <span className="font-display text-card font-bold text-ruled-blue">SchoolOye</span>
+              <span className="font-display text-card font-bold text-ruled-blue">
+                {t(dict, "common.brand")}
+              </span>
               <button
                 type="button"
-                aria-label="Close menu"
+                aria-label={t(dict, "common.close_menu")}
                 onClick={() => setOpen(false)}
                 className="flex h-11 w-11 items-center justify-center text-body text-ink"
               >

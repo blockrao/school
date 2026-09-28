@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getMyOrder } from "@/lib/db/application-help";
 import { serverEnv } from "@/lib/env.server";
+import { formatCurrency } from "@/lib/format";
 import { localePrefix } from "@/lib/urls";
 import { simulatePayment } from "./actions";
 
@@ -45,7 +46,7 @@ export default async function MockCheckoutPage({
       </div>
       <h1 className="font-display text-title-m md:text-title-d">Simulate payment</h1>
       <p className="mt-1 text-body text-muted-ink">
-        Order {order.id.slice(0, 8)} · ₹{order.amount_inr.toLocaleString("en-IN")}
+        Order {order.id.slice(0, 8)} · {formatCurrency(order.amount_inr)}
       </p>
 
       {failed && (

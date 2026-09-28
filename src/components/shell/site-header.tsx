@@ -5,21 +5,28 @@ import { CityPicker } from "@/components/shell/city-picker";
 import { LocaleSwitcher } from "@/components/shell/locale-switcher";
 import { MobileMenu } from "@/components/shell/mobile-menu";
 import { PrimaryNav } from "@/components/shell/primary-nav";
+import type { Dictionary } from "@/i18n/dictionary";
+import { t } from "@/i18n/t";
 import type { CityOption } from "@/lib/city-preference";
 import { homePath, localePrefix } from "@/lib/urls";
 
-export function SiteHeader({ locale, areas }: { locale: string; areas: CityOption[] }) {
+export function SiteHeader({
+  locale,
+  areas,
+  dict,
+}: {
+  locale: string;
+  areas: CityOption[];
+  dict: Dictionary;
+}) {
   return (
     <header className="sticky top-0 z-30 border-b border-rule bg-copy-white">
       {/* Mobile: hamburger, logo, city, locale switch */}
       <div className="flex h-14 items-center justify-between gap-1 px-1 md:hidden">
         <div className="flex items-center">
-          <MobileMenu locale={locale} areas={areas} />
-          <Link
-            href={homePath(locale)}
-            className="font-display text-card font-bold text-ruled-blue"
-          >
-            SchoolOye
+          <MobileMenu locale={locale} areas={areas} dict={dict} />
+          <Link href={homePath(locale)} className="font-display text-card font-bold text-ruled-blue">
+            {t(dict, "common.brand")}
           </Link>
         </div>
         <div className="flex items-center gap-1">
@@ -30,13 +37,10 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
 
       {/* Desktop: logo, primary nav, search, city, locale switch, sign in */}
       <div className="hidden h-17 items-center gap-7 px-10 md:flex">
-        <Link
-          href={homePath(locale)}
-          className="font-display text-section font-bold text-ruled-blue"
-        >
-          SchoolOye
+        <Link href={homePath(locale)} className="font-display text-section font-bold text-ruled-blue">
+          {t(dict, "common.brand")}
         </Link>
-        <PrimaryNav locale={locale} areas={areas} />
+        <PrimaryNav locale={locale} areas={areas} dict={dict} />
         <Form
           action={`${localePrefix(locale)}/schools`}
           className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-line-blue-strong bg-copy-white px-3"
@@ -56,11 +60,11 @@ export function SiteHeader({ locale, areas }: { locale: string; areas: CityOptio
             <path d="M16 16l5 5" />
           </svg>
           <label className="min-w-0 flex-1">
-            <span className="sr-only">School, area or teacher</span>
+            <span className="sr-only">{t(dict, "common.search_placeholder")}</span>
             <input
               type="search"
               name="q"
-              placeholder="School, area or teacher"
+              placeholder={t(dict, "common.search_placeholder")}
               className="w-full min-w-0 bg-transparent text-body outline-none placeholder:text-slate"
             />
           </label>

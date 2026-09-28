@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listApplicationHelpProducts } from "@/lib/db/application-help";
+import { formatCurrency } from "@/lib/format";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { localePrefix } from "@/lib/urls";
 
@@ -149,7 +150,7 @@ export default async function ApplicationHelpLandingPage({
         </Link>
         {minPrice != null && (
           <span className="text-meta text-muted-ink" lang={isHi ? "hi" : undefined}>
-            {copy.fromPrice(`₹${minPrice}`)}
+            {copy.fromPrice(formatCurrency(minPrice))}
           </span>
         )}
       </div>

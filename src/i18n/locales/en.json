@@ -1,0 +1,102 @@
+{
+  "common": {
+    "brand": "SchoolOye",
+    "search_placeholder": "School, area or teacher",
+    "search_button": "Search",
+    "menu": "Menu",
+    "close_menu": "Close menu",
+    "back_to_home": "Back to home",
+    "not_yet_published": "Not yet published",
+    "address_not_yet_published": "Address not yet published"
+  },
+  "nav": {
+    "schools": "Schools",
+    "schools_note": "Search and compare every school",
+    "admissions": "Admissions",
+    "admissions_note": "Open forms, deadlines, alerts",
+    "exams": "Exams",
+    "exams_note": "Entrance exams: eligibility, dates, fees",
+    "teachers": "Teachers",
+    "teachers_note": "Profiles",
+    "guides": "Guides",
+    "guides_note": "Admission process, documents, boards",
+    "for_schools": "For schools",
+    "for_schools_note": "Claim your page, post notices"
+  },
+  "bottom_nav": {
+    "primary_label": "Primary",
+    "home": "Home",
+    "search": "Search",
+    "admissions": "Admissions",
+    "saved": "Saved",
+    "account": "Account"
+  },
+  "footer": {
+    "tagline": "Dates come from each school's own published notice. Sponsored listings are always labelled. No rankings or star ratings.",
+    "explore_heading": "Explore",
+    "schools": "Schools",
+    "entrance_exams": "Entrance exams",
+    "teachers": "Teachers",
+    "guides": "Guides",
+    "compare_schools": "Compare schools",
+    "tools_heading": "Tools",
+    "check_age_eligibility": "Check age eligibility",
+    "whatsapp_alerts": "WhatsApp alerts",
+    "admission_help": "Admission help",
+    "for_schools_heading": "For schools",
+    "claim_school_free": "Claim your school free",
+    "schools_by_city": "Schools by city",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "grievance_officer": "Grievance officer: {email}",
+    "copyright": "© {year} SchoolOye"
+  },
+  "schools_page": {
+    "heading_city": "Schools in {city}",
+    "heading_search": "Search results for \"{query}\"",
+    "no_results_title": "No schools match that search",
+    "no_results_description": "Try a different spelling, or browse all schools instead.",
+    "browse_all": "Browse all schools"
+  },
+  "claim_page": {
+    "title": "Find your school",
+    "subtitle": "Search by name to start a claim.",
+    "search_placeholder": "School name",
+    "no_results_title": "No schools match that name",
+    "no_results_description": "Try a different spelling, or contact us if your school isn't listed yet.",
+    "browse_all": "Browse all schools"
+  },
+  "school_page": {
+    "location_heading": "Location",
+    "location_precision_note": " — approximate area, not an exact pin (geocoded to {precision} precision).",
+    "board_heading": "Board"
+  },
+  "errors": {
+    "not_found_title": "Page not found",
+    "not_found_description": "That page doesn't exist, or the school or area you're looking for isn't published yet.",
+    "error_title": "Something went wrong",
+    "error_description": "This page couldn't load. It's usually temporary — try again in a moment.",
+    "try_again": "Try again"
+  },
+  "results": {
+    "school_count": {
+      "one": "{count} school",
+      "other": "{count} schools"
+    }
+  },
+  "enum": {
+    "gender": {
+      "coed": "Co-ed",
+      "boys": "Boys",
+      "girls": "Girls"
+    },
+    "management": {
+      "private_unaided": "Private (unaided)",
+      "private_aided": "Private (aided)",
+      "government": "Government",
+      "central_government": "Central government",
+      "local_body": "Local body",
+      "other": "Other"
+    }
+  }
+}

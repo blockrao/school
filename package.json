@@ -18,6 +18,7 @@
     "db:views": "node scripts/db-views.mjs",
     "verify:views": "tsx scripts/verify-views.ts",
     "check:public-adapter": "node scripts/check-public-adapter-imports.mjs",
+    "check:i18n-strings": "node scripts/check-i18n-strings.mjs",
     "purge:documents": "node scripts/purge-documents.mjs"
   },
   "dependencies": {

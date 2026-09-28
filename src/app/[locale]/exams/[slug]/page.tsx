@@ -15,6 +15,7 @@ import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
+import { formatCurrency } from "@/lib/format";
 import { istDateLabel } from "@/lib/ist-date";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
@@ -91,14 +92,14 @@ function FeeTiers({ cycle }: { cycle: PublicExamAdmission }) {
           {cycle.fee_tiers.map((tier) => (
             <tr key={tier.category_label_en} className="border-rule border-b last:border-b-0">
               <td className="py-1.5 pr-3 text-muted-ink">{tier.category_label_en}</td>
-              <td className="py-1.5 text-right font-semibold">₹{tier.amount}</td>
+              <td className="py-1.5 text-right font-semibold">{formatCurrency(tier.amount)}</td>
             </tr>
           ))}
           {cycle.late_fee_amount != null && (
             <tr>
               <td className="py-1.5 pr-3 text-meta text-muted-ink">Late fee (extended window)</td>
               <td className="py-1.5 text-right text-meta text-muted-ink">
-                ₹{cycle.late_fee_amount}
+                {formatCurrency(cycle.late_fee_amount)}
               </td>
             </tr>
           )}
@@ -311,7 +312,7 @@ function CycleCard({ cycle, now }: { cycle: PublicExamAdmission; now: Date }) {
         <div className="flex flex-col gap-0.5">
           <span className="text-meta text-muted-ink">
             {cycle.form_mode === "online" ? "Online form" : "Offline form"}
-            {cycle.registration_fee != null ? ` · ₹${cycle.registration_fee}` : ""}
+            {cycle.registration_fee != null ? ` · ${formatCurrency(cycle.registration_fee)}` : ""}
           </span>
           {cycle.form_url && (
             <a

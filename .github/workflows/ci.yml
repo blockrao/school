@@ -31,6 +31,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm check:public-adapter
+      - run: pnpm check:i18n-strings
       - run: pnpm build
 
   bundle-budget:
