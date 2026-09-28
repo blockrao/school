@@ -358,7 +358,7 @@ export default async function EntityPage({
     identifier: [
       {
         "@type": "PropertyValue",
-        propertyID: "Schooloy School ID",
+        propertyID: "SchoolOye School ID",
         value: String(school.school_code),
       },
       ...(affiliationNo && board
