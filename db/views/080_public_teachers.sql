@@ -25,9 +25,14 @@ select
   t.years_teaching,
   t.open_to,
   t.photo_storage_path,
-  t.created_at
+  t.created_at,
+  -- Public teacher ID (D-125); the canonical URL is /teacher/{slug} where slug
+  -- = {name}-{teacher_code}.
+  t.teacher_code
 from teachers t
-left join schools s on s.id = t.primary_school_id
+-- Only a public (published/closed) school's name may show (fixes the known
+-- leak of unpublished school names, docs/spec/teachers.md).
+left join schools s on s.id = t.primary_school_id and s.status in ('published', 'closed')
 left join localities l on l.id = t.locality_id
 where t.status = 'published' and t.is_listed;
 

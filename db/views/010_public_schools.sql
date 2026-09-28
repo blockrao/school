@@ -50,7 +50,8 @@ select
   s.status::text as status,
   s.aliases,
   st.slug as state_slug,
-  d.slug as city_slug
+  -- City-states (D-126): the city is the state itself (e.g. delhi), never a district.
+  case when st.is_city_state then st.slug else d.slug end as city_slug
 from schools s
 left join localities l on l.id = s.locality_id
 left join districts d on d.id = s.district_id

@@ -220,6 +220,8 @@ export type PublicArea = {
   is_launch: boolean;
   district_id: number;
   state_slug: string;
+  district_ids: number[];
+  is_city_state: boolean;
 };
 
 /**
@@ -284,17 +286,18 @@ export type PublicStateArea = {
  * with is_launch=false isn't a real city page.
  */
 export async function getPublicStateAreaBySlug(stateSlug: string): Promise<PublicStateArea | null> {
+  // City-states (Delhi) have no separate state page: /schools/{state} is the city (D-126).
   const areas = (await listPublicAreas()).filter(
-    (a) => a.is_launch && slugify(a.state) === stateSlug,
+    (a) => a.is_launch && !a.is_city_state && a.state_slug === stateSlug,
   );
   if (areas.length === 0) return null;
 
   const cities = await Promise.all(
-    areas.map(async (area) => {
-      const district = await getPublicDistrictBySlug(area.slug);
-      const schoolCount = district ? await countRenderableSchoolsByDistrict(district.id) : 0;
-      return { slug: area.slug, name: area.name, schoolCount };
-    }),
+    areas.map(async (area) => ({
+      slug: area.slug,
+      name: area.name,
+      schoolCount: await countRenderableSchoolsByDistrict(area.district_ids),
+    })),
   );
   cities.sort((a, b) => b.schoolCount - a.schoolCount);
 
@@ -427,12 +430,19 @@ async function queryPublicSchools(
   };
 }
 
-/** Published schools in a district, for the district listing page. Newest first. */
+/** One district id or all of a city's district ids (PublicCityArea.districtIds, D-126). */
+export type DistrictScope = number | number[];
+
+function districtList(scope: DistrictScope): number[] {
+  return Array.isArray(scope) ? scope : [scope];
+}
+
+/** Published schools in a city (one or more districts), for city listings. Newest first. */
 export async function listPublicSchoolsByDistrict(
-  districtId: number,
+  scope: DistrictScope,
   filters: PublicSchoolFilters = {},
 ): Promise<{ schools: PublicSchool[]; total: number }> {
-  return queryPublicSchools([districtId], filters);
+  return queryPublicSchools(districtList(scope), filters);
 }
 
 /**
@@ -456,7 +466,7 @@ export async function searchPublicSchoolsSiteWide(
 /** district_id of every launched area — see api.public_areas.is_launch. */
 export async function listLaunchedDistrictIds(): Promise<number[]> {
   const areas = await listPublicAreas();
-  return areas.filter((a) => a.is_launch).map((a) => a.district_id);
+  return areas.filter((a) => a.is_launch).flatMap((a) => a.district_ids);
 }
 
 /**
@@ -470,12 +480,12 @@ export async function listLaunchedDistrictIds(): Promise<number[]> {
  * actually click through to. D-119: api.public_schools already holds only published schools, so this
  * is a plain count with the same district filter as listPublicSchoolsByDistrict.
  */
-export async function countRenderableSchoolsByDistrict(districtId: number): Promise<number> {
+export async function countRenderableSchoolsByDistrict(scope: DistrictScope): Promise<number> {
   const api = createApiSchemaClient();
   const { count } = await api
     .from("public_schools")
     .select("id", { count: "exact", head: true })
-    .eq("district_id", districtId);
+    .in("district_id", districtList(scope));
   return count ?? 0;
 }
 
@@ -483,14 +493,14 @@ export type PublicDistrictFilterOptions = { boards: PublicBoard[]; maxClasses: s
 
 /** Only the boards and grade ranges actually present in this district — never a dead dropdown option. */
 export async function listDistrictFilterOptions(
-  districtId: number,
+  scope: DistrictScope,
 ): Promise<PublicDistrictFilterOptions> {
   const api = createApiSchemaClient();
 
   const { data: schools } = await api
     .from("public_schools")
     .select("id, max_class")
-    .eq("district_id", districtId);
+    .in("district_id", districtList(scope));
 
   const schoolIds = (schools ?? []).map((s) => s.id as string);
   const maxClasses = [
@@ -533,12 +543,12 @@ export type PublicBoardCategoryLink = { board: PublicBoard; count: number };
  * with an invented ranking word.
  */
 export async function getBoardCategoryLinksForDistrict(
-  districtId: number,
+  scope: DistrictScope,
 ): Promise<PublicBoardCategoryLink[]> {
-  const { boards } = await listDistrictFilterOptions(districtId);
+  const { boards } = await listDistrictFilterOptions(scope);
   const links = await Promise.all(
     boards.map(async (board) => {
-      const { total } = await listPublicSchoolsByDistrict(districtId, {
+      const { total } = await listPublicSchoolsByDistrict(scope, {
         boardId: board.id,
         pageSize: 1,
       });
@@ -559,7 +569,7 @@ export type PublicOpenAdmission = {
 
 /** Published schools in a district with a currently-open, approved admission cycle, soonest deadline first. */
 export async function listOpenAdmissionsByDistrict(
-  districtId: number,
+  scope: DistrictScope,
   limit = 3,
 ): Promise<PublicOpenAdmission[]> {
   const api = createApiSchemaClient();
@@ -567,7 +577,7 @@ export async function listOpenAdmissionsByDistrict(
   const { data: schools } = await api
     .from("public_schools")
     .select("id, slug, school_code, name_en")
-    .eq("district_id", districtId);
+    .in("district_id", districtList(scope));
 
   const schoolIds = (schools ?? []).map((s) => s.id as string);
   if (schoolIds.length === 0) return [];
@@ -699,9 +709,12 @@ export async function getPublicCityById(id: number): Promise<PublicCity | null> 
 export type PublicCityArea = {
   citySlug: string;
   cityName: string;
-  cityId: number;
-  /** Internal only — never render this or its slug/name. Needed to scope the "all schools" query. */
+  /** Internal only — never render. Representative district (first of districtIds). */
   districtId: number;
+  /** Internal only — every district the city covers; scope all city queries by this (D-126). */
+  districtIds: number[];
+  /** City-states (Delhi): the city is the state; its URL is /schools/{state} (D-126). */
+  isCityState: boolean;
   stateSlug: string;
   stateName: string;
   schoolCount: number;
@@ -709,47 +722,23 @@ export type PublicCityArea = {
 };
 
 /**
- * City bundled with its (internal-only) district's launch flag and its state —
- * everything a city page needs, with "district" never surfacing past this
- * function. school_count is district-wide (every published school in the
- * launched area, whether or not it has a resolved locality yet) — a school
- * pending /ops locality assignment still belongs on the city's "all schools"
- * listing; only locality/town pages are scoped to city_id/locality_id.
+ * A launchable city from api.public_areas: an ordinary district-city (Gurugram,
+ * Jaipur) or a whole city-state (Delhi, D-126). Districts never surface past
+ * this function. schoolCount = published schools in the city.
  */
 export async function getPublicCityAreaBySlug(citySlug: string): Promise<PublicCityArea | null> {
-  const api = createApiSchemaClient();
-  const city = await getPublicCityBySlug(citySlug);
-  if (!city) return null;
-
-  const { data: districtRow } = await api
-    .from("public_districts")
-    .select("*")
-    .eq("id", city.districtId)
-    .maybeSingle();
-  if (!districtRow) return null;
-  const district = publicDistrictContract.parse(districtRow);
-
-  const state = await getPublicStateById(district.state_id);
-  if (!state) return null;
-
-  const { count } = await api
-    .from("public_schools")
-    .select("id", { count: "exact", head: true })
-    .eq("district_id", district.id);
-
-  // is_launch is read live from api.public_areas (2026-09-28) rather than a
-  // hardcoded set — see that view's header for the data-driven policy.
-  const area = await getPublicAreaBySlug(district.slug);
-
+  const area = await getPublicAreaBySlug(citySlug);
+  if (!area) return null;
   return {
-    citySlug: city.slug,
-    cityName: titleCase(city.name_en),
-    cityId: city.id,
-    districtId: district.id,
-    stateSlug: slugify(state.name_en),
-    stateName: state.name_en,
-    schoolCount: count ?? 0,
-    isLaunch: area?.is_launch ?? false,
+    citySlug: area.slug,
+    cityName: titleCase(area.name),
+    districtId: area.district_id,
+    districtIds: area.district_ids,
+    isCityState: area.is_city_state,
+    stateSlug: area.state_slug,
+    stateName: area.state,
+    schoolCount: area.school_count,
+    isLaunch: area.is_launch,
   };
 }
 

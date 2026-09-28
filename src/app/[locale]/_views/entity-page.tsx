@@ -323,7 +323,10 @@ export async function SchoolView({
 
   const breadcrumbTrail = city
     ? [
-        { name: city.stateName, href: statePath(locale, city.stateSlug) },
+        // A city-state (Delhi) has no separate state crumb (D-126).
+        ...(city.isCityState
+          ? []
+          : [{ name: city.stateName, href: statePath(locale, city.stateSlug) }]),
         { name: city.cityName, href: cityPath(locale, city.stateSlug, city.citySlug) },
         ...(school.locality_slug && school.locality_name
           ? [
@@ -698,7 +701,7 @@ export async function SchoolView({
                 {team.map((t) => (
                   <Link
                     key={t.teacherId}
-                    href={teacherPath(locale, t.teacherId, t.slug)}
+                    href={teacherPath(locale, t.slug)}
                     className="flex flex-col gap-0.5 rounded-md border border-rule p-3 hover:border-ruled-blue"
                   >
                     <span className="font-display font-semibold">{t.fullName}</span>

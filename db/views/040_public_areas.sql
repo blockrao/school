@@ -26,6 +26,9 @@
 -- on district (src/app/[locale]/[state]/[city]/) and this view's output isn't
 -- currently wrong for any area.
 create or replace view api.public_areas as
+-- One row per launchable city. Ordinary states: one area per district (D-116).
+-- City-states (states.is_city_state, D-126): one area for the whole state, slug =
+-- state slug, covering all its districts (district_ids).
 select
   d.slug,
   initcap(d.name_en) as name,
@@ -39,6 +42,30 @@ select
     where ps.district_id = d.id
   ) as is_launch,
   d.id as district_id,
-  st.slug as state_slug
+  st.slug as state_slug,
+  array[d.id] as district_ids,
+  false as is_city_state
 from districts d
-join states st on st.id = d.state_id;
+join states st on st.id = d.state_id
+where not st.is_city_state
+union all
+select
+  st.slug,
+  st.name_en,
+  st.name_en,
+  (
+    select count(*)::int from schools s
+    where s.district_id = any (array_agg(d.id)) and s.status = 'published'
+  ),
+  exists (
+    select 1 from api.public_schools ps
+    where ps.district_id = any (array_agg(d.id))
+  ),
+  min(d.id),
+  st.slug,
+  array_agg(d.id order by d.id),
+  true
+from states st
+join districts d on d.state_id = st.id
+where st.is_city_state
+group by st.id, st.slug, st.name_en;

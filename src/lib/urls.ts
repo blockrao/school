@@ -46,8 +46,16 @@ export function statePath(locale: string, stateSlug: string): string {
   return lp(locale, `/schools/${stateSlug}`);
 }
 
+/**
+ * City base path. A city-state (Delhi) is one city whose slug is the state slug
+ * (D-126): /schools/delhi, not /schools/delhi/delhi.
+ */
+function cityBase(stateSlug: string, citySlug: string): string {
+  return stateSlug === citySlug ? `/schools/${stateSlug}` : `/schools/${stateSlug}/${citySlug}`;
+}
+
 export function cityPath(locale: string, stateSlug: string, citySlug: string): string {
-  return lp(locale, `/schools/${stateSlug}/${citySlug}`);
+  return lp(locale, cityBase(stateSlug, citySlug));
 }
 
 export function localityPath(
@@ -56,16 +64,27 @@ export function localityPath(
   citySlug: string,
   localitySlug: string,
 ): string {
-  return lp(locale, `/schools/${stateSlug}/${citySlug}/${localitySlug}`);
+  return lp(locale, `${cityBase(stateSlug, citySlug)}/${localitySlug}`);
 }
 
 export function examPath(locale: string, slug: string): string {
   return lp(locale, `/exams/${slug}`);
 }
 
-/** Teacher URLs stay /teacher/{id}-{slug} until phase 3 of the URL spec. */
-export function teacherPath(locale: string, teacherId: string, slug: string): string {
-  return lp(locale, `/teacher/${teacherId}-${slug}`);
+/**
+ * Teacher canonical URL: /teacher/{first-middle-last}-{teacher_code} (D-125).
+ * `slug` is teachers.slug, which already ends in the permanent teacher code.
+ */
+export function teacherPath(locale: string, slug: string): string {
+  return lp(locale, `/teacher/${slug}`);
+}
+
+/** The permanent teacher code at the end of a teacher slug (5 digits, 6 once 5-digit codes run out). */
+export const TEACHER_CODE_RE = /-(\d{5,6})$/;
+
+export function parseTeacherCode(slug: string): number | null {
+  const match = TEACHER_CODE_RE.exec(slug);
+  return match ? Number(match[1]) : null;
 }
 
 /** Archive view year segment: exactly YYYY-YY (D-121 §4). */

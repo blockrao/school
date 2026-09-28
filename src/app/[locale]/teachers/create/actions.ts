@@ -63,29 +63,37 @@ export async function saveTeacherProfile(formData: FormData) {
     open_to: openTo,
   };
 
-  let idSlug: string | undefined;
+  // teachers.slug ({name}-{teacher_code}) and the permanent teacher_code are set by the
+  // database on registration (D-125); read the slug back rather than building it here.
+  let teacherSlug: string | undefined;
+  let isNew = false;
 
   if (existing) {
-    await supabase.from("teachers").update(row).eq("id", existing.id);
-    idSlug = `${existing.id}-${existing.slug}`;
+    const { data: updated } = await supabase
+      .from("teachers")
+      .update(row)
+      .eq("id", existing.id)
+      .select("slug")
+      .single();
+    teacherSlug = updated?.slug ?? existing.slug;
   } else {
-    const slug = slugify(parsed.data.fullName);
     const { data: created, error } = await supabase
       .from("teachers")
       .insert({
         ...row,
         claimed_by: user.id,
-        slug,
+        slug: slugify(parsed.data.fullName) || "teacher",
         status: "published",
         is_listed: true,
       })
-      .select("id")
+      .select("slug")
       .single();
     if (error || !created) {
       redirect(`${path}?error=save_failed`);
     }
-    idSlug = created ? `${created.id}-${slug}` : undefined;
+    teacherSlug = created.slug;
+    isNew = true;
   }
 
-  redirect(`${localePrefix(locale)}/teacher/${idSlug}/manage`);
+  redirect(`${localePrefix(locale)}/teacher/${teacherSlug}/manage${isNew ? "?welcome=1" : ""}`);
 }

@@ -22,7 +22,7 @@ export default async function OpsLocalitiesPage() {
       ? supabase
           .from("schools")
           .select("id, name_en, address, pincode")
-          .eq("district_id", area.districtId)
+          .in("district_id", area.districtIds)
           .is("locality_id", null)
           .order("name_en", { ascending: true })
       : Promise.resolve({

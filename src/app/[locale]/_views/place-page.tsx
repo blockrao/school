@@ -420,16 +420,16 @@ export async function PlaceView({
   // district-scoped, not city_id-scoped: schools pending /ops locality
   // assignment still belong on the city's "all schools" listing.
   const [{ schools, total }, filterOptions, localities, categoryLinks] = await Promise.all([
-    listPublicSchoolsByDistrict(city.districtId, {
+    listPublicSchoolsByDistrict(city.districtIds, {
       boardId,
       maxClass,
       admissionsOpen,
       page,
       pageSize: PAGE_SIZE,
     }),
-    listDistrictFilterOptions(city.districtId),
+    listDistrictFilterOptions(city.districtIds),
     listPublicLocalitiesByCity(city.citySlug),
-    getBoardCategoryLinksForDistrict(city.districtId),
+    getBoardCategoryLinksForDistrict(city.districtIds),
   ]);
 
   const schoolIds = schools.map((s) => s.id);
@@ -455,15 +455,18 @@ export async function PlaceView({
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: city.stateName,
-        item: `${siteUrl}${statePath(locale, city.stateSlug)}`,
-      },
-      { "@type": "ListItem", position: 2, name: city.cityName, item: `${siteUrl}${basePath}` },
-    ],
+    // A city-state (Delhi) is its own top level: no separate state crumb (D-126).
+    itemListElement: city.isCityState
+      ? [{ "@type": "ListItem", position: 1, name: city.cityName, item: `${siteUrl}${basePath}` }]
+      : [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: city.stateName,
+            item: `${siteUrl}${statePath(locale, city.stateSlug)}`,
+          },
+          { "@type": "ListItem", position: 2, name: city.cityName, item: `${siteUrl}${basePath}` },
+        ],
   };
 
   return (
@@ -474,13 +477,15 @@ export async function PlaceView({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
-        <Link href={statePath(locale, city.stateSlug)}>{city.stateName}</Link>
-        <span className="mx-1.5" aria-hidden="true">
-          /
-        </span>
-        <span className="text-ink">{city.cityName}</span>
-      </nav>
+      {!city.isCityState && (
+        <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
+          <Link href={statePath(locale, city.stateSlug)}>{city.stateName}</Link>
+          <span className="mx-1.5" aria-hidden="true">
+            /
+          </span>
+          <span className="text-ink">{city.cityName}</span>
+        </nav>
+      )}
 
       <h1 className="font-display text-title-m md:text-title-d">{city.cityName} schools</h1>
       <p className="mt-1 text-body text-muted-ink">

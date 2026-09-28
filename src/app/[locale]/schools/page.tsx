@@ -97,7 +97,7 @@ export default async function SchoolsPage({
     siteWide
       ? searchPublicSchoolsSiteWide(schoolFilters)
       : area
-        ? listPublicSchoolsByDistrict(area.districtId, schoolFilters)
+        ? listPublicSchoolsByDistrict(area.districtIds, schoolFilters)
         : Promise.resolve({ schools: [], total: 0 }),
     // Board/grade filter options: a name search spans every launched city, so its
     // dropdowns can't be scoped to one district's own boards/grades the way plain
@@ -108,7 +108,7 @@ export default async function SchoolsPage({
     siteWide
       ? listPublicBoards().then((boards) => ({ boards, maxClasses: [] as string[] }))
       : area
-        ? listDistrictFilterOptions(area.districtId)
+        ? listDistrictFilterOptions(area.districtIds)
         : Promise.resolve({ boards: [], maxClasses: [] }),
   ]);
 

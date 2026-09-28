@@ -26,8 +26,8 @@ redirect and lifecycle state. Summary:
 | School (canonical entity) | `/school/{slug}` |
 | School admissions / fees | `/school/{slug}/admissions`, `/fees`; archives `/admissions/{yyyy-yy}`, `/fees/{yyyy-yy}` |
 | Exam | `/exams/{slug}` |
-| Teacher | `/teacher/{slug}` (phase 3; today `/teacher/{id}-{slug}`) |
-| Discovery | `/schools`, `/schools/{state}`, `/schools/{state}/{city}`, `/schools/{state}/{city}/{locality}` |
+| Teacher | `/teacher/{first-middle-last}-{teacher_code}` (issued at registration, D-125) |
+| Discovery | `/schools`, `/schools/{state}`, `/schools/{state}/{city}`, `/schools/{state}/{city}/{locality}`; city-states (Delhi) at `/schools/{state}[/{locality}]` (D-126) |
 | Other languages | `/{lang}/…` only when that page is translated; otherwise 404 |
 
 - Filters are query parameters, `noindex`; pagination is self-canonical and indexable.

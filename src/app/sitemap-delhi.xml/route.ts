@@ -1,5 +1,5 @@
 import { buildCitySitemapResponse } from "@/lib/sitemap";
 
 export async function GET() {
-  return buildCitySitemapResponse("south-west-delhi");
+  return buildCitySitemapResponse("delhi");
 }

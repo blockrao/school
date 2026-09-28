@@ -8,9 +8,11 @@ import {
   isValidEntitySlug,
   localityPath,
   lp,
+  parseTeacherCode,
   SCHOOL_RESERVED_SLUGS,
   schoolPath,
   statePath,
+  teacherPath,
 } from "@/lib/urls";
 
 // CI invariants from docs/spec/urls-and-routing.md §13 (D-121).
@@ -32,6 +34,29 @@ describe("public URL builders", () => {
     expect(localityPath("en", "rajasthan", "jaipur", "mansarovar")).toBe(
       "/schools/rajasthan/jaipur/mansarovar",
     );
+  });
+});
+
+describe("city-states (D-126)", () => {
+  it("serves a city-state as one city at /schools/{state}", () => {
+    expect(cityPath("en", "delhi", "delhi")).toBe("/schools/delhi");
+    expect(localityPath("en", "delhi", "delhi", "rohini")).toBe("/schools/delhi/rohini");
+  });
+});
+
+describe("teacher URLs (D-125)", () => {
+  it("builds /teacher/{name}-{code} and reads the permanent code back", () => {
+    expect(teacherPath("en", "priya-kumari-sharma-48213")).toBe(
+      "/teacher/priya-kumari-sharma-48213",
+    );
+    expect(parseTeacherCode("priya-kumari-sharma-48213")).toBe(48213);
+    expect(parseTeacherCode("ramesh-2-104857")).toBe(104857);
+  });
+
+  it("rejects slugs without a 5–6 digit code", () => {
+    for (const bad of ["priya-sharma", "priya-sharma-1234", "priya-sharma-1234567"]) {
+      expect(parseTeacherCode(bad)).toBeNull();
+    }
   });
 });
 

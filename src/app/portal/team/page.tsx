@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import { requireSchoolMember } from "@/lib/db/portal-auth";
 import { listSchoolAffiliations } from "@/lib/db/school-team";
 import { searchPublicTeachersByName } from "@/lib/db/teachers";
+import { teacherPath } from "@/lib/urls";
 import {
   acceptTeacherRequest,
   cancelInvite,
@@ -201,7 +202,7 @@ export default async function PortalTeamPage({ searchParams }: PageProps<"/porta
                   <Link
                     // Portal is English-only for now (no /[locale] segment here) —
                     // "en" is the fixed default until the portal itself is localized.
-                    href={`/teacher/${member.teacherId}-${member.teacherSlug}`}
+                    href={teacherPath("en", member.teacherSlug)}
                     className="font-semibold text-ruled-blue"
                   >
                     {member.teacherName}

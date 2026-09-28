@@ -44,6 +44,17 @@ export async function listPublicTeacherSubjects(): Promise<string[]> {
   return [...subjects].sort();
 }
 
+/** Canonical resolver for /teacher/{name}-{teacher_code} (D-125). */
+export async function getPublicTeacherByCode(code: number): Promise<PublicTeacher | null> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_teachers")
+    .select("*")
+    .eq("teacher_code", code)
+    .maybeSingle();
+  return data ? publicTeacherContract.parse(data) : null;
+}
+
 export async function getPublicTeacherById(id: string): Promise<PublicTeacher | null> {
   const api = createApiSchemaClient();
   const { data } = await api.from("public_teachers").select("*").eq("id", id).maybeSingle();

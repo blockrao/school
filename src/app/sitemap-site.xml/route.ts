@@ -2,7 +2,7 @@ import { listPublicAreas, listPublicExams } from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
 import { urlEntry, urlSetXml } from "@/lib/sitemap";
-import { statePath } from "@/lib/urls";
+import { statePath, teacherPath } from "@/lib/urls";
 
 /**
  * Site-wide static + data-driven pages that aren't scoped to one city —
@@ -40,11 +40,7 @@ export async function GET() {
     ...launchedStateSlugs.map((slug) => urlEntry(siteUrl, statePath("en", slug))),
     urlEntry(siteUrl, "/teachers"),
     ...teachers.map((teacher) =>
-      urlEntry(
-        siteUrl,
-        `/teacher/${teacher.id}-${teacher.slug}`,
-        teacherLastmod(teacher.created_at),
-      ),
+      urlEntry(siteUrl, teacherPath("en", teacher.slug), teacherLastmod(teacher.created_at)),
     ),
     urlEntry(siteUrl, "/guides"),
     urlEntry(siteUrl, "/guides/top-schools-in-jaipur"),

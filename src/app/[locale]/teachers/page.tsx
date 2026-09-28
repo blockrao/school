@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import { getSelectedCityArea } from "@/lib/db/public-adapter";
 import { listPublicTeacherSubjects, listPublicTeachers } from "@/lib/db/teachers";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
-import { localePrefix } from "@/lib/urls";
+import { localePrefix, teacherPath } from "@/lib/urls";
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -86,7 +86,7 @@ export default async function TeachersDirectoryPage({
           {teachers.map((t) => (
             <Link
               key={t.id}
-              href={`${localePrefix(locale)}/teacher/${t.id}-${t.slug}`}
+              href={teacherPath(locale, t.slug)}
               className="flex gap-3 rounded-md border border-rule bg-copy-white p-3.5 hover:border-ruled-blue"
             >
               <div className="flex h-19 w-16 shrink-0 items-center justify-center rounded-md bg-margin-paper text-meta text-muted-ink">

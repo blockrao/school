@@ -19,6 +19,8 @@ export const publicTeacherContract = z.object({
   open_to: z.array(z.string()),
   photo_storage_path: z.string().nullable(),
   created_at: z.string(),
+  /** Permanent public teacher ID (D-125); teachers.slug ends in it. */
+  teacher_code: z.number(),
 });
 
 export type PublicTeacher = z.infer<typeof publicTeacherContract>;

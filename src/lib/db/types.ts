@@ -2049,6 +2049,7 @@ export type Database = {
       };
       teachers: {
         Row: {
+          teacher_code: number;
           id: string;
           claimed_by: string | null;
           full_name: string;
@@ -2068,6 +2069,7 @@ export type Database = {
           slug: string;
         };
         Insert: {
+          teacher_code?: number;
           id?: string;
           claimed_by?: string | null;
           full_name: string;
@@ -2087,6 +2089,7 @@ export type Database = {
           slug: string;
         };
         Update: {
+          teacher_code?: number;
           id?: string;
           claimed_by?: string | null;
           full_name?: string;

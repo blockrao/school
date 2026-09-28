@@ -40,12 +40,12 @@ export default async function CreateTeacherProfilePage({
   const [existing, area] = await Promise.all([getMyTeacherProfile(), getSelectedCityArea()]);
 
   if (existing) {
-    redirect(`${localePrefix(locale)}/teacher/${existing.id}-${existing.slug}/manage`);
+    redirect(`${localePrefix(locale)}/teacher/${existing.slug}/manage`);
   }
 
   const [{ schools }, localities] = await Promise.all([
     area
-      ? listPublicSchoolsByDistrict(area.districtId, { pageSize: 100 })
+      ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 100 })
       : Promise.resolve({ schools: [] }),
     area ? listPublicLocalitiesByCity(area.citySlug, 0) : Promise.resolve([]),
   ]);

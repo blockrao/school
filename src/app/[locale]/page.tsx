@@ -85,8 +85,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   const [schoolsResult, openAdmissions, boards] = area
     ? await Promise.all([
-        listPublicSchoolsByDistrict(area.districtId, { pageSize: 1 }),
-        listOpenAdmissionsByDistrict(area.districtId, 3),
+        listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 }),
+        listOpenAdmissionsByDistrict(area.districtIds, 3),
         listPublicBoards(),
       ])
     : [{ total: 0 }, [], []];

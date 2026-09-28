@@ -34,26 +34,18 @@ import { cityPath, localityPath, schoolPath } from "@/lib/urls";
 export const LAUNCH_CITY_SLUGS = [
   "jaipur",
   "gurugram",
+  "delhi",
   "faridabad",
   "hisar",
   "sonipat",
   "panipat",
   "karnal",
-  "north-west-delhi",
   "bhiwani",
   "rohtak",
-  "north-east-delhi",
-  "west-delhi",
   "mahendragarh",
-  "south-west-delhi",
   "rewari",
-  "south-delhi",
   "ambala",
-  "east-delhi",
   "panchkula",
-  "north-delhi",
-  "new-delhi",
-  "central-delhi",
   "charkhi-dadri",
   "fatehabad",
   "jhajjar",
@@ -102,11 +94,11 @@ ${entries.join("\n")}
  * Every published school in a district (D-119), paged in blocks of 1,000 so
  * the database's per-request row cap never truncates a city's sitemap.
  */
-async function listAllPublishedSchoolsInDistrict(districtId: number): Promise<PublicSchool[]> {
+async function listAllPublishedSchoolsInDistrict(districtIds: number[]): Promise<PublicSchool[]> {
   const pageSize = 1000;
   const all: PublicSchool[] = [];
   for (let page = 1; ; page++) {
-    const { schools } = await listPublicSchoolsByDistrict(districtId, { page, pageSize });
+    const { schools } = await listPublicSchoolsByDistrict(districtIds, { page, pageSize });
     all.push(...schools);
     if (schools.length < pageSize) return all;
   }
@@ -138,7 +130,7 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
   }
 
   const [indexableSchools, localities] = await Promise.all([
-    listAllPublishedSchoolsInDistrict(city.districtId),
+    listAllPublishedSchoolsInDistrict(city.districtIds),
     listPublicLocalitiesByCity(citySlug, 3),
   ]);
 

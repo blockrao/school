@@ -5,6 +5,7 @@ import { z } from "zod";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { localePrefix } from "@/lib/urls";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -33,7 +34,7 @@ const experienceSchema = z.object({
 export async function addExperience(formData: FormData) {
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);
@@ -67,7 +68,7 @@ const qualificationSchema = z.object({
 export async function addQualification(formData: FormData) {
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);
@@ -91,7 +92,7 @@ export async function toggleListed(formData: FormData) {
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
   const isListed = formData.get("isListed") === "1";
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);
@@ -105,7 +106,7 @@ export async function requestSchool(formData: FormData) {
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
   const schoolId = String(formData.get("schoolId") ?? "");
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);
@@ -169,7 +170,7 @@ async function respondToSchoolInvite(
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
   const affiliationId = String(formData.get("affiliationId") ?? "");
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);
@@ -203,7 +204,7 @@ export async function cancelSchoolRequest(formData: FormData) {
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
   const affiliationId = String(formData.get("affiliationId") ?? "");
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);
@@ -223,7 +224,7 @@ export async function leaveSchool(formData: FormData) {
   const teacherId = String(formData.get("teacherId") ?? "");
   const idSlug = String(formData.get("idSlug") ?? "");
   const affiliationId = String(formData.get("affiliationId") ?? "");
-  const manageUrl = `/${formData.get("locale") ?? "en"}/teacher/${idSlug}/manage`;
+  const manageUrl = `${localePrefix(String(formData.get("locale") ?? "en"))}/teacher/${idSlug}/manage`;
 
   const owned = await requireOwnedTeacher(teacherId);
   if (!owned) redirect(manageUrl);

@@ -8,12 +8,12 @@ import { getSchoolCanonicalPath } from "@/lib/db/public-adapter";
 import { listPublicTeacherSchools } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import {
-  getPublicTeacherById,
+  getPublicTeacherByCode,
   listPublicTeacherExperience,
   listPublicTeacherQualifications,
 } from "@/lib/db/teachers";
 import { localeCanonical } from "@/lib/seo";
-import { localePrefix } from "@/lib/urls";
+import { localePrefix, parseTeacherCode, teacherPath } from "@/lib/urls";
 
 // design-pending (partial): adapted from design/Teacher Profile.dc.html 14a/14b
 // (claimed state). Not built: the "unclaimed" state (14c) — no staff-list
@@ -22,27 +22,18 @@ import { localePrefix } from "@/lib/urls";
 // video (parked, see docs/page-enrichment-backlog.md), and photo upload (the
 // storage bucket + column exist; the upload UI doesn't yet, logged alongside).
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function parseIdSlug(idSlug: string): { id: string; slug: string } | null {
-  if (idSlug.length < 38 || idSlug[36] !== "-") return null;
-  const id = idSlug.slice(0, 36);
-  if (!UUID_RE.test(id)) return null;
-  return { id, slug: idSlug.slice(37) };
-}
-
 export async function generateMetadata({
   params,
-}: PageProps<"/[locale]/teacher/[idSlug]">): Promise<Metadata> {
-  const { locale, idSlug } = await params;
-  const parsed = parseIdSlug(idSlug);
-  if (!parsed) return { title: "Not found" };
-  const teacher = await getPublicTeacherById(parsed.id);
+}: PageProps<"/[locale]/teacher/[slug]">): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const code = parseTeacherCode(slug);
+  if (code === null) return { title: "Not found" };
+  const teacher = await getPublicTeacherByCode(code);
   if (!teacher) return { title: "Not found" };
   return {
     title: `${teacher.full_name}${teacher.subject ? `, ${teacher.subject} teacher` : ""} — SchoolOye`,
     description: teacher.headline ?? undefined,
-    alternates: { canonical: localeCanonical(locale, `/teacher/${teacher.id}-${teacher.slug}`) },
+    alternates: { canonical: localeCanonical(locale, teacherPath("en", teacher.slug)) },
   };
 }
 
@@ -59,18 +50,19 @@ const MESSAGE_ERROR_COPY: Record<string, string> = {
 export default async function TeacherProfilePage({
   params,
   searchParams,
-}: PageProps<"/[locale]/teacher/[idSlug]">) {
-  const { locale, idSlug } = await params;
+}: PageProps<"/[locale]/teacher/[slug]">) {
+  const { locale, slug } = await params;
   const rawSearchParams = await searchParams;
   const errorCode = first(rawSearchParams.error);
-  const parsed = parseIdSlug(idSlug);
-  if (!parsed) notFound();
+  const code = parseTeacherCode(slug);
+  if (code === null) notFound();
 
-  const teacher = await getPublicTeacherById(parsed.id);
+  // Resolved by the permanent teacher code (D-125): a corrected name changes the
+  // name part of the URL, and the old form 301s here.
+  const teacher = await getPublicTeacherByCode(code);
   if (!teacher) notFound();
-  if (teacher.slug !== parsed.slug) {
-    permanentRedirect(`${localePrefix(locale)}/teacher/${teacher.id}-${teacher.slug}`);
-  }
+  if (teacher.slug !== slug) permanentRedirect(teacherPath(locale, teacher.slug));
+  const idSlug = teacher.slug;
 
   const [experience, qualifications, primarySchoolPath, verifiedSchoolLinks] = await Promise.all([
     listPublicTeacherExperience(teacher.id),

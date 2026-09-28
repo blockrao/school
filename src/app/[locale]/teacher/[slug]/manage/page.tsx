@@ -10,7 +10,8 @@ import {
 import { listTeacherAffiliations } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { listMyTeacherExperience, listMyTeacherQualifications } from "@/lib/db/teachers";
-import { localePrefix } from "@/lib/urls";
+import { siteUrl } from "@/lib/env.server";
+import { localePrefix, parseTeacherCode, teacherPath } from "@/lib/urls";
 import {
   acceptSchoolInvite,
   addExperience,
@@ -21,15 +22,6 @@ import {
   requestSchool,
   toggleListed,
 } from "./actions";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function parseIdSlug(idSlug: string): { id: string; slug: string } | null {
-  if (idSlug.length < 38 || idSlug[36] !== "-") return null;
-  const id = idSlug.slice(0, 36);
-  if (!UUID_RE.test(id)) return null;
-  return { id, slug: idSlug.slice(37) };
-}
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -42,11 +34,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ManageTeacherProfilePage({
   params,
   searchParams,
-}: PageProps<"/[locale]/teacher/[idSlug]/manage">) {
-  const { locale, idSlug } = await params;
+}: PageProps<"/[locale]/teacher/[slug]/manage">) {
+  const { locale, slug: idSlug } = await params;
   const rawSearchParams = await searchParams;
-  const parsed = parseIdSlug(idSlug);
-  if (!parsed) notFound();
+  const code = parseTeacherCode(idSlug);
+  if (code === null) notFound();
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
@@ -58,13 +50,14 @@ export default async function ManageTeacherProfilePage({
 
   const { data: teacher } = await supabase
     .from("teachers")
-    .select("id, slug, full_name, is_listed, status")
-    .eq("id", parsed.id)
+    .select("id, slug, teacher_code, full_name, is_listed, status")
+    .eq("teacher_code", code)
     .eq("claimed_by", user.id)
     .maybeSingle();
   if (!teacher) notFound();
 
-  const canonicalIdSlug = `${teacher.id}-${teacher.slug}`;
+  const canonicalIdSlug = teacher.slug;
+  const publicUrl = `${siteUrl}${teacherPath("en", teacher.slug)}`;
 
   const area = await getSelectedCityArea();
   const schoolQuery = first(rawSearchParams.school_q) ?? "";
@@ -73,7 +66,7 @@ export default async function ManageTeacherProfilePage({
       listMyTeacherExperience(teacher.id),
       listMyTeacherQualifications(teacher.id),
       area
-        ? listPublicSchoolsByDistrict(area.districtId, { pageSize: 100 })
+        ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 100 })
         : Promise.resolve({ schools: [] }),
       listTeacherAffiliations(teacher.id),
       searchPublicSchoolsByName(schoolQuery),
@@ -85,13 +78,36 @@ export default async function ManageTeacherProfilePage({
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-title-m md:text-title-d">Manage your profile</h1>
-        <Link
-          href={`${localePrefix(locale)}/teacher/${canonicalIdSlug}`}
-          className="font-semibold text-ruled-blue"
-        >
+        <Link href={teacherPath(locale, canonicalIdSlug)} className="font-semibold text-ruled-blue">
           View public profile
         </Link>
       </div>
+
+      <section
+        aria-labelledby="public-url-heading"
+        className="mt-5 flex flex-col gap-1 rounded-md border border-rule bg-margin-paper p-4"
+      >
+        {first(rawSearchParams.welcome) === "1" && (
+          <p className="font-display text-card font-semibold text-ink">
+            You're registered. Here is your public profile URL:
+          </p>
+        )}
+        <h2 id="public-url-heading" className="text-meta font-semibold text-muted-ink">
+          Your public profile URL
+        </h2>
+        <a
+          href={teacherPath(locale, canonicalIdSlug)}
+          className="break-all font-semibold text-ruled-blue"
+        >
+          {publicUrl}
+        </a>
+        <p className="text-meta text-muted-ink">
+          Your SchoolOye teacher ID is{" "}
+          <span className="font-semibold text-ink">{teacher.teacher_code}</span>. Share this link on
+          your CV, WhatsApp or social profiles. It stays the same for good; if you correct your
+          name, the old link forwards here.
+        </p>
+      </section>
 
       <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-rule bg-copy-white p-3.5">
         <div>

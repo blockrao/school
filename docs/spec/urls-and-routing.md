@@ -10,7 +10,7 @@ Supersedes the URL parts of D-012, D-040, D-041, D-042, D-043 and D-096.
 ```
 ENTITIES
 /school/{slug}                              campus — canonical factual entity
-/teacher/{slug}                             teacher (see §5)
+/teacher/{name}-{teacher_code}              teacher (see §5; D-125)
 /exams/{slug}                               exam (already live; keep as-is)
 
 CAMPUS VIEWS
@@ -27,6 +27,7 @@ DISCOVERY
 /schools/{state}
 /schools/{state}/{city}
 /schools/{state}/{city}/{locality}          enabled when locality data exists
+/schools/{city-state}[/{locality}]          city-states such as Delhi (D-126)
 /schools/{state}/{city}/{facet}             gated (§7)
 ```
 
@@ -157,7 +158,7 @@ Every campus has one stable canonical URL; slugs cannot change accidentally; rel
 | Merged / created in error | `schools.merged_into` → 301 to survivor |
 | Closed campus | `schools.status = 'closed'` stays public with a banner |
 | English at root, `/hi/` only when translated | Internal route tree stays `src/app/[locale]/…`; `src/proxy.ts` rewrites unprefixed paths to `/en/…` internally, 301s `/en/…` to the unprefixed form, and 404s `/hi/…` until a page is translated |
-| Discovery | `/schools/{state}/{city}` uses the district slug as `{city}` (D-116); `/schools/{state}/{city}/{locality}` for localities with published schools |
+| Discovery | `/schools/{state}/{city}` uses the district slug as `{city}` (D-116); `/schools/{state}/{city}/{locality}` for localities with published schools. City-states (`states.is_city_state`, Delhi) are one city at `/schools/{state}` (D-126) |
 | Legacy URLs | `/en/…` → one 301 to the unprefixed form. Pre-launch `/{city}/…` and `/school/{uuid}-{slug}` addresses 404 (D-122) |
 
 Next.js emits **308** for `permanentRedirect()`; the proxy emits **301**. Both are permanent and treated the same by search engines.
@@ -168,4 +169,4 @@ Next.js emits **308** for `permanentRedirect()`; the proxy emits **301**. Both a
 2. **City admissions page** (D-096, not built yet). Needs a URL under the discovery tree before it's built.
 3. **Utility routes** that are neither entities nor discovery: `/admissions/help/*`, `/alerts`, `/compare`, `/guides/*`, `/tools/age-eligibility`, `/teachers`, `/privacy`, `/terms`, `/my/*`, sign-in pages, `/for-schools/*`, `/portal/*`, `/ops/*`. Kept at root, English only.
 4. **JSON-LD `identifier`.** The SchoolOye ID is dropped as the guide says; the **board affiliation number** is kept as a `PropertyValue`, since it is a public official identifier, not our DB ID.
-5. **Teacher URLs** stay `/teacher/{id}-{slug}` until phase 3.
+5. **Teacher URLs** — decided (D-125): `/teacher/{name}-{teacher_code}`, issued at registration.
