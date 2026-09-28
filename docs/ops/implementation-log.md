@@ -1565,3 +1565,50 @@ them can be added as a follow-up if Prav wants the repo's migration history to r
 **Status: three migrations applied and verified. Proceeding to the three previously-blocked UI pieces
 (News, Recent admission updates, Admissions deepening), reported separately below per Prav's request to
 audit the new public-data contracts distinctly from their UI consumers.**
+
+### UI consumers of the three migrations — News, Recent admission updates, Admissions deepening
+
+Reported separately from the migration-application entry above, per Prav's request to be able to audit
+the new public-data contracts distinctly from their UI consumers. Commit `e9cf9d4`.
+
+- **`db/views/020_public_school_admissions.sql`, `095_public_school_news.sql` (new),
+  `096_public_admission_updates.sql` (new)** checked into the repo as source-of-truth, matching what's
+  now live — plus three matching files under `supabase/migrations/` (`20260928175050`, `20260928175100`,
+  `20260928175119`), since the migrations were applied directly via the Supabase MCP tool rather than
+  through a checked-in migration file first. `020_...` now documents the Postgres column-order
+  constraint in its header so nobody re-trips it on a future addition to that view.
+- **Contracts**: new `PublicSchoolNews` (`src/contracts/public-school-news.ts`) and
+  `PublicAdmissionUpdate` (`src/contracts/public-admission-updates.ts`), mirroring their views exactly;
+  `PublicSchoolAdmission` extended with `dob_from`/`dob_to`/`documents_required`.
+- **Data access** (`src/lib/db/public-adapter.ts`): `getPublicSchoolNewsBySchoolId`,
+  `getRecentAdmissionUpdatesBySchoolId` (defaults to 5 most recent) — both read only their respective
+  `api.*` view, no new query logic beyond what the views already scope.
+- **News section**: renders title/body/date/source link for approved posts; a `press`-kind post gets a
+  small "Press" badge. Placed as an "answers" section (content about the school), before the
+  coverage/trust block — a placement call made without re-walking the full design-block order in this
+  pass, flagged in-code and here in case the reference design places News elsewhere.
+- **Recent admission updates section**: placed directly after Admissions (same subject). Renders
+  "Admission cycle added"/"Admission updated" + academic year/class + the new status (if changed) + date.
+- **Admissions deepening**: `EligibilityChecker` embedded inside the Admissions section, built from
+  cycles that have both `dob_from` and `dob_to` — reuses the exact component and prop shape already
+  shipped on `exams/[slug]/page.tsx` (`toEligibilityCycles`'s logic copied, not modified) with no changes
+  to that component itself. Uses `${academic_year}-${class_code}` as the per-cycle key, matching the
+  key the admissions list already uses — `api.public_school_admissions` has no per-cycle id column
+  (unlike the exams view's `cycle_id`), and this key is already this page's de-facto unique identifier
+  for one school's admissions list.
+
+**All three render nothing when their data is empty** — no permanent placeholder, consistent with the
+"Events gets no visible UI unless there's real content" principle. Given the data-completeness findings
+above (empty `school_posts`; only 2 admission cycles even linked to a school, neither with DOB data),
+none of the three will visibly render on any real production school page today — this is expected, not a
+bug, and will show up naturally as News gets authored and admissions data gets more complete DOB/document
+fields.
+
+**Validation**: `pnpm run typecheck` clean; `pnpm run lint` clean (285 files, two new contract files);
+`pnpm test` 127/127 (unchanged — no new pure-logic to unit-test; this is UI wiring over already-tested
+`provenance.ts`/`eligibility.ts`). `git diff --stat` confirms only the expected 12 files
+(2 updated `db/views` + 1 new `db/views` x2 + entity-page + 3 contract files + adapter + 3 migration
+files) — no unrelated touches.
+
+**Status: Increment 10's three previously-blocked UI pieces are now live in code, on top of the
+reviewed-and-applied migrations. No further schema/RLS changes were needed to ship them.**
