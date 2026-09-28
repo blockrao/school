@@ -10,6 +10,7 @@ import { DecisionStrip } from "@/components/ui/decision-strip";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
+import { ProvenanceChip } from "@/components/ui/provenance-chip";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { ShareButton } from "@/components/ui/share-button";
@@ -35,6 +36,7 @@ import { siteUrl } from "@/lib/env.server";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
+import { classifyAdmissionProvenance, classifySchoolProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { localeCanonical } from "@/lib/seo";
 import {
@@ -504,470 +506,587 @@ export async function SchoolView({
         }
       : null;
 
+  // Increment 10 — real sections only, in page order, used to build both the
+  // shortcuts row and the sub-nav below from one list rather than two
+  // hand-maintained arrays that could drift apart. Each entry's `show` mirrors
+  // the exact same condition already used to render that section further
+  // down the page — never a duplicated/looser check that could link to a
+  // section that doesn't actually render.
+  const sections: { id: string; label: string; show: boolean }[] = [
+    { id: "admissions-heading", label: "Admissions", show: true },
+    { id: "facts-heading", label: "School facts", show: true },
+    { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
+    { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
+    { id: "coverage-heading", label: "What SchoolOye knows", show: true },
+    { id: "similar-heading", label: "Similar schools", show: similarSchools.length > 0 },
+    { id: "contact-heading", label: "Contact", show: true },
+  ].filter((s) => s.show);
+
   return (
-    <div className="mx-auto max-w-(--container-read) px-4 py-6 md:px-10 md:py-9">
-      <script
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schoolJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      {faqJsonLd && (
+    <div className="[container-type:inline-size] bg-so-bg font-so-sans text-so-ink">
+      <div className="mx-auto max-w-(--container-read) px-4 py-6 md:px-10 md:py-9">
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schoolJsonLd) }}
         />
-      )}
+        <script
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+        {faqJsonLd && (
+          <script
+            type="application/ld+json"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          />
+        )}
 
-      <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
-        {breadcrumbTrail.map((crumb) => (
-          <span key={crumb.name}>
-            <Link href={crumb.href}>{crumb.name}</Link>
-            <span className="mx-1.5" aria-hidden="true">
-              /
+        <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
+          {breadcrumbTrail.map((crumb) => (
+            <span key={crumb.name}>
+              <Link href={crumb.href}>{crumb.name}</Link>
+              <span className="mx-1.5" aria-hidden="true">
+                /
+              </span>
             </span>
-          </span>
-        ))}
-        <span className="text-ink">{name}</span>
-      </nav>
+          ))}
+          <span className="text-ink">{name}</span>
+        </nav>
 
-      <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:gap-4">
-        <PhotoPlaceholder className="hidden h-24 w-32 shrink-0 sm:block" />
-        <div className="flex flex-col gap-0.5">
-          <span
-            className={`text-meta font-semibold ${identity.state === "verified" ? "text-board-green" : "text-muted-ink"}`}
-          >
-            {identity.heading}
-          </span>
-          <span className="text-meta text-slate">{identity.description}</span>
+        <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:gap-4">
+          <PhotoPlaceholder className="hidden h-24 w-32 shrink-0 sm:block" />
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={`text-meta font-semibold ${identity.state === "verified" ? "text-board-green" : "text-muted-ink"}`}
+            >
+              {identity.heading}
+            </span>
+            <span className="text-meta text-slate">{identity.description}</span>
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-2 border-b border-rule pb-6">
-        <h1 className="font-display text-title-m md:text-title-d">
-          {name}
-          {school.name_hi && (
-            <span className="ml-2 font-normal text-body text-muted-ink" lang="hi">
-              {school.name_hi}
-            </span>
-          )}
-        </h1>
-        <p className="text-body text-muted-ink">
-          {[
-            board?.board_name,
-            grades,
-            tEnum(dict, "management", school.management),
-            tEnum(dict, "gender", school.gender),
-          ]
-            .filter(Boolean)
-            .join(" · ") || t(dict, "common.not_yet_published")}
-          {school.locality_name
-            ? ` · ${school.locality_name}${city ? `, ${city.cityName}` : ""}`
-            : city
-              ? ` · ${city.cityName}`
-              : ""}
-        </p>
-        {/* Increment 7: provenance/freshness grouped here with the record badge —
+        <div className="flex flex-col gap-2 border-b border-rule pb-6">
+          <h1 className="font-display text-title-m md:text-title-d">
+            {name}
+            {school.name_hi && (
+              <span className="ml-2 font-normal text-body text-muted-ink" lang="hi">
+                {school.name_hi}
+              </span>
+            )}
+          </h1>
+          <p className="text-body text-muted-ink">
+            {[
+              board?.board_name,
+              grades,
+              tEnum(dict, "management", school.management),
+              tEnum(dict, "gender", school.gender),
+            ]
+              .filter(Boolean)
+              .join(" · ") || t(dict, "common.not_yet_published")}
+            {school.locality_name
+              ? ` · ${school.locality_name}${city ? `, ${city.cityName}` : ""}`
+              : city
+                ? ` · ${city.cityName}`
+                : ""}
+          </p>
+          {/* Increment 7: provenance/freshness grouped here with the record badge —
             "where did this record come from, and when" is one trust signal, not
             a School-facts row and a separate header chip. Reuses recordBadge's
             own verifiedAt/date logic; FreshnessLine falls back to "Not yet
             verified" text exactly as it did under School facts before. */}
-        <div className="mt-1 flex flex-wrap items-center gap-3">
-          <span
-            className={`text-meta font-semibold ${badge.official ? "text-board-green" : "text-muted-ink"}`}
-          >
-            {badge.official ? "✓ " : ""}
-            {badge.label}
-          </span>
-          {verifiedAt ? (
-            <FreshnessLine
-              source="SchoolOye verification"
-              retrievedAt={verifiedAt}
-              verifiedAt={verifiedAt}
-              now={now}
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <span
+              className={`text-meta font-semibold ${badge.official ? "text-board-green" : "text-muted-ink"}`}
+            >
+              {badge.official ? "✓ " : ""}
+              {badge.label}
+            </span>
+            {verifiedAt ? (
+              <FreshnessLine
+                source="SchoolOye verification"
+                retrievedAt={verifiedAt}
+                verifiedAt={verifiedAt}
+                now={now}
+              />
+            ) : (
+              <span className="text-meta text-slate">Not yet verified</span>
+            )}
+            {/* Increment 10 — ProvenanceChip v1 alongside the existing badge/
+              freshness line, not replacing either: recordBadge/FreshnessLine
+              already carry the school-level claim+verification story in prose
+              form; the chip adds the same fact in the design's compact,
+              scannable shape. Both read the same two columns, so they can
+              never disagree. */}
+            <ProvenanceChip
+              tier={classifySchoolProvenance(school.claim, school.verification)}
+              checkedAt={school.last_verified_at}
             />
-          ) : (
-            <span className="text-meta text-slate">Not yet verified</span>
-          )}
-          <ShareButton title={name} />
-          <SaveButton
-            schoolId={school.id}
-            saved={shortlistedIdsSet.has(school.id)}
-            locale={locale}
-            span="w-fit px-4"
-          />
+            <ShareButton title={name} />
+            <SaveButton
+              schoolId={school.id}
+              saved={shortlistedIdsSet.has(school.id)}
+              locale={locale}
+              span="w-fit px-4"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-meta">
+            <Link
+              href={lp(locale, `/compare?ids=${school.id}`)}
+              className="font-semibold text-ruled-blue"
+            >
+              Compare
+            </Link>
+            <ClaimStatusLink schoolId={school.id} isClaimed={school.claim === "claimed"} />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-4 text-meta">
-          <Link
-            href={lp(locale, `/compare?ids=${school.id}`)}
-            className="font-semibold text-ruled-blue"
-          >
-            Compare
-          </Link>
-          <ClaimStatusLink schoolId={school.id} isClaimed={school.claim === "claimed"} />
+
+        {/* Increment 10 — shortcuts row (design block 3): jump links built from
+          the same `sections` list the sub-nav below uses, so a link only ever
+          appears for a section that actually renders further down the page.
+          Plain anchor links — no client JS, no scroll-position state — since
+          nothing here needs more than the browser's native #id jump. */}
+        <div className="flex flex-wrap gap-2 py-4">
+          {sections.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="flex min-h-11 items-center gap-2 rounded-md border border-so-line2 bg-so-surface px-3.5 text-meta font-medium text-so-ink hover:border-so-ink3"
+            >
+              {s.label}
+            </a>
+          ))}
         </div>
-      </div>
 
-      <div className="py-6">
-        <h2 className="mb-3 font-display text-card font-semibold">At a glance</h2>
-        <DecisionStrip slots={decisionSlots} />
-      </div>
+        {/* Increment 10 — sub-nav (design block 4): a sticky, non-scrollspy
+          in-page nav grouping the same real sections. The design's version
+          highlights the currently-scrolled-to group and hides on scroll-down
+          via client-side IntersectionObserver/scroll-listener logic; that
+          interaction layer is deliberately left for a follow-up pass rather
+          than built here — plain sticky anchor links already give a reader
+          working in-page navigation, and adding scroll-tracking state is a
+          separate, self-contained piece of work this increment doesn't need
+          to bundle in to be useful. Documented here rather than silently
+          dropped from the design. */}
+        <nav
+          aria-label="Page sections"
+          className="sticky top-0 z-10 -mx-4 flex gap-1 overflow-x-auto border-so-line border-t border-b bg-so-bg px-4 [scrollbar-width:none] md:-mx-10 md:px-10"
+        >
+          {sections.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="flex min-h-12 flex-none items-center whitespace-nowrap px-3 text-body text-so-ink3 hover:text-so-ink"
+            >
+              {s.label}
+            </a>
+          ))}
+        </nav>
 
-      {/* Increment 7: compact action layer, ahead of the detailed sections — each
+        <div className="py-6">
+          <h2 className="mb-3 font-display text-card font-semibold">At a glance</h2>
+          <DecisionStrip slots={decisionSlots} />
+        </div>
+
+        {/* Increment 7: compact action layer, ahead of the detailed sections — each
           action renders only when its backing fact exists, same conditional
           pattern the rest of the page already uses (School facts, Location).
           Reuses data already fetched for the header/Contact card; the detailed
           Contact card and full enquiry form stay further down for anyone who
           wants more than a single tap. */}
-      <div className="flex flex-wrap gap-2 pb-6">
-        {school.phone?.[0] && (
+        <div className="flex flex-wrap gap-2 pb-6">
+          {school.phone?.[0] && (
+            <a
+              href={`tel:${school.phone[0]}`}
+              className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+            >
+              Call
+            </a>
+          )}
+          {school.website && (
+            <a
+              href={school.website}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+            >
+              Website
+            </a>
+          )}
+          {mapPoint && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${mapPoint.lat},${mapPoint.lng}`}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+            >
+              Directions
+            </a>
+          )}
           <a
-            href={`tel:${school.phone[0]}`}
+            href="#enquiry-heading"
             className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
           >
-            Call
+            Enquire
           </a>
-        )}
-        {school.website && (
-          <a
-            href={school.website}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
-          >
-            Website
-          </a>
-        )}
-        {mapPoint && (
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${mapPoint.lat},${mapPoint.lng}`}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
-          >
-            Directions
-          </a>
-        )}
-        <a
-          href="#enquiry-heading"
-          className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
-        >
-          Enquire
-        </a>
-      </div>
+        </div>
 
-      <div className="grid gap-6 py-6 md:grid-cols-[1.6fr_1fr]">
-        <div className="flex flex-col gap-6">
-          {school.about_en && (
-            <section aria-labelledby="about-heading" className="flex flex-col gap-2">
-              <h2 id="about-heading" className="font-display text-card font-semibold">
-                {/* D7 / spec §7.2 item 7: claimed pages show the school's own text under
+        <div className="grid gap-6 py-6 md:grid-cols-[1.6fr_1fr]">
+          <div className="flex flex-col gap-6">
+            {school.about_en && (
+              <section aria-labelledby="about-heading" className="flex flex-col gap-2">
+                <h2 id="about-heading" className="font-display text-card font-semibold">
+                  {/* D7 / spec §7.2 item 7: claimed pages show the school's own text under
                     "From the school"; unclaimed pages show SchoolOye's factual summary
                     under "About this school" — never attribute unverified text to the
                     school itself. */}
-                {school.claim === "claimed" ? "From the school" : "About this school"}
-              </h2>
-              <p className="text-body leading-relaxed">{school.about_en}</p>
-            </section>
-          )}
+                  {school.claim === "claimed" ? "From the school" : "About this school"}
+                </h2>
+                <p className="text-body leading-relaxed">{school.about_en}</p>
+              </section>
+            )}
 
-          <section aria-labelledby="facts-heading" className="flex flex-col gap-3">
-            <h2 id="facts-heading" className="font-display text-card font-semibold">
-              School facts
-            </h2>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-body">
-              <div>
-                <dt className="text-meta font-semibold text-muted-ink">
-                  {t(dict, "school_page.board_heading")}
-                </dt>
-                <dd>{board?.board_name ?? <NotYetPublished />}</dd>
-              </div>
-              <div>
-                <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>
-                <dd>{affiliationNo ?? <NotYetPublished />}</dd>
-              </div>
-              {/* Increment 7: "Grades" row removed — it rendered the exact same
+            <section aria-labelledby="facts-heading" className="flex flex-col gap-3">
+              <h2 id="facts-heading" className="font-display text-card font-semibold">
+                School facts
+              </h2>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-body">
+                <div>
+                  <dt className="text-meta font-semibold text-muted-ink">
+                    {t(dict, "school_page.board_heading")}
+                  </dt>
+                  <dd>{board?.board_name ?? <NotYetPublished />}</dd>
+                </div>
+                <div>
+                  <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>
+                  <dd>{affiliationNo ?? <NotYetPublished />}</dd>
+                </div>
+                {/* Increment 7: "Grades" row removed — it rendered the exact same
                   `grades` string already shown in the header and the Decision
                   Strip's Entry classes slot, with no added value (unlike Board,
                   which adds the affiliation number here). "Fee range" row
                   removed too — the Decision Strip and Coverage Card both already
                   say "Not yet verified" for this; a third identical row added
                   nothing. See docs/ops/implementation-log.md Increment 7. */}
-              <div>
-                <dt className="text-meta font-semibold text-muted-ink">Established</dt>
-                <dd>{school.established_year ?? <NotYetPublished />}</dd>
-              </div>
-              <div>
-                <dt className="text-meta font-semibold text-muted-ink">Medium</dt>
-                <dd>
-                  {school.medium && school.medium.length > 0 ? (
-                    school.medium.join(", ")
-                  ) : (
-                    <NotYetPublished />
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </section>
+                <div>
+                  <dt className="text-meta font-semibold text-muted-ink">Established</dt>
+                  <dd>{school.established_year ?? <NotYetPublished />}</dd>
+                </div>
+                <div>
+                  <dt className="text-meta font-semibold text-muted-ink">Medium</dt>
+                  <dd>
+                    {school.medium && school.medium.length > 0 ? (
+                      school.medium.join(", ")
+                    ) : (
+                      <NotYetPublished />
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            </section>
 
-          <section
-            aria-labelledby="admissions-heading"
-            className={admissions.length > 0 ? "flex flex-col gap-3" : "flex items-center gap-2"}
-          >
-            <h2
-              id="admissions-heading"
-              className={
-                admissions.length > 0
-                  ? "font-display text-card font-semibold"
-                  : "text-meta font-semibold text-muted-ink"
-              }
+            <section
+              aria-labelledby="admissions-heading"
+              className={admissions.length > 0 ? "flex flex-col gap-3" : "flex items-center gap-2"}
             >
-              Admissions
-            </h2>
-            {admissions.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {admissions.map((cycle) => {
-                  const cycleDeadline = {
-                    opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
-                    closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
-                  };
-                  return (
-                    <div
-                      key={`${cycle.academic_year}-${cycle.class_code}`}
-                      className="flex items-center gap-3 rounded-md border border-rule p-3"
-                    >
-                      <DeadlineMargin {...cycleDeadline} now={now} className="h-20 w-32 shrink-0" />
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-semibold">
-                          {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
-                        </span>
-                        <span className="text-meta text-muted-ink">
-                          {cycle.form_mode === "online" ? "Online form" : "Offline form"}
-                          {cycle.registration_fee != null
-                            ? ` · ${formatCurrency(cycle.registration_fee)}`
-                            : ""}
-                        </span>
-                        {cycle.form_url && (
-                          <a
-                            href={cycle.form_url}
-                            className="font-semibold text-ruled-blue text-meta"
-                            target="_blank"
-                            rel="noopener noreferrer nofollow"
-                          >
-                            Application form ↗
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              // Increment 7: compact, inline unavailable state — this used to be a
-              // full-weight section (its own heading + block) for a one-line
-              // null result, the same "looks substantive but says nothing" issue
-              // flagged for empty modules generally. The Decision Strip above
-              // already gives this a proper "Not yet verified" treatment.
-              <span className="text-meta text-slate">· Dates not announced</span>
-            )}
-          </section>
-
-          {(school.address || mapPoint) && (
-            <section aria-labelledby="location-heading" className="flex flex-col gap-3">
-              <h2 id="location-heading" className="font-display text-card font-semibold">
-                {t(dict, "school_page.location_heading")}
+              <h2
+                id="admissions-heading"
+                className={
+                  admissions.length > 0
+                    ? "font-display text-card font-semibold"
+                    : "text-meta font-semibold text-muted-ink"
+                }
+              >
+                Admissions
               </h2>
-              <p className="text-body">
-                {school.address ?? t(dict, "common.address_not_yet_published")}
-                {mapPoint && (
-                  <span className="text-meta text-muted-ink">
-                    {t(dict, "school_page.location_precision_note", {
-                      precision: school.geocode_precision ?? "pincode",
-                    })}
-                  </span>
-                )}
-              </p>
+              {admissions.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {admissions.map((cycle) => {
+                    const cycleDeadline = {
+                      opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
+                      closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
+                    };
+                    return (
+                      <div
+                        key={`${cycle.academic_year}-${cycle.class_code}`}
+                        className="flex items-center gap-3 rounded-md border border-rule p-3"
+                      >
+                        <DeadlineMargin
+                          {...cycleDeadline}
+                          now={now}
+                          className="h-20 w-32 shrink-0"
+                        />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-semibold">
+                            {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
+                          </span>
+                          <span className="text-meta text-muted-ink">
+                            {cycle.form_mode === "online" ? "Online form" : "Offline form"}
+                            {cycle.registration_fee != null
+                              ? ` · ${formatCurrency(cycle.registration_fee)}`
+                              : ""}
+                          </span>
+                          {cycle.form_url && (
+                            <a
+                              href={cycle.form_url}
+                              className="font-semibold text-ruled-blue text-meta"
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                            >
+                              Application form ↗
+                            </a>
+                          )}
+                          {/* Increment 10 — per-cycle ProvenanceChip. `verification`
+                            and `last_checked_at` are already exposed by
+                            api.public_school_admissions (020_public_school_admissions.sql)
+                            — no view change needed for this one. */}
+                          <ProvenanceChip
+                            tier={classifyAdmissionProvenance(cycle.verification)}
+                            checkedAt={cycle.last_checked_at}
+                            className="mt-0.5"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Increment 7: compact, inline unavailable state — this used to be a
+                // full-weight section (its own heading + block) for a one-line
+                // null result, the same "looks substantive but says nothing" issue
+                // flagged for empty modules generally. The Decision Strip above
+                // already gives this a proper "Not yet verified" treatment.
+                <span className="text-meta text-slate">· Dates not announced</span>
+              )}
             </section>
-          )}
 
-          {team.length > 0 && (
-            <section aria-labelledby="teachers-heading" className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <h2 id="teachers-heading" className="font-display text-card font-semibold">
-                  Teachers at {name}
+            {(school.address || mapPoint) && (
+              <section aria-labelledby="location-heading" className="flex flex-col gap-3">
+                <h2 id="location-heading" className="font-display text-card font-semibold">
+                  {t(dict, "school_page.location_heading")}
                 </h2>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {team.map((t) => (
-                  <Link
-                    key={t.teacherId}
-                    href={teacherPath(locale, t.slug)}
-                    className="flex flex-col gap-0.5 rounded-md border border-rule p-3 hover:border-ruled-blue"
-                  >
-                    <span className="font-display font-semibold">{t.fullName}</span>
+                <p className="text-body">
+                  {school.address ?? t(dict, "common.address_not_yet_published")}
+                  {mapPoint && (
                     <span className="text-meta text-muted-ink">
-                      {[t.subject, t.level].filter(Boolean).join(" · ")}
+                      {t(dict, "school_page.location_precision_note", {
+                        precision: school.geocode_precision ?? "pincode",
+                      })}
                     </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+                  )}
+                </p>
+                {/* Increment 10 — wires the existing AreaMapLazy island (already
+                  built and used on the locality page, src/lib/db/public-adapter
+                  LocalityPageBody) onto the entity page too: same component,
+                  same lazy-loaded MapLibre island, single-point instead of a
+                  locality's many points. No new map code. */}
+                {mapPoint && (
+                  <AreaMapLazy
+                    points={[
+                      {
+                        id: mapPoint.id,
+                        lat: mapPoint.lat,
+                        lng: mapPoint.lng,
+                        label: name,
+                        precision: mapPoint.precision,
+                      },
+                    ]}
+                    centerLat={mapPoint.lat}
+                    centerLng={mapPoint.lng}
+                    zoom={15}
+                  />
+                )}
+              </section>
+            )}
 
-          {/* Increment 7: Coverage Card moved here — after the substantive
+            {team.length > 0 && (
+              <section aria-labelledby="teachers-heading" className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h2 id="teachers-heading" className="font-display text-card font-semibold">
+                    Teachers at {name}
+                  </h2>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {team.map((t) => (
+                    <Link
+                      key={t.teacherId}
+                      href={teacherPath(locale, t.slug)}
+                      className="flex flex-col gap-0.5 rounded-md border border-rule p-3 hover:border-ruled-blue"
+                    >
+                      <span className="font-display font-semibold">{t.fullName}</span>
+                      <span className="text-meta text-muted-ink">
+                        {[t.subject, t.level].filter(Boolean).join(" · ")}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Increment 7: Coverage Card moved here — after the substantive
               "answer" sections (Admissions, About, School facts, Location,
               Teachers) and before Similar schools/discovery, per the locked
               page hierarchy: identity -> decision -> action -> answers ->
               coverage/trust -> discovery. It used to sit directly under the
               Decision Strip, ahead of any substantive content, which read
               more like a database-completeness report than a school page. */}
-          <CoverageCard
-            schoolName={name}
-            topics={coverageTopics}
-            schoolId={school.id}
-            isClaimed={school.claim === "claimed"}
-          />
+            <CoverageCard
+              schoolName={name}
+              topics={coverageTopics}
+              schoolId={school.id}
+              isClaimed={school.claim === "claimed"}
+            />
 
-          {similarSchools.length > 0 && (
-            <section aria-labelledby="similar-heading" className="flex flex-col gap-3">
-              <h2 id="similar-heading" className="font-display text-card font-semibold">
-                Similar schools nearby
+            {similarSchools.length > 0 && (
+              <section aria-labelledby="similar-heading" className="flex flex-col gap-3">
+                <h2 id="similar-heading" className="font-display text-card font-semibold">
+                  Similar schools nearby
+                </h2>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {similarSchools.map((s) => (
+                    <Link
+                      key={s.id}
+                      href={schoolPath(locale, s.slug)}
+                      className="flex flex-col gap-0.5 rounded-md border border-rule p-3 hover:border-ruled-blue"
+                    >
+                      <span className="font-display font-semibold">
+                        {s.name_en ?? "Name not yet published"}
+                      </span>
+                      <span className="text-meta text-muted-ink">
+                        {formatGradeRange(s.min_class, s.max_class)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Increment 10 — sticky rail (design block 19): position:sticky, CSS
+            only. `top-20` clears the sticky sub-nav above (h-12 + border)
+            plus a small gap so the rail never sits flush under it. */}
+          <aside className="flex flex-col gap-4 md:sticky md:top-20 md:self-start">
+            <section
+              aria-labelledby="contact-heading"
+              className="flex flex-col gap-2 rounded-md border border-rule p-4"
+            >
+              <h2 id="contact-heading" className="font-display text-card font-semibold">
+                Contact
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {similarSchools.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={schoolPath(locale, s.slug)}
-                    className="flex flex-col gap-0.5 rounded-md border border-rule p-3 hover:border-ruled-blue"
-                  >
-                    <span className="font-display font-semibold">
-                      {s.name_en ?? "Name not yet published"}
-                    </span>
-                    <span className="text-meta text-muted-ink">
-                      {formatGradeRange(s.min_class, s.max_class)}
-                    </span>
-                  </Link>
-                ))}
+              <div className="flex flex-col gap-1.5 text-body">
+                <div>
+                  <span className="text-meta font-semibold text-muted-ink">Phone: </span>
+                  {school.phone && school.phone.length > 0 ? (
+                    school.phone.join(", ")
+                  ) : (
+                    <NotYetPublished />
+                  )}
+                </div>
+                <div>
+                  <span className="text-meta font-semibold text-muted-ink">Email: </span>
+                  {school.email && school.email.length > 0 ? (
+                    school.email.join(", ")
+                  ) : (
+                    <NotYetPublished />
+                  )}
+                </div>
+                <div>
+                  <span className="text-meta font-semibold text-muted-ink">Website: </span>
+                  {school.website ? (
+                    <a
+                      href={school.website}
+                      className="font-semibold text-ruled-blue"
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                    >
+                      {school.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  ) : (
+                    <NotYetPublished />
+                  )}
+                </div>
               </div>
             </section>
-          )}
+
+            <section
+              aria-labelledby="enquiry-heading"
+              className="flex flex-col gap-2 rounded-md border border-rule p-4"
+            >
+              <h2 id="enquiry-heading" className="font-display text-card font-semibold">
+                Ask this school
+              </h2>
+              {enquirySent ? (
+                <p className="text-body text-muted-ink">
+                  Your question has been sent to the school. They'll get back to you directly.
+                </p>
+              ) : user ? (
+                <form action={sendEnquiry} className="flex flex-col gap-3">
+                  <input type="hidden" name="schoolId" value={school.id} />
+                  <input type="hidden" name="returnPath" value={canonicalPath} />
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-meta font-semibold text-muted-ink">
+                      Class you're asking about (optional)
+                    </span>
+                    <select
+                      name="classCode"
+                      defaultValue=""
+                      className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+                    >
+                      <option value="">Any class</option>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={`c${n}`}>
+                          Class {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-meta font-semibold text-muted-ink">Your question</span>
+                    <textarea
+                      name="message"
+                      required
+                      maxLength={1000}
+                      rows={4}
+                      className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
+                    />
+                  </label>
+                  {enquiryError && (
+                    <FieldError id="enquiry-error">
+                      Something went wrong sending your question. Please try again.
+                    </FieldError>
+                  )}
+                  <button
+                    type="submit"
+                    className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
+                  >
+                    Send question
+                  </button>
+                </form>
+              ) : (
+                <Link
+                  href={lp(
+                    locale,
+                    `/sign-in?next=${encodeURIComponent(`${canonicalPath}#enquiry-heading`)}`,
+                  )}
+                  className="w-fit font-semibold text-ruled-blue"
+                >
+                  Sign in to ask this school a question
+                </Link>
+              )}
+            </section>
+          </aside>
         </div>
 
-        <aside className="flex flex-col gap-4">
-          <section
-            aria-labelledby="contact-heading"
-            className="flex flex-col gap-2 rounded-md border border-rule p-4"
-          >
-            <h2 id="contact-heading" className="font-display text-card font-semibold">
-              Contact
-            </h2>
-            <div className="flex flex-col gap-1.5 text-body">
-              <div>
-                <span className="text-meta font-semibold text-muted-ink">Phone: </span>
-                {school.phone && school.phone.length > 0 ? (
-                  school.phone.join(", ")
-                ) : (
-                  <NotYetPublished />
-                )}
-              </div>
-              <div>
-                <span className="text-meta font-semibold text-muted-ink">Email: </span>
-                {school.email && school.email.length > 0 ? (
-                  school.email.join(", ")
-                ) : (
-                  <NotYetPublished />
-                )}
-              </div>
-              <div>
-                <span className="text-meta font-semibold text-muted-ink">Website: </span>
-                {school.website ? (
-                  <a
-                    href={school.website}
-                    className="font-semibold text-ruled-blue"
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                  >
-                    {school.website.replace(/^https?:\/\//, "")}
-                  </a>
-                ) : (
-                  <NotYetPublished />
-                )}
-              </div>
-            </div>
-          </section>
-
-          <section
-            aria-labelledby="enquiry-heading"
-            className="flex flex-col gap-2 rounded-md border border-rule p-4"
-          >
-            <h2 id="enquiry-heading" className="font-display text-card font-semibold">
-              Ask this school
-            </h2>
-            {enquirySent ? (
-              <p className="text-body text-muted-ink">
-                Your question has been sent to the school. They'll get back to you directly.
-              </p>
-            ) : user ? (
-              <form action={sendEnquiry} className="flex flex-col gap-3">
-                <input type="hidden" name="schoolId" value={school.id} />
-                <input type="hidden" name="returnPath" value={canonicalPath} />
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-meta font-semibold text-muted-ink">
-                    Class you're asking about (optional)
-                  </span>
-                  <select
-                    name="classCode"
-                    defaultValue=""
-                    className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
-                  >
-                    <option value="">Any class</option>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={`c${n}`}>
-                        Class {n}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-meta font-semibold text-muted-ink">Your question</span>
-                  <textarea
-                    name="message"
-                    required
-                    maxLength={1000}
-                    rows={4}
-                    className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
-                  />
-                </label>
-                {enquiryError && (
-                  <FieldError id="enquiry-error">
-                    Something went wrong sending your question. Please try again.
-                  </FieldError>
-                )}
-                <button
-                  type="submit"
-                  className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
-                >
-                  Send question
-                </button>
-              </form>
-            ) : (
-              <Link
-                href={lp(
-                  locale,
-                  `/sign-in?next=${encodeURIComponent(`${canonicalPath}#enquiry-heading`)}`,
-                )}
-                className="w-fit font-semibold text-ruled-blue"
-              >
-                Sign in to ask this school a question
-              </Link>
-            )}
-          </section>
-        </aside>
+        {/* Increment 10 — footer disclaimer (design block 18): static, no data
+          dependency. States what "Verified" does and doesn't mean, and the
+          no-paid-listings line — the same trust framing the identity band and
+          record badge already carry, restated once at the point a reader is
+          most likely to be deciding whether to trust the page. */}
+        <p className="border-t border-so-line py-6 text-meta text-so-ink3 leading-relaxed">
+          Verified means SchoolOye has checked a fact against its source. It is not a rating or a
+          recommendation of the school. SchoolOye carries no paid listings.
+        </p>
       </div>
     </div>
   );
