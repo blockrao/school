@@ -1612,3 +1612,60 @@ files) — no unrelated touches.
 
 **Status: Increment 10's three previously-blocked UI pieces are now live in code, on top of the
 reviewed-and-applied migrations. No further schema/RLS changes were needed to ship them.**
+
+## Increment 10R — Canonical Page Acceptance Remediation
+
+Direct response to the Increment 10 audit findings (`/school/vivekanand-academy` vs. the binding V2
+design). Scoped exactly to remediation per Prav's instruction — not a redesign, no new tables, no
+Events/News-hub infrastructure, Fees and advanced sticky-nav interaction explicitly stay deferred.
+Commit `10153d3`.
+
+1. **URL normalizer** (`src/lib/external-url.ts` + `external-url.test.ts`, 6 tests) —
+   `normalizeExternalUrl()` adds `https://` to a bare-domain website value before it's used as an
+   `href` or JSON-LD `sameAs`. Applied at all three call sites in `entity-page.tsx` (quick-action
+   pill, Contact card link, JSON-LD `sameAs`). Confirmed against live production: 1,986 of 2,255
+   published schools with a website on file (88%) had no scheme — this fixes a pre-existing,
+   site-wide bug, not something Increment 10 introduced.
+2. **Shortcuts/sub-nav order** — the `sections` array (shared by both the shortcuts row and the
+   sticky sub-nav) is reordered to match the page's actual DOM order exactly (Facts before
+   Admissions, matching how the page has always rendered — the array had them reversed).
+3. **Claim card** (`src/components/ui/claim-card.tsx`) — wraps the existing, unchanged
+   `ClaimStatusLink` component/claim flow in a real card, per design C16/D2 ("Claim card moves to the
+   rail" for a sparse/unclaimed record, "after Fees on mobile"). Rendered twice — after Admissions on
+   mobile (`md:hidden`, since Fees stays deferred and that's where Fees would have been) and at the
+   top of the right rail on desktop (`hidden md:flex`) — only when `claim === "unclaimed"`. No new
+   claim logic; same membership/pending/rejected states `ClaimStatusLink` already handles.
+4. **Sparse-data Updates wording** (`src/lib/admission-updates.ts` + `admission-updates.test.ts`, 4
+   tests) — `describeAdmissionUpdateChanges()` now names every changed allowlisted field
+   (status/opens_on/closes_on/results_on), not just status. Previously a cycle whose only change was
+   a date shift rendered a content-free "Admission updated" line with nothing saying what changed.
+5. **News repositioned** — moved from just-before-Coverage (near the bottom) to directly after Recent
+   admission updates, grouping the page's "what's currently happening" content together. This is
+   explicitly *not* the design's unified "What's happening card" (C19) and does not build `/events` or
+   `/news` hub routes — Events stays fully out of scope. It only moves the existing, unchanged News
+   section to a position consistent with the canonical-page hierarchy, per Prav's explicit instruction
+   to resolve the positioning question without building deferred infrastructure.
+
+**Confirmed deliberately unchanged, per instruction:** Fees (still entirely absent, no empty state —
+deferred); sticky sub-nav's hide-on-scroll/grouped-items-plus-More/active-tracking/fade-edge behavior
+(still plain sticky anchor links, self-documented as deferred).
+
+**No migration, RLS, or table changes** — the audit's #8 constraint held throughout; every fix here is
+pure application code reusing existing tables/views/flows.
+
+**Validation**: `pnpm run typecheck` clean; `pnpm run lint` clean (290 files); `pnpm test` **137/137**
+(up from 127 — 10 new tests: 6 for `normalizeExternalUrl`, 4 for `describeAdmissionUpdateChanges`).
+`git diff --stat`: one file modified (`entity-page.tsx`) + 4 new files (2 lib modules + 2 test files) +
+1 new component — no migration files, no schema files touched.
+
+**Verification method note**: this sandbox's outbound network is blocked to the production Supabase
+project, so `next dev` here cannot render a live page (same constraint hit during the audit) — no pixel
+screenshots were possible. Verification was done by (a) reading the resulting DOM order and conditional
+logic directly against real production data for each required scenario (sparse/unclaimed: vivekanand-
+academy; admissions data + unschemed website: dav-public-school; claimed + schemed website:
+rk-international-school-bhankrota; no website: sd-senior-secondary-school), (b) the two new unit-tested
+pure functions, and (c) Tailwind breakpoint semantics (`md:` = 768px, so 360px/1440px resolve
+unambiguously from the classes used) rather than an actual rendered screenshot at either width.
+
+**Status: remediation complete, committed and pushed. Increment 10 remains UNLOCKED pending Prav's
+review of this remediation, per explicit instruction not to lock until reviewed.**
