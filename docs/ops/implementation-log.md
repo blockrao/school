@@ -662,3 +662,28 @@ known) sit next to each other instead of scattered across the page.
 - **Not yet done:** browser smoke test at mobile/desktop widths — same accepted, recorded limitation
   as every prior increment this session (this sandbox's egress proxy blocks a real browser from
   reaching the Supabase host).
+
+## 2026-09-28 — Increment 7: LOCKED
+
+Prav reviewed the diff (`edc16cf`) against every point of the pre-code scope lock and locked it —
+full item-by-item checklist confirmed (StatusPill removal/preservation, freshness move with the
+"Not yet verified" fallback restored, duplicate row removal, compact empty-Admissions state,
+Coverage reposition, action layer, unchanged Contact/claim behavior, no schema/query changes,
+typecheck/lint/117 tests/production regression all ✅; browser smoke test remains the same accepted
+sandbox limitation).
+
+Called out the self-caught freshness regression specifically as validation of the implementation-log
+discipline: "You caught it before verification and commit, restored the original ternary behavior,
+and recorded the mistake explicitly... a good reason to keep the implementation-log discipline
+rather than simply treating green tests as sufficient." Also explicitly ruled that the universal
+`last_verified_at = NULL` / zero-admissions production state is a **data-enablement issue**, not an
+Increment 7 presentation defect — the page correctly represents that sparse state rather than hiding
+or manufacturing it.
+
+**Next:** not another UI increment. Prav is directing a dedicated architecture/scoping pass for
+`school_notices` / school-intelligence data — admissions, fees, facilities, freshness, and updates
+are currently constrained by missing or fragmented data paths, and the canonical page is now coherent
+enough that further UI work would just polish permanently-empty sections. Same discipline as every
+prior scoping pass this session: live schema → existing domain capabilities → actual production
+data → missing capability → smallest viable architecture → implementation. This is a scoping
+exercise only — no implementation until Prav locks scope.
