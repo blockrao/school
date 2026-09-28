@@ -740,3 +740,57 @@ facilities/safety vs. other structured data) to decide whether, and how narrowly
 promotion pipeline at all — before any further engineering on this. `school_notices` as a general
 abstraction is explicitly not being created; `admission_notices` stays the concrete domain until
 the audit says otherwise.
+
+## 2026-09-28 — Admissions engineering: deferred
+
+Completed the value audit called for above, independently researched rather than assumed. Findings:
+
+- **Industry research** (Delhi DoE nursery circular, state RTE portals like Haryana's UJJWAL)
+  shows two real patterns for admissions data: a **shared authority calendar** (one government/board
+  circular applies to every school in a jurisdiction at once) and a **school-specific cycle** (the
+  school's own dates/tests, self-reported). The one genuinely-complete record in our approved-notices
+  sample (Salwan Public School, Mayur Vihar, nursery) turned out to be exactly the Delhi DoE calendar,
+  not a school-specific fact — the AI-extraction pipeline was rediscovering a shared fact through an
+  individual school's page, at far lower leverage than curating it once.
+- **Geographic check on the pilot crawl:** of the 50 schools in `admission_notices`, 21 are Delhi
+  districts and 22 are Haryana; only **5 are Jaipur** — SchoolOye's actual initial market. The
+  Delhi/Haryana-derived "shared calendar" insight is real but was found almost entirely outside our
+  target market.
+- **Jaipur-specific check, both live data and independent web research:** all 9 Jaipur
+  `admission_notice`-page_kind rows have empty `cycles: []` — no usable structured dates were ever
+  extracted for any Jaipur school. Independently, a live competitor ([UniApply's Jaipur nursery page](https://www.uniapply.com/schools/nursery-admission-dates-in-jaipur/))
+  confirms Jaipur has no Delhi-style common calendar: "admission windows in Jaipur vary from school
+  to school," tracked individually across 74 schools with staggered dates. The shared-calendar model
+  does not generalize to our market; only the school-specific-cycle pattern would apply here, and we
+  have no reliable source for it yet.
+- **Adoption check:** `school_claims` has exactly **1 row**. A school self-service admissions
+  workflow (the proven, simple "Pattern 2" mechanism, already partially spec'd as the P1 admissions
+  editor) would currently be unreachable by nearly the entire school base.
+
+**Decision: admissions engineering deferred.** Not building: the notice→`admission_cycles`
+normalization/promotion pipeline (Increment 8 as scoped), a shared-calendar/fan-out mechanism, the
+P1 school admissions self-service editor, a new admissions semantic/provenance model, or a
+generalized `school_notices` abstraction. This is a product decision, not a failure to find an
+architecture — live inventory and independent market research did not establish a sufficiently
+reliable or scalable source for school-specific admissions data across SchoolOye's initial
+Jaipur/Haryana/Delhi target. `admission_notices` remains in place as a research/discovery signal
+(a crawler hit can become an internal research lead, never an automatic promotion) and
+`admission_cycles`/`api.public_school_admissions` remain available, unchanged, for whenever a
+trustworthy source or clear demand signal emerges. Explicitly not concluded: "admissions doesn't
+matter" — only that building infrastructure against the current hypothesis is premature.
+
+Deliberately not promoted to "the next increment": claimed-school growth. Low claim adoption (1
+row) explains why school self-service can't work yet, but SchoolOye's original thesis is to build
+useful canonical school intelligence from public/authoritative sources first and give schools a
+reason to claim afterward — pivoting the whole roadmap to claim-growth on this basis would repeat
+the same mistake (building infrastructure on a single, unvalidated hypothesis) one level up.
+
+**Architectural principle worth keeping for fees, facilities, results, transport, safety, rankings,
+and any future domain:** don't build a promotion pipeline just because a table with rows exists.
+Ask "is this information valuable, reliable, and scalable enough to become canonical SchoolOye
+data?" first, with real evidence from the actual target market, and only then design the pipeline.
+
+**Next:** return to the canonical page itself rather than open a new backend subsystem — but as one
+bounded candidate audited with this same discipline (existing source → actual coverage → actual
+usefulness → acquisition cost → only then architecture), not an open-ended sweep across every
+possible category at once. Not yet chosen with Prav.
