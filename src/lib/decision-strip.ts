@@ -1,3 +1,4 @@
+import { deadlineState } from "@/lib/deadline";
 import { formatDate } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 
@@ -46,7 +47,19 @@ export function unsupportedSlot(id: string, label: string): DecisionSlot {
   return { id, label, status: "unverified" };
 }
 
-/** Mirrors the shape entity-page.tsx already extracts from `PublicSchoolAdmission`. */
+/**
+ * Mirrors the shape entity-page.tsx already extracts from `PublicSchoolAdmission`.
+ *
+ * `now` is required so a `closes_on` in the past is never shown as if it were
+ * still live. This reuses `deadlineState` — the same pure, IST-calendar-day
+ * function `DeadlineMargin` already uses in the full Admissions section —
+ * rather than re-deriving "is this deadline in the past" independently; a
+ * real production row (a closed 2027-28 nursery cycle whose form deadline had
+ * already passed) showed this slot rendering "Closes <past date>" with the
+ * same confident styling as a live deadline, because the old logic only ever
+ * checked `status === "not_announced"` and never looked at whether the date
+ * itself had passed.
+ */
 export function buildAdmissionsSlot(
   admission: {
     academic_year: string;
@@ -55,6 +68,7 @@ export function buildAdmissionsSlot(
     closes_on: string | null;
     status: string;
   } | null,
+  now: Date,
 ): DecisionSlot {
   const label = admission ? `Admissions ${admission.academic_year}` : "Admissions";
   if (
@@ -63,6 +77,14 @@ export function buildAdmissionsSlot(
   ) {
     return { id: "admissions", label, status: "unverified" };
   }
+
+  if (admission.closes_on) {
+    const state = deadlineState({ closesAt: new Date(admission.closes_on) }, now);
+    if (state.status === "closed") {
+      return { id: "admissions", label, status: "available", value: "Closed" };
+    }
+  }
+
   const value = admission.closes_on
     ? `Closes ${formatDate(admission.closes_on)}`
     : admission.opens_on
@@ -72,6 +94,32 @@ export function buildAdmissionsSlot(
     ? `Registration from ${formatDate(admission.opens_on)}`
     : undefined;
   return { id: "admissions", label, status: "available", value, context };
+}
+
+/**
+ * A school can have more than one `admission_cycles` row live at once (e.g.
+ * a closed Nursery cycle and a separately-open Class XI cycle — the DAV
+ * Public School Gurugram real-data test that surfaced this). `closes_on`
+ * ascending puts a closed cycle with a real past date ahead of an open
+ * cycle that has no `closes_on` yet (nulls sort last), so picking
+ * `admissions[0]` silently shows the wrong cycle as primary.
+ *
+ * This prefers the first cycle whose status is still actionable
+ * (not `closed` or `results_out`) over one that has already concluded,
+ * falling back to the existing order when every cycle is closed/concluded
+ * so a school with only past cycles still shows its most recent one.
+ */
+const ACTIONABLE_ADMISSION_STATUSES = new Set([
+  "not_announced",
+  "upcoming",
+  "open",
+  "closing_soon",
+]);
+
+export function selectPrimaryAdmission<T extends { status: string }>(
+  admissions: readonly T[],
+): T | undefined {
+  return admissions.find((a) => ACTIONABLE_ADMISSION_STATUSES.has(a.status)) ?? admissions[0];
 }
 
 export function buildEntryClassesSlot(school: {
@@ -120,9 +168,10 @@ export function buildDecisionStrip(input: {
     address: string | null;
   };
   cityName: string | null;
+  now: Date;
 }): DecisionSlot[] {
   return [
-    buildAdmissionsSlot(input.admission),
+    buildAdmissionsSlot(input.admission, input.now),
     unsupportedSlot("annual_fee", "Annual fee"),
     buildEntryClassesSlot(input.school),
     unsupportedSlot("student_teacher_ratio", "Student–teacher ratio"),

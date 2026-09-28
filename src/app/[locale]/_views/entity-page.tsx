@@ -30,7 +30,7 @@ import { listPublicSchoolTeam } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
-import { buildDecisionStrip } from "@/lib/decision-strip";
+import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
 import { siteUrl } from "@/lib/env.server";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
@@ -331,7 +331,13 @@ export async function SchoolView({
       ]
     : [];
 
-  const primaryAdmission: PublicSchoolAdmission | undefined = admissions[0];
+  // A school can carry more than one live admission_cycles row (e.g. a
+  // closed Nursery cycle alongside a separately-open Class XI cycle — the
+  // DAV Public School Gurugram real-data test). `admissions[0]` picks
+  // whichever sorts first by closes_on, which is not necessarily the one
+  // still actionable; selectPrimaryAdmission prefers an open/upcoming cycle
+  // over a closed one.
+  const primaryAdmission: PublicSchoolAdmission | undefined = selectPrimaryAdmission(admissions);
 
   // Increment 7: the header used to carry its own admissions-urgency
   // StatusPill (computed from primaryAdmission's dates via deadlineToPill),
@@ -361,6 +367,7 @@ export async function SchoolView({
       address: school.address,
     },
     cityName: city?.cityName ?? null,
+    now,
   });
 
   const coverageTopics = buildCoverage(decisionSlots, {

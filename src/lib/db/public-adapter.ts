@@ -410,9 +410,10 @@ async function queryPublicSchools(
   }
 
   if (admissionsOpen) {
-    // api.public_school_admissions, not raw admission_cycles — also gets the
-    // approval-verification gate that view already enforces, which this raw
-    // query never did.
+    // api.public_school_admissions, not raw admission_cycles. Per D-119
+    // (28 Sep 2026) this view has no verification gate — a school is public
+    // once schools.status = 'published', and every admission_cycles row for
+    // it is shown as stored, regardless of verification status.
     const { data: cycles } = await api
       .from("public_school_admissions")
       .select("school_id")

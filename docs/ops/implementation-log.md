@@ -794,3 +794,88 @@ data?" first, with real evidence from the actual target market, and only then de
 bounded candidate audited with this same discipline (existing source → actual coverage → actual
 usefulness → acquisition cost → only then architecture), not an open-ended sweep across every
 possible category at once. Not yet chosen with Prav.
+
+## 2026-09-28 — Real-data validation: DAV Public School Gurugram admissions, two bugs found and fixed
+
+Per Prav's explicit instruction to validate the "Admissions Discovery & Action" direction against a
+real school rather than more architecture discussion, used **D.a.v. Public School, Sector 14,
+Gurugram** (school_id `2aeedc47-247c-41d4-bd84-4b46eaff1560`) and its real registration pages
+(`dav14gurgaon.com`) as the concrete test case. Confirmed the entity match by address text, not name
+similarity alone — the DB's superficially-similar "DAV Public School Sec-14" record has website
+`dav14faridabad.ac.in` and is actually in Faridabad; the correct record's website is
+`dav14gurgaon.org` with address confirming Sector 14, Gurugram.
+
+**Data written (via `mcp__Supabase__execute_sql`, N-11 override, zero new code/UI needed):**
+- Nursery 2027-28: form window closed (`closes_on` 2026-08-12), `status = 'closed'`, `ops_verified`.
+- Class XI 2026-27: genuinely open per the school's own "REGISTRATION OPEN FOR CLASS XI" page,
+  `status = 'open'`, no dates published by the school (`opens_on`/`closes_on` both null),
+  `ops_verified`.
+
+This alone proves the cheapest part of the "Admissions Discovery & Action" model: a real admission
+fact can be entered directly into `admission_cycles` via SQL, by a human who checked the source, and
+it reaches the canonical page through existing infrastructure — no AI extraction, no editor, no new
+table.
+
+**Correction to my own first pass:** initially fetched only the Nursery URL Prav gave and reported
+the cycle as closed. Prav pushed back: submission was still open on that same page, and — more
+importantly — stated the actual requirement plainly: *"if tomorrow some user comes to the site, he
+... wants to know if this particular school has admission open, if not when it opens, and which all
+schools are they who have admissions open."* Re-fetching the source page verbatim rather than
+either dismissing or blindly accepting the correction: the Nursery cycle genuinely was closed (no
+contradicting evidence), but the re-check surfaced a second link on the same page, to Class XI
+registration, missed on the first pass. That page confirmed a genuinely open cycle, written as the
+second row above. Net: Prav's correction was right, but the fix was "read the whole source," not
+"mark Nursery open."
+
+**Bug 1 — closed cycles rendered as if still live.** `buildAdmissionsSlot` (`decision-strip.ts`)
+only ever checked `status === 'not_announced'` to decide unverified-vs-available, never whether a
+stored `closes_on` had actually passed. The real closed-Nursery row rendered "Closes 12 Aug 2026" in
+the Decision Strip with the same confident/bold styling as a live deadline — `DeadlineMargin`
+elsewhere on the same page already got this right by deriving status from `deadlineState()`
+(`src/lib/deadline.ts`), the same pure, tested, IST-calendar-day function; `buildAdmissionsSlot` had
+its own separate, incomplete inline logic instead of reusing it. Fixed: `buildAdmissionsSlot` now
+takes a required `now: Date`, calls `deadlineState({ closesAt }, now)`, and renders a plain `"Closed"`
+value instead of the past date when `deadlineState` says `status === "closed"`. `buildDecisionStrip`'s
+input type now requires `now`; `entity-page.tsx` (which already computed `now = new Date()` for other
+purposes) passes it through.
+
+**Bug 2 — wrong cycle chosen as primary when a school has more than one.** `entity-page.tsx` picked
+`primaryAdmission = admissions[0]`, and `getPublicAdmissionsBySchoolId` orders by
+`closes_on ascending, nulls last` — so the closed Nursery row (has a date) sorted *before* the open
+Class XI row (no date yet), making the Decision Strip show the closed cycle as the school's headline
+admissions status. Fixed with a new exported `selectPrimaryAdmission()` in `decision-strip.ts`: picks
+the first cycle whose `status` is still actionable (`not_announced`/`upcoming`/`open`/`closing_soon`,
+i.e. not `closed`/`results_out`), falling back to the existing order only when every cycle on the
+school has concluded (so a school with only past cycles still shows its most recent one, not
+nothing). `entity-page.tsx` now calls this instead of indexing `[0]` directly.
+
+**Also fixed:** a third stale D-119-era comment in `public-adapter.ts` (`queryPublicSchools`'s
+`admissionsOpen` block) still claiming an "approval-verification gate" on
+`api.public_school_admissions` that D-119 removed — same class of stale comment as the two already
+corrected in the false-finding entry above, found while working in this file for Bug 2.
+
+**Verified:** `pnpm run typecheck`, `pnpm run lint`, `pnpm test` all clean (123/123 — 6 new tests:
+the past-`closes_on` "Closed" case, a genuinely-future-date control case, and three
+`selectPrimaryAdmission` cases covering the DAV multi-cycle scenario, an all-closed fallback, and an
+already-correctly-ordered case). Re-queried `api.public_school_admissions` for the DAV school after
+the fix to confirm the live shape matches what the tests assert: closed Nursery sorts first from the
+raw view, `selectPrimaryAdmission` correctly returns the open Class XI row as primary, and
+`buildAdmissionsSlot` renders it as an available admissions slot with "Dates not yet announced" (no
+fabricated date, since the school hasn't published one) rather than the closed cycle's stale
+deadline. No schema, migration, RLS, or view change — presentation-layer logic only.
+
+**What this confirms about the discovery-list mechanism specifically:** `queryPublicSchools`'s
+`admissionsOpen` filter (`?admissions=open` on `/schools` and city browse pages), which already
+existed before this session, is the exact "list of schools with admissions open" Prav asked for —
+DAV Gurugram's now-open Class XI cycle will surface there. The filter is not city-gated by anything
+in its own logic, but the pages that call it (`place-page.tsx`, `schools/[state]/[city]/page.tsx`)
+404 for any city where `is_launch = false`, and **Jaipur is currently the only launched city** — so
+today this list is reachable only for Jaipur, even though DAV Gurugram's data is now correctly
+published and its own entity page works. This is a separate, larger decision (launching additional
+cities) from the admissions mechanism itself, not a bug in the mechanism — flagged for Prav to weigh
+in on next, not resolved here.
+
+**Not built, deliberately, per the "Admissions Discovery & Action" reframing Prav approved:** no AI
+extraction, no self-service editor, no shared-calendar fan-out. The manual/incremental model —
+staff or Prav personally verifies a school and writes the fact directly — is what this entry
+validates end-to-end for one real school.
