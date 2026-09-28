@@ -3,11 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AuthStatusLink } from "@/components/shell/auth-status-link";
-import type { PrimaryNavItem } from "@/components/shell/primary-nav";
+import { primaryNavItems } from "@/components/shell/primary-nav";
+import type { CityOption } from "@/lib/city-preference";
+import { useSelectedCity } from "@/lib/city-preference";
 
-/** Hamburger trigger + slide-in overlay panel. Open/close is real client state — the one piece of the shell that needs it. */
-export function MobileMenu({ locale, items }: { locale: string; items: PrimaryNavItem[] }) {
+/**
+ * Hamburger trigger + slide-in overlay panel. Open/close is real client
+ * state — the one piece of the shell that needs it. Builds its own nav items
+ * from `areas` (like PrimaryNav) rather than taking a precomputed list, so
+ * its Admissions link also tracks the visitor's actual selected city.
+ */
+export function MobileMenu({ locale, areas }: { locale: string; areas: CityOption[] }) {
   const [open, setOpen] = useState(false);
+  const selectedCity = useSelectedCity(areas);
+  const items = primaryNavItems(locale, areas, selectedCity);
 
   return (
     <>
