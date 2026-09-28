@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { WordCountedTextarea } from "@/components/ui/word-counted-textarea";
 import { requireStaff } from "@/lib/db/ops";
 import { updateSchool } from "./actions";
 
@@ -219,10 +220,12 @@ export default async function OpsSchoolDetailPage({ params }: { params: Promise<
 
         <section className="grid grid-cols-1 gap-4">
           <Field label="About (English)">
-            <textarea
+            <WordCountedTextarea
               name="about_en"
               defaultValue={school.about_en ?? ""}
               rows={3}
+              hint='About this school: up to 80 words. Use factual, school-specific information only. Avoid promotional claims such as "best", "premier", "top", or "leading".'
+              wordLimit={80}
               className="w-full rounded-md border border-line-blue-strong bg-copy-white p-2 text-meta outline-none"
             />
           </Field>
