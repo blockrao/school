@@ -490,6 +490,18 @@ export async function SchoolView({
     hasStaff: team.length > 0,
   });
 
+  // H1 geo-context (SEO review, 2026-09-29): the H1 was the one on-page signal
+  // missing city — title, meta description and breadcrumbs already carry it.
+  // Same trust bar as the breadcrumb trail above: locality is added only when
+  // school.locality_name is actually set (never invented, never shown for a
+  // school with only pincode-level geocoding and no real locality match).
+  // City comes from `city`, which is null when a school's district doesn't
+  // resolve to a launched city area — H1 falls back to the bare name then,
+  // same as the breadcrumb trail falling back to [].
+  const h1LocationSuffix = city
+    ? [school.locality_name, city.cityName].filter(Boolean).join(", ")
+    : null;
+
   const mapPoint =
     school.lat != null && school.lng != null
       ? {
@@ -702,6 +714,7 @@ export async function SchoolView({
         <div className="flex flex-col gap-2 border-b border-rule pb-6">
           <h1 className="font-display text-title-m md:text-title-d">
             {name}
+            {h1LocationSuffix && <span className="text-muted-ink">, {h1LocationSuffix}</span>}
             {school.name_hi && (
               <span className="ml-2 font-normal text-body text-muted-ink" lang="hi">
                 {school.name_hi}
