@@ -4,6 +4,22 @@ import { redirect } from "next/navigation";
 import { getMySchoolId, listClassLevels } from "@/lib/db/portal";
 import { createSessionClient } from "@/lib/db/session";
 
+/**
+ * Signs a school-portal user out. Mirrors src/app/[locale]/my/account/
+ * actions.ts's signOut() (scope "local" = this device/session only,
+ * "global" = every device) — duplicated rather than imported because that
+ * one is locale-scoped (redirects to homePath(locale)) and /portal sits
+ * outside [locale] entirely (see src/proxy.ts's NON_LOCALE_PREFIXES), so it
+ * has no locale param to build a redirect from.
+ */
+export async function signOutOfPortal(formData: FormData) {
+  const scope = formData.get("scope") === "global" ? "global" : "local";
+
+  const supabase = await createSessionClient();
+  await supabase.auth.signOut({ scope });
+  redirect("/sign-in?next=%2Fportal");
+}
+
 type SeatStatus = "open" | "limited" | "waitlist" | "closed";
 const SEAT_STATUSES: readonly SeatStatus[] = ["open", "limited", "waitlist", "closed"];
 
