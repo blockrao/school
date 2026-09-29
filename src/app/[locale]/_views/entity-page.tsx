@@ -462,6 +462,22 @@ export async function SchoolView({
   // for why: most stored website values have no scheme.
   const websiteUrl = normalizeExternalUrl(school.website);
 
+  // Increment 11 (SDP-05, resolved) — "WhatsApp School" secondary CTA. This was
+  // deferred as an explicit exception in the Production Closure milestone because
+  // no schema field exists for a verified per-school WhatsApp channel, and policy
+  // forbids deriving one from an ordinary phone number. Prav has since directed
+  // this be a single platform-owned SchoolOye helpline number instead of a
+  // per-school channel, which sidesteps that blocker entirely: it's the same
+  // controlled-intermediary pattern as "Contact school", just over WhatsApp, and
+  // needs no per-school data at all. Unlike the numberless `wa.me/?text=` "share"
+  // links elsewhere on this page (EligibilityChecker, ShareSheet), this is a fixed
+  // destination number, so the school name + canonical URL are pre-filled so the
+  // helpline knows which school the enquiry is about.
+  const whatsappHelplineNumber = "919999188022";
+  const whatsappHref = `https://wa.me/${whatsappHelplineNumber}?text=${encodeURIComponent(
+    `Hi SchoolOye, I'd like to know more about ${name} (${siteUrl}${canonicalPath}).`,
+  )}`;
+
   const areaLabel = school.locality_name ?? city?.cityName ?? "India";
   const orgType = schoolOrgType(school.max_class);
 
@@ -766,17 +782,24 @@ export async function SchoolView({
           and Directions remain controlled actions to the school's own official channels.
           A distinct per-cycle "Apply" action already exists (the "Application form ↗"
           link inside Admissions, gated on cycle.form_url) — this pill is the general
-          contact path, not admissions-specific, so it's unconditional. WhatsApp School
-          (secondary CTA) is intentionally not built here: no schema field exists yet for
-          a verified school-provided WhatsApp channel, and the policy explicitly forbids
-          deriving one from an ordinary phone number — see docs/ops/implementation-log.md,
-          SDP-05. */}
+          contact path, not admissions-specific, so it's unconditional. "WhatsApp School"
+          (secondary CTA) routes to SchoolOye's own platform WhatsApp helpline (not a
+          per-school channel — see whatsappHref above and docs/ops/implementation-log.md,
+          SDP-05, resolved), so it's unconditional too. */}
         <div className="flex flex-wrap gap-2 pb-6">
           <a
             href="#enquiry-heading"
             className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
           >
             Contact school
+          </a>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+          >
+            WhatsApp School
           </a>
           {websiteUrl && (
             <a
@@ -1201,6 +1224,14 @@ export async function SchoolView({
                 </div>
                 <a href="#enquiry-heading" className="w-fit font-semibold text-ruled-blue">
                   Contact this school →
+                </a>
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="w-fit font-semibold text-ruled-blue"
+                >
+                  WhatsApp School →
                 </a>
               </div>
             </section>
