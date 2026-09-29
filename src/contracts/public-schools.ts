@@ -66,6 +66,12 @@ export const publicSchoolContract = z.object({
   address_state_code: z.string().nullable().optional(),
   address_pincode: z.string().nullable().optional(),
   address_source: z.string().nullable().optional(),
+  /** Enrichment Metadata (1 Oct 2026): when enrichment occurred and its freshness */
+  enriched_at: z.string().datetime().nullable().optional(),
+  /** Which sources (UDISE, CBSE_SARAS, etc.) contributed to enrichment */
+  enrichment_sources: z.array(z.string()).nullable().optional(),
+  /** Per-field data quality scores (0.0-1.0 confidence). Example: {"principal_name": 0.95} */
+  data_quality_flags: z.record(z.string(), z.number()).nullable().optional(),
 });
 
 /** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */

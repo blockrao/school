@@ -10,6 +10,7 @@ import { ClaimCard } from "@/components/ui/claim-card";
 import { CoverageCard } from "@/components/ui/coverage-card";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
+import { EnrichmentBadge, EnrichmentMetadataSection } from "@/components/ui/enrichment-badge";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
@@ -1302,7 +1303,15 @@ export async function SchoolView({
                   return principalName ? (
                     <div>
                       <dt className="text-meta font-semibold text-muted-ink">Principal</dt>
-                      <dd>{principalName}</dd>
+                      <dd className="flex items-center gap-2">
+                        <span>{principalName}</span>
+                        {school.principal_name && school.enriched_at && (
+                          <EnrichmentBadge
+                            enrichedAt={school.enriched_at}
+                            enrichmentSources={school.enrichment_sources}
+                          />
+                        )}
+                      </dd>
                     </div>
                   ) : null;
                 })()}
@@ -1595,7 +1604,15 @@ export async function SchoolView({
                   {(school.address_street || school.address_area || school.address_city ||
                     school.address_district || school.address_state || school.address_pincode) && (
                     <div className="rounded-md bg-so-surface p-3">
-                      <div className="mb-2 text-meta font-semibold text-muted-ink">Address details</div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-meta font-semibold text-muted-ink">Address details</span>
+                        {school.enriched_at && (
+                          <EnrichmentBadge
+                            enrichedAt={school.enriched_at}
+                            enrichmentSources={school.enrichment_sources}
+                          />
+                        )}
+                      </div>
                       <dl className="grid grid-cols-2 gap-2 text-body text-sm">
                         {school.address_street && (
                           <>
@@ -1953,6 +1970,19 @@ export async function SchoolView({
             </section>
           </aside>
         </div>
+
+        {/* Enrichment Metadata (1 Oct 2026) — display when available to show
+          data freshness, sources, and quality scores. Builds trust by making
+          enrichment visible and auditable. */}
+        {(school.enriched_at || (school.enrichment_sources && school.enrichment_sources.length > 0)) && (
+          <div className="border-t border-so-line py-6">
+            <EnrichmentMetadataSection
+              enrichedAt={school.enriched_at}
+              enrichmentSources={school.enrichment_sources}
+              dataQualityFlags={school.data_quality_flags}
+            />
+          </div>
+        )}
 
         {/* Increment 10 — footer disclaimer (design block 18): static, no data
           dependency. States what "Verified" does and doesn't mean, and the

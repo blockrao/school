@@ -69,7 +69,13 @@ select
   s.address_source,
   st.slug as state_slug,
   -- City-states (D-126): the city is the state itself (e.g. delhi), never a district.
-  case when st.is_city_state then st.slug else d.slug end as city_slug
+  case when st.is_city_state then st.slug else d.slug end as city_slug,
+  -- Data Enrichment Metadata (1 Oct 2026): timestamp, sources, and per-field quality scores.
+  -- Shows when data was enriched, which sources contributed, and confidence per field (0-1.0).
+  -- Builds trust by making enrichment visible and auditable.
+  s.enriched_at,
+  s.enrichment_sources,
+  s.data_quality_flags
 from schools s
 left join localities l on l.id = s.locality_id
 left join districts d on d.id = s.district_id
