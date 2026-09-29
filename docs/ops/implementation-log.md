@@ -3349,3 +3349,44 @@ second-opinion review of that audit. Scoped, agreed increment — not a broader 
   a new completeness-scoring system, a second generic freshness engine.
 
 183 tests passing (174 → 183). Typecheck and lint clean.
+
+## 2026-09-29 — Sitemap indexability-gate leak (found via a live re-audit)
+
+Re-audited a fresh redeploy of `lancers-convent-sr-sec-school` right after the increment above
+shipped: confirmed `dateModified` (now `2026-09-29T11:47:59.333Z`) correctly reflects the school's
+News post — DB check showed the post's `published_at` (11:47:59.333, server-set at approval time,
+not editable/backdatable) is genuinely later than the Dandiya Night event's `created_at`
+(11:17:29), so News, not Events, is correctly winning the `latestOf()` comparison in this case —
+confirming the fix handles both branches, not just the one checked last time. `og:site_name`/
+`og:locale`/board `alternateName` were briefly missing from that snapshot too, but only because it
+was fetched ~2 minutes after `cded2f8` was pushed — deploy-propagation lag, not a bug; both were
+confirmed present in the committed diff.
+
+**Found a real gap while checking "does the sitemap reflect this correctly":**
+`buildCitySitemapResponse` (`src/lib/sitemap.ts`) emitted a `<url>` entry for every *published*
+school in a city regardless of whether `meetsIndexabilityGate()` (added in the increment above)
+actually passed for that school — so a sparse school whose own page now emits
+`noindex,follow` was still being submitted in its city's sitemap. That's a direct contradiction of
+this repo's own "only indexable URLs" sitemap rule (D-121 §10) and something Search Console
+actively flags ("Submitted URL marked 'noindex'"). This was a real omission in the increment above,
+not a new request — "sitemap behavior remains correct" was literally in that increment's own
+definition-of-done and wasn't actually checked before calling it closed.
+
+**Fixed:** `buildCitySitemapResponse` now bulk-fetches board names for every published school in
+the city (`getBoardNamesBySchoolId`, already existed, used the same way in `entity-page.tsx`) and
+filters to `meetsIndexabilityGate()`-passing schools before generating their `<url>` entries — no
+per-school join, stays cheap at thousands-of-schools-per-city scale. City/locality aggregate
+`<url>` entries are untouched — those pages are indexable regardless of any one school's gate.
+
+**Also corrected while touching this:** `seo-geo.md`'s existing sitemap "Known gap" note claimed
+per-school `lastmod` was "computed once per city across every school in the district" — that was
+only ever true of the separate city/locality aggregate entries; each school's own `<url>` entry
+already used its own `last_verified_at` individually. Reworded to describe both cases accurately.
+The underlying gap itself (`lastmod` uses `last_verified_at` alone, not the entity page's wider
+`dateModified` projection) is unchanged and still open — same reason as before, needs a heavier
+per-school join at sitemap scale.
+
+No new tests: `buildCitySitemapResponse` is DB-backed, same as the rest of `sitemap.ts` and
+`entity-page.tsx` — verified in production per this codebase's existing pattern, not unit-tested.
+`meetsIndexabilityGate()` itself already has coverage from the increment above. Typecheck and lint
+clean; full suite still 183 passing (unchanged — no new pure logic added here).

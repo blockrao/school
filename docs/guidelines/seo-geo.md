@@ -148,15 +148,26 @@ Alignment v1) to match what's actually implemented — this section had drifted 
 - **Indexing:** production is always open to crawlers; only Vercel Preview is noindex (D-120).
   (D-094). While off, `robots.ts` disallows everything.
 - **Sitemaps:** route handlers per launched city (`sitemap-{city}.xml`) plus `sitemap-site.xml`,
-  indexed by `sitemap.xml`. Only indexable URLs. `lastModified` = latest displayed-fact
-  `verified_at`/change time, never the build time (D-044).
+  indexed by `sitemap.xml`. Only indexable URLs — **enforced, 29 Sep 2026:** `buildCitySitemapResponse`
+  (`src/lib/sitemap.ts`) used to emit a `<url>` entry for every *published* school regardless of
+  whether the page itself passed the L2 indexability gate above, so a `noindex,follow` school page
+  could still be submitted in its city's sitemap — a direct contradiction of this same rule and
+  something Search Console flags as "Submitted URL marked 'noindex'." Fixed by re-running
+  `meetsIndexabilityGate()` per school (bulk `getBoardNamesBySchoolId` lookup, not a per-school
+  join, to stay cheap at thousands-of-schools-per-city scale) and only emitting an entry for schools
+  that pass it. City/locality aggregate URLs are unaffected — they're indexable regardless of any
+  one school's own gate.
+  `lastModified` = latest displayed-fact `verified_at`/change time, never the build time (D-044).
   **Known gap, 29 Sep 2026:** the school entity page's own `dateModified` (§6a) is now the wider,
-  correct freshness projection — `max(verifiedAt, visible per-field evidence, admission updates)` —
-  but `sitemap.ts`'s `lastmod` still uses `school.last_verified_at` alone (real only for a formal
-  verification event, null for most schools), computed once per city across every school in the
-  district rather than per school. Bringing the sitemap in line needs a heavier per-school join at
-  sitemap-generation scale (thousands of schools per city) that wasn't done in this pass — until
-  then the sitemap understates freshness for schools with recent evidence/admission changes but no
+  correct freshness projection — `max(verifiedAt, visible per-field evidence, admission updates,
+  News/Events/Jobs)` — but each school's own `lastmod` in its city sitemap still uses
+  `school.last_verified_at` alone (real only for a formal verification event, null for most
+  schools) rather than that wider projection; the city/locality aggregate `<url>` entries separately
+  use the max `last_verified_at` across every school in that city/locality, which was the "computed
+  once per city" gap this note used to (imprecisely) describe as applying to schools too. Bringing
+  per-school `lastmod` in line with the entity page's `dateModified` needs the same heavier
+  per-school join at sitemap-generation scale (thousands of schools per city) that wasn't done in
+  this pass — until then the sitemap understates freshness for schools with recent evidence/
   formal verification event.
 - **Freshness pings:** IndexNow notifies participating search engines (chiefly Bing) of URL changes
   on revalidation — it is a distribution optimisation, not a universal AI/GEO freshness mechanism,
