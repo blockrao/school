@@ -22,6 +22,7 @@ import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
 import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import { buildCoverage } from "@/lib/coverage";
 import {
   getAdmissionDeadlinesBySchoolId,
@@ -328,6 +329,22 @@ export async function SchoolView({
   // --- School entity page ---
   const { city, bundle } = resolved;
   const { school, board } = bundle;
+
+  // P1.8 follow-up (29 Sep 2026) — the school entity page is the one page in
+  // this app with real traffic (10,669 schools vs. near-zero real News/
+  // Events/Jobs content), so it's the page that actually validates whether
+  // analytics_events is receiving real rows, not just the fixture-school
+  // regression test. Awaited (matching news/events/jobs' pattern) rather
+  // than fire-and-forget: logAnalyticsEvent never throws, so this can't
+  // fail the page, but an un-awaited insert risks being dropped if the
+  // runtime tears the request down right after the response is sent.
+  await logAnalyticsEvent({
+    eventType: "page_view",
+    entityType: "school",
+    entityId: school.id,
+    schoolId: school.id,
+  });
+
   const affiliationNo = board?.affiliation_no ?? null;
   const name = school.name_en ?? "Name not yet published";
   const grades = formatGradeRange(school.min_class, school.max_class);

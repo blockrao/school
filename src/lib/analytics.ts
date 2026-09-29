@@ -56,10 +56,23 @@ export interface LogAnalyticsEventInput {
  * it's attached to. Errors are swallowed after a console.error — there is
  * no queue to retry into, and a dropped telemetry row is an acceptable
  * failure mode for "is this being used" reporting.
+ *
+ * Verified end-to-end against the live DB (not just via the elevated SQL
+ * role) as `anon` — the role the publishable key actually resolves to —
+ * 29 Sep 2026: a plain `insert()` succeeds under `analytics_events_insert`
+ * (`with check (true)`), and `select` is correctly denied to anon by
+ * `analytics_events_staff_select`. IMPORTANT: never chain `.select()` onto
+ * this insert. Postgres's RLS also gates the implicit `RETURNING` a
+ * `.select()` would request, against the *select* policy (staff-only) —
+ * not the insert policy — so adding `.select()` here would make every
+ * anonymous (i.e. every real) call fail with "new row violates row-level
+ * security policy", even though the insert policy itself is unrestricted.
+ * Confirmed by reproducing exactly that failure while verifying this file.
  */
 export async function logAnalyticsEvent(input: LogAnalyticsEventInput): Promise<void> {
   try {
     const supabase = createPublicClient();
+    // No .select() — see this function's comment above.
     const { error } = await supabase.from("analytics_events").insert({
       event_type: input.eventType,
       entity_type: input.entityType ?? null,

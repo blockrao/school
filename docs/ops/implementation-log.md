@@ -2794,3 +2794,31 @@ this log (confirmed via the proxy status endpoint: `fonts.googleapis.com:443` ge
 `school_jobs`, `withdrawn_at` on `school_posts`, and the new `analytics_events` table; noted
 inline, now covering four hand-patched rounds total — please re-run `pnpm db:types` once DB
 credentials are available.
+
+## 2026-09-29 — P1.8 follow-up: school-page page_view + verified analytics_events end-to-end as `anon`
+
+Prompted by a PM-framing question right after the Consolidation increment closed: the increment
+built page_view/share/lead analytics into News/Events/Jobs/`/admissions`, but those pages have
+almost no real traffic (0 real Events, 0 real Jobs, 1 QA-fixture News post). The school entity
+page — the one page with real volume (10,669 schools) — had no analytics at all. Added a
+`page_view` `logAnalyticsEvent` call to `SchoolView` (`_views/entity-page.tsx`), right after the
+school/board are resolved (past the `notFound()`/redirect branch in `school/[slug]/page.tsx`, so
+it never fires for a 404), awaited like the other three canonical pages' calls.
+
+Also verified the actual insert path works — not just via the SQL tool's elevated role, which
+bypasses RLS entirely and would validate nothing. Ran the insert against the live DB switched to
+the literal `anon` Postgres role (`set role anon`) — the same role the publishable key resolves
+to via PostgREST, regardless of transport — and confirmed: anonymous insert succeeds under
+`analytics_events_insert` (`with check (true)`); anonymous select is denied (staff-only). First
+attempt (with a `returning id` clause) surprisingly failed with "new row violates row-level
+security policy" — traced to Postgres gating a `RETURNING` clause's implicit read against the
+*select* policy, not the insert policy, so `RETURNING`/`.select()` on this table's insert is
+denied for anon even though the insert itself is wide open. Confirmed `logAnalyticsEvent` never
+chains `.select()` (checked `@supabase/postgrest-js` source: `Prefer: return=representation` is
+only set by `.select()`), so this doesn't affect the shipped code — but it's exactly the kind of
+change someone would make later (e.g. to log the inserted row's id) that would silently break
+analytics for every anonymous caller, so it's now called out explicitly in `analytics.ts`'s
+header comment. Test rows cleaned up (`delete ... where event_type in (...)`) after verification;
+no residue left in `analytics_events`.
+
+**Verification:** `pnpm test` (161/161), `pnpm run typecheck`, `pnpm run lint` all pass.
