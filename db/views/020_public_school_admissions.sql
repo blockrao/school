@@ -25,6 +25,23 @@
 -- which class/session an application lead is for; this view previously
 -- exposed no primary key at all (a gap already called out in
 -- docs/spec/admissions-tracker.md §2).
+--
+-- 29 Sep 2026 (Activity & Admissions Consolidation, 20260929090000_activity_
+-- admissions_v1.sql): appended `city_slug`/`city_name` for the site-wide
+-- /admissions discovery page (filter + display), via a left join to `cities`
+-- so a school with no city_id still returns a row (null slug/name) rather
+-- than being silently dropped. **Drift found and fixed 29 Sep 2026:** this
+-- migration was committed but never actually applied to the live database —
+-- `publicSchoolAdmissionContract` already required these two fields
+-- (non-optional, `.nullable()`), so every row failed to parse: the
+-- standalone /admissions page (no error boundary around
+-- `listPublicAdmissionCycles()`) 500'd outright, while the school page's own
+-- admissions section silently swallowed the same failure and showed "Dates
+-- not yet published" even for schools with real, stored cycles. Applied
+-- directly against the live DB and reconciled with this file so the two
+-- don't drift apart again — same failure class as the `udise_code` P0
+-- earlier the same day (docs/ops/implementation-log.md): a contract change
+-- shipped ahead of the view it depends on.
 create or replace view api.public_school_admissions as
 select
   s.id as school_id,
@@ -47,7 +64,10 @@ select
   ac.dob_from,
   ac.dob_to,
   ac.documents_required,
-  ac.id as cycle_id
+  ac.id as cycle_id,
+  c.slug as city_slug,
+  c.name_en as city_name
 from schools s
 join admission_cycles ac on ac.school_id = s.id
+left join cities c on c.id = s.city_id
 where s.status = 'published';

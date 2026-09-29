@@ -6,6 +6,15 @@
 -- listing AND ops has approved it (`listing_review = 'approved'`) — same
 -- underlying `review`/`published_at`/D-119 school-status gates as 095, plus
 -- the listing gate on top.
+--
+-- 29 Sep 2026 (Activity & Admissions Consolidation, 20260929090000_activity_
+-- admissions_v1.sql): added `sp.withdrawn_at is null` so a school-withdrawn
+-- post drops out of this aggregator too, matching 095's own filter. **Drift
+-- found and fixed 29 Sep 2026:** the migration was committed but the live
+-- view still lacked this clause until reconciled alongside the
+-- public_school_admissions fix in the same pass — see 020's header for the
+-- fuller writeup of this failure class (a contract/view shipped ahead of
+-- being applied to the live database).
 create or replace view api.public_news as
 select
   sp.id,
@@ -27,6 +36,7 @@ join schools s on s.id = sp.school_id
 where sp.review = 'approved'
   and sp.published_at is not null
   and sp.listing_review = 'approved'
+  and sp.withdrawn_at is null
   and s.status = 'published';
 
 grant select on api.public_news to anon, authenticated;
