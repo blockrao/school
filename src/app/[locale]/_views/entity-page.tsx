@@ -63,7 +63,7 @@ import {
   statePath,
   teacherPath,
 } from "@/lib/urls";
-import { sendEnquiry } from "./actions";
+import { sendEnquiry, submitAdmissionLead } from "./actions";
 import type { ResolvedCity, ResolvedLocality, ResolvedSchool } from "./resolve";
 
 export function localityMetadata(locale: string, resolved: ResolvedLocality): Metadata {
@@ -400,6 +400,9 @@ export async function SchoolView({
 
   const enquirySent = rawSearchParams.enquiry_sent === "1";
   const enquiryError = rawSearchParams.enquiry_error === "failed";
+  const applySent = rawSearchParams.apply_sent === "1";
+  const applyErrorCode =
+    typeof rawSearchParams.apply_error === "string" ? rawSearchParams.apply_error : null;
 
   const breadcrumbTrail = city
     ? [
@@ -944,16 +947,30 @@ export async function SchoolView({
                               ? ` · ${formatCurrency(cycle.registration_fee)}`
                               : ""}
                           </span>
-                          {cycle.form_url && (
+                          {/* 29 Sep 2026: the primary path is now capturing a verified
+                            lead for the school (see the "Apply for admission" section
+                            below, `submitAdmissionLead`), not sending the parent
+                            straight off-site. The school's own form stays as a
+                            secondary, clearly-labelled option — some schools' actual
+                            process still needs it — but it no longer leads. */}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                             <a
-                              href={cycle.form_url}
+                              href="#apply-heading"
                               className="font-semibold text-ruled-blue text-meta"
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
                             >
-                              Application form ↗
+                              Apply for this class →
                             </a>
-                          )}
+                            {cycle.form_url && (
+                              <a
+                                href={cycle.form_url}
+                                className="text-meta text-muted-ink underline"
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                              >
+                                or use the school's own form ↗
+                              </a>
+                            )}
+                          </div>
                           {/* Increment 10 — per-cycle ProvenanceChip. `verification`
                             and `last_checked_at` are already exposed by
                             api.public_school_admissions (020_public_school_admissions.sql)
@@ -1397,6 +1414,103 @@ export async function SchoolView({
                 </a>
               </div>
             </section>
+
+            {/* 29 Sep 2026: the admissions-lead-capture CTA. Distinct from "Ask this
+              school" below on purpose — applying is a deliberate, single-recipient
+              disclosure (the parent is choosing to give *this* school their contact
+              details so it can process an application, same as a paper form), not the
+              SDP-04 controlled-intermediary model that keeps contact details private
+              for a general question. See submitAdmissionLead in ./actions.ts and
+              admission_leads (20260929070000_admission_leads.sql). */}
+            {admissions.length > 0 && (
+              <section
+                aria-labelledby="apply-heading"
+                className="flex flex-col gap-2 rounded-md border border-rule p-4"
+              >
+                <h2 id="apply-heading" className="font-display text-card font-semibold">
+                  Apply for admission
+                </h2>
+                {applySent ? (
+                  <p className="text-body text-muted-ink">
+                    Your application has been sent to {name}. They have your name and phone number
+                    and will reach out directly.
+                  </p>
+                ) : applyErrorCode === "already_applied" ? (
+                  <p className="text-body text-muted-ink">
+                    You've already applied for this class — {name} has your details.
+                  </p>
+                ) : user ? (
+                  <form action={submitAdmissionLead} className="flex flex-col gap-3">
+                    <input type="hidden" name="schoolId" value={school.id} />
+                    <input type="hidden" name="returnPath" value={canonicalPath} />
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-meta font-semibold text-muted-ink">
+                        Class and session
+                      </span>
+                      <select
+                        name="cycleSelection"
+                        required
+                        defaultValue=""
+                        className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+                      >
+                        <option value="" disabled>
+                          Choose a class
+                        </option>
+                        {admissions.map((cycle) => (
+                          <option
+                            key={cycle.cycle_id}
+                            value={`${cycle.cycle_id}|${cycle.class_code}|${cycle.academic_year}`}
+                          >
+                            {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-meta font-semibold text-muted-ink">
+                        Note for the school (optional)
+                      </span>
+                      <textarea
+                        name="note"
+                        maxLength={1000}
+                        rows={3}
+                        className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
+                      />
+                    </label>
+                    <label className="flex items-start gap-2 text-meta text-muted-ink">
+                      <input type="checkbox" name="consent" required className="mt-0.5" />
+                      <span>
+                        Share my name and phone number with {name} so they can process my
+                        application.
+                      </span>
+                    </label>
+                    {applyErrorCode && applyErrorCode !== "already_applied" && (
+                      <FieldError id="apply-error">
+                        {applyErrorCode === "consent_required"
+                          ? "Check the consent box to share your details with the school."
+                          : "Something went wrong sending your application. Please try again."}
+                      </FieldError>
+                    )}
+                    <button
+                      type="submit"
+                      className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
+                    >
+                      Apply →
+                    </button>
+                  </form>
+                ) : (
+                  <Link
+                    href={lp(
+                      locale,
+                      `/sign-in?next=${encodeURIComponent(`${canonicalPath}#apply-heading`)}`,
+                    )}
+                    className="w-fit font-semibold text-ruled-blue"
+                  >
+                    Sign in to apply
+                  </Link>
+                )}
+              </section>
+            )}
 
             <section
               aria-labelledby="enquiry-heading"

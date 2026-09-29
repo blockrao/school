@@ -6,10 +6,12 @@
 // enums, were added by hand to match supabase/migrations/
 // 20260929050000_events_and_news_depth.sql. school_jobs (new table) and the
 // job_employment_type enum were likewise added by hand to match
-// 20260929060000_school_jobs.sql. DATABASE_URL_RO isn't set in this sandbox,
-// so `pnpm db:types` couldn't regenerate from the live schema either time.
-// Re-run `pnpm db:types` the next time DATABASE_URL_RO is available to
-// confirm this matches and let this note go away.
+// 20260929060000_school_jobs.sql, and admission_leads (new table) plus the
+// admission_lead_status enum to match 20260929070000_admission_leads.sql.
+// DATABASE_URL_RO isn't set in this sandbox, so `pnpm db:types` couldn't
+// regenerate from the live schema any of those times. Re-run `pnpm db:types`
+// the next time DATABASE_URL_RO is available to confirm this matches and let
+// this note go away.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -148,6 +150,57 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      admission_leads: {
+        Row: {
+          id: string;
+          school_id: string;
+          admission_cycle_id: string;
+          class_code: string;
+          academic_year: string;
+          user_id: string;
+          full_name: string | null;
+          phone: string | null;
+          note: string | null;
+          consent_at: string;
+          status: Database["public"]["Enums"]["admission_lead_status"];
+          status_updated_by: string | null;
+          status_updated_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          admission_cycle_id: string;
+          class_code: string;
+          academic_year: string;
+          user_id: string;
+          full_name?: string | null;
+          phone?: string | null;
+          note?: string | null;
+          consent_at?: string;
+          status?: Database["public"]["Enums"]["admission_lead_status"];
+          status_updated_by?: string | null;
+          status_updated_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          admission_cycle_id?: string;
+          class_code?: string;
+          academic_year?: string;
+          user_id?: string;
+          full_name?: string | null;
+          phone?: string | null;
+          note?: string | null;
+          consent_at?: string;
+          status?: Database["public"]["Enums"]["admission_lead_status"];
+          status_updated_by?: string | null;
+          status_updated_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
       };
       admission_notices: {
         Row: {
@@ -2406,6 +2459,7 @@ export type Database = {
       };
     };
     Enums: {
+      admission_lead_status: "new" | "contacted" | "closed";
       admission_status:
         | "not_announced"
         | "upcoming"

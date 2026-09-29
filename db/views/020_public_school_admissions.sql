@@ -19,6 +19,12 @@
 -- an attempt to insert a column before an existing one, since that would rename/shift
 -- the existing positional column instead of adding a new one. Keep any future addition
 -- to this view appended at the very end for the same reason.
+--
+-- 29 Sep 2026: appended `cycle_id` — the admissions-lead-capture CTA
+-- (20260929070000_admission_leads.sql) needs the cycle's own id to record
+-- which class/session an application lead is for; this view previously
+-- exposed no primary key at all (a gap already called out in
+-- docs/spec/admissions-tracker.md §2).
 create or replace view api.public_school_admissions as
 select
   s.id as school_id,
@@ -40,7 +46,8 @@ select
   case when ac.closes_on is not null then ac.closes_on - current_date else null end as days_to_close,
   ac.dob_from,
   ac.dob_to,
-  ac.documents_required
+  ac.documents_required,
+  ac.id as cycle_id
 from schools s
 join admission_cycles ac on ac.school_id = s.id
 where s.status = 'published';

@@ -253,3 +253,53 @@ export async function cancelJob(jobId: string, schoolId: string): Promise<boolea
     .eq("school_id", schoolId);
   return !error;
 }
+
+export type PortalAdmissionLead = {
+  id: string;
+  class_code: string;
+  academic_year: string;
+  full_name: string | null;
+  phone: string | null;
+  note: string | null;
+  status: "new" | "contacted" | "closed";
+  created_at: string;
+};
+
+/**
+ * Admission-leads inbox for a school (29 Sep 2026) — replaces the old
+ * "send the parent straight to the school's own form" CTA. `full_name`/
+ * `phone` are disclosed here deliberately (unlike listEnquiriesForSchool
+ * above, which never exposes them): applying is a single-recipient act the
+ * parent consented to when they applied, see submitAdmissionLead in
+ * src/app/[locale]/_views/actions.ts.
+ */
+export async function listAdmissionLeadsForSchool(
+  schoolId: string,
+): Promise<PortalAdmissionLead[]> {
+  const supabase = await createSessionClient();
+  const { data } = await supabase
+    .from("admission_leads")
+    .select("id, class_code, academic_year, full_name, phone, note, status, created_at")
+    .eq("school_id", schoolId)
+    .order("created_at", { ascending: false });
+  return (data as PortalAdmissionLead[] | null) ?? [];
+}
+
+export async function updateAdmissionLeadStatus(
+  leadId: string,
+  schoolId: string,
+  status: "new" | "contacted" | "closed",
+  staffUserId: string | undefined,
+): Promise<boolean> {
+  const supabase = await createSessionClient();
+  const { error } = await supabase
+    .from("admission_leads")
+    .update({
+      status,
+      status_updated_by: staffUserId,
+      status_updated_at: new Date().toISOString(),
+    })
+    .eq("id", leadId)
+    .eq("school_id", schoolId);
+  return !error;
+}

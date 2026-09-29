@@ -2594,3 +2594,68 @@ same reason as the events/news entry (no `DATABASE_URL_RO` in this sandbox); not
 
 No open product gaps here unlike events/news' tier billing — jobs have no paid tier, so
 nothing was deliberately left unbuilt.
+
+## 2026-09-29 — Admissions CTA redesign: capture-and-verify leads instead of linking out
+
+Prav's framing: the admissions CTA currently sends parents straight to the school's own
+website; instead SchoolOye should "capture the lead and verify and then provide to schools."
+
+**Investigation:** the live CTA (in the school entity page's Admissions section) was a raw
+`<a href={cycle.form_url}>Application form ↗</a>` per open cycle — a plain link-out, no
+capture at all. (`docs/spec/admissions-tracker.md` describes a separate, much larger,
+mostly-unbuilt city-wide admissions-tracker-and-alerts product; it is not what this CTA is or
+what Prav's message was about, beyond independently already flagging that
+`public_school_admissions` doesn't expose a cycle's id — a gap this change also fixes.)
+
+**Product shape:** the CTA becomes "Apply for this class →", which opens an in-page "Apply for
+admission" form. Submitting requires a signed-in (phone-OTP) session — the same authentication
+this app already treats as "verified" everywhere else on the parent side, so no new
+verification mechanism was built. On submit, a new `admission_leads` row is created: which
+cycle/class/year, the parent's `full_name`/`phone` (copied from their profile at submission
+time, not joined live, so a later profile edit can't retroactively change what was actually
+disclosed to the school — same reasoning as the `class_code`/`academic_year` denormalization
+already used for enquiries/events/jobs/posts), an optional note, and a required consent
+checkbox. A duplicate application for the same cycle is blocked at the DB level (unique
+constraint) and surfaced to the parent as a friendly "already applied" state rather than a
+generic error. Schools see submitted leads in a new portal inbox (`/portal/admission-leads`)
+with the parent's name/phone/note and can mark a lead Contacted or Closed.
+
+**PM decisions made, flagged for Prav to confirm:**
+1. **Departed from the existing "Ask this school" enquiry model on purpose.** That flow
+   (`sendEnquiry`/`enquiries`) deliberately never discloses a parent's contact details to the
+   school — `listEnquiriesForSchool` only ever selects the message, not who sent it. I did not
+   reuse that model here: applying to a specific class is a deliberate, single-recipient,
+   consented act — closer to handing over a paper form than asking a general question — so
+   `admission_leads` does disclose name and phone once the parent explicitly consents. Built as
+   a separate table with its own `consent_at` column (not the shared `consents` table, which
+   is for recurring/blanket consent like WhatsApp alerts) rather than reusing `enquiries`, even
+   though `enquiries` already has unused `child_id`/`status`/`billable` columns that hint at a
+   lead-gen design — reusing it would have meant carrying the no-disclosure model into a flow
+   where it's the wrong default. **This is the one thing in this change most worth Prav
+   explicitly signing off on**, since it changes what gets shown to a school versus the
+   existing enquiry flow.
+2. **Kept the school's own application form as a secondary, de-emphasized link, not removed
+   it.** Next to "Apply for this class →", if a cycle has a `form_url`, a smaller "or use the
+   school's own form ↗" link still appears. Some schools' actual admission process may still
+   require their own form regardless of what SchoolOye captures, and removing it outright would
+   have been guessing at that without evidence either way — flagged for Prav to confirm whether
+   it should stay, or eventually be phased out once schools are used to the leads inbox.
+
+**Built:** migration `20260929070000_admission_leads.sql` (`admission_lead_status` enum,
+`admission_leads` table with RLS — parent can insert their own, school members can
+select/update their own school's, staff can do anything — plus the standard audit trigger);
+`db/views/020_public_school_admissions.sql` extended with `cycle_id` (the gap
+`admissions-tracker.md` had already flagged); `public-school-admissions` contract updated to
+match; `submitAdmissionLead` server action (`src/app/[locale]/_views/actions.ts`) and the CTA +
+"Apply for admission" section on the school entity page; `listAdmissionLeadsForSchool`/
+`updateAdmissionLeadStatus` in `portal.ts`; the `/portal/admission-leads` inbox page and its
+mark-contacted/mark-closed actions; a portal nav link.
+
+**Verification:** `pnpm test` (161 tests, unchanged — this feature has no new pure-function
+logic requiring dedicated unit tests, unlike `eventTemporalStatus`/`jobStatus`), `pnpm run
+typecheck`, `pnpm run lint` all pass. `pnpm run build` fails only on the same pre-existing,
+unrelated sandbox Google Fonts network restriction seen in every prior entry — not a
+regression. `src/lib/db/types.ts` was hand-updated a third time for the same reason as the
+events/news and jobs entries (no `DATABASE_URL_RO` in this sandbox); noted inline — please
+re-run `pnpm db:types` once DB credentials are available to confirm and drop the note (now
+covering three hand-patched tables/enums total).
