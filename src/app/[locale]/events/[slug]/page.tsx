@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { ShareBar } from "@/components/ui/share-bar";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { getPublicEventByCode } from "@/lib/db/public-adapter";
+import { siteUrl } from "@/lib/env.server";
 import { EVENT_STATUS_LABEL, eventTemporalStatus } from "@/lib/event-status";
 import { localeCanonical } from "@/lib/seo";
 import { eventPath, parseEventCode, schoolPath } from "@/lib/urls";
@@ -82,7 +83,13 @@ export default async function EventPage({ params }: PageProps<"/[locale]/events/
     location: event.location
       ? { "@type": "Place", name: event.location }
       : { "@type": "Place", name: event.school_name },
-    organizer: { "@type": "School", name: event.school_name },
+    // Structured-data section audit (29 Sep 2026) — @id, not just a name
+    // string; see news/[slug]/page.tsx's identical comment.
+    organizer: {
+      "@type": "School",
+      "@id": `${siteUrl}${schoolPath(locale, event.school_slug)}#school`,
+      name: event.school_name,
+    },
     eventStatus:
       status === "cancelled"
         ? "https://schema.org/EventCancelled"

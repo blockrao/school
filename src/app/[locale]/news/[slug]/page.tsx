@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { ShareBar } from "@/components/ui/share-bar";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { getPublicNewsByCode } from "@/lib/db/public-adapter";
+import { siteUrl } from "@/lib/env.server";
 import { localeCanonical } from "@/lib/seo";
 import { newsPath, parsePostCode, schoolPath } from "@/lib/urls";
 
@@ -62,7 +63,15 @@ export default async function NewsPostPage({ params }: PageProps<"/[locale]/news
     headline: post.title,
     articleBody: post.body,
     datePublished: post.published_at,
-    publisher: { "@type": "School", name: post.school_name },
+    // Structured-data section audit (29 Sep 2026) — @id, not just a name
+    // string, so this resolves to the same School node as entity-page.tsx's
+    // schoolJsonLd (which now links back via subjectOf) instead of two nodes
+    // that only coincide on text.
+    publisher: {
+      "@type": "School",
+      "@id": `${siteUrl}${schoolPath(locale, post.school_slug)}#school`,
+      name: post.school_name,
+    },
   };
 
   return (

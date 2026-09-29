@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { ShareBar } from "@/components/ui/share-bar";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { getPublicJobByCode } from "@/lib/db/public-adapter";
+import { siteUrl } from "@/lib/env.server";
 import { JOB_STATUS_LABEL, jobStatus } from "@/lib/job-status";
 import { localeCanonical } from "@/lib/seo";
 import { jobPath, parseJobCode, schoolPath } from "@/lib/urls";
@@ -77,7 +78,15 @@ export default async function JobPage({ params }: PageProps<"/[locale]/jobs/[slu
     datePosted: job.created_at,
     validThrough: job.closes_at ?? undefined,
     employmentType: SCHEMA_EMPLOYMENT_TYPE[job.employment_type],
-    hiringOrganization: { "@type": "Organization", name: job.school_name },
+    // Structured-data section audit (29 Sep 2026) — @id, not just a name
+    // string; see news/[slug]/page.tsx's identical comment. Kept "Organization"
+    // (not "School") since that's what this file already used and
+    // JobPosting.hiringOrganization is typed for Organization broadly.
+    hiringOrganization: {
+      "@type": "Organization",
+      "@id": `${siteUrl}${schoolPath(locale, job.school_slug)}#school`,
+      name: job.school_name,
+    },
     jobLocation: job.location
       ? { "@type": "Place", address: job.location }
       : { "@type": "Place", address: job.school_name },

@@ -112,6 +112,26 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
   };
 }
 
+/**
+ * Structured-data freshness (SEO/GEO review, 29 Sep 2026, following the
+ * UDISE+-default provenance decision): `dateModified` must reflect the most
+ * recent *displayed, sourced* fact, not only `school.last_verified_at` — that
+ * field is real only for schools with a formal verification event (locked
+ * rule: never backfilled from provenance timestamps) and is null for most of
+ * the corpus. Per-field evidence (UDISE+/SARAS provenance already rendered via
+ * SourceLine) and admission-cycle changes (already rendered under "Recent
+ * admission updates") are both real, dated, on-page facts and count too.
+ * Returns null — omit the property — when nothing dated is known at all,
+ * never a fabricated fallback like the build/request time.
+ */
+function latestOf(...dates: (Date | string | null | undefined)[]): Date | null {
+  const times = dates
+    .filter((d): d is Date | string => d != null)
+    .map((d) => new Date(d).getTime())
+    .filter((t) => !Number.isNaN(t));
+  return times.length > 0 ? new Date(Math.max(...times)) : null;
+}
+
 function schoolOrgType(maxClass: string | null): string {
   const maxNum = maxClass ? Number(maxClass.replace(/^c/, "")) : null;
   if (maxNum != null && maxNum <= 5) return "ElementarySchool";
@@ -631,6 +651,11 @@ export async function SchoolView({
   // is unchanged; only this one rendering was removed.
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
+  const dateModified = latestOf(
+    verifiedAt,
+    ...Object.values(evidenceByField).map((e) => e.created_at),
+    ...recentAdmissionUpdates.map((u) => u.occurred_at),
+  );
   const badge = recordBadge(school.claim, school.verification, verifiedAt);
   const identity = identityBand(school.claim, school.verification);
   const decisionSlots = buildDecisionStrip({
@@ -782,6 +807,44 @@ export async function SchoolView({
     // to city, same join as h1LocationSuffix/areaLabel; omitted only when
     // neither is known.
     ...(h1LocationSuffix ? { areaServed: { "@type": "Place", name: h1LocationSuffix } } : {}),
+    // Structured-data section audit (29 Sep 2026) — medium of instruction and
+    // grade range are both real, sourced fields already rendered under "School
+    // facts" but were never promoted to structured data; both follow the same
+    // SDP-31 rule as everything else here (real value or omitted, never a
+    // placeholder). `inLanguage` is schema.org's own property for this, not a
+    // SchoolOye invention. Grade range has no equally clean schema.org
+    // property, so it goes into `additionalProperty` — the documented escape
+    // hatch for a real fact that doesn't map to a first-class field.
+    ...(school.medium && school.medium.length > 0
+      ? { inLanguage: school.medium.length === 1 ? school.medium[0] : school.medium }
+      : {}),
+    ...(school.max_class
+      ? {
+          additionalProperty: {
+            "@type": "PropertyValue",
+            name: "Grade range",
+            value: grades,
+          },
+        }
+      : {}),
+    // Structured-data section audit (29 Sep 2026) — links the School node to its
+    // own News/Events/Jobs (the "What's happening" feed above), each of which
+    // already carries its own NewsArticle/Event/JobPosting JSON-LD on its own
+    // canonical page (news/[slug], events/[slug], jobs/[slug]). Those pages'
+    // publisher/organizer/hiringOrganization now reference this node's own @id
+    // (schoolNodeId, same edit) rather than a bare name string, so the two
+    // sides form one connected graph instead of two nodes that only coincide
+    // on text. `subjectOf` is the correct direction here (this School is the
+    // subject the other creative works are about), not `mentions`.
+    ...(news.length + events.length + jobs.length > 0
+      ? {
+          subjectOf: [
+            ...news.map((n) => ({ "@id": `${siteUrl}${newsPath(locale, n.post_slug)}` })),
+            ...events.map((e) => ({ "@id": `${siteUrl}${eventPath(locale, e.event_slug)}` })),
+            ...jobs.map((j) => ({ "@id": `${siteUrl}${jobPath(locale, j.job_slug)}` })),
+          ],
+        }
+      : {}),
     url: `${siteUrl}${canonicalPath}`,
     ...(websiteUrl ? { sameAs: websiteUrl } : {}),
   };
@@ -803,6 +866,11 @@ export async function SchoolView({
     // schoolAreaLabel's header comment.)
     name: `${name}, ${schoolAreaLabel(school.locality_name, city?.cityName)} — SchoolOye`,
     mainEntity: { "@id": schoolNodeId },
+    // Structured-data section audit (29 Sep 2026) — was missing entirely, despite
+    // seo-geo.md §4 explicitly requiring it. See latestOf()'s header comment for
+    // why this is more than just school.last_verified_at. Omitted, not
+    // fabricated from build/request time, when nothing dated is known yet.
+    ...(dateModified ? { dateModified: dateModified.toISOString() } : {}),
   };
 
   const breadcrumbJsonLd = {
