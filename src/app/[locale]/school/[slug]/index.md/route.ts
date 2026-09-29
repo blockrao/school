@@ -43,9 +43,11 @@ export async function GET(
     `- Medium: ${school.medium && school.medium.length > 0 ? school.medium.join(", ") : "Not yet published"}`,
     `- Established: ${school.established_year ?? "Not yet published"}`,
     `- Address: ${school.address ?? "Not yet published"}`,
-    `- Phone: ${school.phone && school.phone.length > 0 ? school.phone.join(", ") : "Not yet published"}`,
-    `- Email: ${school.email && school.email.length > 0 ? school.email.join(", ") : "Not yet published"}`,
     `- Website: ${school.website ?? "Not yet published"}`,
+    // Increment 11 (SDP-04) — this twin used to publish raw phone/email, the same
+    // exposure just fixed on the HTML page. SchoolOye is a controlled intermediary,
+    // not a directory: contact goes through the canonical page's enquiry form.
+    `- Contact: via the enquiry form on the canonical page above`,
     `- Verification: ${school.verification}${school.last_verified_at ? ` (last verified ${school.last_verified_at})` : ""}`,
   ];
 

@@ -950,6 +950,44 @@ export async function listPublicSchoolsByLocality(localityId: number): Promise<P
 }
 
 /**
+ * Increment 11 (SDP-21) — same-city fallback for "Similar schools nearby".
+ * `locality_id` is null for 8,210 of 8,298 published schools (99%, confirmed
+ * in docs/ops/implementation-log.md SDP-21), so listPublicSchoolsByLocality
+ * alone left this section empty almost everywhere — a real, shipped feature
+ * that was silently non-functional at scale, not a sparse-data edge case.
+ * City is a coarser signal than locality, so this is a fallback only — used
+ * by getSimilarSchools() below when the locality lookup yields nothing — and
+ * results are capped rather than returning entire large cities (Faridabad
+ * alone has 983 published schools).
+ */
+export async function listPublicSchoolsByCity(cityId: number, limit = 8): Promise<PublicSchool[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_schools")
+    .select("*")
+    .eq("city_id", cityId)
+    .order("name_en", { ascending: true })
+    .limit(limit);
+  return (data ?? []).map((row) => publicSchoolContract.parse(row));
+}
+
+/**
+ * Increment 11 (SDP-21) — the actual "Similar schools nearby" data source:
+ * locality first (the more precise signal), falling back to same-city only
+ * when the school has no locality or its locality has no other listed
+ * schools. Centralized here so the entity page doesn't need to know about
+ * the fallback order.
+ */
+export async function getSimilarSchools(school: PublicSchool): Promise<PublicSchool[]> {
+  if (school.locality_id) {
+    const byLocality = await listPublicSchoolsByLocality(school.locality_id);
+    if (byLocality.length > 0) return byLocality;
+  }
+  if (school.city_id) return listPublicSchoolsByCity(school.city_id);
+  return [];
+}
+
+/**
  * Schools by id, for the Compare page — order is not guaranteed to match
  * `ids`, callers re-sort if needed. Deliberately NOT gated like the discovery
  * listings above: these ids come from the user's own shortlist/compare

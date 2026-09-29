@@ -29,6 +29,7 @@ import {
   type getPublicLocalityBySlug,
   getPublicSchoolNewsBySchoolId,
   getRecentAdmissionUpdatesBySchoolId,
+  getSimilarSchools,
   listLocalityNeighbors,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
@@ -43,7 +44,7 @@ import { normalizeExternalUrl } from "@/lib/external-url";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
-import { classifyAdmissionProvenance, classifySchoolProvenance } from "@/lib/provenance";
+import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolMetaDescription } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
@@ -331,7 +332,9 @@ export async function SchoolView({
     await Promise.all([
       getPublicAdmissionsBySchoolId(school.id),
       getShortlistedSchoolIds([school.id]),
-      school.locality_id ? listPublicSchoolsByLocality(school.locality_id) : Promise.resolve([]),
+      // Increment 11 (SDP-21) — locality-first, same-city fallback; see
+      // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
+      getSimilarSchools(school),
       listPublicSchoolTeam(school.id),
       // Increment 10 — api.public_school_news (db/views/095_public_school_news.sql):
       // already filtered to review='approved'/published school/published_at not null.
@@ -485,8 +488,10 @@ export async function SchoolView({
     ...(mapPoint
       ? { geo: { "@type": "GeoCoordinates", latitude: mapPoint.lat, longitude: mapPoint.lng } }
       : {}),
-    ...(school.phone?.[0] ? { telephone: school.phone[0] } : {}),
-    ...(school.email?.[0] ? { email: school.email[0] } : {}),
+    // Increment 11 (SDP-04) — telephone/email dropped from structured data. SchoolOye is
+    // the controlled intermediary now (contact routes through the enquiry form, not a
+    // raw number/address anywhere on the page), so JSON-LD stays consistent with the
+    // visible page rather than exposing what the UI deliberately no longer shows.
     // No SchoolOye/DB id (D-121 §10); the board affiliation no. is a public official identifier.
     ...(affiliationNo && board
       ? {
@@ -692,16 +697,15 @@ export async function SchoolView({
             ) : (
               <span className="text-meta text-slate">Not yet verified</span>
             )}
-            {/* Increment 10 — ProvenanceChip v1 alongside the existing badge/
-              freshness line, not replacing either: recordBadge/FreshnessLine
-              already carry the school-level claim+verification story in prose
-              form; the chip adds the same fact in the design's compact,
-              scannable shape. Both read the same two columns, so they can
-              never disagree. */}
-            <ProvenanceChip
-              tier={classifySchoolProvenance(school.claim, school.verification)}
-              checkedAt={school.last_verified_at}
-            />
+            {/* Increment 11 (SDP-03) — the header-level ProvenanceChip is removed.
+              It read the exact same two columns as recordBadge/FreshnessLine just
+              above and restated the identical fact a third time ("Not individually
+              verified" next to "Compiled by SchoolOye from public records" / "Not
+              yet verified") — four overlapping trust messages stacked before any
+              content, flagged independently by two separate audits this session.
+              recordBadge + FreshnessLine already carry this story; nothing is lost
+              by dropping the chip here. Kept on admission cycles below, where it
+              carries a genuinely distinct, cycle-level signal. */}
             <ShareButton title={name} />
             <SaveButton
               schoolId={school.id}
@@ -768,21 +772,27 @@ export async function SchoolView({
           <DecisionStrip slots={decisionSlots} />
         </div>
 
-        {/* Increment 7: compact action layer, ahead of the detailed sections — each
-          action renders only when its backing fact exists, same conditional
-          pattern the rest of the page already uses (School facts, Location).
-          Reuses data already fetched for the header/Contact card; the detailed
-          Contact card and full enquiry form stay further down for anyone who
-          wants more than a single tap. */}
+        {/* Increment 11 (SDP-04) — controlled-intermediary contact model, locked by Prav:
+          SchoolOye captures intent and routes it, rather than handing out the school's
+          raw phone number. The old "Call" tel: pill exposed school.phone directly and is
+          removed; "Contact School" (this anchor, already routed through the existing
+          `sendEnquiry` server action below) is now the primary action and comes first,
+          per the Discover -> Understand -> Contact -> Enquire -> Apply hierarchy. Website
+          and Directions remain controlled actions to the school's own official channels.
+          A distinct per-cycle "Apply" action already exists (the "Application form ↗"
+          link inside Admissions, gated on cycle.form_url) — this pill is the general
+          contact path, not admissions-specific, so it's unconditional. WhatsApp School
+          (secondary CTA) is intentionally not built here: no schema field exists yet for
+          a verified school-provided WhatsApp channel, and the policy explicitly forbids
+          deriving one from an ordinary phone number — see docs/ops/implementation-log.md,
+          SDP-05. */}
         <div className="flex flex-wrap gap-2 pb-6">
-          {school.phone?.[0] && (
-            <a
-              href={`tel:${school.phone[0]}`}
-              className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
-            >
-              Call
-            </a>
-          )}
+          <a
+            href="#enquiry-heading"
+            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
+          >
+            Contact school
+          </a>
           {websiteUrl && (
             <a
               href={websiteUrl}
@@ -803,12 +813,6 @@ export async function SchoolView({
               Directions
             </a>
           )}
-          <a
-            href="#enquiry-heading"
-            className="flex h-10 items-center rounded-md border border-rule px-4 text-meta font-semibold hover:border-ruled-blue"
-          >
-            Enquire
-          </a>
         </div>
 
         <div className="grid gap-6 py-6 md:grid-cols-[1.6fr_1fr]">
@@ -1180,6 +1184,13 @@ export async function SchoolView({
               <ClaimCard schoolId={school.id} schoolName={name} className="hidden md:flex" />
             )}
 
+            {/* Increment 11 (SDP-04) — controlled-intermediary contact model. Raw
+              school.phone/school.email used to render here in plain text; SchoolOye is
+              now the intermediary rather than a directory, so this card sends every
+              contact intent through the enquiry form below (`#enquiry-heading`,
+              `sendEnquiry`) instead of handing out the number/address directly. Website
+              stays, since it points to the school's own official public channel, not a
+              private contact detail. */}
             <section
               aria-labelledby="contact-heading"
               className="flex flex-col gap-2 rounded-md border border-rule p-4"
@@ -1188,22 +1199,6 @@ export async function SchoolView({
                 Contact
               </h2>
               <div className="flex flex-col gap-1.5 text-body">
-                <div>
-                  <span className="text-meta font-semibold text-muted-ink">Phone: </span>
-                  {school.phone && school.phone.length > 0 ? (
-                    school.phone.join(", ")
-                  ) : (
-                    <NotYetPublished />
-                  )}
-                </div>
-                <div>
-                  <span className="text-meta font-semibold text-muted-ink">Email: </span>
-                  {school.email && school.email.length > 0 ? (
-                    school.email.join(", ")
-                  ) : (
-                    <NotYetPublished />
-                  )}
-                </div>
                 <div>
                   <span className="text-meta font-semibold text-muted-ink">Website: </span>
                   {websiteUrl ? (
@@ -1219,6 +1214,9 @@ export async function SchoolView({
                     <NotYetPublished />
                   )}
                 </div>
+                <a href="#enquiry-heading" className="w-fit font-semibold text-ruled-blue">
+                  Contact this school →
+                </a>
               </div>
             </section>
 
