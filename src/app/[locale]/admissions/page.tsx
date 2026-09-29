@@ -13,6 +13,13 @@ import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { localeCanonical } from "@/lib/seo";
 import { admissionsRootPath, schoolPath } from "@/lib/urls";
 
+// Reading searchParams already forces this route to render per-request, but
+// that doesn't cache-bust the underlying Supabase fetch() calls on their
+// own — without an explicit revalidate they're still served from Next's
+// persistent Data Cache, so a freshly-added admission cycle could sit
+// invisible here until the next deploy. Same reasoning/window as exams/page.tsx.
+export const revalidate = 900;
+
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }

@@ -4,6 +4,15 @@ import { schoolPath } from "@/lib/urls";
 import { SchoolView, schoolMetadata } from "../../_views/entity-page";
 import { resolveSchoolSlug } from "../../_views/resolve";
 
+// Reading searchParams already forces this route to render per-request, but
+// that doesn't cache-bust the underlying Supabase fetch() calls on their
+// own — without an explicit revalidate they're still served from Next's
+// persistent Data Cache, so a freshly-added admission cycle, event, news
+// post or job (all read here for "What's happening"/Admissions) could sit
+// invisible on an already-rendered school page until the next deploy. Same
+// reasoning/window as exams/page.tsx and the events/news/jobs pages.
+export const revalidate = 900;
+
 /**
  * Canonical school entity page: /school/{slug} (D-121, docs/spec/urls-and-routing.md).
  * The slug is the permanent public locator. Alias, retired and merged slugs,
