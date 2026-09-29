@@ -41,8 +41,20 @@ export const publicSchoolContract = z.object({
   state_slug: z.string().nullable(),
   city_slug: z.string().nullable(),
   /** UDISE+ school code (Government of India) — see
-   * supabase/migrations/20260929100000_school_udise_identity.sql. */
-  udise_code: z.string().nullable(),
+   * supabase/migrations/20260929100000_school_udise_identity.sql. That
+   * migration and the matching db/views/010_public_schools.sql column are
+   * deliberately not applied yet (human-run `db:migrate`/`db:views --confirm`,
+   * per this repo's standing process) — so `api.public_schools` doesn't emit
+   * this key at all today. `.nullable()` alone only accepts an explicit
+   * `null`, not a missing key, so every row failed to parse in production
+   * the moment this contract shipped ahead of the view (P0, found live 29
+   * Sep 2026 — homepage/`/schools` 500s, since they call publicSchoolContract
+   * directly; the school entity page appeared unaffected only because a
+   * stale cached page was still being served). `.optional()` makes the
+   * contract match today's actual view output; once the view is applied,
+   * real values start flowing through unchanged — remove `.optional()` then
+   * if you want the field to be a firm guarantee again. */
+  udise_code: z.string().nullable().optional(),
 });
 
 /** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */
