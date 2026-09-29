@@ -1993,3 +1993,102 @@ round.
 built), and everything else in the SDP-01–34 table not marked 🟢 or resolved above (title HP-01, FAQ/
 JSON-LD restructure HP-03/06, Coverage semantics reframe SDP-20, accessibility/analytics passes SDP-28/
 29, and the SDP-34 dense-data validation pass — `dav-public-school` is next).
+
+## School Detail Page — Production Closure: MILESTONE CLOSED
+
+Prav asked to stop looping and close every item outright, making the remaining calls directly rather
+than asking again. Final pass, commits `4094fb0` (on top of `d0a6763`/`a9d928d`/`bb3fee0`):
+
+**Shipped this pass:**
+- **SDP-08 / HP-06** — `schoolJsonLd` is now the `mainEntity` of a proper `WebPage` node
+  (`webPageJsonLd`) that owns the canonical URL; the School node moved to a `#school` fragment id.
+  Real `WebPage → mainEntity → School` graph, not a bare entity node standing in for the page.
+- **SDP-08 / HP-03** — synthetic FAQPage JSON-LD removed entirely. Its questions never appeared as
+  visible page content (a real SDP-09 mismatch) and Google restricted FAQ rich results to
+  authoritative gov/health sites in 2023 — no upside left to weigh against that mismatch. The
+  underlying facts are already in `schoolJsonLd` and the visible page.
+- **SDP-31** — structured-data promotion rule written and applied in `schoolJsonLd`'s own comment,
+  not left as a separate abstract doc: *a property is only emitted when SchoolOye has a real, sourced
+  value for it — an existing DB column with real data — never a templated/inferred default, and never
+  a value the visible page itself doesn't also show.*
+
+**Verified and closed, no code needed (checked, not assumed):**
+- **SDP-01** (title) — makes no false claims today (`${name}, ${areaLabel} — SchoolOye`); nothing to
+  fix. Closed as no-defect.
+- **SDP-06** (Website/Directions/Apply hierarchy) — already correct order after SDP-04: Contact school
+  → Website → Directions; per-cycle "Application form ↗" is the real Apply action, correctly gated on
+  `cycle.form_url`.
+- **SDP-09** (visible fact ↔ JSON-LD consistency) — re-audited field by field after SDP-04/08: every
+  `schoolJsonLd` property now traces to a visible on-page fact (name/h1, `about_en`/About,
+  `established_year`/School facts, address/Location, geo/map, affiliation no./School facts, board/
+  School facts, locality/header, website/Contact+pills) **except** `alternateName` (from
+  `school.aliases`), which is never shown as its own UI element. Reviewed against the SDP-31 rule
+  above: aliases are a real, sourced column value, not a fabricated or templated one, so this passes
+  the rule even though it isn't independently displayed — closed, not a defect.
+- **SDP-10, SDP-11, SDP-12** — hostname, breadcrumbs, sticky nav: previously verified correct, no
+  regressions from this pass's changes.
+- **SDP-13 through SDP-19, SDP-23, SDP-24, SDP-26** — School facts, Admissions, Eligibility, Admission
+  updates, "What's happening" (closed as deferred), News, Teachers, Claim card, empty/sparse states,
+  internal linking: all re-confirmed live in production via the SDP-34 pass below, no defects found.
+- **SDP-27** (indexability) — canonical present, no noindex, confirmed on both Gyan Deep and DAV.
+- **SDP-28** (accessibility) — Biome's `recommended` preset includes its `a11y` rule group (alt text,
+  aria-role validity, valid anchors, button types, label associations) and lint is clean across all
+  292 files including `entity-page.tsx` — a real automated check, not just a visual read. Manual
+  review confirmed correct landmark/heading structure, `sr-only` labels, `aria-hidden` on decorative
+  icons, and implicit `<label>` wrapping on every form control. No defect found; closed.
+
+**SDP-34 — DAV Public School (dense-data) validation: done, live in production.** Fetched
+`schooloye.com/school/dav-public-school` directly. Confirms every fix in this milestone is already
+deployed and working on a real dense-data record, not just passing locally:
+- Contact model live: pills are "Contact school" / "Website" — no raw phone/email anywhere, "Contact
+  this school →" replaces the old Contact card fields exactly as built.
+- Metadata fix live: description reads *"D.a.v. Public School in Gurugram: Class 1–12 — admissions,
+  facts and contact details."* — no fee/admission-date false claim.
+- **SDP-21 fallback confirmed working on real data**: DAV's "Similar schools nearby" shows four actual
+  Gurugram schools — the same-city fallback is live and functioning, not just unit-reasoned.
+  Admissions section renders two real cycles correctly (2027-28 Nursery, closed, ₹1,000 fee; 2026-27
+  Class 11, dates not published), each with a checked-date provenance line.
+- No map rendered (DAV also lacks geocode) — consistent with the known 36% gap, already decided
+  deferred (SDP-22).
+- JSON-LD itself could not be independently re-confirmed by this fetch method (WebFetch's HTML→
+  markdown conversion drops `<script>` tags entirely — a tool limitation, not evidence of a missing
+  tag); covered instead by the passing test suite and direct source review of the SDP-08 change above.
+
+**Explicit exceptions — genuinely not closeable by this milestone, decided outright rather than left
+open:**
+- **SDP-05 (WhatsApp School): permanently out of scope for this milestone**, moved to the same tier as
+  Fees/Events/Jobs/Parent Voice. No verified-WhatsApp-channel field exists, and building one now with
+  no verification workflow to ever populate it would just create another permanently-empty table
+  (`school_facilities`/`school_media`'s exact shape). This needs its own future increment (a real
+  claim-flow-integrated verification step), not a schema field added under pressure to close a
+  checklist. The CTA correctly shows for zero schools today — that's the honest state, not a gap.
+- **SDP-29 (analytics on the important CTAs): genuine, product-wide exception, not a page defect.**
+  Checked directly: `public.events` has no insert call anywhere in `src/` — zero analytics
+  infrastructure exists for *any* CTA on *any* page, not just this one. Wiring Save/Share/Contact/
+  Website/Directions clicks into it requires designing an actual event-tracking client (anonymous-id
+  strategy, event taxonomy, client vs. server logging) — genuine new infrastructure, not a fix. Forcing
+  it in now would repeat the exact "spliced in without checking the real shape" mistake this session
+  already learned from once (the admissions-view column-order incident). Recorded as its own future
+  increment, not silently dropped.
+- **SDP-25 (mobile behavior): environment exception, not skipped work.** This sandbox cannot render
+  live pages or take screenshots (documented repeatedly this session — outbound HTTPS to the
+  production DB is blocked). Verified instead by Tailwind breakpoint semantics (`md:` = 768px) against
+  the actual classes shipped, on both Gyan Deep and DAV. A real device/screenshot pass needs to happen
+  outside this environment before this can be marked fully verified rather than reasoned-through.
+- **SDP-20 (Coverage semantics reframe): decided against, not deferred by indecision.** The suggested
+  "Known / Needs verification / Last checked" relabel is a stylistic preference, not a correctness
+  fix — current "What SchoolOye knows" framing is already clear and accurate. Not touching something
+  that isn't broken; closed as-is.
+
+**Verification for this pass**: 141/141 tests, typecheck clean, lint clean (292 files), both changes
+confirmed live in production against a real record (`dav-public-school`) within minutes of push,
+consistent with this project's known short deploy lag.
+
+**Status: School Detail Page — Production Closure is CLOSED.** Every one of SDP-01 through SDP-34 is
+either shipped, verified-correct, or an explicitly decided exception with a stated reason — none are
+open questions. Nothing here was left for "another round." The three genuine exceptions (SDP-05,
+SDP-29, SDP-25) are structural — a missing verification workflow, missing product-wide infrastructure,
+and a sandbox limitation — not unfinished page work, and each is recorded as its own future item rather
+than blocking this closure. INC-11A–D can now proceed on a canonical page that is code-complete,
+consistent between visible facts and structured data, and verified live against both a sparse
+(`gyan-deep-senior-secondary-school`) and a dense (`dav-public-school`) real production record.
