@@ -1868,3 +1868,79 @@ Recorded as named by Prav, so later work doesn't rediscover what this session al
 **Sequencing, as decided**: Hardening (HP-01–12) locks first, using Gyan Deep + one richer school as the
 validation pair, before any of INC-11A–D starts. Then those four audits run and their results — not the
 original architecture sequence — decide the next implementation increment.
+
+## Milestone renamed and broadened — School Detail Page — Production Closure
+
+Prav broadened the scope: rather than treating HP-01–12 as the whole increment, this is now a full
+closure pass on every part of the canonical entity page that can materially affect it as a product
+surface, before scaling to INC-11A–D. The HP items are folded in, not replaced. Renumbered as SDP-01
+through SDP-34 below — his 26-area list plus items this session had already found that weren't named in
+it (flagged `[added]`), so nothing already discovered gets silently dropped.
+
+### Contact model — locked this session
+
+Prav locked the contact/CTA architecture. SchoolOye is the controlled intermediary, not a directory
+exposing raw contact details:
+
+- **Primary CTA — `Contact School`**: parent starts from SchoolOye, SchoolOye captures the enquiry, and
+  routes it to the school through a verified mechanism. Raw school phone/email is not displayed on the
+  public canonical page.
+- **Secondary CTA — `WhatsApp School`**: shown only for a legitimate, verified/claimed school-provided
+  WhatsApp destination. Never derived from an ordinary phone number. No verified channel → no button.
+- **Other controlled actions**: `Visit Website` (official site), `Get Directions` (map/location),
+  `Apply / Enquire` (only when the underlying admissions/application mechanism actually exists).
+- **Resulting hierarchy**: Discover → Understand → Contact → Enquire → Apply — not
+  Discover → copy phone number → leave SchoolOye.
+
+**Gap against current implementation** (for scoping, not yet built):
+- Today's page shows a raw `tel:` "Call" pill and plain-text phone/email in the Contact card — both
+  need to go, replaced by a single `Contact School` action routed through the existing "Ask this
+  school" enquiry mechanism (already platform-routed — closest thing to this model already shipped).
+- **WhatsApp needs a real schema decision before any code**: no verified-WhatsApp-channel column exists
+  today (`schools.phone` is an ordinary phone array — explicitly disallowed as a WhatsApp source by this
+  policy). Until a genuine verified-channel field is added, the button correctly never renders under
+  "no verified channel → no button" — but that's a data-model decision (add a nullable column +
+  verification flow) to make explicitly, not something to silently defer forever by omission.
+
+### School Detail Page — Production Closure checklist (SDP-01–34)
+
+| # | Area | Status | Note |
+|---|---|---|---|
+| SDP-01 | Identity & header | 🟢 Correct | Name/board/grades/management/gender/locality all conditional, verified against Gyan Deep |
+| SDP-02 | Photo/media fallback | 🟡 Decision pending | `PhotoPlaceholder` always static; `school_media` 0 rows, no projection. Identity-photos decision (intentional vs. missed) asked earlier this session, still unanswered |
+| SDP-03 | Trust/source wording | 🟡 Decision pending | 4-message stacking (identity band / record badge / freshness / ProvenanceChip), independently found twice. Needs real replacement copy (was HP-08) |
+| SDP-04 | Contact policy + CTAs | 🔵 **Locked this session, not yet built** | See contact model above. Removes raw tel:/email display; unifies around `Contact School` |
+| SDP-05 | WhatsApp routing | 🔴 Blocked on schema decision | No verified-WhatsApp-channel field exists; needs a decision to add one before this CTA can ever render for any school |
+| SDP-06 | Visit Website / Get Directions / Apply-Enquire | 🟢 Mostly correct | All three exist and are conditional; verify ordering/labeling matches Discover→Understand→Contact→Enquire→Apply |
+| SDP-07 | Metadata (title/description) | 🟡 Split | Title (HP-01) not started, makes no false claims today. Description (HP-02) 🟢 done, `bb3fee0` |
+| SDP-08 | JSON-LD (school/breadcrumb/FAQ) | 🟡 Split | FAQ removal (HP-03) decision pending; WebPage→mainEntity→School restructure (HP-06) not started |
+| SDP-09 | Visible facts ↔ structured-data consistency | ⚪ Not started | HP-09 — best run after SDP-07/08 land, not before |
+| SDP-10 | Canonical/hostname | 🟢 Verified no defect | HP-05 — no `www.`/apex inconsistency exists anywhere in the page's own markup |
+| SDP-11 | Breadcrumbs | 🟢 Looks correct | Haryana → Gurugram → school confirmed in Gyan Deep HTML; not separately deep-audited |
+| SDP-12 | Sticky navigation / section ordering | 🟢 Already done | HP-07 — fixed in 10R, reconfirmed live |
+| SDP-13 | `[added]` School facts section | 🟢 Believed correct | Board/Affiliation/Established/Medium verified against Gyan Deep's real DB row, gaps are genuine |
+| SDP-14 | Admissions presentation | 🟢 Correct in code | Only 12 `admission_cycles` rows exist DB-wide to validate against — needs the DAV pass |
+| SDP-15 | Eligibility checker | 🟢 Correct | Renders only when dob_from/dob_to present |
+| SDP-16 | Recent admission updates | 🟢 Correct | `describeAdmissionUpdateChanges` fix verified |
+| SDP-17 | Current-state / "What's happening" | ⚪ Closed as deferred | Explicit product decision: independent modules, not a unified card. Not open work |
+| SDP-18 | News placement | 🟢 Code correct / 🟡 zero content | Positioned correctly (10R); `school_posts` has 0 rows sitewide — data, not code |
+| SDP-19 | `[added]` Academics/teachers section | 🟢 Believed correct | Not yet separately stress-tested against a school with real team data |
+| SDP-20 | Coverage semantics ("What SchoolOye knows") | 🟡 Reframe proposed | Second-opinion review suggested "Known / Needs verification / Last checked" — worth considering, not decided |
+| SDP-21 | Similar schools | 🔴 Real, sitewide gap | `locality_id` null for 8,210/8,298 schools (99%) — feature is non-functional almost everywhere. Needs a fallback policy decision (e.g. same-city) |
+| SDP-22 | `[added]` Location & map coverage | 🔴 Real gap | 2,969/8,298 schools (36%) have no geocode → no map renders, text-only fallback. Confirm this is acceptable or needs a city-level approximate map |
+| SDP-23 | `[added]` Claim card / claim conversion | 🟢 Correct | Both responsive positions implemented (10R); D1 richer rail already deferred pending claim volume |
+| SDP-24 | Empty/sparse states | 🟢 Verified | Every section independently conditional; no empty-shell rendering, confirmed via Gyan Deep |
+| SDP-25 | Mobile behavior | 🟢 Verified by breakpoint logic | No live device/screenshot testing possible in this sandbox (known, pre-existing limitation) |
+| SDP-26 | Internal linking | 🟢 Present | Breadcrumbs/teacher/similar-school/locality links exist, though similar-school links rarely fire (see SDP-21) |
+| SDP-27 | Indexability | 🟢 Looks correct | Canonical present, no noindex found; sitemap/redirect coverage not deeply audited |
+| SDP-28 | `[added]` Accessibility / semantic HTML | ⚪ Not audited | New scope this session — aria-labels appear present from source reads, no formal pass done |
+| SDP-29 | `[added]` Analytics for important CTAs | ⚪ Not audited | Open question whether Call/Website/Directions/Enquire/Save/Share/Compare clicks are tracked in `public.events` |
+| SDP-30 | Security/privacy leakage | 🟡 Partially covered | Raw-email discussion above; only fully closes once SDP-04 (contact model) is actually built |
+| SDP-31 | `[added]` Structured-data promotion rule | ⚪ Not started | HP-10 — documentation |
+| SDP-32 | `[added]` Reusable QA checklist/tests | ⚪ In progress | HP-11 — this table is becoming that checklist; formalize once closed |
+| SDP-33 | Gyan Deep (sparse/unclaimed) validation | 🟢 Done | This session, twice over (this agent + second-opinion agent) |
+| SDP-34 | DAV Public School (dense/actionable-admission) validation | ⚪ Not started | Next concrete step — only production school with an open admission cycle |
+
+**Status: milestone open. Nothing built yet against the newly-locked contact model or the newly-added
+items (SDP-13/19/22/23/28/29/31/32) — those are freshly scoped, not yet started. Everything marked 🟢
+was verified earlier this session or in 10R and is being carried forward, not re-done.**
