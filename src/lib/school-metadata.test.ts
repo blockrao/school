@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSchoolMetaDescription } from "@/lib/school-metadata";
+import { buildSchoolMetaDescription, schoolPageTitle } from "@/lib/school-metadata";
 
 describe("buildSchoolMetaDescription", () => {
   it("never claims fees or a specific admission date — no data pipeline exists for either", () => {
@@ -48,5 +48,18 @@ describe("buildSchoolMetaDescription", () => {
     expect(description).toBe(
       "St. Xavier's in Jaipur: ICSE affiliated, Up to Class 8 — admissions, facts and contact details.",
     );
+  });
+});
+
+describe("schoolPageTitle", () => {
+  it("never claims a specific admission session or fees — no data pipeline exists for either", () => {
+    const title = schoolPageTitle("Gyan Deep Sr.sec.", "Gurugram");
+    expect(title).not.toMatch(/admission \d/i);
+    expect(title).not.toContain("Fee");
+    expect(title).toBe("Gyan Deep Sr.sec., Gurugram: Admissions, Facts & Contact · SchoolOye");
+  });
+
+  it("uses the same middot separator as every other title pattern (seo-geo.md §3)", () => {
+    expect(schoolPageTitle("St. Xavier's", "Jaipur")).toContain(" · SchoolOye");
   });
 });

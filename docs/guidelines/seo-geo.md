@@ -37,10 +37,21 @@ redirect and lifecycle state. Summary:
 
 - One `<h1>` per page. Canonical is absolute and self-referencing, with no `/en` prefix (D-121).
 - Title patterns (from view data only; drop any clause whose data is missing):
-  - School: `{Name}, {Campus/Locality}: Admission {session}, Fees & Contact · SchoolOye`
-    (drop "Admission {session}" when there is no current-session cycle).
+  - School: `{Name}, {Locality/City}: Admissions, Facts & Contact · SchoolOye`. **Revised 29 Sep
+    2026** — the previous pattern here (`Admission {session}, Fees & Contact`) promised a specific
+    admission session and a "Fees" clause that most schools don't have data for; that's the exact
+    "don't claim information merely because the keyword is valuable" violation this doc's own §1
+    warns against, and `buildSchoolMetaDescription` (Increment 11, `src/lib/school-metadata.ts`)
+    had already corrected the equivalent problem in the meta description for the same reason —
+    the title just hadn't caught up. Names real sections every school page actually has (true
+    regardless of population state), never a specific fact value or a feature (Fees) with no data
+    pipeline behind it at all. Do not re-add a session/date clause here without first giving every
+    school a real, current admission cycle to show — see `selectPrimaryAdmission` for what "real"
+    means. `·` throughout, not `—`.
   - School admissions: `{Name} Admission {session}: Dates, Age Criteria, Documents · SchoolOye`
-  - School fees: `{Name} Fee Structure {session} (Class-wise) · SchoolOye`
+  - School fees: `{Name} Fee Structure {session} (Class-wise) · SchoolOye` — **unverified 29 Sep
+    2026**: fees has no data pipeline at all (Increment 11 finding); confirm this route/page
+    actually exists and is fed real data before trusting this line.
   - City admissions: `{City} School Admissions {session}: Open Now & Closing Soon · SchoolOye`
   - Exam: `{Exam} {session}: Dates, Eligibility, Fees · SchoolOye`
 - Description: the page's snapshot sentence, ≤155 characters.

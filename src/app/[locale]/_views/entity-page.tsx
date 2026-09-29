@@ -56,7 +56,7 @@ import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-activity";
 import { schoolAreaLabel } from "@/lib/school-area-label";
-import { buildSchoolMetaDescription } from "@/lib/school-metadata";
+import { buildSchoolMetaDescription, schoolPageTitle } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
@@ -101,7 +101,11 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
   const grades = formatGradeRange(school.min_class, school.max_class);
   const areaLabel = schoolAreaLabel(school.locality_name, city?.cityName);
   return {
-    title: `${name}, ${areaLabel} — SchoolOye`,
+    // Title-metadata correction (29 Sep 2026) — see schoolPageTitle's header
+    // comment (src/lib/school-metadata.ts) and seo-geo.md §3 for why this
+    // replaced the bare "{Name}, {Area}" it had drifted to, and why it's the
+    // generic-sections form rather than the old date/Fees-specific template.
+    title: schoolPageTitle(name, areaLabel),
     description: buildSchoolMetaDescription({
       name,
       areaLabel,
@@ -901,11 +905,14 @@ export async function SchoolView({
     "@id": `${siteUrl}${canonicalPath}`,
     url: `${siteUrl}${canonicalPath}`,
     // Identity projection consistency (item 5, 29 Sep 2026): must match
-    // schoolMetadata()'s <title> exactly — same schoolAreaLabel() call.
-    // (Previously used a locality-else-city local that silently disagreed
-    // with the title whenever both locality and city were known — see
-    // schoolAreaLabel's header comment.)
-    name: `${name}, ${schoolAreaLabel(school.locality_name, city?.cityName)} — SchoolOye`,
+    // schoolMetadata()'s <title> exactly — now the same schoolPageTitle() call
+    // on the same schoolAreaLabel() result, not a second inline copy of the
+    // title string. (Previously used a locality-else-city local that silently
+    // disagreed with the title whenever both locality and city were known —
+    // see schoolAreaLabel's header comment. Then, briefly, two separately
+    // hand-written copies of the same title string — the exact drift risk
+    // this comment already warned about — until this fix.)
+    name: schoolPageTitle(name, schoolAreaLabel(school.locality_name, city?.cityName)),
     mainEntity: { "@id": schoolNodeId },
     // Structured-data section audit (29 Sep 2026) — was missing entirely, despite
     // seo-geo.md §4 explicitly requiring it. See latestOf()'s header comment for

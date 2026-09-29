@@ -28,3 +28,17 @@ export function buildSchoolMetaDescription(input: {
 
   return `${name} in ${areaLabel}: ${factsPhrase}admissions, facts and contact details.`;
 }
+
+/**
+ * Title-metadata correction (29 Sep 2026) — same principle as
+ * buildSchoolMetaDescription above (generic real section names, never a
+ * specific admission date or a Fees clause with no data pipeline behind it),
+ * pulled into its own function for the exact reason schoolAreaLabel was:
+ * this string is used in two places (schoolMetadata()'s <title> and
+ * entity-page.tsx's webPageJsonLd.name, which is locked to match it exactly —
+ * see that assignment's "Identity projection consistency" comment) and a
+ * second inline copy is how they silently drifted apart before.
+ */
+export function schoolPageTitle(name: string, areaLabel: string): string {
+  return `${name}, ${areaLabel}: Admissions, Facts & Contact · SchoolOye`;
+}
