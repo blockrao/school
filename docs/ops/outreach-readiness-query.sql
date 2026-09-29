@@ -29,32 +29,69 @@
 -- Validation section (GSC verified, sitemap submitted, URL Inspection
 -- checked, branded query checked by hand). This query only narrows "which
 -- schools are worth spending that manual step on."
+--
+-- FIX (Identity Layer Pilot & Closure, item 4/11, 29 Sep 2026): the original
+-- version of this query filtered `d.slug in (..., 'delhi', ...)` directly
+-- against districts.slug. That literal 'delhi' district slug does not exist —
+-- Delhi is modelled as a city-state (states.is_city_state, D-126,
+-- db/views/040_public_areas.sql): its 1,874 schools are split across 9 real
+-- NCT district rows (new-delhi, north-delhi, north-west-delhi, west-delhi,
+-- central-delhi, south-west-delhi, south-delhi, east-delhi, north-east-delhi),
+-- and LAUNCH_CITY_SLUGS' "delhi" entry maps to the *state* slug via
+-- getPublicCityAreaBySlug, not a district slug. So the original WHERE clause
+-- silently matched zero Delhi schools and this query reported "0 schools
+-- passing in Delhi" as if that were a finding about Delhi's data quality —
+-- it was a bug in this query. Corrected count as of 29 Sep 2026: 111 of 1,184
+-- published Delhi schools pass the full bar (bottleneck is has_identifier:
+-- only 219/1,184 have a UDISE-exact match or a CBSE affiliation number yet).
+-- The sitemap itself was never affected — buildCitySitemapResponse resolves
+-- "delhi" through getPublicCityAreaBySlug -> api.public_areas, which already
+-- does the city-state -> district_ids expansion correctly; only this
+-- hand-written outreach query had the bug.
 
 select
   s.id,
   s.name_en,
   s.slug,
-  d.slug as district_slug,
-  s.udise_code,
+  coalesce(city_state.slug, d.slug) as area_slug,
   sa.affiliation_no as cbse_affiliation_no,
   b.name_en as board_name
 from schools s
 join districts d on d.id = s.district_id
+join states st on st.id = d.state_id
+left join states city_state on city_state.id = st.id and city_state.is_city_state
 left join school_affiliations sa on sa.school_id = s.id
 left join boards b on b.id = sa.board_id
 where s.status = 'published'
   and s.merged_into is null
-  and (s.udise_code is not null or sa.affiliation_no is not null)
+  and (
+    sa.affiliation_no is not null
+    or exists (
+      select 1 from source_records sr
+      join sources src on src.id = sr.source_id
+      where sr.matched_school_id = s.id
+        and src.code = 'udise'
+        and sr.match_confidence = 1.000
+        and sr.match_method = 'udise_direct_lookup'
+    )
+    -- Once the 20260929100000_school_udise_identity.sql migration is applied,
+    -- replace the exists(...) above with the simpler `or s.udise_code is not null`.
+  )
   and s.address is not null
   and (s.min_class is not null or s.max_class is not null)
   and s.management is not null
   -- Keep this list in sync with src/lib/sitemap.ts's LAUNCH_CITY_SLUGS by
   -- hand — it's a short, deliberately curated list there, not derived from
-  -- is_launch, so it's copied here rather than queried from a view.
-  and d.slug in (
-    'jaipur', 'gurugram', 'delhi', 'faridabad', 'hisar', 'sonipat', 'panipat',
-    'karnal', 'bhiwani', 'rohtak', 'mahendragarh', 'rewari', 'ambala',
-    'panchkula', 'charkhi-dadri', 'fatehabad', 'jhajjar', 'jind', 'kaithal',
-    'kurukshetra', 'nuh-mewat', 'palwal', 'sirsa', 'yamunanagar'
+  -- is_launch, so it's copied here rather than queried from a view. Matches
+  -- against the *area* slug (district slug, or the city-state's state slug
+  -- for Delhi) — never against districts.slug alone, per the fix above.
+  and (
+    (st.is_city_state and st.slug = 'delhi')
+    or d.slug in (
+      'jaipur', 'gurugram', 'faridabad', 'hisar', 'sonipat', 'panipat',
+      'karnal', 'bhiwani', 'rohtak', 'mahendragarh', 'rewari', 'ambala',
+      'panchkula', 'charkhi-dadri', 'fatehabad', 'jhajjar', 'jind', 'kaithal',
+      'kurukshetra', 'nuh-mewat', 'palwal', 'sirsa', 'yamunanagar'
+    )
   )
-order by d.slug, s.name_en;
+order by area_slug, s.name_en;

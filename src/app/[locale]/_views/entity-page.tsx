@@ -55,6 +55,7 @@ import { JOB_STATUS_LABEL } from "@/lib/job-status";
 import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-activity";
+import { schoolAreaLabel } from "@/lib/school-area-label";
 import { buildSchoolMetaDescription } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
 import {
@@ -98,14 +99,7 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
   const { school, board } = bundle;
   const name = school.name_en ?? "School";
   const grades = formatGradeRange(school.min_class, school.max_class);
-  // Same rule as the H1's h1LocationSuffix below (SEO review, 2026-09-29):
-  // locality AND city together when both are known, never either/or — a
-  // school with a verified locality still needs its city for context
-  // ("Sector 10, Gurugram", not just "Sector 10"). locality_name is only
-  // ever real, verified data (see breadcrumbTrail below); never inferred
-  // from geocode_precision or invented for a school we've only pincode-
-  // matched to a city.
-  const areaLabel = [school.locality_name, city?.cityName].filter(Boolean).join(", ") || "India";
+  const areaLabel = schoolAreaLabel(school.locality_name, city?.cityName);
   return {
     title: `${name}, ${areaLabel} — SchoolOye`,
     description: buildSchoolMetaDescription({
@@ -715,7 +709,6 @@ export async function SchoolView({
     `Hi SchoolOye, I'd like to know more about ${name} (${siteUrl}${canonicalPath}).`,
   )}`;
 
-  const areaLabel = school.locality_name ?? city?.cityName ?? "India";
   const orgType = schoolOrgType(school.max_class);
 
   // Increment 11 (SDP-06/SDP-31) — structured-data promotion rule: a property is
@@ -803,7 +796,12 @@ export async function SchoolView({
     "@type": "WebPage",
     "@id": `${siteUrl}${canonicalPath}`,
     url: `${siteUrl}${canonicalPath}`,
-    name: `${name}, ${areaLabel} — SchoolOye`,
+    // Identity projection consistency (item 5, 29 Sep 2026): must match
+    // schoolMetadata()'s <title> exactly — same schoolAreaLabel() call.
+    // (Previously used a locality-else-city local that silently disagreed
+    // with the title whenever both locality and city were known — see
+    // schoolAreaLabel's header comment.)
+    name: `${name}, ${schoolAreaLabel(school.locality_name, city?.cityName)} — SchoolOye`,
     mainEntity: { "@id": schoolNodeId },
   };
 
