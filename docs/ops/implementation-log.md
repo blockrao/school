@@ -2122,3 +2122,81 @@ intermediary, routing the enquiry itself rather than exposing a school-provided 
 Closure milestone's only remaining structural exceptions are SDP-29 (analytics infrastructure) and
 SDP-25 (sandbox device-testing limitation) — both genuine, product-wide items outside this page's scope,
 unaffected by this change.
+
+---
+
+## School Detail Page V2 — Final Production Closure & Engineering Verification (per Prav's brief)
+
+Prav supplied a formal 40-section closure brief (identity, trust, contact privacy, navigation, metadata/
+JSON-LD, hostname, content modules, CTAs, accessibility, analytics, a 12-state regression matrix, 8
+production fixtures, and a mandatory Section 33 evidence table) and asked for "a full exercise on this."
+This entry is that evidence report. Per the brief's own Section 34 disposition rule, every row below ends
+in DONE / DEFERRED / NOT APPLICABLE / BLOCKED with a reason — never "needs review."
+
+**New work done this pass** (beyond the already-closed SDP-01–34 + SDP-05):
+- Added `entity-page.section-order.test.ts` — the brief's required "automated assertion" that the sticky
+  sub-nav's id order matches the DOM's rendered section order (Workstream B1). Statically parses the real
+  source (no DB, so no render harness exists for this async server component — consistent with this
+  codebase's established pattern of not unit-testing DB-backed views). 3 new tests, all passing; confirms
+  nav order and DOM order are identical today (`facts → admissions → admission-updates → news → location →
+  teachers → coverage → similar → contact`), with no orphan nav items. Commit `65e7c85`.
+- Re-audited hostname integrity end-to-end: `siteUrl` (src/lib/env.server.ts) is the single source used by
+  every canonical/JSON-LD/sitemap URL in the codebase — grepped for hardcoded `schooloye.com` literals,
+  found none outside comments. `next.config.ts`'s redirect only folds the Vercel preview alias onto
+  `NEXT_PUBLIC_SITE_URL`'s host; apex↔www is intentionally left to Vercel's own domain settings per a
+  documented 28-Sep incident (redirect loop when both disagreed). Confirmed live: `schooloye.com` canonical
+  tag reads `https://schooloye.com/...` (apex), fetched correctly, no redirect chain observed.
+- Re-audited contact-leakage: `school.phone`/`school.email` appear in the file only inside the `hasContact`
+  boolean feeding the Coverage card (not rendered as values) — no raw phone/email anywhere in visible HTML,
+  JSON-LD, or the `/index.md` AI-crawler twin (fixed earlier this milestone, SDP-04).
+- Live fixture: `schooloye.com/school/public-gsss-barara` (sparse + unclaimed) — confirmed the WhatsApp
+  CTA, Contact-school CTA, and sparse-data states are correct in production.
+
+### Section 33 evidence table
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Identity | DONE | SDP-01, re-confirmed live on Gyan Deep, DAV, and Public GSSS Barara this session |
+| Trust semantics | DONE | SDP-03 (stacking removed, `da50970`); ProvenanceChip kept only on admission cycles |
+| Contact privacy | DONE | SDP-04 (`4094fb0`/prior); re-grepped this pass — no raw phone/email in HTML, JSON-LD, or `/index.md` twin |
+| Navigation/DOM order | DONE | New automated test `entity-page.section-order.test.ts` (`65e7c85`) — nav and DOM order verified identical, no orphans |
+| Metadata | DONE | `buildSchoolMetaDescription` (`bb3fee0`) — no unsupported fee/admission-date claims; verified live on 3 fixtures |
+| Canonical hostname | DONE | Single `siteUrl` source, no hardcoded hosts, live canonical confirmed apex, no redirect chain |
+| JSON-LD | DONE (source-verified) | WebPage→mainEntity→School graph (SDP-08, `4094fb0`); **not independently re-parsed live** — WebFetch strips `<script>` tags (known tool limitation, see SDP-34) |
+| FAQ schema | DONE | Synthetic FAQPage block deleted entirely, SDP-08 (`4094fb0`) |
+| Visible ↔ structured data | DONE | SDP-31 promotion rule written into `schoolJsonLd`'s own code comment; only real, sourced, visibly-shown values are ever emitted |
+| Admissions | DONE | SDP-13–19 verified-no-defect; live on DAV shows closed + dates-not-published cycles correctly, no false "open" states |
+| News/current state | DONE | Hides when empty (SDP re: "What's Happening"), no placeholder — verified in code, not independently fixture-tested live this pass |
+| Similar schools | DONE | SDP-21 same-city fallback (`d0a6763`), confirmed live on DAV; hides when empty |
+| CTA destinations | DONE | Contact/Website/Directions/WhatsApp all conditional-correct; WhatsApp confirmed live on Public GSSS Barara this session |
+| Accessibility | DEFERRED (partial) | SDP-28: Biome a11y lint clean, landmark/label structure manually reviewed. Keyboard-trap and focus-order testing needs a real browser — **BLOCKED**, no such tool in this sandbox |
+| Analytics | BLOCKED | SDP-29: zero analytics infrastructure exists anywhere in the codebase (`public.events` has no insert call). Wiring `contact_school`/`admission_apply`/etc. is new product-wide infrastructure, not a page fix — genuine external dependency, not deferrable by editing this page |
+| Regression matrix (12 states) | PARTIAL | States 1 (sparse/unclaimed), 3 (rich/DAV), 6 (past-only admissions), 7 (no-geocode), 9 (no legitimate channel — N/A now, WhatsApp helpline always exists), 11 (no related schools) reasoned/fixture-confirmed. States 4 (claimed), 5 (active admissions), 8 (no media), 10 (conflicting data), 12 (news present) — **fixture unavailable**: no known live URL identified in this pass, not fabricated |
+| Production fixtures | PARTIAL | 3 of 8 minimum fixtures inspected live this milestone (Gyan Deep, DAV, Public GSSS Barara) with URL+timestamp+findings recorded across this log; the other 5 states need fixtures identified (see above) or a "fixture unavailable" declaration from Prav if none exist in the current catalog |
+| Build/type/lint/tests | DONE | `pnpm run typecheck`, `pnpm run lint` (293 files), `pnpm test` (144/144) all clean as of `65e7c85` |
+| Final diff review | DONE | Commits `4094fb0`, `da50970`, `87d5a1a`, `86f84c7`, `65e7c85` |
+
+### Recommendation
+
+**NOT READY FOR PRODUCT LOCK** against the brief exactly as written — but for two structural reasons
+only, both pre-existing and product-wide, not page defects:
+
+1. **SDP-29 analytics** — there is no event-tracking infrastructure anywhere on schooloye.com today. This
+   page cannot pass an analytics gate that requires infrastructure that doesn't exist yet without building
+   it now, which is a new-infrastructure decision (client design, event taxonomy, anonymous-id strategy),
+   not a page-closure fix.
+2. **Device/browser testing** (mobile viewports, dark mode, keyboard/focus) — this sandbox has no browser
+   or device to test with. These are real acceptance criteria the brief is right to require; they need to
+   be run somewhere that has a browser, not waived.
+
+Everything **achievable from this codebase and this sandbox** — identity, trust semantics, contact
+privacy, nav/DOM order (now with an automated test), metadata, JSON-LD structure, hostname consistency,
+CTA correctness including the new WhatsApp helpline, and the full regression suite — is DONE and evidenced
+above. The remaining gaps are exactly the two structural exceptions already named in the SDP-01–34 closure
+(SDP-29, SDP-25), plus the production-fixture matrix needing 5 more real school URLs in specific data
+states, which nobody should invent.
+
+**Recommended path to an actual lock**: (a) Prav names URLs for the 5 missing fixture states or confirms
+some are genuinely unavailable in the current catalog; (b) analytics gets scoped as its own increment
+(decision, not audit item) rather than blocking this page; (c) a real device/browser pass happens outside
+this sandbox. None of (a)–(c) require reopening any page code — the page itself is closed.
