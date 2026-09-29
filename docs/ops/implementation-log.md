@@ -3390,3 +3390,66 @@ No new tests: `buildCitySitemapResponse` is DB-backed, same as the rest of `site
 `entity-page.tsx` — verified in production per this codebase's existing pattern, not unit-tested.
 `meetsIndexabilityGate()` itself already has coverage from the increment above. Typecheck and lint
 clean; full suite still 183 passing (unchanged — no new pure logic added here).
+
+## 2026-09-29 — School Detail Page: Production Integrity Correction
+
+Prav pasted an external "Production Integrity Correction" review (8 findings, P0-P2) built from
+the same Lancer's Convent HTML. Reviewed each against the actual code/live data rather than
+accepting them at face value — several didn't hold up; two were real and fixed.
+
+**Not implemented — findings didn't hold up on investigation:**
+- **P0-1, "Ambala in the location selector on a Delhi page":** Not a defect. The global header's
+  city selector is a client-only, cookie-persisted *visitor* browsing preference
+  (`useSelectedCity`/`city-preference.ts`), explicitly documented as such, identical to any
+  "deliver to <your city>" pattern — it does not touch the canonical school's own geography.
+  Confirmed the school's actual address/breadcrumb/`areaServed`/`addressLocality` all correctly say
+  Delhi throughout; the header showing Ambala reflects that this browser had previously selected
+  Ambala (from earlier testing this session), not a data leak from the school record. It's also
+  resolved client-side after hydration, so it has zero SEO/crawled-content effect. Whether the
+  Admissions nav item *should* instead follow the currently-viewed school's city on an entity page
+  specifically is a real, separate product question — but it's a deliberate navigation-semantics
+  decision, not a bug fix, and wasn't made unilaterally.
+- **P1-2, "foundingDate 1988 lacks a supporting source":** Factually wrong as stated — the page
+  already shows `Source: CBSE SARAS (archived copy) · as of 23 Sept 2026` directly under
+  "Established: 1988" in the School facts section (`SourceLine`), and `established_year` is one of
+  only two fields (`PAGE_VISIBLE_EVIDENCE_FIELDS`) already wired into the page's evidence/provenance
+  and freshness mechanisms. `foundingDate` is also schema.org-correct for `Organization`/`School`.
+  No defect found.
+- **P1-3, "verify Admissions data against `admission_cycles`":** Traced `buildAdmissionsSlot`
+  (`decision-strip.ts`) end to end — it already does everything this item asks: never shows a past
+  `closes_on` as live (`deadlineState` gate, with its own regression-test comment describing exactly
+  that bug being fixed previously), never fabricates a date, and `selectPrimaryAdmission` already
+  prefers an actionable cycle over a concluded one. The specific "Dates not yet published" seen in
+  the earlier HTML snapshot was because this school's admission_cycles row (academic_year 2027-28,
+  Nursery, status `open`, real `opens_on`/`closes_on`) didn't exist yet at capture time — confirmed
+  via its `updated_at` (12:12:36 UTC) being after that snapshot. No code defect; logic verified sound.
+- **P2-2, "coverage wording consistency":** Already exactly what's asked for — `coverage.ts`'s own
+  header comment documents "known is never conflated with verified" as a locked decision from a
+  prior review ("Increment 6... tightened per Prav's review"). No change needed.
+
+**Fixed:**
+- **P2-1, "Similar schools" → "Nearby schools":** Real mislabel. `getSimilarSchools()`
+  (`public-adapter.ts`) is proximity-only — same locality, falling back to same city — with no
+  board/grade/fee/gender matching anywhere; there's no similarity model behind this section at all.
+  Renamed the heading and nav label to "Nearby schools" in `entity-page.tsx` (kept `id=
+  "similar-heading"` — the static section-order test pins the id, not the label) and updated the
+  now-stale "Similar schools nearby" references in `public-adapter.ts`'s comments to match.
+- **P1-1, trust-wording tightening:** The unclaimed-state banner ("Facts on this page are from
+  public records SchoolOye has checked") sat next to "Not yet verified"/"Not yet published" labels
+  for whatever this school has no data for — a real risk of reading as "every fact here was
+  individually checked." Reworded in `identity-band.ts` to "Facts on this page are compiled from
+  public records, not yet confirmed by the school" — states only what's true at this identity tier,
+  parallel to the `school_claimed` state's own "verification in progress" phrasing, without
+  touching the stronger `verified`-state copy or building any new assertion system.
+  **Explicitly not touched:** the separate "Not yet verified" label `decision-strip.ts`'s
+  `unsupportedSlot`/`coverage-card.tsx` use for fields with *no data at all* (as opposed to unconfirmed
+  data) is arguably its own, wider mislabel — but renaming it site-wide is a bigger, previously-locked
+  design surface (Increment 5/6, "Prav's review") than this one banner string, so it wasn't
+  changed without being asked.
+
+**Explicitly skipped per instruction:** P0-2 (WhatsApp fallback) — Prav said to ignore it. For the
+record, this is also already the documented, deliberate "SchoolOye helpline" controlled-intermediary
+pattern from Increment 11 (SDP-05), not an accidental generic fallback, so it wasn't a live concern
+either way.
+
+183 tests passing (unchanged — both fixes are copy-only, no new logic). Typecheck and lint clean.

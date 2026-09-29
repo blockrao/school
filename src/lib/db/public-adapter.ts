@@ -1140,7 +1140,7 @@ export async function listPublicSchoolsByLocality(localityId: number): Promise<P
 }
 
 /**
- * Increment 11 (SDP-21) — same-city fallback for "Similar schools nearby".
+ * Increment 11 (SDP-21) — same-city fallback for "Nearby schools" (renamed 29 Sep 2026 from "Similar schools nearby" — this is proximity only, never board/grades/fees similarity).
  * `locality_id` is null for 8,210 of 8,298 published schools (99%, confirmed
  * in docs/ops/implementation-log.md SDP-21), so listPublicSchoolsByLocality
  * alone left this section empty almost everywhere — a real, shipped feature
@@ -1162,7 +1162,7 @@ export async function listPublicSchoolsByCity(cityId: number, limit = 8): Promis
 }
 
 /**
- * Increment 11 (SDP-21) — the actual "Similar schools nearby" data source:
+ * Increment 11 (SDP-21) — the actual "Nearby schools" (renamed 29 Sep 2026 from "Similar schools nearby" — this is proximity only, never board/grades/fees similarity) data source:
  * locality first (the more precise signal), falling back to same-city only
  * when the school has no locality or its locality has no other listed
  * schools. Centralized here so the entity page doesn't need to know about

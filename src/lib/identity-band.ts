@@ -38,6 +38,17 @@ export function identityBand(claim: string, verification: string): IdentityBand 
   return {
     state: "unclaimed",
     heading: "Unclaimed",
-    description: "Facts on this page are from public records SchoolOye has checked.",
+    // Production Integrity Correction (29 Sep 2026) — the previous wording,
+    // "Facts on this page are from public records SchoolOye has checked,"
+    // read as SchoolOye having individually verified every displayed fact,
+    // which contradicts the "Not yet verified"/"Not yet published" labels
+    // sitting right next to it for whatever this school has no data for.
+    // "Checked" here always meant "sourced from a legitimate public record,"
+    // never "confirmed with the school" — that stronger claim is reserved
+    // for the `verified` state above (school-managed + school_verified).
+    // Reworded to say only what's true at this identity tier, parallel to
+    // the "school_claimed" state's own "verification in progress" phrasing.
+    description:
+      "Facts on this page are compiled from public records, not yet confirmed by the school.",
   };
 }

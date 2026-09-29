@@ -1033,7 +1033,13 @@ export async function SchoolView({
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
     { id: "coverage-heading", label: "What SchoolOye knows", show: true },
-    { id: "similar-heading", label: "Similar schools", show: similarSchools.length > 0 },
+    // Production Integrity Correction (29 Sep 2026) — "Similar" overclaimed a
+    // relationship this list doesn't have: getSimilarSchools() is proximity
+    // only (locality, falling back to city), never board/grades/fees/gender —
+    // there is no similarity model here at all. Renamed to what it actually
+    // is; `id`/nav anchor unchanged (entity-page.section-order.test.ts pins
+    // "similar-heading" as the id, not the label).
+    { id: "similar-heading", label: "Nearby schools", show: similarSchools.length > 0 },
     { id: "contact-heading", label: "Contact", show: true },
   ].filter((s) => s.show);
 
@@ -1580,7 +1586,7 @@ export async function SchoolView({
 
             {/* Increment 7: Coverage Card moved here — after the substantive
               "answer" sections (Admissions, About, School facts, Location,
-              Teachers) and before Similar schools/discovery, per the locked
+              Teachers) and before Nearby schools/discovery, per the locked
               page hierarchy: identity -> decision -> action -> answers ->
               coverage/trust -> discovery. It used to sit directly under the
               Decision Strip, ahead of any substantive content, which read
@@ -1595,7 +1601,7 @@ export async function SchoolView({
             {similarSchools.length > 0 && (
               <section aria-labelledby="similar-heading" className="flex flex-col gap-3">
                 <h2 id="similar-heading" className="font-display text-card font-semibold">
-                  Similar schools nearby
+                  Nearby schools
                 </h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {similarSchools.map((s) => (
