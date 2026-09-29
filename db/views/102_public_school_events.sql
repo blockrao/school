@@ -11,6 +11,16 @@
 -- vanishing — the canonical page persists per Prav's "stays there forever"
 -- requirement. See 103_public_events.sql for the site-wide, listing_review=
 -- 'approved'-gated aggregator.
+--
+-- Increment (canonical-page fix, 29 Sep 2026): appended `school_name`,
+-- `city_id`, `listing_reviewed_at` — this view is now also read by
+-- getPublicEventByCode() (src/lib/db/public-adapter.ts) to resolve the
+-- canonical /events/{slug} page, not just the school's own-page Events
+-- section. Previously that lookup read the site-wide, listing_review-gated
+-- api.public_events instead, so an unlisted event's own canonical page
+-- 404'd even though the entity page's own code comment claimed "the
+-- canonical page still resolves for anyone with the direct link" — it
+-- didn't. This view has no such gate, matching the stated design intent.
 create or replace view api.public_school_events as
 select
   se.id,
@@ -29,7 +39,10 @@ select
   se.source_url,
   se.cancelled_at,
   se.listing_requested_at,
-  se.listing_review
+  se.listing_review,
+  s.name_en as school_name,
+  s.city_id,
+  se.listing_reviewed_at
 from school_events se
 join schools s on s.id = se.school_id
 where s.status = 'published';

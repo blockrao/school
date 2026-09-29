@@ -8,6 +8,14 @@
 -- the canonical page persists and the school's own page can show "Filled" /
 -- "Closed" instead of the job silently vanishing. See 105_public_jobs.sql
 -- for the site-wide, listing_review='approved'-gated aggregator.
+--
+-- Increment (canonical-page fix, 29 Sep 2026): appended `school_name`,
+-- `city_id`, `listing_reviewed_at` — this view is now also read by
+-- getPublicJobByCode() (src/lib/db/public-adapter.ts) to resolve the
+-- canonical /jobs/{slug} page, not just the school's own-page Jobs section.
+-- Previously that lookup read the site-wide, listing_review-gated
+-- api.public_jobs instead, so an unlisted job's own canonical page 404'd.
+-- This view has no such gate, matching the stated design intent.
 create or replace view api.public_school_jobs as
 select
   sj.id,
@@ -30,7 +38,10 @@ select
   sj.cancelled_at,
   sj.listing_requested_at,
   sj.listing_review,
-  sj.created_at
+  sj.created_at,
+  s.name_en as school_name,
+  s.city_id,
+  sj.listing_reviewed_at
 from school_jobs sj
 join schools s on s.id = sj.school_id
 where s.status = 'published';

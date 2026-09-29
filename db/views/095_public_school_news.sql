@@ -26,6 +26,21 @@
 -- Increment (SEO/GEO follow-up, 29 Sep 2026): appended `post_code`, `slug`, `tier`,
 -- `listing_requested_at`, `listing_review` at the end — see 020_public_school_admissions.sql's
 -- header for why new columns must always be appended, never spliced in earlier.
+--
+-- Increment (20260929090000_activity_admissions_v1.sql): appended
+-- `withdrawn_at` and added the `withdrawn_at is null` filter — a withdrawn
+-- post is pulled from this own-page feed like any other own-page visibility
+-- gate. (This file had drifted from the live view definition until this
+-- pass — corrected here to match.)
+--
+-- Increment (SEO/GEO follow-up, canonical-page fix, 29 Sep 2026): appended
+-- `school_name`, `city_id`, `listing_reviewed_at` — this view is now also
+-- read by getPublicNewsByCode() (src/lib/db/public-adapter.ts) to resolve the
+-- canonical /news/{slug} page, not just the school's own-page News section.
+-- Previously that lookup read the site-wide, listing_review-gated
+-- api.public_news instead, so an organic (non-listed) post's own canonical
+-- page 404'd — this view has no such gate, matching the "live on the
+-- school's own page immediately" design intent.
 create or replace view api.public_school_news as
 select
   sp.id,
@@ -40,11 +55,16 @@ select
   sp.slug as post_slug,
   sp.tier,
   sp.listing_requested_at,
-  sp.listing_review
+  sp.listing_review,
+  sp.withdrawn_at,
+  s.name_en as school_name,
+  s.city_id,
+  sp.listing_reviewed_at
 from school_posts sp
 join schools s on s.id = sp.school_id
 where sp.review = 'approved'
   and s.status = 'published'
-  and sp.published_at is not null;
+  and sp.published_at is not null
+  and sp.withdrawn_at is null;
 
 grant select on api.public_school_news to anon, authenticated;

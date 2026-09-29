@@ -750,10 +750,25 @@ export async function getPublicSchoolEventsBySchoolId(
   return (data ?? []).map((row) => publicSchoolEventContract.parse(row));
 }
 
-/** Resolves a canonical /events/{slug} page by its permanent event_code (D-125-style). */
+/**
+ * Resolves a canonical /events/{slug} page by its permanent event_code
+ * (D-125-style). Reads `api.public_school_events` (own-page view, no
+ * listing_review gate) rather than the site-wide `api.public_events`
+ * aggregator: the canonical page must exist the moment an event is live on
+ * the school's own page, exactly like getPublicNewsByCode below — listing
+ * approval only gates inclusion in the *aggregator*, never whether this
+ * page resolves (bug fixed 29 Sep 2026, see
+ * db/migrations/…fix_canonical_news_events_jobs_visibility_gate). The
+ * own-page view carries every column publicEventContract expects (appended
+ * there for this reason), so parsing is unchanged.
+ */
 export async function getPublicEventByCode(code: number): Promise<PublicEvent | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_events").select("*").eq("event_code", code).maybeSingle();
+  const { data } = await api
+    .from("public_school_events")
+    .select("*")
+    .eq("event_code", code)
+    .maybeSingle();
   return data ? publicEventContract.parse(data) : null;
 }
 
@@ -769,10 +784,26 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
   return (data ?? []).map((row) => publicEventContract.parse(row));
 }
 
-/** Resolves a canonical /news/{slug} page by its permanent post_code (D-125-style). */
+/**
+ * Resolves a canonical /news/{slug} page by its permanent post_code
+ * (D-125-style). Reads `api.public_school_news` (own-page view, no
+ * listing_review gate) rather than the site-wide `api.public_news`
+ * aggregator: an organic post is live on the school's own page immediately
+ * (no ops pre-review for that tier), so its canonical page must resolve
+ * right away too. `review`/`published_at`/`withdrawn_at` are still enforced
+ * by that view — this only drops the *additional* site-wide listing gate,
+ * which should never have applied here (bug fixed 29 Sep 2026 — the school
+ * page was linking to a URL that 404'd for any non-listed post, i.e. most of
+ * them). The own-page view carries every column publicNewsContract expects
+ * (appended there for this reason), so parsing is unchanged.
+ */
 export async function getPublicNewsByCode(code: number): Promise<PublicNews | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_news").select("*").eq("post_code", code).maybeSingle();
+  const { data } = await api
+    .from("public_school_news")
+    .select("*")
+    .eq("post_code", code)
+    .maybeSingle();
   return data ? publicNewsContract.parse(data) : null;
 }
 
@@ -804,10 +835,23 @@ export async function getPublicSchoolJobsBySchoolId(schoolId: string): Promise<P
   return (data ?? []).map((row) => publicSchoolJobContract.parse(row));
 }
 
-/** Resolves a canonical /jobs/{slug} page by its permanent job_code (D-125-style). */
+/**
+ * Resolves a canonical /jobs/{slug} page by its permanent job_code
+ * (D-125-style). Reads `api.public_school_jobs` (own-page view, no
+ * listing_review gate) rather than the site-wide `api.public_jobs`
+ * aggregator, for the same reason as getPublicEventByCode/getPublicNewsByCode
+ * above — a job is live on the school's own page immediately, so its
+ * canonical page must resolve immediately too; listing approval only gates
+ * the aggregator. The own-page view carries every column publicJobContract
+ * expects (appended there for this reason), so parsing is unchanged.
+ */
 export async function getPublicJobByCode(code: number): Promise<PublicJob | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_jobs").select("*").eq("job_code", code).maybeSingle();
+  const { data } = await api
+    .from("public_school_jobs")
+    .select("*")
+    .eq("job_code", code)
+    .maybeSingle();
   return data ? publicJobContract.parse(data) : null;
 }
 

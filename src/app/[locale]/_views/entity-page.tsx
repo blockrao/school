@@ -1155,12 +1155,12 @@ export async function SchoolView({
             {/* SEO/GEO follow-up (29 Sep 2026): shows every event for this school
               regardless of whether it has been (or ever will be) listed on the
               site-wide /events aggregator — own-page visibility has no ops gate.
-              Each event links to its own canonical page only once it has one
-              worth linking to publicly (an approved listing); before that, the
-              event still renders inline here, just without a link out, since the
-              canonical page's content is identical either way and linking pre-
-              listing would surface an unreviewed page as if it were a normal
-              search result. */}
+              Always links to the event's own canonical page: getPublicEventByCode
+              resolves it the moment the event is live here too (fixed 29 Sep
+              2026 — it previously read the listing-gated aggregator view, so this
+              link 404'd for any event that hadn't separately been approved for
+              site-wide listing, i.e. most of them). listing_review only ever
+              gates the aggregator now, never this page's reachability. */}
             {events.length > 0 && (
               <section aria-labelledby="events-heading" className="flex flex-col gap-3">
                 <h2 id="events-heading" className="font-display text-card font-semibold">
@@ -1176,24 +1176,18 @@ export async function SchoolView({
                       },
                       now,
                     );
-                    const isListed = event.listing_review === "approved";
-                    const title = <span className="font-display font-semibold">{event.title}</span>;
                     return (
                       <article
                         key={event.id}
                         className="flex flex-col gap-1 rounded-md border border-rule p-3"
                       >
                         <div className="flex items-center gap-2">
-                          {isListed ? (
-                            <Link
-                              href={eventPath(locale, event.event_slug)}
-                              className="font-display font-semibold hover:text-ruled-blue"
-                            >
-                              {event.title}
-                            </Link>
-                          ) : (
-                            title
-                          )}
+                          <Link
+                            href={eventPath(locale, event.event_slug)}
+                            className="font-display font-semibold hover:text-ruled-blue"
+                          >
+                            {event.title}
+                          </Link>
                           <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
                             {EVENT_STATUS_LABEL[status]}
                           </span>
@@ -1235,29 +1229,24 @@ export async function SchoolView({
                       },
                       now,
                     );
-                    // Same reasoning as the Events section above: only link to
-                    // the canonical /jobs/{slug} page once it's actually been
-                    // approved for the site-wide listing — an unlisted job's
-                    // canonical page still resolves for anyone with the direct
-                    // link, but this page shouldn't surface it as if it were.
-                    const isListed = job.listing_review === "approved";
-                    const title = <span className="font-display font-semibold">{job.title}</span>;
+                    // Same reasoning as the Events section above: always links
+                    // to the canonical /jobs/{slug} page — getPublicJobByCode
+                    // resolves it the moment the job is live here too (fixed 29
+                    // Sep 2026; it previously 404'd until separately approved
+                    // for site-wide listing). listing_review only gates the
+                    // aggregator now, never this page's reachability.
                     return (
                       <article
                         key={job.id}
                         className="flex flex-col gap-1 rounded-md border border-rule p-3"
                       >
                         <div className="flex items-center gap-2">
-                          {isListed ? (
-                            <Link
-                              href={jobPath(locale, job.job_slug)}
-                              className="font-display font-semibold hover:text-ruled-blue"
-                            >
-                              {job.title}
-                            </Link>
-                          ) : (
-                            title
-                          )}
+                          <Link
+                            href={jobPath(locale, job.job_slug)}
+                            className="font-display font-semibold hover:text-ruled-blue"
+                          >
+                            {job.title}
+                          </Link>
                           <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
                             {JOB_STATUS_LABEL[status]}
                           </span>
