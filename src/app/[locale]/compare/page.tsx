@@ -88,7 +88,7 @@ export default async function ComparePage({
       label: "Admission deadline",
       render: (s) => {
         const closesOn = admissionDeadlines.get(s.id);
-        if (!closesOn) return "Dates not announced";
+        if (!closesOn) return <NotYetPublished />;
         const { day, month } = istDayMonthLabel(new Date(closesOn));
         return `${day} ${month}`;
       },

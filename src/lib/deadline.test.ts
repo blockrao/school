@@ -160,7 +160,7 @@ describe("deadlineToPill", () => {
   it("not-announced -> not-announced pill with a real label", () => {
     expect(deadlineToPill(deadlineState({}, now))).toEqual({
       status: "not-announced",
-      label: "Dates not announced",
+      label: "Dates not yet published",
     });
   });
 });

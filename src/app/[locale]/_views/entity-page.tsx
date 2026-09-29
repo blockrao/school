@@ -948,7 +948,7 @@ export async function SchoolView({
                 // null result, the same "looks substantive but says nothing" issue
                 // flagged for empty modules generally. The Decision Strip above
                 // already gives this a proper "Not yet verified" treatment.
-                <span className="text-meta text-slate">· Dates not announced</span>
+                <span className="text-meta text-slate">· Dates not yet published</span>
               )}
               {/* Increment 10 — admissions-deepening. Reuses the exact component/props
                 shape already built and shipped for exams/[slug]/page.tsx unchanged;

@@ -36,7 +36,12 @@ export function deadlineState(input: DeadlineInput, now: Date): DeadlineState {
   }
 
   if (!input.opensAt && !input.closesAt) {
-    return { status: "not-announced", top: "Dates", big: "—", bottom: "not out" };
+    // SDP SEO/GEO follow-up A3: this is SchoolOye's own knowledge state (no
+    // admission-cycle dates on file), not a claim that the school has publicly
+    // announced "no dates yet" — the previous "not out" wording read as if we'd
+    // confirmed that with the school. Match the sitewide "Not yet published"
+    // idiom (see freshness-line.tsx) instead of asserting a fact we haven't verified.
+    return { status: "not-announced", top: "Dates", big: "—", bottom: "not yet published" };
   }
 
   if (input.opensAt) {
@@ -104,6 +109,10 @@ export function deadlineToPill(state: DeadlineState): {
     case "closed":
       return { status: "closed", label: "Closed" };
     case "not-announced":
-      return { status: "not-announced", label: "Dates not announced" };
+      // SDP SEO/GEO follow-up A3: "not announced" implied SchoolOye checked the
+      // official source and confirmed no dates exist. We may simply not have
+      // checked/published a cycle yet, so state our own knowledge gap instead —
+      // consistent with the "Not yet published" idiom used elsewhere on the site.
+      return { status: "not-announced", label: "Dates not yet published" };
   }
 }

@@ -65,7 +65,7 @@ export async function GET(
       );
     }
   } else {
-    lines.push("- Dates not announced");
+    lines.push("- Dates not yet published");
   }
 
   lines.push(

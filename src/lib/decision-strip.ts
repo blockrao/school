@@ -89,7 +89,7 @@ export function buildAdmissionsSlot(
     ? `Closes ${formatDate(admission.closes_on)}`
     : admission.opens_on
       ? `Opens ${formatDate(admission.opens_on)}`
-      : "Dates not yet announced";
+      : "Dates not yet published";
   const context = admission.opens_on
     ? `Registration from ${formatDate(admission.opens_on)}`
     : undefined;
