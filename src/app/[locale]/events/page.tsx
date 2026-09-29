@@ -5,6 +5,11 @@ import { EVENT_STATUS_LABEL, eventTemporalStatus } from "@/lib/event-status";
 import { localeCanonical } from "@/lib/seo";
 import { eventPath, eventsRootPath } from "@/lib/urls";
 
+// Same reasoning as news/page.tsx: a live discovery feed with no dynamic
+// function and no revalidate would otherwise cache indefinitely, so a
+// newly-created event wouldn't show here until the next deploy.
+export const revalidate = 900;
+
 const EVENT_TYPE_LABEL: Record<string, string> = {
   ptm: "Parent-teacher meeting",
   open_house: "Open house",

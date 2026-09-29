@@ -24,6 +24,16 @@ import {
   statePath,
 } from "@/lib/urls";
 
+// This page isn't pre-generated (no generateStaticParams — event codes are
+// an unbounded, ever-growing set), so its first render per slug gets cached
+// on-demand with no periodic revalidation unless set here, same trap as
+// news/[slug] and the /news and /events index feeds. A page rendered once
+// right after an event is created would otherwise show that stale snapshot
+// (status pill, time, registration link) until the next deploy. Same
+// 15-minute window as exams/[slug] for the same "live status, don't bake it
+// into a long-lived cache" reason.
+export const revalidate = 900;
+
 const EVENT_TYPE_LABEL: Record<string, string> = {
   ptm: "Parent-teacher meeting",
   open_house: "Open house",

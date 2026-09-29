@@ -22,6 +22,13 @@ import {
   statePath,
 } from "@/lib/urls";
 
+// This page isn't pre-generated (no generateStaticParams — post codes are
+// an unbounded, ever-growing set), so its first render per slug gets cached
+// on-demand with no periodic revalidation unless set here — a page rendered
+// once right after a post is approved would otherwise show that stale
+// snapshot until the next deploy. Same 15-minute window as exams/[slug].
+export const revalidate = 900;
+
 const TIER_LABEL: Record<string, string> = {
   organic: "News",
   featured: "Featured",

@@ -4,6 +4,13 @@ import { listPublicNews } from "@/lib/db/public-adapter";
 import { localeCanonical } from "@/lib/seo";
 import { newsPath, newsRootPath } from "@/lib/urls";
 
+// This is a live discovery feed — a post appears here the moment ops
+// approves its listing (db/views/101_public_news.sql) — so it can't be
+// cached indefinitely (the App Router's default for a page with no dynamic
+// function and no revalidate) or a freshly-approved post silently never
+// shows up until the next deploy. Same reasoning/window as exams/page.tsx.
+export const revalidate = 900;
+
 const TIER_LABEL: Record<string, string> = {
   organic: "News",
   featured: "Featured",
