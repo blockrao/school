@@ -462,11 +462,23 @@ export async function SchoolView({
   // for why: most stored website values have no scheme.
   const websiteUrl = normalizeExternalUrl(school.website);
 
+  const areaLabel = school.locality_name ?? city?.cityName ?? "India";
   const orgType = schoolOrgType(school.max_class);
+
+  // Increment 11 (SDP-06/SDP-31) — structured-data promotion rule: a property is
+  // only emitted when SchoolOye has a real, sourced value for it (an existing DB
+  // column with real data), never a templated/inferred default and never a value
+  // the visible page itself doesn't also show. See docs/ops/implementation-log.md
+  // SDP-31 for the full rule this instance follows.
+  const schoolNodeId = `${siteUrl}${canonicalPath}#school`;
   const schoolJsonLd = {
     "@context": "https://schema.org",
     "@type": orgType,
-    "@id": `${siteUrl}${canonicalPath}`,
+    // Increment 11 (SDP-06) — fragment id, distinct from the WebPage node below,
+    // which owns the canonical URL itself. webPageJsonLd.mainEntity references
+    // this by @id, giving the page a real WebPage -> mainEntity -> School graph
+    // instead of one flat School node standing in for the page.
+    "@id": schoolNodeId,
     name,
     ...(school.name_hi || school.aliases.length > 0
       ? { alternateName: [school.name_hi, ...school.aliases].filter(Boolean) }
@@ -510,6 +522,20 @@ export async function SchoolView({
     ...(websiteUrl ? { sameAs: websiteUrl } : {}),
   };
 
+  // Increment 11 (SDP-06) — the WebPage node that owns the canonical URL and
+  // points at the School node above as its mainEntity. Previously the School
+  // node stood in for the page itself (@id was the bare canonical URL with no
+  // WebPage wrapper) — correct for a quick entity stub, but not the
+  // WebPage -> mainEntity -> School graph the entity architecture calls for.
+  const webPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${siteUrl}${canonicalPath}`,
+    url: `${siteUrl}${canonicalPath}`,
+    name: `${name}, ${areaLabel} — SchoolOye`,
+    mainEntity: { "@id": schoolNodeId },
+  };
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -529,52 +555,13 @@ export async function SchoolView({
     ],
   };
 
-  // FAQPage: only real, answerable facts — never a templated filler repeated
-  // identically across every school. Admissions is included either way
-  // (honestly saying dates aren't announced yet is still a real answer);
-  // skip the whole block below 3 entries rather than pad it out.
-  const faqCandidates: { question: string; answer: string }[] = [];
-  if (board?.board_name) {
-    faqCandidates.push({
-      question: `What board is ${name} affiliated with?`,
-      answer: `${name} is affiliated with ${board.board_name}${affiliationNo ? ` (affiliation no. ${affiliationNo})` : ""}.`,
-    });
-  }
-  if (grades !== "Not yet published") {
-    faqCandidates.push({
-      question: `What classes does ${name} teach?`,
-      answer: `${name} teaches ${grades}.`,
-    });
-  }
-  if (school.address || school.locality_name) {
-    faqCandidates.push({
-      question: `Where is ${name} located?`,
-      answer: `${name} is located${school.locality_name ? ` in ${school.locality_name},` : ""} ${city?.cityName ?? ""}${school.address ? ` (${school.address})` : ""}.`,
-    });
-  }
-  if (primaryAdmission?.closes_on) {
-    faqCandidates.push({
-      question: `When do admissions close at ${name}?`,
-      answer: `Admissions for ${primaryAdmission.academic_year}, class ${primaryAdmission.class_code.replace(/^c/, "")} close on ${new Date(primaryAdmission.closes_on).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}.`,
-    });
-  } else {
-    faqCandidates.push({
-      question: `Is admission open at ${name} right now?`,
-      answer: `${name} hasn't announced its next admission dates yet — check back, or set an alert for when the form opens.`,
-    });
-  }
-  const faqJsonLd =
-    faqCandidates.length >= 3
-      ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: faqCandidates.map((f) => ({
-            "@type": "Question",
-            name: f.question,
-            acceptedAnswer: { "@type": "Answer", text: f.answer },
-          })),
-        }
-      : null;
+  // Increment 11 (SDP-03/HP-03) — FAQPage JSON-LD removed. These questions never
+  // appeared as visible on-page content (a visible-fact <-> structured-data
+  // mismatch, SDP-09), and Google restricted FAQ rich results to authoritative
+  // government/health sites in 2023 — there's no remaining upside to weigh
+  // against that mismatch. The facts these questions restated (board, grades,
+  // location, admission status) are already in schoolJsonLd/the visible page;
+  // nothing is lost by removing the synthetic Q&A wrapper around them.
 
   // Increment 10 — real sections only, in page order, used to build both the
   // shortcuts row and the sub-nav below from one list rather than two
@@ -612,6 +599,11 @@ export async function SchoolView({
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schoolJsonLd) }}
         />
         <script
@@ -619,13 +611,6 @@ export async function SchoolView({
           // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
-        {faqJsonLd && (
-          <script
-            type="application/ld+json"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-          />
-        )}
 
         <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
           {breadcrumbTrail.map((crumb) => (
