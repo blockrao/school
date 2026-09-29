@@ -5,6 +5,7 @@ import { PlaceView, placeMetadata, type ResolvedPlace } from "../../_views/place
 
 /**
  * /schools/{state} — the state's list of cities (D-121 §1), or, for a city-state
+  * Database view fix: 2026-09-29
  * such as Delhi, the city page itself (D-126).
  */
 async function resolve(stateSlug: string): Promise<ResolvedPlace | null> {
