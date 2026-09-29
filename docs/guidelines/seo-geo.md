@@ -68,11 +68,19 @@ Alignment v1) to match what's actually implemented — this section had drifted 
   canonical URL + `#school` fragment (a `WebPage` node owns the bare canonical URL itself, with
   `mainEntity` pointing at this `@id` — not one flat node standing in for the page). `name`,
   `alternateName`, `description`, `address` (`PostalAddress`), `geo`, `foundingDate`, `areaServed`,
-  `memberOf` (board), `inLanguage` (medium of instruction), `additionalProperty` (grade range — no
-  first-class schema.org property fits, so this is the documented escape hatch for a real,
-  displayed fact that doesn't map to one), `subjectOf` (this school's own News/Events/Jobs, each of
-  which carries its own `NewsArticle`/`Event`/`JobPosting` JSON-LD on its own canonical page and
-  references this `@id` back — one connected graph, not nodes that only coincide on a name string).
+  `memberOf` (board), `additionalProperty` (grade range — no first-class schema.org property fits,
+  so this is the documented escape hatch for a real, displayed fact that doesn't map to one),
+  `subjectOf` (this school's own News/Events/Jobs, each of which carries its own
+  `NewsArticle`/`Event`/`JobPosting` JSON-LD on its own canonical page and references this `@id`
+  back — one connected graph, not nodes that only coincide on a name string).
+  **No `inLanguage`** (added, then removed the same day, 29 Sep 2026 — correction from Prav):
+  `inLanguage` describes the language of a `CreativeWork`'s own content (the language SchoolOye
+  renders the page in), not a fact about the school; it also isn't even in `inLanguage`'s
+  schema.org domain for a `School`/`EducationalOrganization` node. Medium of instruction stays a
+  normal, sourced page fact (School facts section, eligible for the same evidence mechanism as any
+  other field) — it just isn't a `School`-entity structured-data property, and there is no clean
+  one to borrow. Per the locked principle (structured data is a truthful projection, not a forced
+  mapping of every UI field into schema.org), omission is correct here — do not reintroduce this.
   `url` = this page's own canonical URL (the school's own website goes in `sameAs`, not `url`).
   **No `telephone`** (SDP-04): SchoolOye is a controlled intermediary, not a directory — contact
   routes through the enquiry form, so JSON-LD stays consistent with what the visible page shows.
@@ -142,13 +150,17 @@ Alignment v1) to match what's actually implemented — this section had drifted 
   fact." Stays null until a real verification event happens; never backfilled or inferred from a
   provenance timestamp (locked rule, unchanged).
 - **Freshness clock — `dateModified`:** "did the published page change." A different claim — a page
-  can be freshly modified (new UDISE+/SARAS evidence landed, an admission cycle was updated) without
-  every fact on it being freshly *verified*. Computed as `max(verifiedAt, every field the page
-  actually renders a SourceLine for, every admission-cycle change shown under "Recent admission
-  updates")` — restricted to fields the page visibly cites, never every row in
-  `api.public_field_evidence` for that school, most of which cover facts this page doesn't display
-  at all and would inflate freshness for something a visitor or crawler can't see. Omitted (never a
-  fabricated build/request-time fallback) when nothing dated is known yet.
+  can be freshly modified (new UDISE+/SARAS evidence landed, an admission cycle was updated, a new
+  News/Event/Job post appeared) without every fact on it being freshly *verified*. Computed as
+  `max(verifiedAt, every field the page actually renders a SourceLine for, every admission-cycle
+  change shown under "Recent admission updates", every News/Event/Job actually rendered in "What's
+  happening")` — the evidence-field part restricted to fields the page visibly cites, never every
+  row in `api.public_field_evidence` for that school, most of which cover facts this page doesn't
+  display at all and would inflate freshness for something a visitor or crawler can't see. The
+  News/Events/Jobs part uses each domain's own "this appeared" timestamp — `published_at` (news),
+  `created_at` (jobs, events) — never a scheduled/future date like an event's `starts_at`, which
+  would make `dateModified` show a future date. Omitted (never a fabricated build/request-time
+  fallback) when nothing dated is known yet.
 - These two must never be conflated in structured data, in copy, or in a future dashboard: showing
   `dateModified` next to language that implies verification (or vice versa) misstates which of the
   two claims is actually true.

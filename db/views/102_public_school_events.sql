@@ -21,6 +21,15 @@
 -- 404'd even though the entity page's own code comment claimed "the
 -- canonical page still resolves for anyone with the direct link" — it
 -- didn't. This view has no such gate, matching the stated design intent.
+--
+-- Increment (Canonical Page Freshness & GEO Alignment v1, 29 Sep 2026): appended
+-- `created_at` — school_events already has this column (not null, defaults to
+-- now()), it just wasn't exposed here. Needed because the school entity page's
+-- dateModified projection (entity-page.tsx) has to know when an event was
+-- actually added to the page; `starts_at` is a scheduled date that can be
+-- months in the future and would make dateModified nonsensical if used as a
+-- stand-in. Mirrors the same fix already in place for jobs
+-- (104_public_school_jobs.sql already exposes `created_at` the same way).
 create or replace view api.public_school_events as
 select
   se.id,
@@ -42,7 +51,8 @@ select
   se.listing_review,
   s.name_en as school_name,
   s.city_id,
-  se.listing_reviewed_at
+  se.listing_reviewed_at,
+  se.created_at
 from school_events se
 join schools s on s.id = se.school_id
 where s.status = 'published';

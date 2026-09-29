@@ -37,6 +37,11 @@ export const publicSchoolEventContract = z.object({
   cancelled_at: z.string().nullable(),
   listing_requested_at: z.string().nullable(),
   listing_review: listingReviewContract,
+  // Canonical Page Freshness & GEO Alignment v1 (29 Sep 2026) — when this
+  // event was actually added, not when it's scheduled for (starts_at can be
+  // months in the future). Needed by the school page's dateModified
+  // projection; see 102_public_school_events.sql's header for why.
+  created_at: z.string(),
 });
 
 export type PublicSchoolEvent = z.infer<typeof publicSchoolEventContract>;

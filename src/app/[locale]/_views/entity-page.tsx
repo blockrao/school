@@ -674,12 +674,27 @@ export async function SchoolView({
   // different question — "did the published page change" — and verifiedAt is
   // only one of several real inputs to it, alongside sourced facts that
   // changed without a formal verification event (fresh UDISE+/SARAS evidence,
-  // an admission-cycle update). A page can be freshly modified without every
-  // fact on it being freshly verified; JSON-LD must not imply otherwise.
+  // an admission-cycle update, a new News/Event/Job post actually rendered in
+  // the "What's happening" feed below). A page can be freshly modified
+  // without every fact on it being freshly verified; JSON-LD must not imply
+  // otherwise.
+  //
+  // News/Events/Jobs (added 29 Sep 2026, second confirmation pass): each
+  // uses the timestamp that actually means "this appeared on the page," never
+  // a scheduled/future date. News: published_at (already this domain's own
+  // "when it went live" field). Jobs: created_at (already used as
+  // JobPosting.datePosted on its own canonical page). Events: created_at —
+  // NOT starts_at, which is a scheduled date that can be months in the
+  // future and would make dateModified nonsensical; school_events already
+  // had this column, it just wasn't exposed by api.public_school_events
+  // until this same pass (102_public_school_events.sql).
   const dateModified = latestOf(
     verifiedAt,
     ...PAGE_VISIBLE_EVIDENCE_FIELDS.map((field) => evidenceByField[field]?.created_at),
     ...recentAdmissionUpdates.map((u) => u.occurred_at),
+    ...news.map((n) => n.published_at),
+    ...events.map((e) => e.created_at),
+    ...jobs.map((j) => j.created_at),
   );
   const badge = recordBadge(school.claim, school.verification, verifiedAt);
   const identity = identityBand(school.claim, school.verification);
@@ -832,17 +847,26 @@ export async function SchoolView({
     // to city, same join as h1LocationSuffix/areaLabel; omitted only when
     // neither is known.
     ...(h1LocationSuffix ? { areaServed: { "@type": "Place", name: h1LocationSuffix } } : {}),
-    // Structured-data section audit (29 Sep 2026) — medium of instruction and
-    // grade range are both real, sourced fields already rendered under "School
-    // facts" but were never promoted to structured data; both follow the same
-    // SDP-31 rule as everything else here (real value or omitted, never a
-    // placeholder). `inLanguage` is schema.org's own property for this, not a
-    // SchoolOye invention. Grade range has no equally clean schema.org
-    // property, so it goes into `additionalProperty` — the documented escape
-    // hatch for a real fact that doesn't map to a first-class field.
-    ...(school.medium && school.medium.length > 0
-      ? { inLanguage: school.medium.length === 1 ? school.medium[0] : school.medium }
-      : {}),
+    // Structured-data section audit (29 Sep 2026) — grade range is a real,
+    // sourced field already rendered under "School facts" but was never
+    // promoted to structured data; follows the same SDP-31 rule as everything
+    // else here (real value or omitted, never a placeholder). No equally
+    // clean first-class schema.org property fits a grade range, so it goes
+    // into `additionalProperty` — the documented escape hatch for a real fact
+    // that doesn't map to one.
+    //
+    // Medium of instruction was briefly added here as `inLanguage` and then
+    // removed the same day (correction from Prav): `inLanguage` describes the
+    // language of a CreativeWork/page's own content — the language SchoolOye
+    // renders this page in — not a fact about the school being described.
+    // Medium of instruction = English is a real school fact (still shown
+    // under "School facts", still eligible for the same evidence/source
+    // mechanism as any other field), but it isn't the same claim, and
+    // schema.org has no clean property for "language taught in" on a
+    // School/EducationalOrganization node. Per the locked principle
+    // (structured data is a truthful projection, not a forced mapping of
+    // every UI field into schema.org), omission here is correct — do not
+    // reintroduce this as inLanguage or any other borrowed property.
     ...(school.max_class
       ? {
           additionalProperty: {

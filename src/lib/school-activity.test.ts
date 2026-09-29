@@ -42,6 +42,7 @@ function event(overrides: Partial<PublicSchoolEvent> = {}): PublicSchoolEvent {
     cancelled_at: null,
     listing_requested_at: null,
     listing_review: null,
+    created_at: "2026-09-01T00:00:00.000Z",
     ...overrides,
   };
 }
