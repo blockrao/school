@@ -50,14 +50,48 @@ redirect and lifecycle state. Summary:
 
 ## 4. Structured data
 
-- **School pages:** `School` subtype (`ElementarySchool` / `HighSchool` / `School`) with `@id` = the canonical URL, `name`, `alternateName`, `address` (`PostalAddress`), `geo`, `telephone`,
-  `url` = the school's own website, `foundingDate`, `identifier` (board affiliation numbers only — no SchoolOye/DB ID, D-121), `sameAs` (verified official
-  links: website, Maps, board record, socials), `parentOrganization` (brand), `event` (admission
-  windows, tests), `BreadcrumbList`, and a `WebPage` node with `dateModified`.
+Updated 29 Sep 2026 (Identity & Search Presence Foundation v1 + Canonical Page Freshness & GEO
+Alignment v1) to match what's actually implemented — this section had drifted from the code.
+
+- **School pages:** `School` subtype (`ElementarySchool` / `HighSchool` / `School`), `@id` = the
+  canonical URL + `#school` fragment (a `WebPage` node owns the bare canonical URL itself, with
+  `mainEntity` pointing at this `@id` — not one flat node standing in for the page). `name`,
+  `alternateName`, `description`, `address` (`PostalAddress`), `geo`, `foundingDate`, `areaServed`,
+  `memberOf` (board), `inLanguage` (medium of instruction), `additionalProperty` (grade range — no
+  first-class schema.org property fits, so this is the documented escape hatch for a real,
+  displayed fact that doesn't map to one), `subjectOf` (this school's own News/Events/Jobs, each of
+  which carries its own `NewsArticle`/`Event`/`JobPosting` JSON-LD on its own canonical page and
+  references this `@id` back — one connected graph, not nodes that only coincide on a name string).
+  `url` = this page's own canonical URL (the school's own website goes in `sameAs`, not `url`).
+  **No `telephone`** (SDP-04): SchoolOye is a controlled intermediary, not a directory — contact
+  routes through the enquiry form, so JSON-LD stays consistent with what the visible page shows.
+  **No `employee`** (D-045) even though the page lists teachers.
+  `identifier`: board affiliation no. **and** UDISE+ code, one `PropertyValue` each when known (UDISE+
+  covers most of the corpus; board affiliation only ~4% — this is not "board-only" any more, see §0
+  provenance decision, 29 Sep 2026).
+  `sameAs`: only URLs genuinely established as the same school's own official record — website, and
+  the SARAS CBSE affiliation detail page (deterministic by affiliation no., CBSE-board schools only,
+  pattern verified across ~19 real fetches). **Not yet added:** UDISE+'s own KYS record page —
+  only one live example is confirmed and the URL's trailing segment isn't verified to generalize;
+  add once confirmed across a real sample, never guessed. Maps/socials: not sourced yet, add the
+  same way once a link is genuinely verified as this school's own.
+  `WebPage` node carries `dateModified` — see §6a; **never** the build/request time.
+- **Admission cycles:** kept in the admissions domain model (session, classes, status, dates,
+  application URL, source, checked date) and rendered as plain page content — **deliberately not**
+  emitted as `Event` schema (locked 29 Sep 2026, reversing an earlier draft of this doc). An
+  admission *window* ("Nursery admissions open until 10 Dec") is not an event in the schema.org
+  sense; manufacturing one to gain GEO surface area is exactly the "invented schema" §1 rules out.
+  A genuinely dated, single-occurrence happening a school announces — an admission test, open
+  house, orientation, PTM, annual day — is a real `Event` and already gets one on its own `/events`
+  page when published there; that's the correct home for it, not a duplicate on the school page.
 - **Exam pages:** `Event` per published milestone window + `BreadcrumbList`; organiser = the
   conducting body.
-- **Never:** `AggregateRating`, `Review`, `employee` (D-045); `FAQPage` only when ≥3 real facts
-  support it, and never expanded for SEO (D-046). Validate JSON-LD in CI.
+- **Never:** `AggregateRating`, `Review`, `employee` (D-045). **`FAQPage`: removed entirely**
+  (SDP-03/HP-03, 29 Sep 2026) — the ≥3-real-facts conditional this line used to describe was
+  superseded once every FAQ question turned out to just restate a fact already structured
+  elsewhere (board/grades/location/admission status), with no matching visible on-page Q&A; Google
+  also restricted FAQ rich results to gov/health sites in 2023, removing the remaining upside.
+  Validate JSON-LD in CI.
 - Brand in all markup: **SchoolOye** (D-081).
 
 ## 5. Indexing, sitemaps, crawlers
@@ -72,13 +106,41 @@ redirect and lifecycle state. Summary:
 - **Sitemaps:** route handlers per launched city (`sitemap-{city}.xml`) plus `sitemap-site.xml`,
   indexed by `sitemap.xml`. Only indexable URLs. `lastModified` = latest displayed-fact
   `verified_at`/change time, never the build time (D-044).
-- **Freshness pings:** IndexNow on every revalidation (Bing, and through it ChatGPT search);
-  Google relies on sitemaps.
+  **Known gap, 29 Sep 2026:** the school entity page's own `dateModified` (§6a) is now the wider,
+  correct freshness projection — `max(verifiedAt, visible per-field evidence, admission updates)` —
+  but `sitemap.ts`'s `lastmod` still uses `school.last_verified_at` alone (real only for a formal
+  verification event, null for most schools), computed once per city across every school in the
+  district rather than per school. Bringing the sitemap in line needs a heavier per-school join at
+  sitemap-generation scale (thousands of schools per city) that wasn't done in this pass — until
+  then the sitemap understates freshness for schools with recent evidence/admission changes but no
+  formal verification event.
+- **Freshness pings:** IndexNow notifies participating search engines (chiefly Bing) of URL changes
+  on revalidation — it is a distribution optimisation, not a universal AI/GEO freshness mechanism,
+  and nothing in this codebase implements it yet (confirmed 29 Sep 2026). Lower priority than
+  correct canonical URLs, sitemaps, indexability and structured data above; add only if it's
+  actually shown to move something. Google relies on sitemaps regardless.
 - **robots.ts:** allow search engines and AI crawlers on public routes; disallow `/my`, `/portal`,
   `/ops`, `/api`, `/dev`. Target AI list: GPTBot, ClaudeBot, PerplexityBot, Google-Extended,
   OAI-SearchBot, ChatGPT-User, Perplexity-User (today: the first four).
 
 ## 6. AI readability (GEO done honestly)
+
+### 6a. Two clocks, never collapsed into one (locked 29 Sep 2026)
+
+- **Trust clock — `verifiedAt`/`school.last_verified_at`:** "did SchoolOye actually verify this
+  fact." Stays null until a real verification event happens; never backfilled or inferred from a
+  provenance timestamp (locked rule, unchanged).
+- **Freshness clock — `dateModified`:** "did the published page change." A different claim — a page
+  can be freshly modified (new UDISE+/SARAS evidence landed, an admission cycle was updated) without
+  every fact on it being freshly *verified*. Computed as `max(verifiedAt, every field the page
+  actually renders a SourceLine for, every admission-cycle change shown under "Recent admission
+  updates")` — restricted to fields the page visibly cites, never every row in
+  `api.public_field_evidence` for that school, most of which cover facts this page doesn't display
+  at all and would inflate freshness for something a visitor or crawler can't see. Omitted (never a
+  fabricated build/request-time fallback) when nothing dated is known yet.
+- These two must never be conflated in structured data, in copy, or in a future dashboard: showing
+  `dateModified` next to language that implies verification (or vice versa) misstates which of the
+  two claims is actually true.
 
 - Key facts appear as **plain server-rendered text near the top**, with year and session:
   "Nursery admissions for 2027-28 are open until 10 Dec 2026 (confirmed by the school on 2 Oct)."

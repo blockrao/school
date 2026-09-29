@@ -132,6 +132,18 @@ function latestOf(...dates: (Date | string | null | undefined)[]): Date | null {
   return times.length > 0 ? new Date(Math.max(...times)) : null;
 }
 
+/**
+ * Correctness fix, same day: api.public_field_evidence (field_provenance)
+ * covers many fields per school — 85,068 rows across 10,642 schools — but
+ * this page only ever renders a SourceLine for two of them. Feeding
+ * dateModified from every field in evidenceByField let an unrelated,
+ * never-displayed field's old bulk-import row (e.g. name/phone/udise_code
+ * provenance the page doesn't cite) inflate the page's claimed freshness even
+ * though nothing a visitor or crawler can see had actually changed. Keep this
+ * list in exact sync with the fields SourceLine is actually called for below.
+ */
+const PAGE_VISIBLE_EVIDENCE_FIELDS = ["established_year", "address"] as const;
+
 function schoolOrgType(maxClass: string | null): string {
   const maxNum = maxClass ? Number(maxClass.replace(/^c/, "")) : null;
   if (maxNum != null && maxNum <= 5) return "ElementarySchool";
@@ -651,9 +663,18 @@ export async function SchoolView({
   // is unchanged; only this one rendering was removed.
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
+  // Two distinct clocks, deliberately never collapsed into one: verifiedAt
+  // (below, rendered as its own badge/FreshnessLine) answers "did SchoolOye
+  // actually verify this," and stays null until a real verification event
+  // happens — it is never backfilled or reinterpreted. dateModified answers a
+  // different question — "did the published page change" — and verifiedAt is
+  // only one of several real inputs to it, alongside sourced facts that
+  // changed without a formal verification event (fresh UDISE+/SARAS evidence,
+  // an admission-cycle update). A page can be freshly modified without every
+  // fact on it being freshly verified; JSON-LD must not imply otherwise.
   const dateModified = latestOf(
     verifiedAt,
-    ...Object.values(evidenceByField).map((e) => e.created_at),
+    ...PAGE_VISIBLE_EVIDENCE_FIELDS.map((field) => evidenceByField[field]?.created_at),
     ...recentAdmissionUpdates.map((u) => u.occurred_at),
   );
   const badge = recordBadge(school.claim, school.verification, verifiedAt);
@@ -846,7 +867,27 @@ export async function SchoolView({
         }
       : {}),
     url: `${siteUrl}${canonicalPath}`,
-    ...(websiteUrl ? { sameAs: websiteUrl } : {}),
+    // sameAs asserts entity equivalence — only URLs genuinely established to be
+    // the same school's own official record, never "other useful links." The
+    // SARAS detail-page URL is safe to construct here: verified this session
+    // across ~19 real fetches (Ahmedabad pilot), one deterministic pattern by
+    // affiliation number, and SARAS is CBSE-specific so it's gated to that
+    // board. UDISE+'s own record page (kys.udiseplus.gov.in) is deliberately
+    // NOT added the same way — only one live example was confirmed this
+    // session (.../schooldetail1/{udise_code}/11) and the trailing segment's
+    // meaning/stability across schools hasn't been verified; constructing a
+    // wrong or broken sameAs URL is worse than omitting it. Revisit once that
+    // pattern is confirmed across a real sample.
+    ...(() => {
+      const sameAs = [
+        ...(websiteUrl ? [websiteUrl] : []),
+        ...(affiliationNo && board?.board_name?.toUpperCase() === "CBSE"
+          ? [`https://saras.cbse.gov.in/SARAS/AffiliatedList/AfflicationDetails/${affiliationNo}`]
+          : []),
+      ];
+      if (sameAs.length === 0) return {};
+      return { sameAs: sameAs.length === 1 ? sameAs[0] : sameAs };
+    })(),
   };
 
   // Increment 11 (SDP-06) — the WebPage node that owns the canonical URL and
