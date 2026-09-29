@@ -2403,3 +2403,93 @@ row rather than left as a vague "reasoned" pass.
 this specific remote Chrome environment's limits, not by the page; (3) analytics and conflict-detection UI —
 DEFERRED per Prav's explicit reclassification. None of these are page defects. The page itself, including
 everything a real browser could actually exercise this session, is clean.
+
+## SchoolOye SEO/GEO follow-up (Gyan Devi Public School Sr. Sec., Gurugram) — 2026-09-29
+
+Small, finite follow-up to the V2 closure work (per Prav's brief: NOT a new closure programme).
+Test case: Gyan Devi Public School Sr. Sec., Gurugram (`539a5a81-2b33-4484-97a4-bea05ab02611`,
+slug `gyan-devi-public-school-senior-secondary-school`).
+
+### A1 — Gyan Devi admissions data
+
+Inserted one `admission_cycles` row from the school's own official admissions page
+(`https://www.gyandevi.com/sec-17/admission.php`): academic_year `2026-27`, class_code `c1`
+(the school's own `min_class`, used as a representative row — the source describes entry as
+"Senior Secondary" / "All Classes upto sec." without a per-class breakdown, so
+`class_label_ambiguous=true` with a `class_label_note` states this explicitly rather than
+inventing a false per-class claim), status `open`, form_mode `both`, `opens_on`/`closes_on`
+left NULL (not published by the source — no date was invented), registration_fee ₹1,000,
+form_url = the school's real online registration link, notice_url = the admission page itself,
+source_type `official`, verification `source_verified`, verification_status `verified`,
+last_checked_at = now(). **Live-verified on production**: Admissions card now shows
+"2026-27 · Class 1 / Offline form · ₹1,000 / Application form ↗ / Source record checked"
+instead of the old "no cycle" fallback.
+
+### A2 — Gyan Devi affiliation/board
+
+Inserted one `school_affiliations` row: board_id → CBSE (id 1), affiliation_no `530150`,
+level `senior_secondary` (matches the existing convention used elsewhere in this table),
+valid_from `2027-04-01`, valid_to `2032-03-31`, source_id → SARAS (id 4). Dual-sourced:
+confirmed independently on both the school's own admission page ("CBSE-Affl No: 530150")
+and the official CBSE SARAS portal (`saras.cbse.gov.in/SARAS/AffiliatedList/AfflicationDetails/530150`
+— name, address, and affiliation window all match). **Live-verified on production**: School
+facts now show "Board: Central Board of Secondary Education / Affiliation no.: 530150".
+
+### A3 — Misleading unknown-state wording
+
+"Dates not announced" (and its close cousin "Dates not yet announced" in the Decision Strip)
+implied SchoolOye had checked the official source and confirmed no dates exist — usually untrue;
+it's SchoolOye's own knowledge gap. Replaced with **"Dates not yet published"** everywhere,
+matching the existing sitewide `NotYetPublished` idiom (`freshness-line.tsx`) rather than
+inventing new copy or one of the brief's own longer suggested sentences (this string is reused
+as a compact StatusPill badge across 16 files, so length mattered). Fixed at all 6 real call
+sites: `src/lib/deadline.ts` (`deadlineState`'s bottom text and `deadlineToPill`'s label),
+`src/lib/decision-strip.ts`'s `buildAdmissionsSlot` (found while tracing how A1's data would
+render — a 6th location the initial grep for the exact phrase "Dates not announced" missed),
+`src/app/[locale]/compare/page.tsx` (now reuses the existing `<NotYetPublished />` component
+directly), `src/app/[locale]/_views/entity-page.tsx`, and the `index.md` AI-crawler twin route.
+`src/lib/deadline.test.ts` updated to match. No status/behavior logic changed — copy only.
+Commit `935c06f`. typecheck/lint/tests all pass (144/144); production build hit the same
+sandbox-network font-fetch limitation noted in earlier passes (fonts.googleapis.com
+unreachable from this container), unrelated to the change.
+
+### A4 — Gurugram/Ambala header investigation
+
+Traced to `src/lib/city-preference.ts`: a deliberate, documented 1-year browsing-city cookie
+that drives the shared header's city picker, entirely independent of any individual school's
+own canonical location. **Live-verified this pass**: selected "Ambala" via the header dropdown
+on an Ambala school's page, then navigated to Gyan Devi's page — the header kept showing
+"Ambala" while the breadcrumb ("Haryana / Gurugram / Gyan Devi Public School Sr. Sec.") and
+the school's own facts line ("...Gurugram") correctly still showed Gurugram throughout.
+**Disposition: not a bug** — the canonical school entity's location was never replaced or
+contradicted anywhere on the page; only the unrelated global header preference persisted, which
+is its documented, intended behavior. No code change made (none was needed).
+
+### B1 — Publishability/indexing gate verification
+
+Read `listPublicSchoolsByDistrict`/`queryPublicSchools` (`src/lib/db/public-adapter.ts`),
+the sitemap generator (`src/lib/sitemap.ts`, which calls the same function), and
+`schoolMetadata()` (`entity-page.tsx`, no `robots` field at all). Confirmed: the only gate
+anywhere in this path is `schools.status = 'published'` (via `api.public_schools`) — no
+completeness threshold, no minimum-field check, no per-page `noindex`. This is exactly
+**D-119** as recorded elsewhere in this log ("a school is public purely by presence... not
+editorial gating") — a deliberate, dated, previously-locked architectural decision, not an
+oversight. Per the brief's own instruction ("if it works, record PASS and leave it alone" /
+"do not build a new scoring platform"): recording **PASS, by design**. Flag for Prav's
+awareness only (not a code action item): before further corpus expansion, he may want to
+explicitly reconfirm that binary publish-status remains the intended gate — but building any
+completeness scoring here now would itself violate this brief's own "do NOT build" list (C).
+
+### Disposition summary
+
+| Item | Disposition |
+|---|---|
+| A1 (admissions data) | **DONE** — live-verified on production |
+| A2 (affiliation/board) | **DONE** — live-verified on production |
+| A3 (wording fix) | **DONE** — committed `935c06f`, pushed; live once deployed |
+| A4 (Ambala header) | **DONE** — investigated, live-verified, not a bug |
+| B1 (indexing gate) | **DONE** — verified PASS by design (D-119); flagged for Prav's awareness only |
+
+Per the brief's closure rule: A1–A4 and B1 are clean, so this follow-up is complete. No
+broader School Detail Page backlog reopened; none of the explicitly-out-of-scope roadmap
+items (Section C) were touched.
