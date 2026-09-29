@@ -55,11 +55,15 @@ select
   st.name_en,
   (
     select count(*)::int from schools s
-    where s.district_id = any (array_agg(d.id)) and s.status = 'published'
+    where s.district_id = any (
+      array(select d2.id from districts d2 where d2.state_id = st.id)
+    ) and s.status = 'published'
   ),
   exists (
     select 1 from api.public_schools ps
-    where ps.district_id = any (array_agg(d.id))
+    where ps.district_id = any (
+      array(select d2.id from districts d2 where d2.state_id = st.id)
+    )
   ),
   min(d.id),
   st.slug,
