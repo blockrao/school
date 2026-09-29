@@ -2892,3 +2892,240 @@ assuming the identity layer was starting from zero:
 increment this session). `pnpm run typecheck` and `biome check .` both pass clean. `db:types`/
 `verify:views` not re-run — both require the migration/view to be live first; `verify:views`'s
 registry already updated with `api.public_field_evidence` ahead of that.
+
+## 2026-09-29 — Identity Layer Pilot & Closure: verification, pilot scoping, and a live production incident
+
+Full verification pass against the "SchoolOye — Identity Layer Pilot & Closure" 12-item brief.
+Per-item status (DONE / DEFERRED / N/A / BLOCKED), most important finding first:
+
+**0. A live P0 was caused by the previous increment's work, found and fixed by a different session
+mid-way through this one.** `31e0ae5` added `udise_code: z.string().nullable()` to
+`publicSchoolContract` ahead of the migration that would populate the column. `.nullable()` accepts
+an explicit `null` but not a *missing key*, and `api.public_schools` doesn't emit `udise_code` yet
+(migration unapplied) — so every row failed Zod parsing in production, 500-ing the homepage and
+`/schools` immediately after deploy. Fixed in `ced6185` (`.optional()` added) before this session
+resumed; confirmed live afterwards (`schooloye.com/` returns 200, page renders normally). Lesson
+applied going forward: a nullable column that a *later, human-gated* migration will populate needs
+`.nullable().optional()` from the start, not after the fact — the contract has to tolerate the
+column's absence for the entire window between "code deployed" and "migration confirmed by a human."
+
+**1. Apply and verify migration/view — BLOCKED (unchanged).** Confirmed live: `schools.udise_code`
+does not exist, `api.public_field_evidence` does not exist, `api.public_schools` does not expose
+`udise_code`. I cannot run `pnpm db:migrate ... --confirm` or `pnpm db:views --confirm` myself —
+`scripts/db-migrate.mjs`/`scripts/db-views.mjs` both refuse without `--confirm`, and their header
+comments are explicit that a human runs these. **Action needed from Prav:**
+```
+pnpm db:migrate 20260929100000_school_udise_identity.sql --confirm
+pnpm db:views --confirm
+```
+No other schema change is proposed alongside this — see item 6 for one that's flagged but
+deliberately not bundled in.
+
+**2. `public_field_evidence` semantics — DONE.**
+- A row = one (field, source) pair SchoolOye has an *open-licence* (publicly attributable) external
+  record for, for `entity_table='schools'` only. Not one row per possible fact — a field can have
+  zero rows (nothing open-licence sourced it) or several (multiple open sources reported it).
+- Columns exposed to the public schema: `school_id`, `field`, `evidence_url`, `created_at`,
+  `source_name`, `source_base_url`. Deliberately **not** exposed: the sourced `value` itself (see
+  item 6's flagged follow-up), `verified_at` (see below), `licence_class` (the view's WHERE clause
+  already filters to `'open'`, so every row a consumer sees is public-safe by construction — there's
+  nothing left to branch on downstream).
+- `created_at` is "when SchoolOye recorded this fact from this source" — an import timestamp, not a
+  claim about when the fact became true. Rendered by `SourceLine` as "added {date}", never "checked"
+  or "verified" — see `SourceLine`'s header comment for why this is a deliberately weaker claim than
+  `ProvenanceChip`'s.
+- `verified_at` is excluded from the view because it's null on all 61,895 open-licence rows in the
+  live corpus (bulk import, not an active checking event) — including it would either always render
+  blank or invite a future "just show it when it's set" shortcut that's one step from claiming a
+  verification that never happened. If a real verification event is ever recorded for a field
+  (`field_provenance.verified_at` actually set), that's the trigger to reconsider surfacing it — not
+  before.
+- Conflicting source evidence (two open sources reporting different values for the same field) is
+  **not collapsed at the `field_provenance` layer** — both rows persist untouched (see item 7's DAV
+  Public School example). It *is* implicitly resolved one level up, at the canonical
+  `schools.<field>` column, which holds a single value chosen by whatever upstream ETL logic wrote
+  it — that resolution isn't itself tracked or explained anywhere on the row. See item 6 for the
+  concrete display-layer consequence of this gap.
+- `public_field_evidence` is additive-only by design (Prav's and the brief's own framing): it never
+  substitutes for `schools.*`/`school_affiliations` as the canonical fact, and no code path treats
+  it as one — `SourceLine` is always rendered next to an already-displayed canonical value, never in
+  place of one.
+
+**3. UDISE identity implementation — partially DONE, rest BLOCKED on item 1.**
+Verified live (read-only), pre-migration:
+- Backfill predicate (`sources.code='udise' AND match_confidence=1.000 AND
+  match_method='udise_direct_lookup'`) yields 6,914 distinct schools, **6,914 distinct UDISE codes —
+  zero collisions.** The planned `UNIQUE INDEX ... WHERE udise_code IS NOT NULL` will apply cleanly.
+- Zero schools have more than one distinct exact-match UDISE code candidate — no ambiguous backfill
+  source to resolve.
+- Zero null/blank codes among backfill candidates.
+- Normalization: `split_part(sr.external_id, ':', 2)` on `external_id` values already gated to the
+  `udise:` scheme by the WHERE clause — confirmed no other scheme leaks through this predicate.
+- Coverage numbers *after* migration, and conflict behavior when two source_records genuinely
+  disagree on which UDISE code a school maps to (as opposed to duplicate-code collisions, checked
+  above) — BLOCKED on item 1.
+
+**4. Exact "identity + substance" query — DONE, with a correction to the previous report.**
+Operational definition (unchanged from `docs/ops/outreach-readiness-query.sql`, no new scoring
+system): `status='published' AND merged_into IS NULL AND (udise-exact-match OR
+school_affiliations.affiliation_no IS NOT NULL) AND address IS NOT NULL AND (min_class OR max_class)
+AND management IS NOT NULL`, scoped to the 24 areas actually wired into a `sitemap-<slug>.xml`
+route file (`LAUNCH_CITY_SLUGS`).
+
+**Correction:** the query I ran earlier this session, and `outreach-readiness-query.sql` as
+committed, filtered `districts.slug IN (..., 'delhi', ...)`. That literal district slug does not
+exist — Delhi is a city-state (`states.is_city_state`, `db/views/040_public_areas.sql`) whose 1,874
+schools sit under 9 real NCT district rows (new-delhi, north-delhi, north-west-delhi, west-delhi,
+central-delhi, south-west-delhi, south-delhi, east-delhi, north-east-delhi); `LAUNCH_CITY_SLUGS`'
+`"delhi"` entry resolves through `getPublicCityAreaBySlug` → `api.public_areas`'s city-state branch,
+not through `districts.slug`. So the query silently matched **zero** Delhi schools, and I reported
+"0 schools passing in Delhi" as if it were a finding about Delhi's data — it was a bug in the query.
+**The sitemap itself was never affected**: `buildCitySitemapResponse` already resolves `"delhi"`
+correctly via `api.public_areas`, so this was a reporting/tooling bug, not a live indexing gap.
+Fixed in `outreach-readiness-query.sql` (commit `6d1df7e`) to join through `states.is_city_state`.
+
+Corrected totals, 24 launched areas, live as of 29 Sep 2026:
+
+| Area | Published | Passing full bar |
+|---|---|---|
+| Total (23 Haryana districts + Delhi city-state + Jaipur) | 10,668 evaluated | **7,121 passing** |
+| Jaipur | 158 | **22** |
+| Haryana (23 districts combined) | — | 6,988 |
+| Delhi (9 NCT districts combined) | 1,184 | **111** (bottleneck: only 219/1,184 have a UDISE-exact match or CBSE affiliation number at all) |
+| Faridabad (largest single Haryana district) | 1,137 | 977 |
+| Charkhi Dadri (smallest) | 160 | 2 |
+
+Jaipur (22) and Delhi (111) are both weak relative to Haryana; Jaipur is weakest in absolute and
+relative terms (22/158 = 14%) and is where Prav is starting outreach, which is the real argument for
+running the pilot there first — unchanged from the earlier (differently-numbered) report, just now
+on corrected figures.
+
+**5. Identity projection verification — DONE, found and fixed a real defect.**
+Traced `schoolMetadata()` (title/meta), the H1 (`h1LocationSuffix`), and `webPageJsonLd.name`
+against 5 real published schools across Faridabad, Gurugram, Jaipur, and Rohtak (Delhi excluded from
+this specific check only because none of the 5 direct query hits happened to have both an address
+and a class range — not a Delhi-specific gap; see item 4's Delhi row above for that district's real
+numbers).
+
+Found: `webPageJsonLd.name` used a *different* area-label computation than `<title>` — one that
+picked locality **or** city (whichever existed), instead of the locality-**and**-city join `<title>`
+and the H1 both use. For any school with both a real locality and a city on file, the page's own
+`<title>` and its JSON-LD `WebPage.name` silently disagreed (e.g. title: "…, Sirsi Road, Jaipur —
+SchoolOye"; JSON-LD name: "…, Sirsi Road — SchoolOye") — exactly the "no independent page-level
+identity logic producing conflicting values" failure item 5 exists to catch. **Fixed** (commit
+`6d1df7e`): extracted `schoolAreaLabel()` to `src/lib/school-area-label.ts`, routed both call sites
+through it, added a regression test (`src/lib/school-area-label.test.ts`, 4 cases). Breadcrumbs, the
+`identifier` array, and `memberOf` were checked separately and are consistent (each already sourced
+directly from `schools`/`school_affiliations` with no parallel area-label-style computation).
+
+**6. Evidence display verification — DONE, one defect found and deliberately deferred (not fixed).**
+Confirmed live: `SourceLine` never renders the words "verified" or "checked", only "Source: {name} ·
+added {date}" — matches the LOCKED decision. Confirmed the Source/addition vs. SchoolOye-verification
+distinction actually holds for a real conflicting-evidence case (DAV Public School, Faridabad — see
+item 7): both a 1987 and a 2016 `established_year` provenance row exist, and neither is ever labelled
+"verified".
+
+**Defect found, not fixed this round:** `entity-page.tsx`'s `evidenceByField` map dedupes multiple
+provenance rows per field by keeping whichever has the latest `created_at` — but when two rows share
+the exact same `created_at` (true for the DAV Public School case: both rows were inserted in the
+same batch, identical timestamp to the microsecond), the tie-break falls to whatever order Postgres
+happens to return rows in, which is not guaranteed stable. Concretely: `schools.established_year`
+already resolved to one value (2016) upstream, but `SourceLine` could cite either the row that
+actually supports 2016 or the row that supports 1987 — a citation that may not match the number
+actually shown next to it. This is real but narrow: exactly 1 school in the entire live corpus has
+more than one distinct value for the same field in `field_provenance` today. **Not fixed here**
+because a correct fix needs `field_provenance.value` added to `public_field_evidence` (so the app can
+render evidence only when its value matches the canonical field, or show a "sources differ" state
+otherwise) — a second schema/view change, and item 1's migration/view aren't even applied yet.
+Recommendation: apply item 1 first, watch whether more schools develop this pattern as SARAS
+enrichment scales (item 8), and decide then whether it's worth a second, deliberate schema pass
+rather than bolting it onto an unrelated fix now.
+
+**7. Gyan Devi conflict test — could not be run as specified; ran the real equivalent instead.**
+Looked up "Gyan Devi Public School Sr. Sec.", Gurugram (`539a5a81-...`) directly: it has **no SARAS
+record at all**, matched or unmatched (checked both `sources.code IN ('saras','saras_archive')`, zero
+rows mention Gyan Devi by name). Its only two sources are Haryana School Education Dept. and UDISE+
+Know Your School, neither of which conflicts with the other on any field. The brief's named
+conflict (SARAS foundation year vs. other historical dates) does not exist in the live data for this
+specific school — SARAS ingestion for CBSE-affiliated schools generally has landed for only 376
+schools nationwide (`saras_archive`, `saras` itself has 15 records / 0 matched), and Gyan Devi isn't
+one of them yet.
+
+Rather than fabricate the scenario, I found the one school in the entire corpus that actually has
+this shape of conflict today: **D.A.V Public School, Faridabad** (`0e630a27-...`) has two
+`saras_archive` provenance rows for `established_year` — 1987 and 2016 — both still present, neither
+overwritten or merged (`schools.established_year` itself holds 2016, chosen upstream, but both
+source rows survive in `field_provenance`). This demonstrates the actual requirement ("preserve
+source semantics, don't collapse conflicting values") on real data, just not on the named school —
+and surfaces the item 6 defect above as a direct consequence.
+
+**8/9. Jaipur 50–100 school identity-resolution pilot and its measurement — DEFERRED, scope proposed
+below, not started.** This needs live lookups against SARAS (which blocks bots directly — confirmed
+in the prior session, `saras_archive`/Wayback is the only working route), CBSE, and each school's own
+website, for 50–100 real schools, with manual MATCHED/AMBIGUOUS/CONFLICTING/UNMATCHED judgment per
+school and no fuzzy auto-matching. That's a genuinely large, multi-hour manual-effort task — running
+it honestly (not simulating results) doesn't fit inside this pass alongside the other 10 items, and
+claiming otherwise would violate the same "don't fabricate" principle applied everywhere else in this
+report. Proposed real next step: a **10–15 school proof-of-concept** drawn from Jaipur's 22 schools
+that already pass the identity+substance bar (item 4) — small enough to run end-to-end in one
+focused session, large enough to validate the classification categories and surface real failure
+modes, and cheap to throw away if the process needs correcting before scaling to the full 50–100.
+Awaiting a decision on this scope before starting.
+
+**10. Search-readiness vertical slice — DEFERRED, partially checked.** GSC's own Pages/Coverage
+report was "still processing" as of Prav's last screenshot; not re-checked here since that requires
+Prav's own GSC login (no automated access to it from this session). A branded WebSearch check
+("schooloye Jaipur schools") returned no schooloye.com result at all — a weak, non-authoritative
+signal (this search tool isn't a direct proxy for Google, and a `site:schooloye.com` query returned
+unrelated results, confirming that operator isn't honored here) — worth noting but not to be treated
+as confirmed non-indexing. **Action needed from Prav:** check GSC's Pages report now (sitemap was
+submitted several days ago, so "processing" should have resolved) and, for a handful of the item 4
+Jaipur schools, run URL Inspection → Request Indexing manually. No ranking claim is made or implied
+anywhere in this entry.
+
+**11. Production hygiene gate — DONE, found one live issue.**
+- No QA/test News, Events, or Jobs rows found (`content_posts`, `school_events`, `school_jobs`
+  checked by title/slug/payload).
+- **Found: 2 published, publicly-reachable QA/test school fixtures**, both created today (29 Sep
+  2026, within hours of this session): `id=0ebcd31e-...`, name "SchoolOye QA Test Fixture (Not a Real
+  School)", slug `schooloye-qa-test-fixture`; `id=5cd3d31f-...`, name "Test Public School", slug
+  `test-public-school`. Both have `district_id IS NULL`, so neither appears in any
+  `sitemap-<slug>.xml` route or city/locality listing — contained blast radius — but both are
+  `status='published'` and reachable at their own canonical `/schools/<slug>` URL by anyone with the
+  link, which is exactly what this gate exists to catch. Not created by this session's work.
+  **I did not touch these rows** — per this engagement's standing rule, `execute_sql` is read-only
+  investigation only, never writes. **Action needed from Prav** (either, run directly):
+  ```sql
+  update schools set status = 'draft' where id in
+    ('0ebcd31e-79aa-4e44-9ec9-f6d6e094e53c', '5cd3d31f-f9b8-4c8f-8756-f5bd48fe7a83');
+  -- or, if nothing else references these rows:
+  delete from schools where id in
+    ('0ebcd31e-79aa-4e44-9ec9-f6d6e094e53c', '5cd3d31f-f9b8-4c8f-8756-f5bd48fe7a83');
+  ```
+- One canonical hostname / sitemap+canonical/JSON-LD host consistency: unchanged since `next.config.ts`
+  was last reviewed this session — Vercel owns apex/www redirection, app only redirects the
+  `*.vercel.app` preview alias; all canonical/JSON-LD/sitemap URLs are built from the same `siteUrl`.
+- No accidental `noindex`, no raw contact info in JSON-LD (Increment 11/SDP-04 already removed
+  phone/email from structured data), no identity contradiction between visible page and JSON-LD
+  beyond the item 5 defect (now fixed).
+- No regression: `pnpm test` 172/172 passing (was 168/168 before this entry — 4 new tests for
+  `schoolAreaLabel`), `tsc --noEmit` clean, `biome check .` clean, live homepage/`/schools` confirmed
+  200 post-hotfix.
+
+**12. This report.**
+
+---
+
+**Changed files this entry:** `docs/ops/outreach-readiness-query.sql`,
+`src/app/[locale]/_views/entity-page.tsx`, `src/lib/school-area-label.ts` (new),
+`src/lib/school-area-label.test.ts` (new). Committed as `6d1df7e` (on top of `ced6185`, the P0
+hotfix from a different session, and `31e0ae5`, the prior Identity & Search Presence Foundation v1
+increment). Pushed to `origin/main`.
+
+**Definition of DONE, against the brief's own bar:** not yet met. Items 1 (migration/view live), 3
+(post-migration coverage), 8/9 (real pilot), and 10 (observed indexing) are the blockers — all
+either need a human action (`--confirm` the migration, unpublish the 2 test fixtures, check GSC) or
+an explicit scope decision (the 10–15 school proof-of-concept above) before they can move past
+DEFERRED/BLOCKED. Everything answerable from existing code and live read-only data (items 2, 4, 5, 6,
+7, 11) is DONE, including one shipped fix (item 5) and two corrected reporting bugs (item 4's Delhi
+figure, and the P0 in item 0) that would otherwise have stood as wrong "facts" in this log.
