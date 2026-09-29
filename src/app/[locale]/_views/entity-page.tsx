@@ -1359,37 +1359,6 @@ export async function SchoolView({
               </dl>
             </section>
 
-            {/* UDISE Enrichment: Contact Information Section (29 Sep 2026) */}
-            {(school.email?.length || school.phone?.length) && (
-              <section aria-labelledby="contact-heading" className="flex flex-col gap-3">
-                <h2 id="contact-heading" className="font-display text-card font-semibold">
-                  Contact information
-                </h2>
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-body">
-                  {school.email && school.email.length > 0 && (
-                    <div>
-                      <dt className="text-meta font-semibold text-muted-ink">Email</dt>
-                      <dd>
-                        <a href={`mailto:${school.email[0]}`} className="text-ruled-blue hover:underline">
-                          {school.email[0]}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                  {school.phone && school.phone.length > 0 && (
-                    <div>
-                      <dt className="text-meta font-semibold text-muted-ink">Phone</dt>
-                      <dd>
-                        <a href={`tel:${school.phone[0]}`} className="text-ruled-blue hover:underline">
-                          {school.phone[0]}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </section>
-            )}
-
             <section
               aria-labelledby="admissions-heading"
               className={admissions.length > 0 ? "flex flex-col gap-3" : "flex items-center gap-2"}

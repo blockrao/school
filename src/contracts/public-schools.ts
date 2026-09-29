@@ -66,8 +66,15 @@ export const publicSchoolContract = z.object({
   address_state_code: z.string().nullable().optional(),
   address_pincode: z.string().nullable().optional(),
   address_source: z.string().nullable().optional(),
-  /** Enrichment Metadata (1 Oct 2026): when enrichment occurred and its freshness */
-  enriched_at: z.string().datetime().nullable().optional(),
+  /** Enrichment Metadata (1 Oct 2026): when enrichment occurred and its freshness.
+   * Plain `z.string()`, not `.datetime()` — PostgREST serializes `timestamptz` as
+   * "2026-09-29 00:00:00+00" (space separator, "+00" offset), which fails Zod's
+   * strict ISO-8601 `.datetime()` validator (it wants a literal "T" and, without
+   * `{ offset: true }`, a bare "Z"). That mismatch made `publicSchoolContract.parse()`
+   * throw for every row with a non-null enriched_at, taking down `/school/[slug]`
+   * and `/schools` with 500s (found 30 Sep 2026, matches `last_verified_at` below
+   * which was already a plain string for the same reason). */
+  enriched_at: z.string().nullable().optional(),
   /** Which sources (UDISE, CBSE_SARAS, etc.) contributed to enrichment */
   enrichment_sources: z.array(z.string()).nullable().optional(),
   /** Per-field data quality scores (0.0-1.0 confidence). Example: {"principal_name": 0.95} */
