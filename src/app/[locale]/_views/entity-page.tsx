@@ -44,14 +44,15 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
-import { EVENT_STATUS_LABEL, eventTemporalStatus } from "@/lib/event-status";
+import { EVENT_STATUS_LABEL } from "@/lib/event-status";
 import { normalizeExternalUrl } from "@/lib/external-url";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
-import { JOB_STATUS_LABEL, jobStatus } from "@/lib/job-status";
+import { JOB_STATUS_LABEL } from "@/lib/job-status";
 import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
+import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-activity";
 import { buildSchoolMetaDescription } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
 import {
@@ -120,6 +121,153 @@ function schoolOrgType(maxClass: string | null): string {
   if (maxNum != null && maxNum <= 5) return "ElementarySchool";
   if (maxNum != null && maxNum >= 9) return "HighSchool";
   return "School";
+}
+
+const activityDateFormat = { day: "numeric", month: "short", year: "numeric" } as const;
+
+/** One card in the "What's happening" feed (src/lib/school-activity.ts) — a
+ * News, Event or Job item, each still linking to its own domain's canonical
+ * page and carrying only fields that already exist on its row. The "Source"
+ * (event) and "Apply" (job) links are the one net-new bit here: both fields
+ * already existed on the query results but weren't surfaced on this page —
+ * same principle as News' existing Source link, not a new data source. */
+function ActivityFeedItem({ item, locale }: { item: SchoolActivityItem; locale: string }) {
+  const kindLabel: Record<SchoolActivityItem["kind"], string> = {
+    news: "News",
+    event: "Event",
+    job: "Job",
+  };
+  const kindPill = (
+    <span className="rounded-full border border-so-line2 bg-so-surface px-2 py-0.5 text-meta font-semibold text-so-ink3">
+      {kindLabel[item.kind]}
+    </span>
+  );
+
+  if (item.kind === "news") {
+    const post = item.data;
+    return (
+      <article className="flex flex-col gap-1 rounded-md border border-rule p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {kindPill}
+          <Link
+            href={newsPath(locale, post.post_slug)}
+            className="font-display font-semibold hover:text-ruled-blue"
+          >
+            {post.title}
+          </Link>
+          {post.kind === "press" && (
+            <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+              Press
+            </span>
+          )}
+          {post.tier !== "organic" && (
+            <span className="rounded-full border border-ruled-blue px-2 py-0.5 text-meta font-semibold text-ruled-blue">
+              {post.tier === "featured" ? "Featured" : "Press release"}
+            </span>
+          )}
+        </div>
+        <p className="text-body text-muted-ink">{post.body}</p>
+        <div className="flex items-center gap-2 text-meta text-muted-ink">
+          <span>{new Date(post.published_at).toLocaleDateString("en-IN", activityDateFormat)}</span>
+          {post.source_url && (
+            <>
+              <span>·</span>
+              <a
+                href={post.source_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="font-semibold text-ruled-blue"
+              >
+                Source ↗
+              </a>
+            </>
+          )}
+        </div>
+      </article>
+    );
+  }
+
+  if (item.kind === "event") {
+    const event = item.data;
+    return (
+      <article className="flex flex-col gap-1 rounded-md border border-rule p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {kindPill}
+          <Link
+            href={eventPath(locale, event.event_slug)}
+            className="font-display font-semibold hover:text-ruled-blue"
+          >
+            {event.title}
+          </Link>
+          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+            {EVENT_STATUS_LABEL[item.status]}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-meta text-muted-ink">
+          <span>{new Date(event.starts_at).toLocaleDateString("en-IN", activityDateFormat)}</span>
+          {event.location && (
+            <>
+              <span>·</span>
+              <span>{event.location}</span>
+            </>
+          )}
+          {event.source_url && (
+            <>
+              <span>·</span>
+              <a
+                href={event.source_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="font-semibold text-ruled-blue"
+              >
+                Source ↗
+              </a>
+            </>
+          )}
+        </div>
+      </article>
+    );
+  }
+
+  const job = item.data;
+  return (
+    <article className="flex flex-col gap-1 rounded-md border border-rule p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {kindPill}
+        <Link
+          href={jobPath(locale, job.job_slug)}
+          className="font-display font-semibold hover:text-ruled-blue"
+        >
+          {job.title}
+        </Link>
+        <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+          {JOB_STATUS_LABEL[item.status]}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-meta text-muted-ink">
+        {job.subject && <span>{job.subject}</span>}
+        {job.location && (
+          <>
+            {job.subject && <span>·</span>}
+            <span>{job.location}</span>
+          </>
+        )}
+        {job.apply_url && (
+          <>
+            {(job.subject || job.location) && <span>·</span>}
+            <a
+              href={job.apply_url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="font-semibold text-ruled-blue"
+            >
+              Apply ↗
+            </a>
+          </>
+        )}
+      </div>
+    </article>
+  );
 }
 
 function LocalityPageBody({
@@ -393,6 +541,13 @@ export async function SchoolView({
   ]);
   const similarSchools = similarSchoolsRaw.filter((s) => s.id !== school.id).slice(0, 4);
 
+  // High-leverage change #2 (29 Sep 2026) — "What's happening" merges News,
+  // Events and Jobs (already fetched above) into one ordered feed instead of
+  // three separate sections a parent has to scan past individually. Each
+  // domain's own model/provenance/canonical page is unchanged; this is a
+  // display-order projection only (see src/lib/school-activity.ts header).
+  const activity = buildSchoolActivityFeed(news, events, jobs, now);
+
   // Increment 10 — eligibility checker input. Mirrors exams/[slug]/page.tsx's
   // toEligibilityCycles exactly (same shape, same deadlineState/deadlineToPill use);
   // only cycles that actually carry a dob window render a checkable row. There's no
@@ -664,9 +819,7 @@ export async function SchoolView({
       label: "Recent updates",
       show: recentAdmissionUpdates.length > 0,
     },
-    { id: "news-heading", label: "News", show: news.length > 0 },
-    { id: "events-heading", label: "Events", show: events.length > 0 },
-    { id: "jobs-heading", label: "Jobs", show: jobs.length > 0 },
+    { id: "whats-happening-heading", label: "What's happening", show: activity.length > 0 },
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
     { id: "coverage-heading", label: "What SchoolOye knows", show: true },
@@ -1103,185 +1256,30 @@ export async function SchoolView({
               </section>
             )}
 
-            {/* Increment 10R — News, moved up from just-before-Coverage (flagged in the
-              Increment 10 audit as inconsistent with the design's "What's happening"
-              grouping, C19) to sit directly alongside Admissions/Recent admission
-              updates instead — the page's other "what's currently happening at this
-              school" content. This does not build the design's unified card or the
-              /events, /news hub routes it references (Events stays out of scope per
-              Prav's standing decision; a school-page-local News list is what's
-              authorized) — it only repositions the existing, unchanged News section
-              to a hierarchy position consistent with that grouping. Still renders
+            {/* High-leverage change #2 (29 Sep 2026) — "What's happening" replaces
+              the three separate News/Events/Jobs sections (Increment 10R had
+              already moved News up next to Admissions for exactly this reason,
+              C19) with one merged, ordered feed — src/lib/school-activity.ts.
+              Each item still links to its own domain's canonical page and
+              carries only real fields already on its row (see ActivityFeedItem
+              above); this only changes how the three lists are grouped and
+              ordered for display. Site-wide /events, /news and /jobs hub routes
+              now exist (built this session), so the "Events stays out of scope"
+              note this comment used to carry no longer applies. Still renders
               nothing when empty — no placeholder box. */}
-            {news.length > 0 && (
-              <section aria-labelledby="news-heading" className="flex flex-col gap-3">
-                <h2 id="news-heading" className="font-display text-card font-semibold">
-                  News
+            {activity.length > 0 && (
+              <section aria-labelledby="whats-happening-heading" className="flex flex-col gap-3">
+                <h2 id="whats-happening-heading" className="font-display text-card font-semibold">
+                  What&rsquo;s happening
                 </h2>
                 <div className="flex flex-col gap-3">
-                  {news.map((post) => (
-                    <article
-                      key={post.id}
-                      className="flex flex-col gap-1 rounded-md border border-rule p-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={newsPath(locale, post.post_slug)}
-                          className="font-display font-semibold hover:text-ruled-blue"
-                        >
-                          {post.title}
-                        </Link>
-                        {post.kind === "press" && (
-                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
-                            Press
-                          </span>
-                        )}
-                        {post.tier !== "organic" && (
-                          <span className="rounded-full border border-ruled-blue px-2 py-0.5 text-meta font-semibold text-ruled-blue">
-                            {post.tier === "featured" ? "Featured" : "Press release"}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-body text-muted-ink">{post.body}</p>
-                      <div className="flex items-center gap-2 text-meta text-muted-ink">
-                        <span>
-                          {new Date(post.published_at).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                        {post.source_url && (
-                          <>
-                            <span>·</span>
-                            <a
-                              href={post.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="font-semibold text-ruled-blue"
-                            >
-                              Source ↗
-                            </a>
-                          </>
-                        )}
-                      </div>
-                    </article>
+                  {activity.map((item) => (
+                    <ActivityFeedItem
+                      key={`${item.kind}-${item.data.id}`}
+                      item={item}
+                      locale={locale}
+                    />
                   ))}
-                </div>
-              </section>
-            )}
-
-            {/* SEO/GEO follow-up (29 Sep 2026): shows every event for this school
-              regardless of whether it has been (or ever will be) listed on the
-              site-wide /events aggregator — own-page visibility has no ops gate.
-              Always links to the event's own canonical page: getPublicEventByCode
-              resolves it the moment the event is live here too (fixed 29 Sep
-              2026 — it previously read the listing-gated aggregator view, so this
-              link 404'd for any event that hadn't separately been approved for
-              site-wide listing, i.e. most of them). listing_review only ever
-              gates the aggregator now, never this page's reachability. */}
-            {events.length > 0 && (
-              <section aria-labelledby="events-heading" className="flex flex-col gap-3">
-                <h2 id="events-heading" className="font-display text-card font-semibold">
-                  Events
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {events.map((event) => {
-                    const status = eventTemporalStatus(
-                      {
-                        startsAt: new Date(event.starts_at),
-                        endsAt: event.ends_at ? new Date(event.ends_at) : null,
-                        cancelledAt: event.cancelled_at ? new Date(event.cancelled_at) : null,
-                      },
-                      now,
-                    );
-                    return (
-                      <article
-                        key={event.id}
-                        className="flex flex-col gap-1 rounded-md border border-rule p-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={eventPath(locale, event.event_slug)}
-                            className="font-display font-semibold hover:text-ruled-blue"
-                          >
-                            {event.title}
-                          </Link>
-                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
-                            {EVENT_STATUS_LABEL[status]}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-meta text-muted-ink">
-                          <span>
-                            {new Date(event.starts_at).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </span>
-                          {event.location && (
-                            <>
-                              <span>·</span>
-                              <span>{event.location}</span>
-                            </>
-                          )}
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {jobs.length > 0 && (
-              <section aria-labelledby="jobs-heading" className="flex flex-col gap-3">
-                <h2 id="jobs-heading" className="font-display text-card font-semibold">
-                  Jobs
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {jobs.map((job) => {
-                    const status = jobStatus(
-                      {
-                        closesAt: job.closes_at ? new Date(job.closes_at) : null,
-                        filledAt: job.filled_at ? new Date(job.filled_at) : null,
-                        cancelledAt: job.cancelled_at ? new Date(job.cancelled_at) : null,
-                      },
-                      now,
-                    );
-                    // Same reasoning as the Events section above: always links
-                    // to the canonical /jobs/{slug} page — getPublicJobByCode
-                    // resolves it the moment the job is live here too (fixed 29
-                    // Sep 2026; it previously 404'd until separately approved
-                    // for site-wide listing). listing_review only gates the
-                    // aggregator now, never this page's reachability.
-                    return (
-                      <article
-                        key={job.id}
-                        className="flex flex-col gap-1 rounded-md border border-rule p-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={jobPath(locale, job.job_slug)}
-                            className="font-display font-semibold hover:text-ruled-blue"
-                          >
-                            {job.title}
-                          </Link>
-                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
-                            {JOB_STATUS_LABEL[status]}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-meta text-muted-ink">
-                          {job.subject && <span>{job.subject}</span>}
-                          {job.location && (
-                            <>
-                              {job.subject && <span>·</span>}
-                              <span>{job.location}</span>
-                            </>
-                          )}
-                        </div>
-                      </article>
-                    );
-                  })}
                 </div>
               </section>
             )}
