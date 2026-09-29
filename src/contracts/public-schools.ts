@@ -55,6 +55,17 @@ export const publicSchoolContract = z.object({
    * real values start flowing through unchanged — remove `.optional()` then
    * if you want the field to be a firm guarantee again. */
   udise_code: z.string().nullable().optional(),
+  /** UDISE Enrichment: Principal/Head Name (29 Sep 2026) — 100% coverage in UDISE data */
+  principal_name: z.string().nullable().optional(),
+  /** UDISE Enrichment: Structured address components (29 Sep 2026) */
+  address_street: z.string().nullable().optional(),
+  address_area: z.string().nullable().optional(),
+  address_city: z.string().nullable().optional(),
+  address_district: z.string().nullable().optional(),
+  address_state: z.string().nullable().optional(),
+  address_state_code: z.string().nullable().optional(),
+  address_pincode: z.string().nullable().optional(),
+  address_source: z.string().nullable().optional(),
 });
 
 /** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */

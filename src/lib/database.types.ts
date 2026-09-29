@@ -1,1 +1,5474 @@
-{"types":"export type Json =\n  | string\n  | number\n  | boolean\n  | null\n  | { [key: string]: Json | undefined }\n  | Json[]\n\nexport type Database = {\n  // Allows to automatically instantiate createClient with right options\n  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)\n  __InternalSupabase: {\n    PostgrestVersion: \"14.5\"\n  }\n  public: {\n    Tables: {\n      admission_cycles: {\n        Row: {\n          academic_year: string\n          application_steps: Json | null\n          class_code: string\n          class_label_ambiguous: boolean\n          class_label_note: string | null\n          closes_on: string | null\n          corrections: Json | null\n          dob_from: string | null\n          dob_to: string | null\n          documents_required: string[] | null\n          eligibility_notes_en: string | null\n          eligibility_notes_hi: string | null\n          exam_id: string | null\n          form_mode: Database[\"public\"][\"Enums\"][\"form_mode\"]\n          form_url: string | null\n          id: string\n          last_checked_at: string | null\n          late_fee_amount: number | null\n          notice_url: string | null\n          opens_on: string | null\n          pattern: Json | null\n          registration_fee: number | null\n          results_on: string | null\n          school_id: string | null\n          seats_total: number | null\n          selection_notes: string | null\n          source_type: Database[\"public\"][\"Enums\"][\"provenance_source_type\"]\n          status: Database[\"public\"][\"Enums\"][\"admission_status\"]\n          syllabus: Json | null\n          updated_at: string\n          verification: Database[\"public\"][\"Enums\"][\"verification_status\"]\n          verification_status: Database[\"public\"][\"Enums\"][\"verification_status_v2\"]\n          verified_at: string | null\n          verified_by: string | null\n        }\n        Insert: {\n          academic_year: string\n          application_steps?: Json | null\n          class_code: string\n          class_label_ambiguous?: boolean\n          class_label_note?: string | null\n          closes_on?: string | null\n          corrections?: Json | null\n          dob_from?: string | null\n          dob_to?: string | null\n          documents_required?: string[] | null\n          eligibility_notes_en?: string | null\n          eligibility_notes_hi?: string | null\n          exam_id?: string | null\n          form_mode?: Database[\"public\"][\"Enums\"][\"form_mode\"]\n          form_url?: string | null\n          id?: string\n          last_checked_at?: string | null\n          late_fee_amount?: number | null\n          notice_url?: string | null\n          opens_on?: string | null\n          pattern?: Json | null\n          registration_fee?: number | null\n          results_on?: string | null\n          school_id?: string | null\n          seats_total?: number | null\n          selection_notes?: string | null\n          source_type: Database[\"public\"][\"Enums\"][\"provenance_source_type\"]\n          status?: Database[\"public\"][\"Enums\"][\"admission_status\"]\n          syllabus?: Json | null\n          updated_at?: string\n          verification?: Database[\"public\"][\"Enums\"][\"verification_status\"]\n          verification_status: Database[\"public\"][\"Enums\"][\"verification_status_v2\"]\n          verified_at?: string | null\n          verified_by?: string | null\n        }\n        Update: {\n          academic_year?: string\n          application_steps?: Json | null\n          class_code?: string\n          class_label_ambiguous?: boolean\n          class_label_note?: string | null\n          closes_on?: string | null\n          corrections?: Json | null\n          dob_from?: string | null\n          dob_to?: string | null\n          documents_required?: string[] | null\n          eligibility_notes_en?: string | null\n          eligibility_notes_hi?: string | null\n          exam_id?: string | null\n          form_mode?: Database[\"public\"][\"Enums\"][\"form_mode\"]\n          form_url?: string | null\n          id?: string\n          last_checked_at?: string | null\n          late_fee_amount?: number | null\n          notice_url?: string | null\n          opens_on?: string | null\n          pattern?: Json | null\n          registration_fee?: number | null\n          results_on?: string | null\n          school_id?: string | null\n          seats_total?: number | null\n          selection_notes?: string | null\n          source_type?: Database[\"public\"][\"Enums\"][\"provenance_source_type\"]\n          status?: Database[\"public\"][\"Enums\"][\"admission_status\"]\n          syllabus?: Json | null\n          updated_at?: string\n          verification?: Database[\"public\"][\"Enums\"][\"verification_status\"]\n          verification_status?: Database[\"public\"][\"Enums\"][\"verification_status_v2\"]\n          verified_at?: string | null\n          verified_by?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"admission_cycles_class_code_fkey\"\n            columns: [\"class_code\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"admission_cycles_exam_id_fkey\"\n            columns: [\"exam_id\"]\n            isOneToOne: false\n            referencedRelation: \"exams\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"admission_cycles_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"admission_cycles_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      admission_leads: {\n        Row: {\n          academic_year: string\n          admission_cycle_id: string\n          class_code: string\n          consent_at: string\n          created_at: string\n          full_name: string | null\n          id: string\n          note: string | null\n          phone: string | null\n          school_id: string\n          status: Database[\"public\"][\"Enums\"][\"admission_lead_status\"]\n          status_updated_at: string | null\n          status_updated_by: string | null\n          user_id: string\n        }\n        Insert: {\n          academic_year: string\n          admission_cycle_id: string\n          class_code: string\n          consent_at?: string\n          created_at?: string\n          full_name?: string | null\n          id?: string\n          note?: string | null\n          phone?: string | null\n          school_id: string\n          status?: Database[\"public\"][\"Enums\"][\"admission_lead_status\"]\n          status_updated_at?: string | null\n          status_updated_by?: string | null\n          user_id: string\n        }\n        Update: {\n          academic_year?: string\n          admission_cycle_id?: string\n          class_code?: string\n          consent_at?: string\n          created_at?: string\n          full_name?: string | null\n          id?: string\n          note?: string | null\n          phone?: string | null\n          school_id?: string\n          status?: Database[\"public\"][\"Enums\"][\"admission_lead_status\"]\n          status_updated_at?: string | null\n          status_updated_by?: string | null\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"admission_leads_admission_cycle_id_fkey\"\n            columns: [\"admission_cycle_id\"]\n            isOneToOne: false\n            referencedRelation: \"admission_cycles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"admission_leads_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"admission_leads_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      admission_notices: {\n        Row: {\n          ai_extraction: Json | null\n          contains_personal_data: boolean\n          content_hash: string\n          discovered_at: string\n          exam_id: string | null\n          extraction: Json | null\n          extraction_confidence: number | null\n          extraction_model: string | null\n          id: string\n          page_kind: string | null\n          promoted_to_golden: boolean\n          retention_note: string | null\n          review: Database[\"public\"][\"Enums\"][\"review_status\"]\n          reviewed_at: string | null\n          reviewed_by: string | null\n          school_id: string | null\n          storage_path: string | null\n          url: string\n        }\n        Insert: {\n          ai_extraction?: Json | null\n          contains_personal_data?: boolean\n          content_hash: string\n          discovered_at?: string\n          exam_id?: string | null\n          extraction?: Json | null\n          extraction_confidence?: number | null\n          extraction_model?: string | null\n          id?: string\n          page_kind?: string | null\n          promoted_to_golden?: boolean\n          retention_note?: string | null\n          review?: Database[\"public\"][\"Enums\"][\"review_status\"]\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          school_id?: string | null\n          storage_path?: string | null\n          url: string\n        }\n        Update: {\n          ai_extraction?: Json | null\n          contains_personal_data?: boolean\n          content_hash?: string\n          discovered_at?: string\n          exam_id?: string | null\n          extraction?: Json | null\n          extraction_confidence?: number | null\n          extraction_model?: string | null\n          id?: string\n          page_kind?: string | null\n          promoted_to_golden?: boolean\n          retention_note?: string | null\n          review?: Database[\"public\"][\"Enums\"][\"review_status\"]\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          school_id?: string | null\n          storage_path?: string | null\n          url?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"admission_notices_exam_id_fkey\"\n            columns: [\"exam_id\"]\n            isOneToOne: false\n            referencedRelation: \"exams\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"admission_notices_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"admission_notices_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      alert_deliveries: {\n        Row: {\n          admission_cycle_id: string | null\n          clicked_at: string | null\n          delivered_at: string | null\n          failed_reason: string | null\n          id: number\n          kind: string\n          provider_message_id: string | null\n          sent_at: string | null\n          subscription_id: string | null\n          template: string | null\n        }\n        Insert: {\n          admission_cycle_id?: string | null\n          clicked_at?: string | null\n          delivered_at?: string | null\n          failed_reason?: string | null\n          id?: number\n          kind: string\n          provider_message_id?: string | null\n          sent_at?: string | null\n          subscription_id?: string | null\n          template?: string | null\n        }\n        Update: {\n          admission_cycle_id?: string | null\n          clicked_at?: string | null\n          delivered_at?: string | null\n          failed_reason?: string | null\n          id?: number\n          kind?: string\n          provider_message_id?: string | null\n          sent_at?: string | null\n          subscription_id?: string | null\n          template?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"alert_deliveries_admission_cycle_id_fkey\"\n            columns: [\"admission_cycle_id\"]\n            isOneToOne: false\n            referencedRelation: \"admission_cycles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"alert_deliveries_subscription_id_fkey\"\n            columns: [\"subscription_id\"]\n            isOneToOne: false\n            referencedRelation: \"alert_subscriptions\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      alert_subscriptions: {\n        Row: {\n          active: boolean\n          city_id: number\n          class_codes: string[]\n          created_at: string\n          exam_ids: string[]\n          id: string\n          language: string\n          phone: string\n          school_ids: string[]\n          user_id: string | null\n          utm: Json | null\n          whatsapp_opt_in_at: string | null\n        }\n        Insert: {\n          active?: boolean\n          city_id: number\n          class_codes?: string[]\n          created_at?: string\n          exam_ids?: string[]\n          id?: string\n          language?: string\n          phone: string\n          school_ids?: string[]\n          user_id?: string | null\n          utm?: Json | null\n          whatsapp_opt_in_at?: string | null\n        }\n        Update: {\n          active?: boolean\n          city_id?: number\n          class_codes?: string[]\n          created_at?: string\n          exam_ids?: string[]\n          id?: string\n          language?: string\n          phone?: string\n          school_ids?: string[]\n          user_id?: string | null\n          utm?: Json | null\n          whatsapp_opt_in_at?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"alert_subscriptions_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"alert_subscriptions_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"alert_subscriptions_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      analytics_events: {\n        Row: {\n          created_at: string\n          entity_id: string | null\n          entity_type: string | null\n          event_type: string\n          id: string\n          metadata: Json | null\n          school_id: string | null\n          user_id: string | null\n        }\n        Insert: {\n          created_at?: string\n          entity_id?: string | null\n          entity_type?: string | null\n          event_type: string\n          id?: string\n          metadata?: Json | null\n          school_id?: string | null\n          user_id?: string | null\n        }\n        Update: {\n          created_at?: string\n          entity_id?: string | null\n          entity_type?: string | null\n          event_type?: string\n          id?: string\n          metadata?: Json | null\n          school_id?: string | null\n          user_id?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"analytics_events_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"analytics_events_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      application_orders: {\n        Row: {\n          amount_inr: number\n          child_id: string\n          created_at: string\n          id: string\n          intake: Json | null\n          payment_ref: string | null\n          product_code: string\n          status: Database[\"public\"][\"Enums\"][\"order_status\"]\n          updated_at: string\n          user_id: string\n        }\n        Insert: {\n          amount_inr: number\n          child_id: string\n          created_at?: string\n          id?: string\n          intake?: Json | null\n          payment_ref?: string | null\n          product_code: string\n          status?: Database[\"public\"][\"Enums\"][\"order_status\"]\n          updated_at?: string\n          user_id: string\n        }\n        Update: {\n          amount_inr?: number\n          child_id?: string\n          created_at?: string\n          id?: string\n          intake?: Json | null\n          payment_ref?: string | null\n          product_code?: string\n          status?: Database[\"public\"][\"Enums\"][\"order_status\"]\n          updated_at?: string\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"application_orders_child_id_fkey\"\n            columns: [\"child_id\"]\n            isOneToOne: false\n            referencedRelation: \"children\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"application_orders_product_code_fkey\"\n            columns: [\"product_code\"]\n            isOneToOne: false\n            referencedRelation: \"products\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"application_orders_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      applications: {\n        Row: {\n          admission_cycle_id: string | null\n          id: string\n          next_action: string | null\n          next_action_due: string | null\n          notes: string | null\n          order_id: string | null\n          parent_approved_at: string | null\n          school_application_no: string | null\n          school_id: string\n          status: Database[\"public\"][\"Enums\"][\"application_status\"]\n          submitted_at: string | null\n          updated_at: string\n        }\n        Insert: {\n          admission_cycle_id?: string | null\n          id?: string\n          next_action?: string | null\n          next_action_due?: string | null\n          notes?: string | null\n          order_id?: string | null\n          parent_approved_at?: string | null\n          school_application_no?: string | null\n          school_id: string\n          status?: Database[\"public\"][\"Enums\"][\"application_status\"]\n          submitted_at?: string | null\n          updated_at?: string\n        }\n        Update: {\n          admission_cycle_id?: string | null\n          id?: string\n          next_action?: string | null\n          next_action_due?: string | null\n          notes?: string | null\n          order_id?: string | null\n          parent_approved_at?: string | null\n          school_application_no?: string | null\n          school_id?: string\n          status?: Database[\"public\"][\"Enums\"][\"application_status\"]\n          submitted_at?: string | null\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"applications_admission_cycle_id_fkey\"\n            columns: [\"admission_cycle_id\"]\n            isOneToOne: false\n            referencedRelation: \"admission_cycles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"applications_order_id_fkey\"\n            columns: [\"order_id\"]\n            isOneToOne: false\n            referencedRelation: \"application_orders\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"applications_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"applications_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      audit_log: {\n        Row: {\n          action: string\n          actor: string | null\n          actor_role: Database[\"public\"][\"Enums\"][\"user_role\"] | null\n          after: Json | null\n          at: string\n          before: Json | null\n          entity_id: string | null\n          entity_table: string | null\n          id: number\n        }\n        Insert: {\n          action: string\n          actor?: string | null\n          actor_role?: Database[\"public\"][\"Enums\"][\"user_role\"] | null\n          after?: Json | null\n          at?: string\n          before?: Json | null\n          entity_id?: string | null\n          entity_table?: string | null\n          id?: number\n        }\n        Update: {\n          action?: string\n          actor?: string | null\n          actor_role?: Database[\"public\"][\"Enums\"][\"user_role\"] | null\n          after?: Json | null\n          at?: string\n          before?: Json | null\n          entity_id?: string | null\n          entity_table?: string | null\n          id?: number\n        }\n        Relationships: []\n      }\n      boards: {\n        Row: {\n          aliases: string[]\n          code: string\n          id: number\n          name_en: string\n          name_hi: string | null\n        }\n        Insert: {\n          aliases?: string[]\n          code: string\n          id?: number\n          name_en: string\n          name_hi?: string | null\n        }\n        Update: {\n          aliases?: string[]\n          code?: string\n          id?: number\n          name_en?: string\n          name_hi?: string | null\n        }\n        Relationships: []\n      }\n      children: {\n        Row: {\n          city_id: number | null\n          created_at: string\n          current_school_text: string | null\n          date_of_birth: string\n          first_name: string\n          id: string\n          parent_id: string\n          target_class: string | null\n          target_year: string | null\n        }\n        Insert: {\n          city_id?: number | null\n          created_at?: string\n          current_school_text?: string | null\n          date_of_birth: string\n          first_name: string\n          id?: string\n          parent_id: string\n          target_class?: string | null\n          target_year?: string | null\n        }\n        Update: {\n          city_id?: number | null\n          created_at?: string\n          current_school_text?: string | null\n          date_of_birth?: string\n          first_name?: string\n          id?: string\n          parent_id?: string\n          target_class?: string | null\n          target_year?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"children_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"children_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"children_parent_id_fkey\"\n            columns: [\"parent_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n          {\n            foreignKeyName: \"children_target_class_fkey\"\n            columns: [\"target_class\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n        ]\n      }\n      cities: {\n        Row: {\n          centroid: unknown\n          district_id: number\n          id: number\n          is_launch: boolean\n          name_en: string\n          name_hi: string | null\n          slug: string\n        }\n        Insert: {\n          centroid?: unknown\n          district_id: number\n          id?: number\n          is_launch?: boolean\n          name_en: string\n          name_hi?: string | null\n          slug: string\n        }\n        Update: {\n          centroid?: unknown\n          district_id?: number\n          id?: number\n          is_launch?: boolean\n          name_en?: string\n          name_hi?: string | null\n          slug?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"cities_district_id_fkey\"\n            columns: [\"district_id\"]\n            isOneToOne: false\n            referencedRelation: \"districts\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      class_levels: {\n        Row: {\n          aliases: string[]\n          code: string\n          label_en: string\n          label_hi: string | null\n          sort_order: number\n        }\n        Insert: {\n          aliases?: string[]\n          code: string\n          label_en: string\n          label_hi?: string | null\n          sort_order: number\n        }\n        Update: {\n          aliases?: string[]\n          code?: string\n          label_en?: string\n          label_hi?: string | null\n          sort_order?: number\n        }\n        Relationships: []\n      }\n      consents: {\n        Row: {\n          channel: string\n          granted_at: string\n          id: number\n          notice_version: string\n          phone: string | null\n          purpose: Database[\"public\"][\"Enums\"][\"consent_purpose\"]\n          user_id: string | null\n          withdrawn_at: string | null\n        }\n        Insert: {\n          channel: string\n          granted_at?: string\n          id?: number\n          notice_version: string\n          phone?: string | null\n          purpose: Database[\"public\"][\"Enums\"][\"consent_purpose\"]\n          user_id?: string | null\n          withdrawn_at?: string | null\n        }\n        Update: {\n          channel?: string\n          granted_at?: string\n          id?: number\n          notice_version?: string\n          phone?: string | null\n          purpose?: Database[\"public\"][\"Enums\"][\"consent_purpose\"]\n          user_id?: string | null\n          withdrawn_at?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"consents_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      content_posts: {\n        Row: {\n          city_id: number | null\n          created_at: string\n          id: string\n          kind: string\n          language: string\n          payload: Json\n          published_channels: string[] | null\n          status: string\n        }\n        Insert: {\n          city_id?: number | null\n          created_at?: string\n          id?: string\n          kind: string\n          language?: string\n          payload: Json\n          published_channels?: string[] | null\n          status?: string\n        }\n        Update: {\n          city_id?: number | null\n          created_at?: string\n          id?: string\n          kind?: string\n          language?: string\n          payload?: Json\n          published_channels?: string[] | null\n          status?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"content_posts_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"content_posts_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      conversations: {\n        Row: {\n          created_at: string\n          id: string\n          initiator_id: string\n          last_message_at: string\n          teacher_id: string\n        }\n        Insert: {\n          created_at?: string\n          id?: string\n          initiator_id: string\n          last_message_at?: string\n          teacher_id: string\n        }\n        Update: {\n          created_at?: string\n          id?: string\n          initiator_id?: string\n          last_message_at?: string\n          teacher_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"conversations_teacher_id_fkey\"\n            columns: [\"teacher_id\"]\n            isOneToOne: false\n            referencedRelation: \"teachers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      correction_requests: {\n        Row: {\n          created_at: string\n          details: string | null\n          id: string\n          kind: string\n          requester: string\n          resolved_at: string | null\n          school_id: string | null\n          status: string\n        }\n        Insert: {\n          created_at?: string\n          details?: string | null\n          id?: string\n          kind: string\n          requester: string\n          resolved_at?: string | null\n          school_id?: string | null\n          status?: string\n        }\n        Update: {\n          created_at?: string\n          details?: string | null\n          id?: string\n          kind?: string\n          requester?: string\n          resolved_at?: string | null\n          school_id?: string | null\n          status?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"correction_requests_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"correction_requests_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      corridors: {\n        Row: {\n          aliases: string[]\n          centroid: unknown\n          id: number\n          name: string\n          name_hi: string | null\n          name_hi_status: string\n          slug: string\n        }\n        Insert: {\n          aliases?: string[]\n          centroid?: unknown\n          id?: number\n          name: string\n          name_hi?: string | null\n          name_hi_status?: string\n          slug: string\n        }\n        Update: {\n          aliases?: string[]\n          centroid?: unknown\n          id?: number\n          name?: string\n          name_hi?: string | null\n          name_hi_status?: string\n          slug?: string\n        }\n        Relationships: []\n      }\n      data_quality_flags: {\n        Row: {\n          created_at: string\n          detail: string | null\n          field: string | null\n          id: number\n          resolved: boolean\n          rule: string\n          school_id: string | null\n          source_record_id: number | null\n        }\n        Insert: {\n          created_at?: string\n          detail?: string | null\n          field?: string | null\n          id?: number\n          resolved?: boolean\n          rule: string\n          school_id?: string | null\n          source_record_id?: number | null\n        }\n        Update: {\n          created_at?: string\n          detail?: string | null\n          field?: string | null\n          id?: number\n          resolved?: boolean\n          rule?: string\n          school_id?: string | null\n          source_record_id?: number | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"data_quality_flags_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"data_quality_flags_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"data_quality_flags_source_record_id_fkey\"\n            columns: [\"source_record_id\"]\n            isOneToOne: false\n            referencedRelation: \"source_records\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      districts: {\n        Row: {\n          id: number\n          lgd_code: string | null\n          name_en: string\n          name_hi: string | null\n          slug: string\n          state_id: number\n        }\n        Insert: {\n          id?: number\n          lgd_code?: string | null\n          name_en: string\n          name_hi?: string | null\n          slug: string\n          state_id: number\n        }\n        Update: {\n          id?: number\n          lgd_code?: string | null\n          name_en?: string\n          name_hi?: string | null\n          slug?: string\n          state_id?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"districts_state_id_fkey\"\n            columns: [\"state_id\"]\n            isOneToOne: false\n            referencedRelation: \"states\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      documents: {\n        Row: {\n          child_id: string\n          deleted_at: string | null\n          id: string\n          kind: Database[\"public\"][\"Enums\"][\"doc_type\"]\n          retain_until: string\n          sha256: string\n          storage_path: string\n          uploaded_at: string\n        }\n        Insert: {\n          child_id: string\n          deleted_at?: string | null\n          id?: string\n          kind: Database[\"public\"][\"Enums\"][\"doc_type\"]\n          retain_until: string\n          sha256: string\n          storage_path: string\n          uploaded_at?: string\n        }\n        Update: {\n          child_id?: string\n          deleted_at?: string | null\n          id?: string\n          kind?: Database[\"public\"][\"Enums\"][\"doc_type\"]\n          retain_until?: string\n          sha256?: string\n          storage_path?: string\n          uploaded_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"documents_child_id_fkey\"\n            columns: [\"child_id\"]\n            isOneToOne: false\n            referencedRelation: \"children\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      enquiries: {\n        Row: {\n          billable: boolean\n          child_id: string | null\n          class_code: string | null\n          created_at: string\n          id: string\n          message: string | null\n          school_id: string\n          status: string\n          user_id: string | null\n        }\n        Insert: {\n          billable?: boolean\n          child_id?: string | null\n          class_code?: string | null\n          created_at?: string\n          id?: string\n          message?: string | null\n          school_id: string\n          status?: string\n          user_id?: string | null\n        }\n        Update: {\n          billable?: boolean\n          child_id?: string | null\n          class_code?: string | null\n          created_at?: string\n          id?: string\n          message?: string | null\n          school_id?: string\n          status?: string\n          user_id?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"enquiries_child_id_fkey\"\n            columns: [\"child_id\"]\n            isOneToOne: false\n            referencedRelation: \"children\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"enquiries_class_code_fkey\"\n            columns: [\"class_code\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"enquiries_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"enquiries_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"enquiries_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      events: {\n        Row: {\n          anon_id: string | null\n          at: string\n          city_id: number | null\n          class_code: string | null\n          id: number\n          name: string\n          props: Json | null\n          school_id: string | null\n          user_id: string | null\n          utm: Json | null\n        }\n        Insert: {\n          anon_id?: string | null\n          at?: string\n          city_id?: number | null\n          class_code?: string | null\n          id?: number\n          name: string\n          props?: Json | null\n          school_id?: string | null\n          user_id?: string | null\n          utm?: Json | null\n        }\n        Update: {\n          anon_id?: string | null\n          at?: string\n          city_id?: number | null\n          class_code?: string | null\n          id?: number\n          name?: string\n          props?: Json | null\n          school_id?: string | null\n          user_id?: string | null\n          utm?: Json | null\n        }\n        Relationships: []\n      }\n      exam_centres: {\n        Row: {\n          city_code: string\n          city_name: string\n          created_at: string\n          exam_id: string\n          id: string\n          state: string\n        }\n        Insert: {\n          city_code: string\n          city_name: string\n          created_at?: string\n          exam_id: string\n          id?: string\n          state: string\n        }\n        Update: {\n          city_code?: string\n          city_name?: string\n          created_at?: string\n          exam_id?: string\n          id?: string\n          state?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"exam_centres_exam_id_fkey\"\n            columns: [\"exam_id\"]\n            isOneToOne: false\n            referencedRelation: \"exams\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      exam_cycle_milestones: {\n        Row: {\n          created_at: string\n          cycle_id: string\n          detail_en: string | null\n          detail_hi: string | null\n          ends_on: string | null\n          id: string\n          label_en: string\n          label_hi: string | null\n          sort_order: number\n          starts_on: string | null\n        }\n        Insert: {\n          created_at?: string\n          cycle_id: string\n          detail_en?: string | null\n          detail_hi?: string | null\n          ends_on?: string | null\n          id?: string\n          label_en: string\n          label_hi?: string | null\n          sort_order?: number\n          starts_on?: string | null\n        }\n        Update: {\n          created_at?: string\n          cycle_id?: string\n          detail_en?: string | null\n          detail_hi?: string | null\n          ends_on?: string | null\n          id?: string\n          label_en?: string\n          label_hi?: string | null\n          sort_order?: number\n          starts_on?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"exam_cycle_milestones_cycle_id_fkey\"\n            columns: [\"cycle_id\"]\n            isOneToOne: false\n            referencedRelation: \"admission_cycles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      exam_fee_tiers: {\n        Row: {\n          amount: number\n          category_label_en: string\n          category_label_hi: string | null\n          created_at: string\n          cycle_id: string\n          id: string\n          sort_order: number\n        }\n        Insert: {\n          amount: number\n          category_label_en: string\n          category_label_hi?: string | null\n          created_at?: string\n          cycle_id: string\n          id?: string\n          sort_order?: number\n        }\n        Update: {\n          amount?: number\n          category_label_en?: string\n          category_label_hi?: string | null\n          created_at?: string\n          cycle_id?: string\n          id?: string\n          sort_order?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"exam_fee_tiers_cycle_id_fkey\"\n            columns: [\"cycle_id\"]\n            isOneToOne: false\n            referencedRelation: \"admission_cycles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      exam_participating_schools: {\n        Row: {\n          created_at: string\n          exam_id: string\n          id: string\n          name_en: string\n          name_hi: string | null\n          school_id: string | null\n          sort_order: number\n          state: string | null\n        }\n        Insert: {\n          created_at?: string\n          exam_id: string\n          id?: string\n          name_en: string\n          name_hi?: string | null\n          school_id?: string | null\n          sort_order?: number\n          state?: string | null\n        }\n        Update: {\n          created_at?: string\n          exam_id?: string\n          id?: string\n          name_en?: string\n          name_hi?: string | null\n          school_id?: string | null\n          sort_order?: number\n          state?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"exam_participating_schools_exam_id_fkey\"\n            columns: [\"exam_id\"]\n            isOneToOne: false\n            referencedRelation: \"exams\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"exam_participating_schools_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"exam_participating_schools_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      exam_reservation_splits: {\n        Row: {\n          created_at: string\n          cycle_id: string\n          group_label_en: string\n          group_label_hi: string | null\n          id: string\n          level: string\n          share_text: string\n          sort_order: number\n        }\n        Insert: {\n          created_at?: string\n          cycle_id: string\n          group_label_en: string\n          group_label_hi?: string | null\n          id?: string\n          level: string\n          share_text: string\n          sort_order?: number\n        }\n        Update: {\n          created_at?: string\n          cycle_id?: string\n          group_label_en?: string\n          group_label_hi?: string | null\n          id?: string\n          level?: string\n          share_text?: string\n          sort_order?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"exam_reservation_splits_cycle_id_fkey\"\n            columns: [\"cycle_id\"]\n            isOneToOne: false\n            referencedRelation: \"admission_cycles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      exams: {\n        Row: {\n          class_codes: string[]\n          conducting_body: string\n          created_at: string\n          helpdesk_email: string | null\n          helpdesk_phone: string | null\n          id: string\n          info_site_url: string | null\n          name_en: string\n          name_hi: string | null\n          official_site: string | null\n          slug: string\n        }\n        Insert: {\n          class_codes?: string[]\n          conducting_body: string\n          created_at?: string\n          helpdesk_email?: string | null\n          helpdesk_phone?: string | null\n          id?: string\n          info_site_url?: string | null\n          name_en: string\n          name_hi?: string | null\n          official_site?: string | null\n          slug: string\n        }\n        Update: {\n          class_codes?: string[]\n          conducting_body?: string\n          created_at?: string\n          helpdesk_email?: string | null\n          helpdesk_phone?: string | null\n          id?: string\n          info_site_url?: string | null\n          name_en?: string\n          name_hi?: string | null\n          official_site?: string | null\n          slug?: string\n        }\n        Relationships: []\n      }\n      facilities: {\n        Row: {\n          category: string | null\n          code: string\n          label_en: string\n          label_hi: string | null\n        }\n        Insert: {\n          category?: string | null\n          code: string\n          label_en: string\n          label_hi?: string | null\n        }\n        Update: {\n          category?: string | null\n          code?: string\n          label_en?: string\n          label_hi?: string | null\n        }\n        Relationships: []\n      }\n      featured_placements: {\n        Row: {\n          city_id: number\n          class_codes: string[] | null\n          created_at: string\n          ends_on: string\n          id: string\n          label: string\n          order_ref: string | null\n          placement: string\n          school_id: string\n          starts_on: string\n        }\n        Insert: {\n          city_id: number\n          class_codes?: string[] | null\n          created_at?: string\n          ends_on: string\n          id?: string\n          label?: string\n          order_ref?: string | null\n          placement: string\n          school_id: string\n          starts_on: string\n        }\n        Update: {\n          city_id?: number\n          class_codes?: string[] | null\n          created_at?: string\n          ends_on?: string\n          id?: string\n          label?: string\n          order_ref?: string | null\n          placement?: string\n          school_id?: string\n          starts_on?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"featured_placements_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"featured_placements_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"featured_placements_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"featured_placements_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      fee_items: {\n        Row: {\n          academic_year: string\n          amount_max: number | null\n          amount_min: number | null\n          class_code: string | null\n          component: string\n          frequency: string | null\n          id: string\n          school_id: string\n          updated_at: string\n          verification: Database[\"public\"][\"Enums\"][\"verification_status\"]\n        }\n        Insert: {\n          academic_year: string\n          amount_max?: number | null\n          amount_min?: number | null\n          class_code?: string | null\n          component: string\n          frequency?: string | null\n          id?: string\n          school_id: string\n          updated_at?: string\n          verification?: Database[\"public\"][\"Enums\"][\"verification_status\"]\n        }\n        Update: {\n          academic_year?: string\n          amount_max?: number | null\n          amount_min?: number | null\n          class_code?: string | null\n          component?: string\n          frequency?: string | null\n          id?: string\n          school_id?: string\n          updated_at?: string\n          verification?: Database[\"public\"][\"Enums\"][\"verification_status\"]\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"fee_items_class_code_fkey\"\n            columns: [\"class_code\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"fee_items_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"fee_items_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      field_provenance: {\n        Row: {\n          created_at: string\n          entity_id: string\n          entity_table: string\n          evidence_url: string | null\n          field: string\n          id: number\n          licence_class: string\n          source_id: number | null\n          source_record_id: number | null\n          value: Json | null\n          verified_at: string | null\n          verified_by: string | null\n        }\n        Insert: {\n          created_at?: string\n          entity_id: string\n          entity_table: string\n          evidence_url?: string | null\n          field: string\n          id?: number\n          licence_class?: string\n          source_id?: number | null\n          source_record_id?: number | null\n          value?: Json | null\n          verified_at?: string | null\n          verified_by?: string | null\n        }\n        Update: {\n          created_at?: string\n          entity_id?: string\n          entity_table?: string\n          evidence_url?: string | null\n          field?: string\n          id?: number\n          licence_class?: string\n          source_id?: number | null\n          source_record_id?: number | null\n          value?: Json | null\n          verified_at?: string | null\n          verified_by?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"field_provenance_source_id_fkey\"\n            columns: [\"source_id\"]\n            isOneToOne: false\n            referencedRelation: \"sources\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"field_provenance_source_record_id_fkey\"\n            columns: [\"source_record_id\"]\n            isOneToOne: false\n            referencedRelation: \"source_records\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      form_mappings: {\n        Row: {\n          academic_year: string\n          form_url: string | null\n          id: string\n          mapping: Json\n          notes: string | null\n          school_id: string\n          updated_at: string\n        }\n        Insert: {\n          academic_year: string\n          form_url?: string | null\n          id?: string\n          mapping: Json\n          notes?: string | null\n          school_id: string\n          updated_at?: string\n        }\n        Update: {\n          academic_year?: string\n          form_url?: string | null\n          id?: string\n          mapping?: Json\n          notes?: string | null\n          school_id?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"form_mappings_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"form_mappings_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      invoices: {\n        Row: {\n          amount_inr: number\n          customer_id: string\n          customer_type: string\n          gst_inr: number\n          gstin: string | null\n          id: string\n          issued_at: string\n          number: string\n          pdf_path: string | null\n        }\n        Insert: {\n          amount_inr: number\n          customer_id: string\n          customer_type: string\n          gst_inr: number\n          gstin?: string | null\n          id?: string\n          issued_at?: string\n          number: string\n          pdf_path?: string | null\n        }\n        Update: {\n          amount_inr?: number\n          customer_id?: string\n          customer_type?: string\n          gst_inr?: number\n          gstin?: string | null\n          id?: string\n          issued_at?: string\n          number?: string\n          pdf_path?: string | null\n        }\n        Relationships: []\n      }\n      landmarks: {\n        Row: {\n          id: number\n          locality_id: number | null\n          name: string\n          type: string | null\n        }\n        Insert: {\n          id?: number\n          locality_id?: number | null\n          name: string\n          type?: string | null\n        }\n        Update: {\n          id?: number\n          locality_id?: number | null\n          name?: string\n          type?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"landmarks_locality_id_fkey\"\n            columns: [\"locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      localities: {\n        Row: {\n          aliases: string[]\n          centroid: unknown\n          character_tags: string[] | null\n          city_id: number\n          description: string | null\n          enrichment_source: string | null\n          external_ref: string | null\n          id: number\n          micro_localities: string[] | null\n          name_en: string\n          name_hi: string | null\n          name_hi_status: string\n          nearby_locality_slugs: string[] | null\n          notable_landmarks: string[] | null\n          parent_locality_id: number | null\n          pincodes: string[] | null\n          slug: string\n          source: string | null\n          status: string\n          superseded_by_corridor_id: number | null\n          ward_name: string | null\n          ward_number: string | null\n          zone: string | null\n        }\n        Insert: {\n          aliases?: string[]\n          centroid?: unknown\n          character_tags?: string[] | null\n          city_id: number\n          description?: string | null\n          enrichment_source?: string | null\n          external_ref?: string | null\n          id?: number\n          micro_localities?: string[] | null\n          name_en: string\n          name_hi?: string | null\n          name_hi_status?: string\n          nearby_locality_slugs?: string[] | null\n          notable_landmarks?: string[] | null\n          parent_locality_id?: number | null\n          pincodes?: string[] | null\n          slug: string\n          source?: string | null\n          status?: string\n          superseded_by_corridor_id?: number | null\n          ward_name?: string | null\n          ward_number?: string | null\n          zone?: string | null\n        }\n        Update: {\n          aliases?: string[]\n          centroid?: unknown\n          character_tags?: string[] | null\n          city_id?: number\n          description?: string | null\n          enrichment_source?: string | null\n          external_ref?: string | null\n          id?: number\n          micro_localities?: string[] | null\n          name_en?: string\n          name_hi?: string | null\n          name_hi_status?: string\n          nearby_locality_slugs?: string[] | null\n          notable_landmarks?: string[] | null\n          parent_locality_id?: number | null\n          pincodes?: string[] | null\n          slug?: string\n          source?: string | null\n          status?: string\n          superseded_by_corridor_id?: number | null\n          ward_name?: string | null\n          ward_number?: string | null\n          zone?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"localities_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"localities_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"localities_parent_locality_id_fkey\"\n            columns: [\"parent_locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"localities_superseded_by_corridor_id_fkey\"\n            columns: [\"superseded_by_corridor_id\"]\n            isOneToOne: false\n            referencedRelation: \"corridors\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      locality_corridors: {\n        Row: {\n          corridor_id: number\n          locality_id: number\n        }\n        Insert: {\n          corridor_id: number\n          locality_id: number\n        }\n        Update: {\n          corridor_id?: number\n          locality_id?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"locality_corridors_corridor_id_fkey\"\n            columns: [\"corridor_id\"]\n            isOneToOne: false\n            referencedRelation: \"corridors\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"locality_corridors_locality_id_fkey\"\n            columns: [\"locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      locality_neighbors: {\n        Row: {\n          distance_meters: number | null\n          locality_id: number\n          method: string\n          neighbor_locality_id: number\n        }\n        Insert: {\n          distance_meters?: number | null\n          locality_id: number\n          method: string\n          neighbor_locality_id: number\n        }\n        Update: {\n          distance_meters?: number | null\n          locality_id?: number\n          method?: string\n          neighbor_locality_id?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"locality_neighbors_locality_id_fkey\"\n            columns: [\"locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"locality_neighbors_neighbor_locality_id_fkey\"\n            columns: [\"neighbor_locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      locality_pincodes: {\n        Row: {\n          locality_id: number\n          pincode: string\n        }\n        Insert: {\n          locality_id: number\n          pincode: string\n        }\n        Update: {\n          locality_id?: number\n          pincode?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"locality_pincodes_locality_id_fkey\"\n            columns: [\"locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      messages: {\n        Row: {\n          body: string\n          conversation_id: string\n          created_at: string\n          id: string\n          sender_id: string\n        }\n        Insert: {\n          body: string\n          conversation_id: string\n          created_at?: string\n          id?: string\n          sender_id: string\n        }\n        Update: {\n          body?: string\n          conversation_id?: string\n          created_at?: string\n          id?: string\n          sender_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"messages_conversation_id_fkey\"\n            columns: [\"conversation_id\"]\n            isOneToOne: false\n            referencedRelation: \"conversations\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      ops_tasks: {\n        Row: {\n          assignee: string | null\n          created_at: string\n          due_at: string | null\n          id: string\n          kind: Database[\"public\"][\"Enums\"][\"task_type\"]\n          outcome: string | null\n          payload: Json | null\n          priority: number\n          ref_id: string | null\n          ref_table: string | null\n          school_id: string | null\n          status: Database[\"public\"][\"Enums\"][\"task_status\"]\n          updated_at: string\n        }\n        Insert: {\n          assignee?: string | null\n          created_at?: string\n          due_at?: string | null\n          id?: string\n          kind: Database[\"public\"][\"Enums\"][\"task_type\"]\n          outcome?: string | null\n          payload?: Json | null\n          priority?: number\n          ref_id?: string | null\n          ref_table?: string | null\n          school_id?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"task_status\"]\n          updated_at?: string\n        }\n        Update: {\n          assignee?: string | null\n          created_at?: string\n          due_at?: string | null\n          id?: string\n          kind?: Database[\"public\"][\"Enums\"][\"task_type\"]\n          outcome?: string | null\n          payload?: Json | null\n          priority?: number\n          ref_id?: string | null\n          ref_table?: string | null\n          school_id?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"task_status\"]\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"ops_tasks_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"ops_tasks_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      products: {\n        Row: {\n          active: boolean\n          code: string\n          gst_rate: number\n          name: string\n          price_inr: number\n        }\n        Insert: {\n          active?: boolean\n          code: string\n          gst_rate?: number\n          name: string\n          price_inr: number\n        }\n        Update: {\n          active?: boolean\n          code?: string\n          gst_rate?: number\n          name?: string\n          price_inr?: number\n        }\n        Relationships: []\n      }\n      profiles: {\n        Row: {\n          created_at: string\n          email: string | null\n          full_name: string | null\n          home_city_id: number | null\n          language: string\n          phone: string | null\n          role: Database[\"public\"][\"Enums\"][\"user_role\"]\n          user_id: string\n        }\n        Insert: {\n          created_at?: string\n          email?: string | null\n          full_name?: string | null\n          home_city_id?: number | null\n          language?: string\n          phone?: string | null\n          role?: Database[\"public\"][\"Enums\"][\"user_role\"]\n          user_id: string\n        }\n        Update: {\n          created_at?: string\n          email?: string | null\n          full_name?: string | null\n          home_city_id?: number | null\n          language?: string\n          phone?: string | null\n          role?: Database[\"public\"][\"Enums\"][\"user_role\"]\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"profiles_home_city_id_fkey\"\n            columns: [\"home_city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"profiles_home_city_id_fkey\"\n            columns: [\"home_city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      rate_limits: {\n        Row: {\n          count: number\n          key: string\n          window_start: string\n        }\n        Insert: {\n          count?: number\n          key: string\n          window_start?: string\n        }\n        Update: {\n          count?: number\n          key?: string\n          window_start?: string\n        }\n        Relationships: []\n      }\n      sales_accounts: {\n        Row: {\n          last_contact_at: string | null\n          notes: string | null\n          owner: string | null\n          school_id: string\n          stage: string\n        }\n        Insert: {\n          last_contact_at?: string | null\n          notes?: string | null\n          owner?: string | null\n          school_id: string\n          stage?: string\n        }\n        Update: {\n          last_contact_at?: string | null\n          notes?: string | null\n          owner?: string | null\n          school_id?: string\n          stage?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"sales_accounts_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: true\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"sales_accounts_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: true\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      sales_activities: {\n        Row: {\n          actor: string | null\n          created_at: string\n          id: number\n          kind: string | null\n          notes: string | null\n          outcome: string | null\n          school_id: string | null\n        }\n        Insert: {\n          actor?: string | null\n          created_at?: string\n          id?: number\n          kind?: string | null\n          notes?: string | null\n          outcome?: string | null\n          school_id?: string | null\n        }\n        Update: {\n          actor?: string | null\n          created_at?: string\n          id?: number\n          kind?: string | null\n          notes?: string | null\n          outcome?: string | null\n          school_id?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"sales_activities_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"sales_activities_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      saras_mahendragarh: {\n        Row: {\n          address: string | null\n          affiliation_number: string | null\n          created_at: string | null\n          district: string | null\n          head_name: string | null\n          saras_id: number\n          saras_name: string | null\n          school_code: string | null\n          state: string | null\n          status: string | null\n          website: string | null\n        }\n        Insert: {\n          address?: string | null\n          affiliation_number?: string | null\n          created_at?: string | null\n          district?: string | null\n          head_name?: string | null\n          saras_id?: number\n          saras_name?: string | null\n          school_code?: string | null\n          state?: string | null\n          status?: string | null\n          website?: string | null\n        }\n        Update: {\n          address?: string | null\n          affiliation_number?: string | null\n          created_at?: string | null\n          district?: string | null\n          head_name?: string | null\n          saras_id?: number\n          saras_name?: string | null\n          school_code?: string | null\n          state?: string | null\n          status?: string | null\n          website?: string | null\n        }\n        Relationships: []\n      }\n      schema_migrations: {\n        Row: {\n          applied_at: string\n          filename: string\n        }\n        Insert: {\n          applied_at?: string\n          filename: string\n        }\n        Update: {\n          applied_at?: string\n          filename?: string\n        }\n        Relationships: []\n      }\n      school_affiliations: {\n        Row: {\n          affiliation_no: string | null\n          board_id: number\n          id: string\n          level: string | null\n          school_id: string\n          source_id: number | null\n          valid_from: string | null\n          valid_to: string | null\n        }\n        Insert: {\n          affiliation_no?: string | null\n          board_id: number\n          id?: string\n          level?: string | null\n          school_id: string\n          source_id?: number | null\n          valid_from?: string | null\n          valid_to?: string | null\n        }\n        Update: {\n          affiliation_no?: string | null\n          board_id?: number\n          id?: string\n          level?: string | null\n          school_id?: string\n          source_id?: number | null\n          valid_from?: string | null\n          valid_to?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_affiliations_board_id_fkey\"\n            columns: [\"board_id\"]\n            isOneToOne: false\n            referencedRelation: \"boards\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_affiliations_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_affiliations_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_affiliations_source_id_fkey\"\n            columns: [\"source_id\"]\n            isOneToOne: false\n            referencedRelation: \"sources\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_claims: {\n        Row: {\n          created_at: string\n          evidence: Json | null\n          id: string\n          method: string\n          reviewed_at: string | null\n          reviewed_by: string | null\n          school_id: string\n          status: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          user_id: string\n        }\n        Insert: {\n          created_at?: string\n          evidence?: Json | null\n          id?: string\n          method: string\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          school_id: string\n          status?: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          user_id: string\n        }\n        Update: {\n          created_at?: string\n          evidence?: Json | null\n          id?: string\n          method?: string\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          school_id?: string\n          status?: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_claims_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_claims_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_claims_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      school_events: {\n        Row: {\n          cancelled_at: string | null\n          class_codes: string[]\n          created_at: string\n          created_by: string | null\n          description: string | null\n          ends_at: string | null\n          event_code: number\n          event_type: Database[\"public\"][\"Enums\"][\"school_event_type\"]\n          id: string\n          listing_requested_at: string | null\n          listing_review: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at: string | null\n          listing_reviewed_by: string | null\n          location: string | null\n          registration_url: string | null\n          rejection_reason: string | null\n          school_id: string\n          slug: string\n          source_url: string | null\n          starts_at: string\n          title: string\n          updated_at: string\n        }\n        Insert: {\n          cancelled_at?: string | null\n          class_codes?: string[]\n          created_at?: string\n          created_by?: string | null\n          description?: string | null\n          ends_at?: string | null\n          event_code: number\n          event_type?: Database[\"public\"][\"Enums\"][\"school_event_type\"]\n          id?: string\n          listing_requested_at?: string | null\n          listing_review?: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at?: string | null\n          listing_reviewed_by?: string | null\n          location?: string | null\n          registration_url?: string | null\n          rejection_reason?: string | null\n          school_id: string\n          slug: string\n          source_url?: string | null\n          starts_at: string\n          title: string\n          updated_at?: string\n        }\n        Update: {\n          cancelled_at?: string | null\n          class_codes?: string[]\n          created_at?: string\n          created_by?: string | null\n          description?: string | null\n          ends_at?: string | null\n          event_code?: number\n          event_type?: Database[\"public\"][\"Enums\"][\"school_event_type\"]\n          id?: string\n          listing_requested_at?: string | null\n          listing_review?: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at?: string | null\n          listing_reviewed_by?: string | null\n          location?: string | null\n          registration_url?: string | null\n          rejection_reason?: string | null\n          school_id?: string\n          slug?: string\n          source_url?: string | null\n          starts_at?: string\n          title?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_events_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_events_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_facilities: {\n        Row: {\n          available: boolean\n          facility_code: string\n          notes: string | null\n          school_id: string\n        }\n        Insert: {\n          available: boolean\n          facility_code: string\n          notes?: string | null\n          school_id: string\n        }\n        Update: {\n          available?: boolean\n          facility_code?: string\n          notes?: string | null\n          school_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_facilities_facility_code_fkey\"\n            columns: [\"facility_code\"]\n            isOneToOne: false\n            referencedRelation: \"facilities\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"school_facilities_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_facilities_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_identifiers: {\n        Row: {\n          scheme: string\n          school_id: string\n          value: string\n        }\n        Insert: {\n          scheme: string\n          school_id: string\n          value: string\n        }\n        Update: {\n          scheme?: string\n          school_id?: string\n          value?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_identifiers_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_identifiers_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_jobs: {\n        Row: {\n          apply_email: string | null\n          apply_url: string | null\n          cancelled_at: string | null\n          class_codes: string[]\n          closes_at: string | null\n          created_at: string\n          created_by: string | null\n          description: string\n          employment_type: Database[\"public\"][\"Enums\"][\"job_employment_type\"]\n          experience_required: string | null\n          filled_at: string | null\n          id: string\n          job_code: number\n          listing_requested_at: string | null\n          listing_review: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at: string | null\n          listing_reviewed_by: string | null\n          location: string | null\n          rejection_reason: string | null\n          salary_range: string | null\n          school_id: string\n          slug: string\n          subject: string | null\n          title: string\n          updated_at: string\n        }\n        Insert: {\n          apply_email?: string | null\n          apply_url?: string | null\n          cancelled_at?: string | null\n          class_codes?: string[]\n          closes_at?: string | null\n          created_at?: string\n          created_by?: string | null\n          description: string\n          employment_type?: Database[\"public\"][\"Enums\"][\"job_employment_type\"]\n          experience_required?: string | null\n          filled_at?: string | null\n          id?: string\n          job_code: number\n          listing_requested_at?: string | null\n          listing_review?: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at?: string | null\n          listing_reviewed_by?: string | null\n          location?: string | null\n          rejection_reason?: string | null\n          salary_range?: string | null\n          school_id: string\n          slug: string\n          subject?: string | null\n          title: string\n          updated_at?: string\n        }\n        Update: {\n          apply_email?: string | null\n          apply_url?: string | null\n          cancelled_at?: string | null\n          class_codes?: string[]\n          closes_at?: string | null\n          created_at?: string\n          created_by?: string | null\n          description?: string\n          employment_type?: Database[\"public\"][\"Enums\"][\"job_employment_type\"]\n          experience_required?: string | null\n          filled_at?: string | null\n          id?: string\n          job_code?: number\n          listing_requested_at?: string | null\n          listing_review?: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at?: string | null\n          listing_reviewed_by?: string | null\n          location?: string | null\n          rejection_reason?: string | null\n          salary_range?: string | null\n          school_id?: string\n          slug?: string\n          subject?: string | null\n          title?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_jobs_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_jobs_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_media: {\n        Row: {\n          approved: boolean\n          created_at: string\n          external_url: string | null\n          id: string\n          kind: string\n          licence: string\n          school_id: string\n          storage_path: string | null\n        }\n        Insert: {\n          approved?: boolean\n          created_at?: string\n          external_url?: string | null\n          id?: string\n          kind: string\n          licence: string\n          school_id: string\n          storage_path?: string | null\n        }\n        Update: {\n          approved?: boolean\n          created_at?: string\n          external_url?: string | null\n          id?: string\n          kind?: string\n          licence?: string\n          school_id?: string\n          storage_path?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_media_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_media_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_members: {\n        Row: {\n          role: Database[\"public\"][\"Enums\"][\"school_member_role\"]\n          school_id: string\n          user_id: string\n        }\n        Insert: {\n          role?: Database[\"public\"][\"Enums\"][\"school_member_role\"]\n          school_id: string\n          user_id: string\n        }\n        Update: {\n          role?: Database[\"public\"][\"Enums\"][\"school_member_role\"]\n          school_id?: string\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_members_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_members_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_members_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      school_name_case_backup: {\n        Row: {\n          changed_at: string\n          old_name_en: string\n          school_id: string\n        }\n        Insert: {\n          changed_at?: string\n          old_name_en: string\n          school_id: string\n        }\n        Update: {\n          changed_at?: string\n          old_name_en?: string\n          school_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_name_case_backup_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: true\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_name_case_backup_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: true\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_posts: {\n        Row: {\n          body: string\n          created_at: string\n          created_by: string | null\n          id: string\n          kind: Database[\"public\"][\"Enums\"][\"post_kind\"]\n          listing_requested_at: string | null\n          listing_review: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at: string | null\n          listing_reviewed_by: string | null\n          post_code: number\n          published_at: string | null\n          rejection_reason: string | null\n          requested_tier: Database[\"public\"][\"Enums\"][\"post_tier\"] | null\n          review: Database[\"public\"][\"Enums\"][\"review_status\"]\n          reviewed_at: string | null\n          reviewed_by: string | null\n          school_id: string\n          slug: string\n          source_url: string | null\n          tier: Database[\"public\"][\"Enums\"][\"post_tier\"]\n          title: string\n          updated_at: string\n          withdrawn_at: string | null\n        }\n        Insert: {\n          body: string\n          created_at?: string\n          created_by?: string | null\n          id?: string\n          kind?: Database[\"public\"][\"Enums\"][\"post_kind\"]\n          listing_requested_at?: string | null\n          listing_review?: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at?: string | null\n          listing_reviewed_by?: string | null\n          post_code: number\n          published_at?: string | null\n          rejection_reason?: string | null\n          requested_tier?: Database[\"public\"][\"Enums\"][\"post_tier\"] | null\n          review?: Database[\"public\"][\"Enums\"][\"review_status\"]\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          school_id: string\n          slug: string\n          source_url?: string | null\n          tier?: Database[\"public\"][\"Enums\"][\"post_tier\"]\n          title: string\n          updated_at?: string\n          withdrawn_at?: string | null\n        }\n        Update: {\n          body?: string\n          created_at?: string\n          created_by?: string | null\n          id?: string\n          kind?: Database[\"public\"][\"Enums\"][\"post_kind\"]\n          listing_requested_at?: string | null\n          listing_review?: Database[\"public\"][\"Enums\"][\"review_status\"] | null\n          listing_reviewed_at?: string | null\n          listing_reviewed_by?: string | null\n          post_code?: number\n          published_at?: string | null\n          rejection_reason?: string | null\n          requested_tier?: Database[\"public\"][\"Enums\"][\"post_tier\"] | null\n          review?: Database[\"public\"][\"Enums\"][\"review_status\"]\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          school_id?: string\n          slug?: string\n          source_url?: string | null\n          tier?: Database[\"public\"][\"Enums\"][\"post_tier\"]\n          title?: string\n          updated_at?: string\n          withdrawn_at?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_posts_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_posts_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_rankings: {\n        Row: {\n          category: string\n          created_at: string\n          id: string\n          rank: number | null\n          school_id: string\n          score: number | null\n          source_id: number\n          year: number\n        }\n        Insert: {\n          category: string\n          created_at?: string\n          id?: string\n          rank?: number | null\n          school_id: string\n          score?: number | null\n          source_id: number\n          year: number\n        }\n        Update: {\n          category?: string\n          created_at?: string\n          id?: string\n          rank?: number | null\n          school_id?: string\n          score?: number | null\n          source_id?: number\n          year?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_rankings_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_rankings_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_rankings_source_id_fkey\"\n            columns: [\"source_id\"]\n            isOneToOne: false\n            referencedRelation: \"sources\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_slug_history: {\n        Row: {\n          changed_at: string\n          city_slug: string\n          old_slug: string\n          school_id: string\n        }\n        Insert: {\n          changed_at?: string\n          city_slug: string\n          old_slug: string\n          school_id: string\n        }\n        Update: {\n          changed_at?: string\n          city_slug?: string\n          old_slug?: string\n          school_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_slug_history_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_slug_history_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_slug_redirects: {\n        Row: {\n          created_at: string\n          reason: string\n          school_id: string\n          slug: string\n        }\n        Insert: {\n          created_at?: string\n          reason: string\n          school_id: string\n          slug: string\n        }\n        Update: {\n          created_at?: string\n          reason?: string\n          school_id?: string\n          slug?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_slug_redirects_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_slug_redirects_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      school_teacher_affiliations: {\n        Row: {\n          created_at: string\n          id: string\n          initiated_by: string\n          requested_by: string | null\n          responded_at: string | null\n          responded_by: string | null\n          school_id: string\n          status: Database[\"public\"][\"Enums\"][\"affiliation_status\"]\n          teacher_id: string\n          updated_at: string\n        }\n        Insert: {\n          created_at?: string\n          id?: string\n          initiated_by: string\n          requested_by?: string | null\n          responded_at?: string | null\n          responded_by?: string | null\n          school_id: string\n          status: Database[\"public\"][\"Enums\"][\"affiliation_status\"]\n          teacher_id: string\n          updated_at?: string\n        }\n        Update: {\n          created_at?: string\n          id?: string\n          initiated_by?: string\n          requested_by?: string | null\n          responded_at?: string | null\n          responded_by?: string | null\n          school_id?: string\n          status?: Database[\"public\"][\"Enums\"][\"affiliation_status\"]\n          teacher_id?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"school_teacher_affiliations_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_teacher_affiliations_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"school_teacher_affiliations_teacher_id_fkey\"\n            columns: [\"teacher_id\"]\n            isOneToOne: false\n            referencedRelation: \"teachers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      schools: {\n        Row: {\n          about_en: string | null\n          about_hi: string | null\n          address: string | null\n          address_area: string | null\n          address_city: string | null\n          address_district: string | null\n          address_pincode: string | null\n          address_source: string | null\n          address_state: string | null\n          address_state_code: string | null\n          address_street: string | null\n          affiliation_number: string | null\n          affiliation_prefix: string | null\n          affiliation_source_url: string | null\n          aliases: string[]\n          board: string | null\n          cbse_affiliation_verified: boolean | null\n          city_id: number | null\n          claim: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          completeness: number\n          corridor_id: number | null\n          created_at: string\n          district_id: number | null\n          edudel_zone: string | null\n          email: string[] | null\n          established_year: number | null\n          gender: Database[\"public\"][\"Enums\"][\"school_gender\"] | null\n          geocode_precision: string | null\n          id: string\n          last_verified_at: string | null\n          locality_assignment_method: string | null\n          locality_assignment_note: string | null\n          locality_id: number | null\n          location: unknown\n          management: Database[\"public\"][\"Enums\"][\"school_management\"] | null\n          max_class: string | null\n          medium: string[] | null\n          merged_into: string | null\n          min_class: string | null\n          name_en: string\n          name_hi: string | null\n          name_search: unknown\n          next_check_due: string | null\n          phone: string[] | null\n          pincode: string | null\n          principal_name: string | null\n          school_code: number\n          slug: string\n          source_type: Database[\"public\"][\"Enums\"][\"provenance_source_type\"]\n          state_code: string | null\n          status: Database[\"public\"][\"Enums\"][\"record_status\"]\n          tier: Database[\"public\"][\"Enums\"][\"school_tier\"]\n          udise_code: string | null\n          updated_at: string\n          verification: Database[\"public\"][\"Enums\"][\"verification_status\"]\n          verification_status: Database[\"public\"][\"Enums\"][\"verification_status_v2\"]\n          website: string | null\n        }\n        Insert: {\n          about_en?: string | null\n          about_hi?: string | null\n          address?: string | null\n          address_area?: string | null\n          address_city?: string | null\n          address_district?: string | null\n          address_pincode?: string | null\n          address_source?: string | null\n          address_state?: string | null\n          address_state_code?: string | null\n          address_street?: string | null\n          affiliation_number?: string | null\n          affiliation_prefix?: string | null\n          affiliation_source_url?: string | null\n          aliases?: string[]\n          board?: string | null\n          cbse_affiliation_verified?: boolean | null\n          city_id?: number | null\n          claim?: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          completeness?: number\n          corridor_id?: number | null\n          created_at?: string\n          district_id?: number | null\n          edudel_zone?: string | null\n          email?: string[] | null\n          established_year?: number | null\n          gender?: Database[\"public\"][\"Enums\"][\"school_gender\"] | null\n          geocode_precision?: string | null\n          id?: string\n          last_verified_at?: string | null\n          locality_assignment_method?: string | null\n          locality_assignment_note?: string | null\n          locality_id?: number | null\n          location?: unknown\n          management?: Database[\"public\"][\"Enums\"][\"school_management\"] | null\n          max_class?: string | null\n          medium?: string[] | null\n          merged_into?: string | null\n          min_class?: string | null\n          name_en: string\n          name_hi?: string | null\n          name_search?: unknown\n          next_check_due?: string | null\n          phone?: string[] | null\n          pincode?: string | null\n          principal_name?: string | null\n          school_code?: number\n          slug: string\n          source_type: Database[\"public\"][\"Enums\"][\"provenance_source_type\"]\n          state_code?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"record_status\"]\n          tier?: Database[\"public\"][\"Enums\"][\"school_tier\"]\n          udise_code?: string | null\n          updated_at?: string\n          verification?: Database[\"public\"][\"Enums\"][\"verification_status\"]\n          verification_status: Database[\"public\"][\"Enums\"][\"verification_status_v2\"]\n          website?: string | null\n        }\n        Update: {\n          about_en?: string | null\n          about_hi?: string | null\n          address?: string | null\n          address_area?: string | null\n          address_city?: string | null\n          address_district?: string | null\n          address_pincode?: string | null\n          address_source?: string | null\n          address_state?: string | null\n          address_state_code?: string | null\n          address_street?: string | null\n          affiliation_number?: string | null\n          affiliation_prefix?: string | null\n          affiliation_source_url?: string | null\n          aliases?: string[]\n          board?: string | null\n          cbse_affiliation_verified?: boolean | null\n          city_id?: number | null\n          claim?: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          completeness?: number\n          corridor_id?: number | null\n          created_at?: string\n          district_id?: number | null\n          edudel_zone?: string | null\n          email?: string[] | null\n          established_year?: number | null\n          gender?: Database[\"public\"][\"Enums\"][\"school_gender\"] | null\n          geocode_precision?: string | null\n          id?: string\n          last_verified_at?: string | null\n          locality_assignment_method?: string | null\n          locality_assignment_note?: string | null\n          locality_id?: number | null\n          location?: unknown\n          management?: Database[\"public\"][\"Enums\"][\"school_management\"] | null\n          max_class?: string | null\n          medium?: string[] | null\n          merged_into?: string | null\n          min_class?: string | null\n          name_en?: string\n          name_hi?: string | null\n          name_search?: unknown\n          next_check_due?: string | null\n          phone?: string[] | null\n          pincode?: string | null\n          principal_name?: string | null\n          school_code?: number\n          slug?: string\n          source_type?: Database[\"public\"][\"Enums\"][\"provenance_source_type\"]\n          state_code?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"record_status\"]\n          tier?: Database[\"public\"][\"Enums\"][\"school_tier\"]\n          udise_code?: string | null\n          updated_at?: string\n          verification?: Database[\"public\"][\"Enums\"][\"verification_status\"]\n          verification_status?: Database[\"public\"][\"Enums\"][\"verification_status_v2\"]\n          website?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"schools_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"active_cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_city_id_fkey\"\n            columns: [\"city_id\"]\n            isOneToOne: false\n            referencedRelation: \"cities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_corridor_id_fkey\"\n            columns: [\"corridor_id\"]\n            isOneToOne: false\n            referencedRelation: \"corridors\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_district_id_fkey\"\n            columns: [\"district_id\"]\n            isOneToOne: false\n            referencedRelation: \"districts\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_locality_id_fkey\"\n            columns: [\"locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_max_class_fkey\"\n            columns: [\"max_class\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"schools_merged_into_fkey\"\n            columns: [\"merged_into\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_merged_into_fkey\"\n            columns: [\"merged_into\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_min_class_fkey\"\n            columns: [\"min_class\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n        ]\n      }\n      schools_audit: {\n        Row: {\n          audit_type: string\n          created_at: string | null\n          description: string | null\n          difference: number | null\n          district_id: number | null\n          id: number\n          resolution_notes: string | null\n          resolved_at: string | null\n          reviewed_by: string | null\n          saras_expected_count: number | null\n          school_id: string | null\n          schooloye_actual_count: number | null\n          severity: string | null\n          suggested_action: string | null\n          updated_at: string | null\n        }\n        Insert: {\n          audit_type: string\n          created_at?: string | null\n          description?: string | null\n          difference?: number | null\n          district_id?: number | null\n          id?: number\n          resolution_notes?: string | null\n          resolved_at?: string | null\n          reviewed_by?: string | null\n          saras_expected_count?: number | null\n          school_id?: string | null\n          schooloye_actual_count?: number | null\n          severity?: string | null\n          suggested_action?: string | null\n          updated_at?: string | null\n        }\n        Update: {\n          audit_type?: string\n          created_at?: string | null\n          description?: string | null\n          difference?: number | null\n          district_id?: number | null\n          id?: number\n          resolution_notes?: string | null\n          resolved_at?: string | null\n          reviewed_by?: string | null\n          saras_expected_count?: number | null\n          school_id?: string | null\n          schooloye_actual_count?: number | null\n          severity?: string | null\n          suggested_action?: string | null\n          updated_at?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"schools_audit_district_id_fkey\"\n            columns: [\"district_id\"]\n            isOneToOne: false\n            referencedRelation: \"districts\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_audit_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"schools_audit_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      seat_status: {\n        Row: {\n          academic_year: string\n          class_code: string\n          confidence: Database[\"public\"][\"Enums\"][\"seat_confidence\"]\n          confirmed_at: string | null\n          exact_count: number | null\n          id: string\n          mid_session_accepted: boolean | null\n          public_status: Database[\"public\"][\"Enums\"][\"seat_public_status\"]\n          range_label: string | null\n          reported_at: string\n          reported_via: string | null\n          school_id: string\n        }\n        Insert: {\n          academic_year: string\n          class_code: string\n          confidence: Database[\"public\"][\"Enums\"][\"seat_confidence\"]\n          confirmed_at?: string | null\n          exact_count?: number | null\n          id?: string\n          mid_session_accepted?: boolean | null\n          public_status: Database[\"public\"][\"Enums\"][\"seat_public_status\"]\n          range_label?: string | null\n          reported_at?: string\n          reported_via?: string | null\n          school_id: string\n        }\n        Update: {\n          academic_year?: string\n          class_code?: string\n          confidence?: Database[\"public\"][\"Enums\"][\"seat_confidence\"]\n          confirmed_at?: string | null\n          exact_count?: number | null\n          id?: string\n          mid_session_accepted?: boolean | null\n          public_status?: Database[\"public\"][\"Enums\"][\"seat_public_status\"]\n          range_label?: string | null\n          reported_at?: string\n          reported_via?: string | null\n          school_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"seat_status_class_code_fkey\"\n            columns: [\"class_code\"]\n            isOneToOne: false\n            referencedRelation: \"class_levels\"\n            referencedColumns: [\"code\"]\n          },\n          {\n            foreignKeyName: \"seat_status_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"seat_status_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      shortlists: {\n        Row: {\n          child_id: string | null\n          created_at: string\n          school_id: string\n          user_id: string\n        }\n        Insert: {\n          child_id?: string | null\n          created_at?: string\n          school_id: string\n          user_id: string\n        }\n        Update: {\n          child_id?: string | null\n          created_at?: string\n          school_id?: string\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"shortlists_child_id_fkey\"\n            columns: [\"child_id\"]\n            isOneToOne: false\n            referencedRelation: \"children\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"shortlists_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"shortlists_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"shortlists_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      source_records: {\n        Row: {\n          content_hash: string\n          external_id: string\n          fetched_at: string\n          id: number\n          match_confidence: number | null\n          match_method: string | null\n          matched_school_id: string | null\n          payload: Json\n          source_id: number\n        }\n        Insert: {\n          content_hash: string\n          external_id: string\n          fetched_at?: string\n          id?: number\n          match_confidence?: number | null\n          match_method?: string | null\n          matched_school_id?: string | null\n          payload: Json\n          source_id: number\n        }\n        Update: {\n          content_hash?: string\n          external_id?: string\n          fetched_at?: string\n          id?: number\n          match_confidence?: number | null\n          match_method?: string | null\n          matched_school_id?: string | null\n          payload?: Json\n          source_id?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"source_records_source_id_fkey\"\n            columns: [\"source_id\"]\n            isOneToOne: false\n            referencedRelation: \"sources\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      sources: {\n        Row: {\n          base_url: string | null\n          code: string\n          id: number\n          licence_note: string | null\n          name: string\n          trust_rank: number\n        }\n        Insert: {\n          base_url?: string | null\n          code: string\n          id?: number\n          licence_note?: string | null\n          name: string\n          trust_rank?: number\n        }\n        Update: {\n          base_url?: string | null\n          code?: string\n          id?: number\n          licence_note?: string | null\n          name?: string\n          trust_rank?: number\n        }\n        Relationships: []\n      }\n      spatial_ref_sys: {\n        Row: {\n          auth_name: string | null\n          auth_srid: number | null\n          proj4text: string | null\n          srid: number\n          srtext: string | null\n        }\n        Insert: {\n          auth_name?: string | null\n          auth_srid?: number | null\n          proj4text?: string | null\n          srid: number\n          srtext?: string | null\n        }\n        Update: {\n          auth_name?: string | null\n          auth_srid?: number | null\n          proj4text?: string | null\n          srid?: number\n          srtext?: string | null\n        }\n        Relationships: []\n      }\n      states: {\n        Row: {\n          code: string\n          id: number\n          is_city_state: boolean\n          name_en: string\n          name_hi: string | null\n          slug: string\n        }\n        Insert: {\n          code: string\n          id?: number\n          is_city_state?: boolean\n          name_en: string\n          name_hi?: string | null\n          slug: string\n        }\n        Update: {\n          code?: string\n          id?: number\n          is_city_state?: boolean\n          name_en?: string\n          name_hi?: string | null\n          slug?: string\n        }\n        Relationships: []\n      }\n      teacher_claims: {\n        Row: {\n          created_at: string\n          evidence: Json | null\n          id: string\n          method: string\n          reviewed_at: string | null\n          reviewed_by: string | null\n          status: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          teacher_id: string\n          user_id: string\n        }\n        Insert: {\n          created_at?: string\n          evidence?: Json | null\n          id?: string\n          method: string\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          teacher_id: string\n          user_id: string\n        }\n        Update: {\n          created_at?: string\n          evidence?: Json | null\n          id?: string\n          method?: string\n          reviewed_at?: string | null\n          reviewed_by?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"claim_status\"]\n          teacher_id?: string\n          user_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"teacher_claims_reviewed_by_fkey\"\n            columns: [\"reviewed_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n          {\n            foreignKeyName: \"teacher_claims_teacher_id_fkey\"\n            columns: [\"teacher_id\"]\n            isOneToOne: false\n            referencedRelation: \"teachers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"teacher_claims_user_id_fkey\"\n            columns: [\"user_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      teacher_experience: {\n        Row: {\n          end_year: number | null\n          id: string\n          role_title: string\n          school_id: string | null\n          school_text: string | null\n          sort_order: number\n          start_year: number\n          teacher_id: string\n        }\n        Insert: {\n          end_year?: number | null\n          id?: string\n          role_title: string\n          school_id?: string | null\n          school_text?: string | null\n          sort_order?: number\n          start_year: number\n          teacher_id: string\n        }\n        Update: {\n          end_year?: number | null\n          id?: string\n          role_title?: string\n          school_id?: string | null\n          school_text?: string | null\n          sort_order?: number\n          start_year?: number\n          teacher_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"teacher_experience_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"teacher_experience_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"teacher_experience_teacher_id_fkey\"\n            columns: [\"teacher_id\"]\n            isOneToOne: false\n            referencedRelation: \"teachers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      teacher_qualifications: {\n        Row: {\n          detail: string | null\n          id: string\n          teacher_id: string\n          title: string\n          verified_at: string | null\n          verified_by: string | null\n        }\n        Insert: {\n          detail?: string | null\n          id?: string\n          teacher_id: string\n          title: string\n          verified_at?: string | null\n          verified_by?: string | null\n        }\n        Update: {\n          detail?: string | null\n          id?: string\n          teacher_id?: string\n          title?: string\n          verified_at?: string | null\n          verified_by?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"teacher_qualifications_teacher_id_fkey\"\n            columns: [\"teacher_id\"]\n            isOneToOne: false\n            referencedRelation: \"teachers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"teacher_qualifications_verified_by_fkey\"\n            columns: [\"verified_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n        ]\n      }\n      teachers: {\n        Row: {\n          about: string | null\n          claimed_by: string | null\n          created_at: string\n          full_name: string\n          headline: string | null\n          id: string\n          is_listed: boolean\n          level: string | null\n          locality_id: number | null\n          open_to: string[]\n          photo_storage_path: string | null\n          primary_school_id: string | null\n          slug: string\n          status: Database[\"public\"][\"Enums\"][\"record_status\"]\n          subject: string | null\n          teacher_code: number\n          updated_at: string\n          years_teaching: number | null\n        }\n        Insert: {\n          about?: string | null\n          claimed_by?: string | null\n          created_at?: string\n          full_name: string\n          headline?: string | null\n          id?: string\n          is_listed?: boolean\n          level?: string | null\n          locality_id?: number | null\n          open_to?: string[]\n          photo_storage_path?: string | null\n          primary_school_id?: string | null\n          slug: string\n          status?: Database[\"public\"][\"Enums\"][\"record_status\"]\n          subject?: string | null\n          teacher_code: number\n          updated_at?: string\n          years_teaching?: number | null\n        }\n        Update: {\n          about?: string | null\n          claimed_by?: string | null\n          created_at?: string\n          full_name?: string\n          headline?: string | null\n          id?: string\n          is_listed?: boolean\n          level?: string | null\n          locality_id?: number | null\n          open_to?: string[]\n          photo_storage_path?: string | null\n          primary_school_id?: string | null\n          slug?: string\n          status?: Database[\"public\"][\"Enums\"][\"record_status\"]\n          subject?: string | null\n          teacher_code?: number\n          updated_at?: string\n          years_teaching?: number | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"teachers_claimed_by_fkey\"\n            columns: [\"claimed_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"user_id\"]\n          },\n          {\n            foreignKeyName: \"teachers_locality_id_fkey\"\n            columns: [\"locality_id\"]\n            isOneToOne: false\n            referencedRelation: \"localities\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"teachers_primary_school_id_fkey\"\n            columns: [\"primary_school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"teachers_primary_school_id_fkey\"\n            columns: [\"primary_school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      update_reports: {\n        Row: {\n          attachment_path: string | null\n          contact: string | null\n          created_at: string\n          id: string\n          message: string\n          reporter_id: string | null\n          reporter_type: string\n          school_id: string | null\n          status: Database[\"public\"][\"Enums\"][\"review_status\"]\n        }\n        Insert: {\n          attachment_path?: string | null\n          contact?: string | null\n          created_at?: string\n          id?: string\n          message: string\n          reporter_id?: string | null\n          reporter_type: string\n          school_id?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"review_status\"]\n        }\n        Update: {\n          attachment_path?: string | null\n          contact?: string | null\n          created_at?: string\n          id?: string\n          message?: string\n          reporter_id?: string | null\n          reporter_type?: string\n          school_id?: string | null\n          status?: Database[\"public\"][\"Enums\"][\"review_status\"]\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"update_reports_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"update_reports_school_id_fkey\"\n            columns: [\"school_id\"]\n            isOneToOne: false\n            referencedRelation: \"schools_missing_affiliation\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n    }\n    Views: {\n      active_cities: {\n        Row: {\n          id: number | null\n          name_en: string | null\n          school_count: number | null\n          slug: string | null\n          state_id: number | null\n          state_slug: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"districts_state_id_fkey\"\n            columns: [\"state_id\"]\n            isOneToOne: false\n            referencedRelation: \"states\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      geography_columns: {\n        Row: {\n          coord_dimension: number | null\n          f_geography_column: unknown\n          f_table_catalog: unknown\n          f_table_name: unknown\n          f_table_schema: unknown\n          srid: number | null\n          type: string | null\n        }\n        Relationships: []\n      }\n      geometry_columns: {\n        Row: {\n          coord_dimension: number | null\n          f_geometry_column: unknown\n          f_table_catalog: string | null\n          f_table_name: unknown\n          f_table_schema: unknown\n          srid: number | null\n          type: string | null\n        }\n        Insert: {\n          coord_dimension?: number | null\n          f_geometry_column?: unknown\n          f_table_catalog?: string | null\n          f_table_name?: unknown\n          f_table_schema?: unknown\n          srid?: number | null\n          type?: string | null\n        }\n        Update: {\n          coord_dimension?: number | null\n          f_geometry_column?: unknown\n          f_table_catalog?: string | null\n          f_table_name?: unknown\n          f_table_schema?: unknown\n          srid?: number | null\n          type?: string | null\n        }\n        Relationships: []\n      }\n      schools_audit_summary: {\n        Row: {\n          audit_type: string | null\n          district_name: string | null\n          issue_count: number | null\n          last_issue_date: string | null\n          pending_count: number | null\n          resolved_count: number | null\n        }\n        Relationships: []\n      }\n      schools_coverage_summary: {\n        Row: {\n          affiliation_coverage_pct: number | null\n          district_name: string | null\n          schools_with_affiliation: number | null\n          schools_without_affiliation: number | null\n          state_id: number | null\n          total_schools: number | null\n          verified_cbse_schools: number | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"districts_state_id_fkey\"\n            columns: [\"state_id\"]\n            isOneToOne: false\n            referencedRelation: \"states\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      schools_duplicates_by_affiliation: {\n        Row: {\n          affiliation_number: string | null\n          count_in_district: number | null\n          district_name: string | null\n          school_ids: string[] | null\n          school_names: string[] | null\n          state_code: string | null\n        }\n        Relationships: []\n      }\n      schools_missing_affiliation: {\n        Row: {\n          board: string | null\n          city_name: string | null\n          created_at: string | null\n          district_name: string | null\n          id: string | null\n          management: Database[\"public\"][\"Enums\"][\"school_management\"] | null\n          name_en: string | null\n          name_hi: string | null\n          udise_code: string | null\n        }\n        Relationships: []\n      }\n    }\n    Functions: {\n      _postgis_deprecate: {\n        Args: { newname: string; oldname: string; version: string }\n        Returns: undefined\n      }\n      _postgis_index_extent: {\n        Args: { col: string; tbl: unknown }\n        Returns: unknown\n      }\n      _postgis_pgsql_version: { Args: never; Returns: string }\n      _postgis_scripts_pgsql_version: { Args: never; Returns: string }\n      _postgis_selectivity: {\n        Args: { att_name: string; geom: unknown; mode?: string; tbl: unknown }\n        Returns: number\n      }\n      _postgis_stats: {\n        Args: { \"\"?: string; att_name: string; tbl: unknown }\n        Returns: string\n      }\n      _st_3dintersects: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_contains: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_containsproperly: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_coveredby:\n        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      _st_covers:\n        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      _st_crosses: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_dwithin: {\n        Args: {\n          geog1: unknown\n          geog2: unknown\n          tolerance: number\n          use_spheroid?: boolean\n        }\n        Returns: boolean\n      }\n      _st_equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      _st_intersects: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_linecrossingdirection: {\n        Args: { line1: unknown; line2: unknown }\n        Returns: number\n      }\n      _st_longestline: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      _st_maxdistance: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      _st_orderingequals: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_overlaps: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_sortablehash: { Args: { geom: unknown }; Returns: number }\n      _st_touches: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      _st_voronoi: {\n        Args: {\n          clip?: unknown\n          g1: unknown\n          return_polygons?: boolean\n          tolerance?: number\n        }\n        Returns: unknown\n      }\n      _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      addauth: { Args: { \"\": string }; Returns: boolean }\n      addgeometrycolumn:\n        | {\n            Args: {\n              catalog_name: string\n              column_name: string\n              new_dim: number\n              new_srid_in: number\n              new_type: string\n              schema_name: string\n              table_name: string\n              use_typmod?: boolean\n            }\n            Returns: string\n          }\n        | {\n            Args: {\n              column_name: string\n              new_dim: number\n              new_srid: number\n              new_type: string\n              schema_name: string\n              table_name: string\n              use_typmod?: boolean\n            }\n            Returns: string\n          }\n        | {\n            Args: {\n              column_name: string\n              new_dim: number\n              new_srid: number\n              new_type: string\n              table_name: string\n              use_typmod?: boolean\n            }\n            Returns: string\n          }\n      approve_application: {\n        Args: { p_application_id: string }\n        Returns: undefined\n      }\n      check_rate_limit: {\n        Args: {\n          p_key: string\n          p_max_attempts: number\n          p_window_seconds: number\n        }\n        Returns: boolean\n      }\n      create_application_order: {\n        Args: { p_child_id: string; p_product_code: string }\n        Returns: string\n      }\n      current_role_is: {\n        Args: { r: Database[\"public\"][\"Enums\"][\"user_role\"] }\n        Returns: boolean\n      }\n      current_user_role: {\n        Args: never\n        Returns: Database[\"public\"][\"Enums\"][\"user_role\"]\n      }\n      daitch_mokotoff: { Args: { \"\": string }; Returns: string[] }\n      disablelongtransactions: { Args: never; Returns: string }\n      dmetaphone: { Args: { \"\": string }; Returns: string }\n      dmetaphone_alt: { Args: { \"\": string }; Returns: string }\n      dropgeometrycolumn:\n        | {\n            Args: {\n              catalog_name: string\n              column_name: string\n              schema_name: string\n              table_name: string\n            }\n            Returns: string\n          }\n        | {\n            Args: {\n              column_name: string\n              schema_name: string\n              table_name: string\n            }\n            Returns: string\n          }\n        | { Args: { column_name: string; table_name: string }; Returns: string }\n      dropgeometrytable:\n        | {\n            Args: {\n              catalog_name: string\n              schema_name: string\n              table_name: string\n            }\n            Returns: string\n          }\n        | { Args: { schema_name: string; table_name: string }; Returns: string }\n        | { Args: { table_name: string }; Returns: string }\n      enablelongtransactions: { Args: never; Returns: string }\n      equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      event_slug: { Args: { p_code: number; p_title: string }; Returns: string }\n      fix_school_display_name: { Args: { input: string }; Returns: string }\n      fuzzy_candidates_in_districts: {\n        Args: { p_district_ids: number[]; p_limit?: number; p_name: string }\n        Returns: {\n          address: string\n          id: string\n          name_en: string\n          pincode: string\n          sim: number\n        }[]\n      }\n      geometry: { Args: { \"\": string }; Returns: unknown }\n      geometry_above: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_below: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_cmp: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      geometry_contained_3d: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_contains: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_contains_3d: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_distance_box: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      geometry_distance_centroid: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      geometry_eq: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_ge: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_gt: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_le: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_left: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_lt: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_overabove: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_overbelow: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_overlaps: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_overlaps_3d: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_overleft: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_overright: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_right: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_same: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_same_3d: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geometry_within: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      geomfromewkt: { Args: { \"\": string }; Returns: unknown }\n      get_state_code_from_affiliation: {\n        Args: { affiliation_number: string }\n        Returns: string\n      }\n      gettransactionid: { Args: never; Returns: unknown }\n      is_reserved_school_slug: { Args: { candidate: string }; Returns: boolean }\n      is_school_admin: { Args: { sid: string }; Returns: boolean }\n      is_school_member: { Args: { sid: string }; Returns: boolean }\n      is_staff: { Args: never; Returns: boolean }\n      job_slug: { Args: { p_code: number; p_title: string }; Returns: string }\n      longtransactionsenabled: { Args: never; Returns: boolean }\n      mark_order_paid: {\n        Args: { p_order_id: string; p_payment_ref: string }\n        Returns: undefined\n      }\n      mint_event_code: { Args: never; Returns: number }\n      mint_job_code: { Args: never; Returns: number }\n      mint_post_code: { Args: never; Returns: number }\n      mint_school_slug: {\n        Args: {\n          p_district_id: number\n          p_locality_id: number\n          p_name: string\n          p_self_id: string\n        }\n        Returns: string\n      }\n      mint_teacher_code: { Args: never; Returns: number }\n      normalize_school_name: { Args: { input: string }; Returns: string }\n      populate_geometry_columns:\n        | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }\n        | { Args: { use_typmod?: boolean }; Returns: string }\n      post_slug: { Args: { p_code: number; p_title: string }; Returns: string }\n      postgis_constraint_dims: {\n        Args: { geomcolumn: string; geomschema: string; geomtable: string }\n        Returns: number\n      }\n      postgis_constraint_srid: {\n        Args: { geomcolumn: string; geomschema: string; geomtable: string }\n        Returns: number\n      }\n      postgis_constraint_type: {\n        Args: { geomcolumn: string; geomschema: string; geomtable: string }\n        Returns: string\n      }\n      postgis_extensions_upgrade: { Args: never; Returns: string }\n      postgis_full_version: { Args: never; Returns: string }\n      postgis_geos_version: { Args: never; Returns: string }\n      postgis_lib_build_date: { Args: never; Returns: string }\n      postgis_lib_revision: { Args: never; Returns: string }\n      postgis_lib_version: { Args: never; Returns: string }\n      postgis_libjson_version: { Args: never; Returns: string }\n      postgis_liblwgeom_version: { Args: never; Returns: string }\n      postgis_libprotobuf_version: { Args: never; Returns: string }\n      postgis_libxml_version: { Args: never; Returns: string }\n      postgis_proj_version: { Args: never; Returns: string }\n      postgis_scripts_build_date: { Args: never; Returns: string }\n      postgis_scripts_installed: { Args: never; Returns: string }\n      postgis_scripts_released: { Args: never; Returns: string }\n      postgis_svn_version: { Args: never; Returns: string }\n      postgis_type_name: {\n        Args: {\n          coord_dimension: number\n          geomname: string\n          use_new_name?: boolean\n        }\n        Returns: string\n      }\n      postgis_version: { Args: never; Returns: string }\n      postgis_wagyu_version: { Args: never; Returns: string }\n      purge_expired_documents: { Args: never; Returns: number }\n      saras_fuzzy_candidates: {\n        Args: { p_district_id: number; p_limit?: number; p_name: string }\n        Returns: {\n          id: string\n          name_en: string\n          sim: number\n        }[]\n      }\n      save_order_intake: {\n        Args: { p_intake: Json; p_order_id: string }\n        Returns: undefined\n      }\n      school_slug_source: { Args: { input: string }; Returns: string }\n      school_slug_taken: {\n        Args: { candidate: string; self_id: string }\n        Returns: boolean\n      }\n      show_limit: { Args: never; Returns: number }\n      show_trgm: { Args: { \"\": string }; Returns: string[] }\n      slugify_60: { Args: { input: string; max_len?: number }; Returns: string }\n      soundex: { Args: { \"\": string }; Returns: string }\n      st_3dclosestpoint: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_3ddistance: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      st_3dintersects: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      st_3dlongestline: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_3dmakebox: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_3dmaxdistance: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      st_3dshortestline: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_addpoint: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_angle:\n        | { Args: { line1: unknown; line2: unknown }; Returns: number }\n        | {\n            Args: { pt1: unknown; pt2: unknown; pt3: unknown; pt4?: unknown }\n            Returns: number\n          }\n      st_area:\n        | { Args: { geog: unknown; use_spheroid?: boolean }; Returns: number }\n        | { Args: { \"\": string }; Returns: number }\n      st_asencodedpolyline: {\n        Args: { geom: unknown; nprecision?: number }\n        Returns: string\n      }\n      st_asewkt: { Args: { \"\": string }; Returns: string }\n      st_asgeojson:\n        | {\n            Args: { geog: unknown; maxdecimaldigits?: number; options?: number }\n            Returns: string\n          }\n        | {\n            Args: { geom: unknown; maxdecimaldigits?: number; options?: number }\n            Returns: string\n          }\n        | {\n            Args: {\n              geom_column?: string\n              maxdecimaldigits?: number\n              pretty_bool?: boolean\n              r: Record<string, unknown>\n            }\n            Returns: string\n          }\n        | { Args: { \"\": string }; Returns: string }\n      st_asgml:\n        | {\n            Args: {\n              geog: unknown\n              id?: string\n              maxdecimaldigits?: number\n              nprefix?: string\n              options?: number\n            }\n            Returns: string\n          }\n        | {\n            Args: { geom: unknown; maxdecimaldigits?: number; options?: number }\n            Returns: string\n          }\n        | { Args: { \"\": string }; Returns: string }\n        | {\n            Args: {\n              geog: unknown\n              id?: string\n              maxdecimaldigits?: number\n              nprefix?: string\n              options?: number\n              version: number\n            }\n            Returns: string\n          }\n        | {\n            Args: {\n              geom: unknown\n              id?: string\n              maxdecimaldigits?: number\n              nprefix?: string\n              options?: number\n              version: number\n            }\n            Returns: string\n          }\n      st_askml:\n        | {\n            Args: { geog: unknown; maxdecimaldigits?: number; nprefix?: string }\n            Returns: string\n          }\n        | {\n            Args: { geom: unknown; maxdecimaldigits?: number; nprefix?: string }\n            Returns: string\n          }\n        | { Args: { \"\": string }; Returns: string }\n      st_aslatlontext: {\n        Args: { geom: unknown; tmpl?: string }\n        Returns: string\n      }\n      st_asmarc21: { Args: { format?: string; geom: unknown }; Returns: string }\n      st_asmvtgeom: {\n        Args: {\n          bounds: unknown\n          buffer?: number\n          clip_geom?: boolean\n          extent?: number\n          geom: unknown\n        }\n        Returns: unknown\n      }\n      st_assvg:\n        | {\n            Args: { geog: unknown; maxdecimaldigits?: number; rel?: number }\n            Returns: string\n          }\n        | {\n            Args: { geom: unknown; maxdecimaldigits?: number; rel?: number }\n            Returns: string\n          }\n        | { Args: { \"\": string }; Returns: string }\n      st_astext: { Args: { \"\": string }; Returns: string }\n      st_astwkb:\n        | {\n            Args: {\n              geom: unknown\n              prec?: number\n              prec_m?: number\n              prec_z?: number\n              with_boxes?: boolean\n              with_sizes?: boolean\n            }\n            Returns: string\n          }\n        | {\n            Args: {\n              geom: unknown[]\n              ids: number[]\n              prec?: number\n              prec_m?: number\n              prec_z?: number\n              with_boxes?: boolean\n              with_sizes?: boolean\n            }\n            Returns: string\n          }\n      st_asx3d: {\n        Args: { geom: unknown; maxdecimaldigits?: number; options?: number }\n        Returns: string\n      }\n      st_azimuth:\n        | { Args: { geog1: unknown; geog2: unknown }; Returns: number }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }\n      st_boundingdiagonal: {\n        Args: { fits?: boolean; geom: unknown }\n        Returns: unknown\n      }\n      st_buffer:\n        | {\n            Args: { geom: unknown; options?: string; radius: number }\n            Returns: unknown\n          }\n        | {\n            Args: { geom: unknown; quadsegs: number; radius: number }\n            Returns: unknown\n          }\n      st_centroid: { Args: { \"\": string }; Returns: unknown }\n      st_clipbybox2d: {\n        Args: { box: unknown; geom: unknown }\n        Returns: unknown\n      }\n      st_closestpoint: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_collect: { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }\n      st_concavehull: {\n        Args: {\n          param_allow_holes?: boolean\n          param_geom: unknown\n          param_pctconvex: number\n        }\n        Returns: unknown\n      }\n      st_contains: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      st_containsproperly: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      st_coorddim: { Args: { geometry: unknown }; Returns: number }\n      st_coveredby:\n        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_covers:\n        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_crosses: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_curvetoline: {\n        Args: { flags?: number; geom: unknown; tol?: number; toltype?: number }\n        Returns: unknown\n      }\n      st_delaunaytriangles: {\n        Args: { flags?: number; g1: unknown; tolerance?: number }\n        Returns: unknown\n      }\n      st_difference: {\n        Args: { geom1: unknown; geom2: unknown; gridsize?: number }\n        Returns: unknown\n      }\n      st_disjoint: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      st_distance:\n        | {\n            Args: { geog1: unknown; geog2: unknown; use_spheroid?: boolean }\n            Returns: number\n          }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }\n      st_distancesphere:\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }\n        | {\n            Args: { geom1: unknown; geom2: unknown; radius: number }\n            Returns: number\n          }\n      st_distancespheroid: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      st_dwithin: {\n        Args: {\n          geog1: unknown\n          geog2: unknown\n          tolerance: number\n          use_spheroid?: boolean\n        }\n        Returns: boolean\n      }\n      st_equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_expand:\n        | { Args: { box: unknown; dx: number; dy: number }; Returns: unknown }\n        | {\n            Args: { box: unknown; dx: number; dy: number; dz?: number }\n            Returns: unknown\n          }\n        | {\n            Args: {\n              dm?: number\n              dx: number\n              dy: number\n              dz?: number\n              geom: unknown\n            }\n            Returns: unknown\n          }\n      st_force3d: { Args: { geom: unknown; zvalue?: number }; Returns: unknown }\n      st_force3dm: {\n        Args: { geom: unknown; mvalue?: number }\n        Returns: unknown\n      }\n      st_force3dz: {\n        Args: { geom: unknown; zvalue?: number }\n        Returns: unknown\n      }\n      st_force4d: {\n        Args: { geom: unknown; mvalue?: number; zvalue?: number }\n        Returns: unknown\n      }\n      st_generatepoints:\n        | { Args: { area: unknown; npoints: number }; Returns: unknown }\n        | {\n            Args: { area: unknown; npoints: number; seed: number }\n            Returns: unknown\n          }\n      st_geogfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_geographyfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_geohash:\n        | { Args: { geog: unknown; maxchars?: number }; Returns: string }\n        | { Args: { geom: unknown; maxchars?: number }; Returns: string }\n      st_geomcollfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_geometricmedian: {\n        Args: {\n          fail_if_not_converged?: boolean\n          g: unknown\n          max_iter?: number\n          tolerance?: number\n        }\n        Returns: unknown\n      }\n      st_geometryfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_geomfromewkt: { Args: { \"\": string }; Returns: unknown }\n      st_geomfromgeojson:\n        | { Args: { \"\": Json }; Returns: unknown }\n        | { Args: { \"\": Json }; Returns: unknown }\n        | { Args: { \"\": string }; Returns: unknown }\n      st_geomfromgml: { Args: { \"\": string }; Returns: unknown }\n      st_geomfromkml: { Args: { \"\": string }; Returns: unknown }\n      st_geomfrommarc21: { Args: { marc21xml: string }; Returns: unknown }\n      st_geomfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_gmltosql: { Args: { \"\": string }; Returns: unknown }\n      st_hasarc: { Args: { geometry: unknown }; Returns: boolean }\n      st_hausdorffdistance: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      st_hexagon: {\n        Args: { cell_i: number; cell_j: number; origin?: unknown; size: number }\n        Returns: unknown\n      }\n      st_hexagongrid: {\n        Args: { bounds: unknown; size: number }\n        Returns: Record<string, unknown>[]\n      }\n      st_interpolatepoint: {\n        Args: { line: unknown; point: unknown }\n        Returns: number\n      }\n      st_intersection: {\n        Args: { geom1: unknown; geom2: unknown; gridsize?: number }\n        Returns: unknown\n      }\n      st_intersects:\n        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_isvaliddetail: {\n        Args: { flags?: number; geom: unknown }\n        Returns: Database[\"public\"][\"CompositeTypes\"][\"valid_detail\"]\n        SetofOptions: {\n          from: \"*\"\n          to: \"valid_detail\"\n          isOneToOne: true\n          isSetofReturn: false\n        }\n      }\n      st_length:\n        | { Args: { geog: unknown; use_spheroid?: boolean }; Returns: number }\n        | { Args: { \"\": string }; Returns: number }\n      st_letters: { Args: { font?: Json; letters: string }; Returns: unknown }\n      st_linecrossingdirection: {\n        Args: { line1: unknown; line2: unknown }\n        Returns: number\n      }\n      st_linefromencodedpolyline: {\n        Args: { nprecision?: number; txtin: string }\n        Returns: unknown\n      }\n      st_linefromtext: { Args: { \"\": string }; Returns: unknown }\n      st_linelocatepoint: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      st_linetocurve: { Args: { geometry: unknown }; Returns: unknown }\n      st_locatealong: {\n        Args: { geometry: unknown; leftrightoffset?: number; measure: number }\n        Returns: unknown\n      }\n      st_locatebetween: {\n        Args: {\n          frommeasure: number\n          geometry: unknown\n          leftrightoffset?: number\n          tomeasure: number\n        }\n        Returns: unknown\n      }\n      st_locatebetweenelevations: {\n        Args: { fromelevation: number; geometry: unknown; toelevation: number }\n        Returns: unknown\n      }\n      st_longestline: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_makebox2d: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_makeline: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_makevalid: {\n        Args: { geom: unknown; params: string }\n        Returns: unknown\n      }\n      st_maxdistance: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: number\n      }\n      st_minimumboundingcircle: {\n        Args: { inputgeom: unknown; segs_per_quarter?: number }\n        Returns: unknown\n      }\n      st_mlinefromtext: { Args: { \"\": string }; Returns: unknown }\n      st_mpointfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_mpolyfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_multilinestringfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_multipointfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_multipolygonfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_node: { Args: { g: unknown }; Returns: unknown }\n      st_normalize: { Args: { geom: unknown }; Returns: unknown }\n      st_offsetcurve: {\n        Args: { distance: number; line: unknown; params?: string }\n        Returns: unknown\n      }\n      st_orderingequals: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      st_overlaps: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: boolean\n      }\n      st_perimeter: {\n        Args: { geog: unknown; use_spheroid?: boolean }\n        Returns: number\n      }\n      st_pointfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_pointm: {\n        Args: {\n          mcoordinate: number\n          srid?: number\n          xcoordinate: number\n          ycoordinate: number\n        }\n        Returns: unknown\n      }\n      st_pointz: {\n        Args: {\n          srid?: number\n          xcoordinate: number\n          ycoordinate: number\n          zcoordinate: number\n        }\n        Returns: unknown\n      }\n      st_pointzm: {\n        Args: {\n          mcoordinate: number\n          srid?: number\n          xcoordinate: number\n          ycoordinate: number\n          zcoordinate: number\n        }\n        Returns: unknown\n      }\n      st_polyfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_polygonfromtext: { Args: { \"\": string }; Returns: unknown }\n      st_project: {\n        Args: { azimuth: number; distance: number; geog: unknown }\n        Returns: unknown\n      }\n      st_quantizecoordinates: {\n        Args: {\n          g: unknown\n          prec_m?: number\n          prec_x: number\n          prec_y?: number\n          prec_z?: number\n        }\n        Returns: unknown\n      }\n      st_reduceprecision: {\n        Args: { geom: unknown; gridsize: number }\n        Returns: unknown\n      }\n      st_relate: { Args: { geom1: unknown; geom2: unknown }; Returns: string }\n      st_removerepeatedpoints: {\n        Args: { geom: unknown; tolerance?: number }\n        Returns: unknown\n      }\n      st_segmentize: {\n        Args: { geog: unknown; max_segment_length: number }\n        Returns: unknown\n      }\n      st_setsrid:\n        | { Args: { geog: unknown; srid: number }; Returns: unknown }\n        | { Args: { geom: unknown; srid: number }; Returns: unknown }\n      st_sharedpaths: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_shortestline: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_simplifypolygonhull: {\n        Args: { geom: unknown; is_outer?: boolean; vertex_fraction: number }\n        Returns: unknown\n      }\n      st_split: { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }\n      st_square: {\n        Args: { cell_i: number; cell_j: number; origin?: unknown; size: number }\n        Returns: unknown\n      }\n      st_squaregrid: {\n        Args: { bounds: unknown; size: number }\n        Returns: Record<string, unknown>[]\n      }\n      st_srid:\n        | { Args: { geog: unknown }; Returns: number }\n        | { Args: { geom: unknown }; Returns: number }\n      st_subdivide: {\n        Args: { geom: unknown; gridsize?: number; maxvertices?: number }\n        Returns: unknown[]\n      }\n      st_swapordinates: {\n        Args: { geom: unknown; ords: unknown }\n        Returns: unknown\n      }\n      st_symdifference: {\n        Args: { geom1: unknown; geom2: unknown; gridsize?: number }\n        Returns: unknown\n      }\n      st_symmetricdifference: {\n        Args: { geom1: unknown; geom2: unknown }\n        Returns: unknown\n      }\n      st_tileenvelope: {\n        Args: {\n          bounds?: unknown\n          margin?: number\n          x: number\n          y: number\n          zoom: number\n        }\n        Returns: unknown\n      }\n      st_touches: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_transform:\n        | {\n            Args: { from_proj: string; geom: unknown; to_proj: string }\n            Returns: unknown\n          }\n        | {\n            Args: { from_proj: string; geom: unknown; to_srid: number }\n            Returns: unknown\n          }\n        | { Args: { geom: unknown; to_proj: string }; Returns: unknown }\n      st_triangulatepolygon: { Args: { g1: unknown }; Returns: unknown }\n      st_union:\n        | { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }\n        | {\n            Args: { geom1: unknown; geom2: unknown; gridsize: number }\n            Returns: unknown\n          }\n      st_voronoilines: {\n        Args: { extend_to?: unknown; g1: unknown; tolerance?: number }\n        Returns: unknown\n      }\n      st_voronoipolygons: {\n        Args: { extend_to?: unknown; g1: unknown; tolerance?: number }\n        Returns: unknown\n      }\n      st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }\n      st_wkbtosql: { Args: { wkb: string }; Returns: unknown }\n      st_wkttosql: { Args: { \"\": string }; Returns: unknown }\n      st_wrapx: {\n        Args: { geom: unknown; move: number; wrap: number }\n        Returns: unknown\n      }\n      teacher_slug: {\n        Args: { p_code: number; p_full_name: string }\n        Returns: string\n      }\n      text_soundex: { Args: { \"\": string }; Returns: string }\n      title_case_school_name: { Args: { input: string }; Returns: string }\n      unlockrows: { Args: { \"\": string }; Returns: number }\n      updategeometrysrid: {\n        Args: {\n          catalogn_name: string\n          column_name: string\n          new_srid_in: number\n          schema_name: string\n          table_name: string\n        }\n        Returns: string\n      }\n    }\n    Enums: {\n      admission_lead_status: \"new\" | \"contacted\" | \"closed\"\n      admission_status:\n        | \"not_announced\"\n        | \"upcoming\"\n        | \"open\"\n        | \"closing_soon\"\n        | \"closed\"\n        | \"results_out\"\n        | \"postponed\"\n        | \"cancelled\"\n      affiliation_status:\n        | \"pending_teacher\"\n        | \"pending_school\"\n        | \"active\"\n        | \"declined_by_teacher\"\n        | \"declined_by_school\"\n        | \"removed\"\n      application_status:\n        | \"not_started\"\n        | \"preparing\"\n        | \"awaiting_parent_approval\"\n        | \"submitted\"\n        | \"fee_pending\"\n        | \"interview_scheduled\"\n        | \"result_selected\"\n        | \"result_waitlisted\"\n        | \"result_not_selected\"\n        | \"withdrawn\"\n      claim_status: \"unclaimed\" | \"pending\" | \"claimed\" | \"rejected\"\n      consent_purpose:\n        | \"account\"\n        | \"child_profile\"\n        | \"whatsapp_alerts\"\n        | \"application_help\"\n        | \"document_storage\"\n        | \"marketing\"\n      doc_type:\n        | \"birth_certificate\"\n        | \"photo_child\"\n        | \"photo_parent\"\n        | \"address_proof\"\n        | \"aadhaar_masked\"\n        | \"previous_report_card\"\n        | \"transfer_certificate\"\n        | \"caste_certificate\"\n        | \"income_certificate\"\n        | \"medical\"\n        | \"other\"\n      form_mode: \"online\" | \"offline\" | \"both\" | \"unknown\"\n      job_employment_type: \"full_time\" | \"part_time\" | \"contract\" | \"visiting\"\n      order_status:\n        | \"draft\"\n        | \"awaiting_payment\"\n        | \"paid\"\n        | \"in_progress\"\n        | \"completed\"\n        | \"cancelled\"\n        | \"refunded\"\n      post_kind: \"news\" | \"press\"\n      post_tier: \"organic\" | \"featured\" | \"press_release\"\n      provenance_source_type:\n        | \"official\"\n        | \"school_reported\"\n        | \"schooloye_verified\"\n        | \"user_submitted\"\n      record_status: \"draft\" | \"published\" | \"hidden\" | \"closed\" | \"opt_out\"\n      review_status:\n        | \"pending\"\n        | \"approved\"\n        | \"edited\"\n        | \"rejected\"\n        | \"needs_triage\"\n      school_event_type:\n        | \"ptm\"\n        | \"open_house\"\n        | \"admission_test\"\n        | \"sports_day\"\n        | \"cultural\"\n        | \"workshop\"\n        | \"result_day\"\n        | \"holiday\"\n        | \"fee_deadline\"\n        | \"other\"\n      school_gender: \"coed\" | \"boys\" | \"girls\"\n      school_management:\n        | \"private_unaided\"\n        | \"private_aided\"\n        | \"government\"\n        | \"central_government\"\n        | \"local_body\"\n        | \"other\"\n      school_member_role: \"admin\" | \"staff\"\n      school_tier: \"A\" | \"B\" | \"C\"\n      seat_confidence: \"confirmed\" | \"reported\" | \"application_possible\"\n      seat_public_status: \"open\" | \"limited\" | \"waitlist\" | \"closed\"\n      task_status: \"open\" | \"in_progress\" | \"blocked\" | \"done\" | \"cancelled\"\n      task_type:\n        | \"verify_notice\"\n        | \"verify_update\"\n        | \"verify_record\"\n        | \"call_school\"\n        | \"application\"\n        | \"claim_review\"\n        | \"correction_request\"\n        | \"seat_update\"\n      user_role: \"parent\" | \"school_admin\" | \"ops\" | \"admin\"\n      verification_status:\n        | \"unverified\"\n        | \"source_verified\"\n        | \"ops_verified\"\n        | \"school_verified\"\n      verification_status_v2: \"unknown\" | \"pending\" | \"verified\" | \"conflicting\"\n    }\n    CompositeTypes: {\n      geometry_dump: {\n        path: number[] | null\n        geom: unknown\n      }\n      valid_detail: {\n        valid: boolean | null\n        reason: string | null\n        location: unknown\n      }\n    }\n  }\n}\n\ntype DatabaseWithoutInternals = Omit<Database, \"__InternalSupabase\">\n\ntype DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, \"public\">]\n\nexport type Tables<\n  DefaultSchemaTableNameOrOptions extends\n    | keyof (DefaultSchema[\"Tables\"] & DefaultSchema[\"Views\"])\n    | { schema: keyof DatabaseWithoutInternals },\n  TableName extends (DefaultSchemaTableNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"] &\n        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Views\"])\n    : never) = never,\n> = DefaultSchemaTableNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"] &\n      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Views\"])[TableName] extends {\n      Row: infer R\n    }\n    ? R\n    : never\n  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema[\"Tables\"] &\n        DefaultSchema[\"Views\"])\n    ? (DefaultSchema[\"Tables\"] &\n        DefaultSchema[\"Views\"])[DefaultSchemaTableNameOrOptions] extends {\n        Row: infer R\n      }\n      ? R\n      : never\n    : never\n\nexport type TablesInsert<\n  DefaultSchemaTableNameOrOptions extends\n    | keyof DefaultSchema[\"Tables\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  TableName extends (DefaultSchemaTableNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"]\n    : never) = never,\n> = DefaultSchemaTableNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"][TableName] extends {\n      Insert: infer I\n    }\n    ? I\n    : never\n  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema[\"Tables\"]\n    ? DefaultSchema[\"Tables\"][DefaultSchemaTableNameOrOptions] extends {\n        Insert: infer I\n      }\n      ? I\n      : never\n    : never\n\nexport type TablesUpdate<\n  DefaultSchemaTableNameOrOptions extends\n    | keyof DefaultSchema[\"Tables\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  TableName extends (DefaultSchemaTableNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"]\n    : never) = never,\n> = DefaultSchemaTableNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"][TableName] extends {\n      Update: infer U\n    }\n    ? U\n    : never\n  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema[\"Tables\"]\n    ? DefaultSchema[\"Tables\"][DefaultSchemaTableNameOrOptions] extends {\n        Update: infer U\n      }\n      ? U\n      : never\n    : never\n\nexport type Enums<\n  DefaultSchemaEnumNameOrOptions extends\n    | keyof DefaultSchema[\"Enums\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  EnumName extends (DefaultSchemaEnumNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions[\"schema\"]][\"Enums\"]\n    : never) = never,\n> = DefaultSchemaEnumNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions[\"schema\"]][\"Enums\"][EnumName]\n  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema[\"Enums\"]\n    ? DefaultSchema[\"Enums\"][DefaultSchemaEnumNameOrOptions]\n    : never\n\nexport type CompositeTypes<\n  PublicCompositeTypeNameOrOptions extends\n    | keyof DefaultSchema[\"CompositeTypes\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions[\"schema\"]][\"CompositeTypes\"]\n    : never) = never,\n> = PublicCompositeTypeNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions[\"schema\"]][\"CompositeTypes\"][CompositeTypeName]\n  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema[\"CompositeTypes\"]\n    ? DefaultSchema[\"CompositeTypes\"][PublicCompositeTypeNameOrOptions]\n    : never\n\nexport const Constants = {\n  public: {\n    Enums: {\n      admission_lead_status: [\"new\", \"contacted\", \"closed\"],\n      admission_status: [\n        \"not_announced\",\n        \"upcoming\",\n        \"open\",\n        \"closing_soon\",\n        \"closed\",\n        \"results_out\",\n        \"postponed\",\n        \"cancelled\",\n      ],\n      affiliation_status: [\n        \"pending_teacher\",\n        \"pending_school\",\n        \"active\",\n        \"declined_by_teacher\",\n        \"declined_by_school\",\n        \"removed\",\n      ],\n      application_status: [\n        \"not_started\",\n        \"preparing\",\n        \"awaiting_parent_approval\",\n        \"submitted\",\n        \"fee_pending\",\n        \"interview_scheduled\",\n        \"result_selected\",\n        \"result_waitlisted\",\n        \"result_not_selected\",\n        \"withdrawn\",\n      ],\n      claim_status: [\"unclaimed\", \"pending\", \"claimed\", \"rejected\"],\n      consent_purpose: [\n        \"account\",\n        \"child_profile\",\n        \"whatsapp_alerts\",\n        \"application_help\",\n        \"document_storage\",\n        \"marketing\",\n      ],\n      doc_type: [\n        \"birth_certificate\",\n        \"photo_child\",\n        \"photo_parent\",\n        \"address_proof\",\n        \"aadhaar_masked\",\n        \"previous_report_card\",\n        \"transfer_certificate\",\n        \"caste_certificate\",\n        \"income_certificate\",\n        \"medical\",\n        \"other\",\n      ],\n      form_mode: [\"online\", \"offline\", \"both\", \"unknown\"],\n      job_employment_type: [\"full_time\", \"part_time\", \"contract\", \"visiting\"],\n      order_status: [\n        \"draft\",\n        \"awaiting_payment\",\n        \"paid\",\n        \"in_progress\",\n        \"completed\",\n        \"cancelled\",\n        \"refunded\",\n      ],\n      post_kind: [\"news\", \"press\"],\n      post_tier: [\"organic\", \"featured\", \"press_release\"],\n      provenance_source_type: [\n        \"official\",\n        \"school_reported\",\n        \"schooloye_verified\",\n        \"user_submitted\",\n      ],\n      record_status: [\"draft\", \"published\", \"hidden\", \"closed\", \"opt_out\"],\n      review_status: [\n        \"pending\",\n        \"approved\",\n        \"edited\",\n        \"rejected\",\n        \"needs_triage\",\n      ],\n      school_event_type: [\n        \"ptm\",\n        \"open_house\",\n        \"admission_test\",\n        \"sports_day\",\n        \"cultural\",\n        \"workshop\",\n        \"result_day\",\n        \"holiday\",\n        \"fee_deadline\",\n        \"other\",\n      ],\n      school_gender: [\"coed\", \"boys\", \"girls\"],\n      school_management: [\n        \"private_unaided\",\n        \"private_aided\",\n        \"government\",\n        \"central_government\",\n        \"local_body\",\n        \"other\",\n      ],\n      school_member_role: [\"admin\", \"staff\"],\n      school_tier: [\"A\", \"B\", \"C\"],\n      seat_confidence: [\"confirmed\", \"reported\", \"application_possible\"],\n      seat_public_status: [\"open\", \"limited\", \"waitlist\", \"closed\"],\n      task_status: [\"open\", \"in_progress\", \"blocked\", \"done\", \"cancelled\"],\n      task_type: [\n        \"verify_notice\",\n        \"verify_update\",\n        \"verify_record\",\n        \"call_school\",\n        \"application\",\n        \"claim_review\",\n        \"correction_request\",\n        \"seat_update\",\n      ],\n      user_role: [\"parent\", \"school_admin\", \"ops\", \"admin\"],\n      verification_status: [\n        \"unverified\",\n        \"source_verified\",\n        \"ops_verified\",\n        \"school_verified\",\n      ],\n      verification_status_v2: [\"unknown\", \"pending\", \"verified\", \"conflicting\"],\n    },\n  },\n} as const\n"}
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      admission_cycles: {
+        Row: {
+          academic_year: string
+          application_steps: Json | null
+          class_code: string
+          class_label_ambiguous: boolean
+          class_label_note: string | null
+          closes_on: string | null
+          corrections: Json | null
+          dob_from: string | null
+          dob_to: string | null
+          documents_required: string[] | null
+          eligibility_notes_en: string | null
+          eligibility_notes_hi: string | null
+          exam_id: string | null
+          form_mode: Database["public"]["Enums"]["form_mode"]
+          form_url: string | null
+          id: string
+          last_checked_at: string | null
+          late_fee_amount: number | null
+          notice_url: string | null
+          opens_on: string | null
+          pattern: Json | null
+          registration_fee: number | null
+          results_on: string | null
+          school_id: string | null
+          seats_total: number | null
+          selection_notes: string | null
+          source_type: Database["public"]["Enums"]["provenance_source_type"]
+          status: Database["public"]["Enums"]["admission_status"]
+          syllabus: Json | null
+          updated_at: string
+          verification: Database["public"]["Enums"]["verification_status"]
+          verification_status: Database["public"]["Enums"]["verification_status_v2"]
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          academic_year: string
+          application_steps?: Json | null
+          class_code: string
+          class_label_ambiguous?: boolean
+          class_label_note?: string | null
+          closes_on?: string | null
+          corrections?: Json | null
+          dob_from?: string | null
+          dob_to?: string | null
+          documents_required?: string[] | null
+          eligibility_notes_en?: string | null
+          eligibility_notes_hi?: string | null
+          exam_id?: string | null
+          form_mode?: Database["public"]["Enums"]["form_mode"]
+          form_url?: string | null
+          id?: string
+          last_checked_at?: string | null
+          late_fee_amount?: number | null
+          notice_url?: string | null
+          opens_on?: string | null
+          pattern?: Json | null
+          registration_fee?: number | null
+          results_on?: string | null
+          school_id?: string | null
+          seats_total?: number | null
+          selection_notes?: string | null
+          source_type: Database["public"]["Enums"]["provenance_source_type"]
+          status?: Database["public"]["Enums"]["admission_status"]
+          syllabus?: Json | null
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+          verification_status: Database["public"]["Enums"]["verification_status_v2"]
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          academic_year?: string
+          application_steps?: Json | null
+          class_code?: string
+          class_label_ambiguous?: boolean
+          class_label_note?: string | null
+          closes_on?: string | null
+          corrections?: Json | null
+          dob_from?: string | null
+          dob_to?: string | null
+          documents_required?: string[] | null
+          eligibility_notes_en?: string | null
+          eligibility_notes_hi?: string | null
+          exam_id?: string | null
+          form_mode?: Database["public"]["Enums"]["form_mode"]
+          form_url?: string | null
+          id?: string
+          last_checked_at?: string | null
+          late_fee_amount?: number | null
+          notice_url?: string | null
+          opens_on?: string | null
+          pattern?: Json | null
+          registration_fee?: number | null
+          results_on?: string | null
+          school_id?: string | null
+          seats_total?: number | null
+          selection_notes?: string | null
+          source_type?: Database["public"]["Enums"]["provenance_source_type"]
+          status?: Database["public"]["Enums"]["admission_status"]
+          syllabus?: Json | null
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+          verification_status?: Database["public"]["Enums"]["verification_status_v2"]
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_cycles_class_code_fkey"
+            columns: ["class_code"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "admission_cycles_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_cycles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_cycles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admission_leads: {
+        Row: {
+          academic_year: string
+          admission_cycle_id: string
+          class_code: string
+          consent_at: string
+          created_at: string
+          full_name: string | null
+          id: string
+          note: string | null
+          phone: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["admission_lead_status"]
+          status_updated_at: string | null
+          status_updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          academic_year: string
+          admission_cycle_id: string
+          class_code: string
+          consent_at?: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          note?: string | null
+          phone?: string | null
+          school_id: string
+          status?: Database["public"]["Enums"]["admission_lead_status"]
+          status_updated_at?: string | null
+          status_updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          academic_year?: string
+          admission_cycle_id?: string
+          class_code?: string
+          consent_at?: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          note?: string | null
+          phone?: string | null
+          school_id?: string
+          status?: Database["public"]["Enums"]["admission_lead_status"]
+          status_updated_at?: string | null
+          status_updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_leads_admission_cycle_id_fkey"
+            columns: ["admission_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "admission_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_leads_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_leads_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admission_notices: {
+        Row: {
+          ai_extraction: Json | null
+          contains_personal_data: boolean
+          content_hash: string
+          discovered_at: string
+          exam_id: string | null
+          extraction: Json | null
+          extraction_confidence: number | null
+          extraction_model: string | null
+          id: string
+          page_kind: string | null
+          promoted_to_golden: boolean
+          retention_note: string | null
+          review: Database["public"]["Enums"]["review_status"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_id: string | null
+          storage_path: string | null
+          url: string
+        }
+        Insert: {
+          ai_extraction?: Json | null
+          contains_personal_data?: boolean
+          content_hash: string
+          discovered_at?: string
+          exam_id?: string | null
+          extraction?: Json | null
+          extraction_confidence?: number | null
+          extraction_model?: string | null
+          id?: string
+          page_kind?: string | null
+          promoted_to_golden?: boolean
+          retention_note?: string | null
+          review?: Database["public"]["Enums"]["review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string | null
+          storage_path?: string | null
+          url: string
+        }
+        Update: {
+          ai_extraction?: Json | null
+          contains_personal_data?: boolean
+          content_hash?: string
+          discovered_at?: string
+          exam_id?: string | null
+          extraction?: Json | null
+          extraction_confidence?: number | null
+          extraction_model?: string | null
+          id?: string
+          page_kind?: string | null
+          promoted_to_golden?: boolean
+          retention_note?: string | null
+          review?: Database["public"]["Enums"]["review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string | null
+          storage_path?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_notices_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_notices_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_notices_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_deliveries: {
+        Row: {
+          admission_cycle_id: string | null
+          clicked_at: string | null
+          delivered_at: string | null
+          failed_reason: string | null
+          id: number
+          kind: string
+          provider_message_id: string | null
+          sent_at: string | null
+          subscription_id: string | null
+          template: string | null
+        }
+        Insert: {
+          admission_cycle_id?: string | null
+          clicked_at?: string | null
+          delivered_at?: string | null
+          failed_reason?: string | null
+          id?: number
+          kind: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          subscription_id?: string | null
+          template?: string | null
+        }
+        Update: {
+          admission_cycle_id?: string | null
+          clicked_at?: string | null
+          delivered_at?: string | null
+          failed_reason?: string | null
+          id?: number
+          kind?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          subscription_id?: string | null
+          template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_deliveries_admission_cycle_id_fkey"
+            columns: ["admission_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "admission_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "alert_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_subscriptions: {
+        Row: {
+          active: boolean
+          city_id: number
+          class_codes: string[]
+          created_at: string
+          exam_ids: string[]
+          id: string
+          language: string
+          phone: string
+          school_ids: string[]
+          user_id: string | null
+          utm: Json | null
+          whatsapp_opt_in_at: string | null
+        }
+        Insert: {
+          active?: boolean
+          city_id: number
+          class_codes?: string[]
+          created_at?: string
+          exam_ids?: string[]
+          id?: string
+          language?: string
+          phone: string
+          school_ids?: string[]
+          user_id?: string | null
+          utm?: Json | null
+          whatsapp_opt_in_at?: string | null
+        }
+        Update: {
+          active?: boolean
+          city_id?: number
+          class_codes?: string[]
+          created_at?: string
+          exam_ids?: string[]
+          id?: string
+          language?: string
+          phone?: string
+          school_ids?: string[]
+          user_id?: string | null
+          utm?: Json | null
+          whatsapp_opt_in_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_subscriptions_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_subscriptions_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      analytics_events: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          school_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          school_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          school_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_orders: {
+        Row: {
+          amount_inr: number
+          child_id: string
+          created_at: string
+          id: string
+          intake: Json | null
+          payment_ref: string | null
+          product_code: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_inr: number
+          child_id: string
+          created_at?: string
+          id?: string
+          intake?: Json | null
+          payment_ref?: string | null
+          product_code: string
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_inr?: number
+          child_id?: string
+          created_at?: string
+          id?: string
+          intake?: Json | null
+          payment_ref?: string | null
+          product_code?: string
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_orders_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_orders_product_code_fkey"
+            columns: ["product_code"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "application_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          admission_cycle_id: string | null
+          id: string
+          next_action: string | null
+          next_action_due: string | null
+          notes: string | null
+          order_id: string | null
+          parent_approved_at: string | null
+          school_application_no: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["application_status"]
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          admission_cycle_id?: string | null
+          id?: string
+          next_action?: string | null
+          next_action_due?: string | null
+          notes?: string | null
+          order_id?: string | null
+          parent_approved_at?: string | null
+          school_application_no?: string | null
+          school_id: string
+          status?: Database["public"]["Enums"]["application_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admission_cycle_id?: string | null
+          id?: string
+          next_action?: string | null
+          next_action_due?: string | null
+          notes?: string | null
+          order_id?: string | null
+          parent_approved_at?: string | null
+          school_application_no?: string | null
+          school_id?: string
+          status?: Database["public"]["Enums"]["application_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_admission_cycle_id_fkey"
+            columns: ["admission_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "admission_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "application_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor: string | null
+          actor_role: Database["public"]["Enums"]["user_role"] | null
+          after: Json | null
+          at: string
+          before: Json | null
+          entity_id: string | null
+          entity_table: string | null
+          id: number
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          actor_role?: Database["public"]["Enums"]["user_role"] | null
+          after?: Json | null
+          at?: string
+          before?: Json | null
+          entity_id?: string | null
+          entity_table?: string | null
+          id?: number
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          actor_role?: Database["public"]["Enums"]["user_role"] | null
+          after?: Json | null
+          at?: string
+          before?: Json | null
+          entity_id?: string | null
+          entity_table?: string | null
+          id?: number
+        }
+        Relationships: []
+      }
+      boards: {
+        Row: {
+          aliases: string[]
+          code: string
+          id: number
+          name_en: string
+          name_hi: string | null
+        }
+        Insert: {
+          aliases?: string[]
+          code: string
+          id?: number
+          name_en: string
+          name_hi?: string | null
+        }
+        Update: {
+          aliases?: string[]
+          code?: string
+          id?: number
+          name_en?: string
+          name_hi?: string | null
+        }
+        Relationships: []
+      }
+      children: {
+        Row: {
+          city_id: number | null
+          created_at: string
+          current_school_text: string | null
+          date_of_birth: string
+          first_name: string
+          id: string
+          parent_id: string
+          target_class: string | null
+          target_year: string | null
+        }
+        Insert: {
+          city_id?: number | null
+          created_at?: string
+          current_school_text?: string | null
+          date_of_birth: string
+          first_name: string
+          id?: string
+          parent_id: string
+          target_class?: string | null
+          target_year?: string | null
+        }
+        Update: {
+          city_id?: number | null
+          created_at?: string
+          current_school_text?: string | null
+          date_of_birth?: string
+          first_name?: string
+          id?: string
+          parent_id?: string
+          target_class?: string | null
+          target_year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "children_target_class_fkey"
+            columns: ["target_class"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      cities: {
+        Row: {
+          centroid: unknown
+          district_id: number
+          id: number
+          is_launch: boolean
+          name_en: string
+          name_hi: string | null
+          slug: string
+        }
+        Insert: {
+          centroid?: unknown
+          district_id: number
+          id?: number
+          is_launch?: boolean
+          name_en: string
+          name_hi?: string | null
+          slug: string
+        }
+        Update: {
+          centroid?: unknown
+          district_id?: number
+          id?: number
+          is_launch?: boolean
+          name_en?: string
+          name_hi?: string | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_levels: {
+        Row: {
+          aliases: string[]
+          code: string
+          label_en: string
+          label_hi: string | null
+          sort_order: number
+        }
+        Insert: {
+          aliases?: string[]
+          code: string
+          label_en: string
+          label_hi?: string | null
+          sort_order: number
+        }
+        Update: {
+          aliases?: string[]
+          code?: string
+          label_en?: string
+          label_hi?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      consents: {
+        Row: {
+          channel: string
+          granted_at: string
+          id: number
+          notice_version: string
+          phone: string | null
+          purpose: Database["public"]["Enums"]["consent_purpose"]
+          user_id: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          channel: string
+          granted_at?: string
+          id?: number
+          notice_version: string
+          phone?: string | null
+          purpose: Database["public"]["Enums"]["consent_purpose"]
+          user_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          channel?: string
+          granted_at?: string
+          id?: number
+          notice_version?: string
+          phone?: string | null
+          purpose?: Database["public"]["Enums"]["consent_purpose"]
+          user_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      content_posts: {
+        Row: {
+          city_id: number | null
+          created_at: string
+          id: string
+          kind: string
+          language: string
+          payload: Json
+          published_channels: string[] | null
+          status: string
+        }
+        Insert: {
+          city_id?: number | null
+          created_at?: string
+          id?: string
+          kind: string
+          language?: string
+          payload: Json
+          published_channels?: string[] | null
+          status?: string
+        }
+        Update: {
+          city_id?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          language?: string
+          payload?: Json
+          published_channels?: string[] | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_posts_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_posts_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          initiator_id: string
+          last_message_at: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          initiator_id: string
+          last_message_at?: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          initiator_id?: string
+          last_message_at?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correction_requests: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          kind: string
+          requester: string
+          resolved_at: string | null
+          school_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          kind: string
+          requester: string
+          resolved_at?: string | null
+          school_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          kind?: string
+          requester?: string
+          resolved_at?: string | null
+          school_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correction_requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correction_requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corridors: {
+        Row: {
+          aliases: string[]
+          centroid: unknown
+          id: number
+          name: string
+          name_hi: string | null
+          name_hi_status: string
+          slug: string
+        }
+        Insert: {
+          aliases?: string[]
+          centroid?: unknown
+          id?: number
+          name: string
+          name_hi?: string | null
+          name_hi_status?: string
+          slug: string
+        }
+        Update: {
+          aliases?: string[]
+          centroid?: unknown
+          id?: number
+          name?: string
+          name_hi?: string | null
+          name_hi_status?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      data_quality_flags: {
+        Row: {
+          created_at: string
+          detail: string | null
+          field: string | null
+          id: number
+          resolved: boolean
+          rule: string
+          school_id: string | null
+          source_record_id: number | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          field?: string | null
+          id?: number
+          resolved?: boolean
+          rule: string
+          school_id?: string | null
+          source_record_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          field?: string | null
+          id?: number
+          resolved?: boolean
+          rule?: string
+          school_id?: string | null
+          source_record_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_quality_flags_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_quality_flags_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_quality_flags_source_record_id_fkey"
+            columns: ["source_record_id"]
+            isOneToOne: false
+            referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      districts: {
+        Row: {
+          id: number
+          lgd_code: string | null
+          name_en: string
+          name_hi: string | null
+          slug: string
+          state_id: number
+        }
+        Insert: {
+          id?: number
+          lgd_code?: string | null
+          name_en: string
+          name_hi?: string | null
+          slug: string
+          state_id: number
+        }
+        Update: {
+          id?: number
+          lgd_code?: string | null
+          name_en?: string
+          name_hi?: string | null
+          slug?: string
+          state_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          child_id: string
+          deleted_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["doc_type"]
+          retain_until: string
+          sha256: string
+          storage_path: string
+          uploaded_at: string
+        }
+        Insert: {
+          child_id: string
+          deleted_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["doc_type"]
+          retain_until: string
+          sha256: string
+          storage_path: string
+          uploaded_at?: string
+        }
+        Update: {
+          child_id?: string
+          deleted_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["doc_type"]
+          retain_until?: string
+          sha256?: string
+          storage_path?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enquiries: {
+        Row: {
+          billable: boolean
+          child_id: string | null
+          class_code: string | null
+          created_at: string
+          id: string
+          message: string | null
+          school_id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          billable?: boolean
+          child_id?: string | null
+          class_code?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          school_id: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          billable?: boolean
+          child_id?: string | null
+          class_code?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          school_id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enquiries_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enquiries_class_code_fkey"
+            columns: ["class_code"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "enquiries_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enquiries_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enquiries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          anon_id: string | null
+          at: string
+          city_id: number | null
+          class_code: string | null
+          id: number
+          name: string
+          props: Json | null
+          school_id: string | null
+          user_id: string | null
+          utm: Json | null
+        }
+        Insert: {
+          anon_id?: string | null
+          at?: string
+          city_id?: number | null
+          class_code?: string | null
+          id?: number
+          name: string
+          props?: Json | null
+          school_id?: string | null
+          user_id?: string | null
+          utm?: Json | null
+        }
+        Update: {
+          anon_id?: string | null
+          at?: string
+          city_id?: number | null
+          class_code?: string | null
+          id?: number
+          name?: string
+          props?: Json | null
+          school_id?: string | null
+          user_id?: string | null
+          utm?: Json | null
+        }
+        Relationships: []
+      }
+      exam_centres: {
+        Row: {
+          city_code: string
+          city_name: string
+          created_at: string
+          exam_id: string
+          id: string
+          state: string
+        }
+        Insert: {
+          city_code: string
+          city_name: string
+          created_at?: string
+          exam_id: string
+          id?: string
+          state: string
+        }
+        Update: {
+          city_code?: string
+          city_name?: string
+          created_at?: string
+          exam_id?: string
+          id?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_centres_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_cycle_milestones: {
+        Row: {
+          created_at: string
+          cycle_id: string
+          detail_en: string | null
+          detail_hi: string | null
+          ends_on: string | null
+          id: string
+          label_en: string
+          label_hi: string | null
+          sort_order: number
+          starts_on: string | null
+        }
+        Insert: {
+          created_at?: string
+          cycle_id: string
+          detail_en?: string | null
+          detail_hi?: string | null
+          ends_on?: string | null
+          id?: string
+          label_en: string
+          label_hi?: string | null
+          sort_order?: number
+          starts_on?: string | null
+        }
+        Update: {
+          created_at?: string
+          cycle_id?: string
+          detail_en?: string | null
+          detail_hi?: string | null
+          ends_on?: string | null
+          id?: string
+          label_en?: string
+          label_hi?: string | null
+          sort_order?: number
+          starts_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_cycle_milestones_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "admission_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_fee_tiers: {
+        Row: {
+          amount: number
+          category_label_en: string
+          category_label_hi: string | null
+          created_at: string
+          cycle_id: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          amount: number
+          category_label_en: string
+          category_label_hi?: string | null
+          created_at?: string
+          cycle_id: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          amount?: number
+          category_label_en?: string
+          category_label_hi?: string | null
+          created_at?: string
+          cycle_id?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_fee_tiers_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "admission_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_participating_schools: {
+        Row: {
+          created_at: string
+          exam_id: string
+          id: string
+          name_en: string
+          name_hi: string | null
+          school_id: string | null
+          sort_order: number
+          state: string | null
+        }
+        Insert: {
+          created_at?: string
+          exam_id: string
+          id?: string
+          name_en: string
+          name_hi?: string | null
+          school_id?: string | null
+          sort_order?: number
+          state?: string | null
+        }
+        Update: {
+          created_at?: string
+          exam_id?: string
+          id?: string
+          name_en?: string
+          name_hi?: string | null
+          school_id?: string | null
+          sort_order?: number
+          state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_participating_schools_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_participating_schools_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_participating_schools_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_reservation_splits: {
+        Row: {
+          created_at: string
+          cycle_id: string
+          group_label_en: string
+          group_label_hi: string | null
+          id: string
+          level: string
+          share_text: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          cycle_id: string
+          group_label_en: string
+          group_label_hi?: string | null
+          id?: string
+          level: string
+          share_text: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          cycle_id?: string
+          group_label_en?: string
+          group_label_hi?: string | null
+          id?: string
+          level?: string
+          share_text?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_reservation_splits_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "admission_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          class_codes: string[]
+          conducting_body: string
+          created_at: string
+          helpdesk_email: string | null
+          helpdesk_phone: string | null
+          id: string
+          info_site_url: string | null
+          name_en: string
+          name_hi: string | null
+          official_site: string | null
+          slug: string
+        }
+        Insert: {
+          class_codes?: string[]
+          conducting_body: string
+          created_at?: string
+          helpdesk_email?: string | null
+          helpdesk_phone?: string | null
+          id?: string
+          info_site_url?: string | null
+          name_en: string
+          name_hi?: string | null
+          official_site?: string | null
+          slug: string
+        }
+        Update: {
+          class_codes?: string[]
+          conducting_body?: string
+          created_at?: string
+          helpdesk_email?: string | null
+          helpdesk_phone?: string | null
+          id?: string
+          info_site_url?: string | null
+          name_en?: string
+          name_hi?: string | null
+          official_site?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      facilities: {
+        Row: {
+          category: string | null
+          code: string
+          label_en: string
+          label_hi: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          label_en: string
+          label_hi?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          label_en?: string
+          label_hi?: string | null
+        }
+        Relationships: []
+      }
+      featured_placements: {
+        Row: {
+          city_id: number
+          class_codes: string[] | null
+          created_at: string
+          ends_on: string
+          id: string
+          label: string
+          order_ref: string | null
+          placement: string
+          school_id: string
+          starts_on: string
+        }
+        Insert: {
+          city_id: number
+          class_codes?: string[] | null
+          created_at?: string
+          ends_on: string
+          id?: string
+          label?: string
+          order_ref?: string | null
+          placement: string
+          school_id: string
+          starts_on: string
+        }
+        Update: {
+          city_id?: number
+          class_codes?: string[] | null
+          created_at?: string
+          ends_on?: string
+          id?: string
+          label?: string
+          order_ref?: string | null
+          placement?: string
+          school_id?: string
+          starts_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_placements_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_placements_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_placements_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_placements_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_items: {
+        Row: {
+          academic_year: string
+          amount_max: number | null
+          amount_min: number | null
+          class_code: string | null
+          component: string
+          frequency: string | null
+          id: string
+          school_id: string
+          updated_at: string
+          verification: Database["public"]["Enums"]["verification_status"]
+        }
+        Insert: {
+          academic_year: string
+          amount_max?: number | null
+          amount_min?: number | null
+          class_code?: string | null
+          component: string
+          frequency?: string | null
+          id?: string
+          school_id: string
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+        }
+        Update: {
+          academic_year?: string
+          amount_max?: number | null
+          amount_min?: number | null
+          class_code?: string | null
+          component?: string
+          frequency?: string | null
+          id?: string
+          school_id?: string
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_items_class_code_fkey"
+            columns: ["class_code"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "fee_items_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_items_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      field_provenance: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_table: string
+          evidence_url: string | null
+          field: string
+          id: number
+          licence_class: string
+          source_id: number | null
+          source_record_id: number | null
+          value: Json | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_table: string
+          evidence_url?: string | null
+          field: string
+          id?: number
+          licence_class?: string
+          source_id?: number | null
+          source_record_id?: number | null
+          value?: Json | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_table?: string
+          evidence_url?: string | null
+          field?: string
+          id?: number
+          licence_class?: string
+          source_id?: number | null
+          source_record_id?: number | null
+          value?: Json | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_provenance_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "field_provenance_source_record_id_fkey"
+            columns: ["source_record_id"]
+            isOneToOne: false
+            referencedRelation: "source_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_mappings: {
+        Row: {
+          academic_year: string
+          form_url: string | null
+          id: string
+          mapping: Json
+          notes: string | null
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          form_url?: string | null
+          id?: string
+          mapping: Json
+          notes?: string | null
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          form_url?: string | null
+          id?: string
+          mapping?: Json
+          notes?: string | null
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_mappings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_mappings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount_inr: number
+          customer_id: string
+          customer_type: string
+          gst_inr: number
+          gstin: string | null
+          id: string
+          issued_at: string
+          number: string
+          pdf_path: string | null
+        }
+        Insert: {
+          amount_inr: number
+          customer_id: string
+          customer_type: string
+          gst_inr: number
+          gstin?: string | null
+          id?: string
+          issued_at?: string
+          number: string
+          pdf_path?: string | null
+        }
+        Update: {
+          amount_inr?: number
+          customer_id?: string
+          customer_type?: string
+          gst_inr?: number
+          gstin?: string | null
+          id?: string
+          issued_at?: string
+          number?: string
+          pdf_path?: string | null
+        }
+        Relationships: []
+      }
+      landmarks: {
+        Row: {
+          id: number
+          locality_id: number | null
+          name: string
+          type: string | null
+        }
+        Insert: {
+          id?: number
+          locality_id?: number | null
+          name: string
+          type?: string | null
+        }
+        Update: {
+          id?: number
+          locality_id?: number | null
+          name?: string
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landmarks_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      localities: {
+        Row: {
+          aliases: string[]
+          centroid: unknown
+          character_tags: string[] | null
+          city_id: number
+          description: string | null
+          enrichment_source: string | null
+          external_ref: string | null
+          id: number
+          micro_localities: string[] | null
+          name_en: string
+          name_hi: string | null
+          name_hi_status: string
+          nearby_locality_slugs: string[] | null
+          notable_landmarks: string[] | null
+          parent_locality_id: number | null
+          pincodes: string[] | null
+          slug: string
+          source: string | null
+          status: string
+          superseded_by_corridor_id: number | null
+          ward_name: string | null
+          ward_number: string | null
+          zone: string | null
+        }
+        Insert: {
+          aliases?: string[]
+          centroid?: unknown
+          character_tags?: string[] | null
+          city_id: number
+          description?: string | null
+          enrichment_source?: string | null
+          external_ref?: string | null
+          id?: number
+          micro_localities?: string[] | null
+          name_en: string
+          name_hi?: string | null
+          name_hi_status?: string
+          nearby_locality_slugs?: string[] | null
+          notable_landmarks?: string[] | null
+          parent_locality_id?: number | null
+          pincodes?: string[] | null
+          slug: string
+          source?: string | null
+          status?: string
+          superseded_by_corridor_id?: number | null
+          ward_name?: string | null
+          ward_number?: string | null
+          zone?: string | null
+        }
+        Update: {
+          aliases?: string[]
+          centroid?: unknown
+          character_tags?: string[] | null
+          city_id?: number
+          description?: string | null
+          enrichment_source?: string | null
+          external_ref?: string | null
+          id?: number
+          micro_localities?: string[] | null
+          name_en?: string
+          name_hi?: string | null
+          name_hi_status?: string
+          nearby_locality_slugs?: string[] | null
+          notable_landmarks?: string[] | null
+          parent_locality_id?: number | null
+          pincodes?: string[] | null
+          slug?: string
+          source?: string | null
+          status?: string
+          superseded_by_corridor_id?: number | null
+          ward_name?: string | null
+          ward_number?: string | null
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "localities_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "localities_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "localities_parent_locality_id_fkey"
+            columns: ["parent_locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "localities_superseded_by_corridor_id_fkey"
+            columns: ["superseded_by_corridor_id"]
+            isOneToOne: false
+            referencedRelation: "corridors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locality_corridors: {
+        Row: {
+          corridor_id: number
+          locality_id: number
+        }
+        Insert: {
+          corridor_id: number
+          locality_id: number
+        }
+        Update: {
+          corridor_id?: number
+          locality_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_corridors_corridor_id_fkey"
+            columns: ["corridor_id"]
+            isOneToOne: false
+            referencedRelation: "corridors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_corridors_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locality_neighbors: {
+        Row: {
+          distance_meters: number | null
+          locality_id: number
+          method: string
+          neighbor_locality_id: number
+        }
+        Insert: {
+          distance_meters?: number | null
+          locality_id: number
+          method: string
+          neighbor_locality_id: number
+        }
+        Update: {
+          distance_meters?: number | null
+          locality_id?: number
+          method?: string
+          neighbor_locality_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_neighbors_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_neighbors_neighbor_locality_id_fkey"
+            columns: ["neighbor_locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locality_pincodes: {
+        Row: {
+          locality_id: number
+          pincode: string
+        }
+        Insert: {
+          locality_id: number
+          pincode: string
+        }
+        Update: {
+          locality_id?: number
+          pincode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_pincodes_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_tasks: {
+        Row: {
+          assignee: string | null
+          created_at: string
+          due_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["task_type"]
+          outcome: string | null
+          payload: Json | null
+          priority: number
+          ref_id: string | null
+          ref_table: string | null
+          school_id: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          updated_at: string
+        }
+        Insert: {
+          assignee?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["task_type"]
+          outcome?: string | null
+          payload?: Json | null
+          priority?: number
+          ref_id?: string | null
+          ref_table?: string | null
+          school_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          updated_at?: string
+        }
+        Update: {
+          assignee?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["task_type"]
+          outcome?: string | null
+          payload?: Json | null
+          priority?: number
+          ref_id?: string | null
+          ref_table?: string | null
+          school_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_tasks_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_tasks_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          code: string
+          gst_rate: number
+          name: string
+          price_inr: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          gst_rate?: number
+          name: string
+          price_inr: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          gst_rate?: number
+          name?: string
+          price_inr?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          home_city_id: number | null
+          language: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          home_city_id?: number | null
+          language?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          home_city_id?: number | null
+          language?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_home_city_id_fkey"
+            columns: ["home_city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_home_city_id_fkey"
+            columns: ["home_city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      sales_accounts: {
+        Row: {
+          last_contact_at: string | null
+          notes: string | null
+          owner: string | null
+          school_id: string
+          stage: string
+        }
+        Insert: {
+          last_contact_at?: string | null
+          notes?: string | null
+          owner?: string | null
+          school_id: string
+          stage?: string
+        }
+        Update: {
+          last_contact_at?: string | null
+          notes?: string | null
+          owner?: string | null
+          school_id?: string
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_accounts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_accounts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_activities: {
+        Row: {
+          actor: string | null
+          created_at: string
+          id: number
+          kind: string | null
+          notes: string | null
+          outcome: string | null
+          school_id: string | null
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          id?: number
+          kind?: string | null
+          notes?: string | null
+          outcome?: string | null
+          school_id?: string | null
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          id?: number
+          kind?: string | null
+          notes?: string | null
+          outcome?: string | null
+          school_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_activities_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_activities_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saras_mahendragarh: {
+        Row: {
+          address: string | null
+          affiliation_number: string | null
+          created_at: string | null
+          district: string | null
+          head_name: string | null
+          saras_id: number
+          saras_name: string | null
+          school_code: string | null
+          state: string | null
+          status: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          affiliation_number?: string | null
+          created_at?: string | null
+          district?: string | null
+          head_name?: string | null
+          saras_id?: number
+          saras_name?: string | null
+          school_code?: string | null
+          state?: string | null
+          status?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          affiliation_number?: string | null
+          created_at?: string | null
+          district?: string | null
+          head_name?: string | null
+          saras_id?: number
+          saras_name?: string | null
+          school_code?: string | null
+          state?: string | null
+          status?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      schema_migrations: {
+        Row: {
+          applied_at: string
+          filename: string
+        }
+        Insert: {
+          applied_at?: string
+          filename: string
+        }
+        Update: {
+          applied_at?: string
+          filename?: string
+        }
+        Relationships: []
+      }
+      school_affiliations: {
+        Row: {
+          affiliation_no: string | null
+          board_id: number
+          id: string
+          level: string | null
+          school_id: string
+          source_id: number | null
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          affiliation_no?: string | null
+          board_id: number
+          id?: string
+          level?: string | null
+          school_id: string
+          source_id?: number | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          affiliation_no?: string | null
+          board_id?: number
+          id?: string
+          level?: string | null
+          school_id?: string
+          source_id?: number | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_affiliations_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_affiliations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_affiliations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_affiliations_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_claims: {
+        Row: {
+          created_at: string
+          evidence: Json | null
+          id: string
+          method: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["claim_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          method: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id: string
+          status?: Database["public"]["Enums"]["claim_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          method?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string
+          status?: Database["public"]["Enums"]["claim_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_claims_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_claims_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      school_events: {
+        Row: {
+          cancelled_at: string | null
+          class_codes: string[]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          event_code: number
+          event_type: Database["public"]["Enums"]["school_event_type"]
+          id: string
+          listing_requested_at: string | null
+          listing_review: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at: string | null
+          listing_reviewed_by: string | null
+          location: string | null
+          registration_url: string | null
+          rejection_reason: string | null
+          school_id: string
+          slug: string
+          source_url: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          class_codes?: string[]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          event_code: number
+          event_type?: Database["public"]["Enums"]["school_event_type"]
+          id?: string
+          listing_requested_at?: string | null
+          listing_review?: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at?: string | null
+          listing_reviewed_by?: string | null
+          location?: string | null
+          registration_url?: string | null
+          rejection_reason?: string | null
+          school_id: string
+          slug: string
+          source_url?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          class_codes?: string[]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          event_code?: number
+          event_type?: Database["public"]["Enums"]["school_event_type"]
+          id?: string
+          listing_requested_at?: string | null
+          listing_review?: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at?: string | null
+          listing_reviewed_by?: string | null
+          location?: string | null
+          registration_url?: string | null
+          rejection_reason?: string | null
+          school_id?: string
+          slug?: string
+          source_url?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_facilities: {
+        Row: {
+          available: boolean
+          facility_code: string
+          notes: string | null
+          school_id: string
+        }
+        Insert: {
+          available: boolean
+          facility_code: string
+          notes?: string | null
+          school_id: string
+        }
+        Update: {
+          available?: boolean
+          facility_code?: string
+          notes?: string | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_facilities_facility_code_fkey"
+            columns: ["facility_code"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "school_facilities_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_facilities_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_identifiers: {
+        Row: {
+          scheme: string
+          school_id: string
+          value: string
+        }
+        Insert: {
+          scheme: string
+          school_id: string
+          value: string
+        }
+        Update: {
+          scheme?: string
+          school_id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_identifiers_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_identifiers_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_jobs: {
+        Row: {
+          apply_email: string | null
+          apply_url: string | null
+          cancelled_at: string | null
+          class_codes: string[]
+          closes_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          employment_type: Database["public"]["Enums"]["job_employment_type"]
+          experience_required: string | null
+          filled_at: string | null
+          id: string
+          job_code: number
+          listing_requested_at: string | null
+          listing_review: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at: string | null
+          listing_reviewed_by: string | null
+          location: string | null
+          rejection_reason: string | null
+          salary_range: string | null
+          school_id: string
+          slug: string
+          subject: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          apply_email?: string | null
+          apply_url?: string | null
+          cancelled_at?: string | null
+          class_codes?: string[]
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          employment_type?: Database["public"]["Enums"]["job_employment_type"]
+          experience_required?: string | null
+          filled_at?: string | null
+          id?: string
+          job_code: number
+          listing_requested_at?: string | null
+          listing_review?: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at?: string | null
+          listing_reviewed_by?: string | null
+          location?: string | null
+          rejection_reason?: string | null
+          salary_range?: string | null
+          school_id: string
+          slug: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          apply_email?: string | null
+          apply_url?: string | null
+          cancelled_at?: string | null
+          class_codes?: string[]
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          employment_type?: Database["public"]["Enums"]["job_employment_type"]
+          experience_required?: string | null
+          filled_at?: string | null
+          id?: string
+          job_code?: number
+          listing_requested_at?: string | null
+          listing_review?: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at?: string | null
+          listing_reviewed_by?: string | null
+          location?: string | null
+          rejection_reason?: string | null
+          salary_range?: string | null
+          school_id?: string
+          slug?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_jobs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_jobs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_media: {
+        Row: {
+          approved: boolean
+          created_at: string
+          external_url: string | null
+          id: string
+          kind: string
+          licence: string
+          school_id: string
+          storage_path: string | null
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          external_url?: string | null
+          id?: string
+          kind: string
+          licence: string
+          school_id: string
+          storage_path?: string | null
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          external_url?: string | null
+          id?: string
+          kind?: string
+          licence?: string
+          school_id?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_media_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_media_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_members: {
+        Row: {
+          role: Database["public"]["Enums"]["school_member_role"]
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          role?: Database["public"]["Enums"]["school_member_role"]
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          role?: Database["public"]["Enums"]["school_member_role"]
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_members_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_members_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      school_name_case_backup: {
+        Row: {
+          changed_at: string
+          old_name_en: string
+          school_id: string
+        }
+        Insert: {
+          changed_at?: string
+          old_name_en: string
+          school_id: string
+        }
+        Update: {
+          changed_at?: string
+          old_name_en?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_name_case_backup_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_name_case_backup_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_posts: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: Database["public"]["Enums"]["post_kind"]
+          listing_requested_at: string | null
+          listing_review: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at: string | null
+          listing_reviewed_by: string | null
+          post_code: number
+          published_at: string | null
+          rejection_reason: string | null
+          requested_tier: Database["public"]["Enums"]["post_tier"] | null
+          review: Database["public"]["Enums"]["review_status"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_id: string
+          slug: string
+          source_url: string | null
+          tier: Database["public"]["Enums"]["post_tier"]
+          title: string
+          updated_at: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["post_kind"]
+          listing_requested_at?: string | null
+          listing_review?: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at?: string | null
+          listing_reviewed_by?: string | null
+          post_code: number
+          published_at?: string | null
+          rejection_reason?: string | null
+          requested_tier?: Database["public"]["Enums"]["post_tier"] | null
+          review?: Database["public"]["Enums"]["review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id: string
+          slug: string
+          source_url?: string | null
+          tier?: Database["public"]["Enums"]["post_tier"]
+          title: string
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["post_kind"]
+          listing_requested_at?: string | null
+          listing_review?: Database["public"]["Enums"]["review_status"] | null
+          listing_reviewed_at?: string | null
+          listing_reviewed_by?: string | null
+          post_code?: number
+          published_at?: string | null
+          rejection_reason?: string | null
+          requested_tier?: Database["public"]["Enums"]["post_tier"] | null
+          review?: Database["public"]["Enums"]["review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string
+          slug?: string
+          source_url?: string | null
+          tier?: Database["public"]["Enums"]["post_tier"]
+          title?: string
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_posts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_posts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_rankings: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          rank: number | null
+          school_id: string
+          score: number | null
+          source_id: number
+          year: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          rank?: number | null
+          school_id: string
+          score?: number | null
+          source_id: number
+          year: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          rank?: number | null
+          school_id?: string
+          score?: number | null
+          source_id?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_rankings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_rankings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_rankings_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_slug_history: {
+        Row: {
+          changed_at: string
+          city_slug: string
+          old_slug: string
+          school_id: string
+        }
+        Insert: {
+          changed_at?: string
+          city_slug: string
+          old_slug: string
+          school_id: string
+        }
+        Update: {
+          changed_at?: string
+          city_slug?: string
+          old_slug?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_slug_history_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_slug_history_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_slug_redirects: {
+        Row: {
+          created_at: string
+          reason: string
+          school_id: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          reason: string
+          school_id: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          reason?: string
+          school_id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_slug_redirects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_slug_redirects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_teacher_affiliations: {
+        Row: {
+          created_at: string
+          id: string
+          initiated_by: string
+          requested_by: string | null
+          responded_at: string | null
+          responded_by: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["affiliation_status"]
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          initiated_by: string
+          requested_by?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["affiliation_status"]
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          initiated_by?: string
+          requested_by?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          school_id?: string
+          status?: Database["public"]["Enums"]["affiliation_status"]
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_teacher_affiliations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_teacher_affiliations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_teacher_affiliations_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          about_en: string | null
+          about_hi: string | null
+          address: string | null
+          address_area: string | null
+          address_city: string | null
+          address_district: string | null
+          address_pincode: string | null
+          address_source: string | null
+          address_state: string | null
+          address_state_code: string | null
+          address_street: string | null
+          affiliation_number: string | null
+          affiliation_prefix: string | null
+          affiliation_source_url: string | null
+          aliases: string[]
+          board: string | null
+          cbse_affiliation_verified: boolean | null
+          city_id: number | null
+          claim: Database["public"]["Enums"]["claim_status"]
+          completeness: number
+          corridor_id: number | null
+          created_at: string
+          district_id: number | null
+          edudel_zone: string | null
+          email: string[] | null
+          established_year: number | null
+          gender: Database["public"]["Enums"]["school_gender"] | null
+          geocode_precision: string | null
+          id: string
+          last_verified_at: string | null
+          locality_assignment_method: string | null
+          locality_assignment_note: string | null
+          locality_id: number | null
+          location: unknown
+          management: Database["public"]["Enums"]["school_management"] | null
+          max_class: string | null
+          medium: string[] | null
+          merged_into: string | null
+          min_class: string | null
+          name_en: string
+          name_hi: string | null
+          name_search: unknown
+          next_check_due: string | null
+          phone: string[] | null
+          pincode: string | null
+          principal_name: string | null
+          school_code: number
+          slug: string
+          source_type: Database["public"]["Enums"]["provenance_source_type"]
+          state_code: string | null
+          status: Database["public"]["Enums"]["record_status"]
+          tier: Database["public"]["Enums"]["school_tier"]
+          udise_code: string | null
+          updated_at: string
+          verification: Database["public"]["Enums"]["verification_status"]
+          verification_status: Database["public"]["Enums"]["verification_status_v2"]
+          website: string | null
+        }
+        Insert: {
+          about_en?: string | null
+          about_hi?: string | null
+          address?: string | null
+          address_area?: string | null
+          address_city?: string | null
+          address_district?: string | null
+          address_pincode?: string | null
+          address_source?: string | null
+          address_state?: string | null
+          address_state_code?: string | null
+          address_street?: string | null
+          affiliation_number?: string | null
+          affiliation_prefix?: string | null
+          affiliation_source_url?: string | null
+          aliases?: string[]
+          board?: string | null
+          cbse_affiliation_verified?: boolean | null
+          city_id?: number | null
+          claim?: Database["public"]["Enums"]["claim_status"]
+          completeness?: number
+          corridor_id?: number | null
+          created_at?: string
+          district_id?: number | null
+          edudel_zone?: string | null
+          email?: string[] | null
+          established_year?: number | null
+          gender?: Database["public"]["Enums"]["school_gender"] | null
+          geocode_precision?: string | null
+          id?: string
+          last_verified_at?: string | null
+          locality_assignment_method?: string | null
+          locality_assignment_note?: string | null
+          locality_id?: number | null
+          location?: unknown
+          management?: Database["public"]["Enums"]["school_management"] | null
+          max_class?: string | null
+          medium?: string[] | null
+          merged_into?: string | null
+          min_class?: string | null
+          name_en: string
+          name_hi?: string | null
+          name_search?: unknown
+          next_check_due?: string | null
+          phone?: string[] | null
+          pincode?: string | null
+          principal_name?: string | null
+          school_code?: number
+          slug: string
+          source_type: Database["public"]["Enums"]["provenance_source_type"]
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["record_status"]
+          tier?: Database["public"]["Enums"]["school_tier"]
+          udise_code?: string | null
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+          verification_status: Database["public"]["Enums"]["verification_status_v2"]
+          website?: string | null
+        }
+        Update: {
+          about_en?: string | null
+          about_hi?: string | null
+          address?: string | null
+          address_area?: string | null
+          address_city?: string | null
+          address_district?: string | null
+          address_pincode?: string | null
+          address_source?: string | null
+          address_state?: string | null
+          address_state_code?: string | null
+          address_street?: string | null
+          affiliation_number?: string | null
+          affiliation_prefix?: string | null
+          affiliation_source_url?: string | null
+          aliases?: string[]
+          board?: string | null
+          cbse_affiliation_verified?: boolean | null
+          city_id?: number | null
+          claim?: Database["public"]["Enums"]["claim_status"]
+          completeness?: number
+          corridor_id?: number | null
+          created_at?: string
+          district_id?: number | null
+          edudel_zone?: string | null
+          email?: string[] | null
+          established_year?: number | null
+          gender?: Database["public"]["Enums"]["school_gender"] | null
+          geocode_precision?: string | null
+          id?: string
+          last_verified_at?: string | null
+          locality_assignment_method?: string | null
+          locality_assignment_note?: string | null
+          locality_id?: number | null
+          location?: unknown
+          management?: Database["public"]["Enums"]["school_management"] | null
+          max_class?: string | null
+          medium?: string[] | null
+          merged_into?: string | null
+          min_class?: string | null
+          name_en?: string
+          name_hi?: string | null
+          name_search?: unknown
+          next_check_due?: string | null
+          phone?: string[] | null
+          pincode?: string | null
+          principal_name?: string | null
+          school_code?: number
+          slug?: string
+          source_type?: Database["public"]["Enums"]["provenance_source_type"]
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["record_status"]
+          tier?: Database["public"]["Enums"]["school_tier"]
+          udise_code?: string | null
+          updated_at?: string
+          verification?: Database["public"]["Enums"]["verification_status"]
+          verification_status?: Database["public"]["Enums"]["verification_status_v2"]
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schools_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "active_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_corridor_id_fkey"
+            columns: ["corridor_id"]
+            isOneToOne: false
+            referencedRelation: "corridors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_max_class_fkey"
+            columns: ["max_class"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "schools_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_min_class_fkey"
+            columns: ["min_class"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      schools_audit: {
+        Row: {
+          audit_type: string
+          created_at: string | null
+          description: string | null
+          difference: number | null
+          district_id: number | null
+          id: number
+          resolution_notes: string | null
+          resolved_at: string | null
+          reviewed_by: string | null
+          saras_expected_count: number | null
+          school_id: string | null
+          schooloye_actual_count: number | null
+          severity: string | null
+          suggested_action: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          audit_type: string
+          created_at?: string | null
+          description?: string | null
+          difference?: number | null
+          district_id?: number | null
+          id?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          reviewed_by?: string | null
+          saras_expected_count?: number | null
+          school_id?: string | null
+          schooloye_actual_count?: number | null
+          severity?: string | null
+          suggested_action?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          audit_type?: string
+          created_at?: string | null
+          description?: string | null
+          difference?: number | null
+          district_id?: number | null
+          id?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          reviewed_by?: string | null
+          saras_expected_count?: number | null
+          school_id?: string | null
+          schooloye_actual_count?: number | null
+          severity?: string | null
+          suggested_action?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schools_audit_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_audit_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_audit_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seat_status: {
+        Row: {
+          academic_year: string
+          class_code: string
+          confidence: Database["public"]["Enums"]["seat_confidence"]
+          confirmed_at: string | null
+          exact_count: number | null
+          id: string
+          mid_session_accepted: boolean | null
+          public_status: Database["public"]["Enums"]["seat_public_status"]
+          range_label: string | null
+          reported_at: string
+          reported_via: string | null
+          school_id: string
+        }
+        Insert: {
+          academic_year: string
+          class_code: string
+          confidence: Database["public"]["Enums"]["seat_confidence"]
+          confirmed_at?: string | null
+          exact_count?: number | null
+          id?: string
+          mid_session_accepted?: boolean | null
+          public_status: Database["public"]["Enums"]["seat_public_status"]
+          range_label?: string | null
+          reported_at?: string
+          reported_via?: string | null
+          school_id: string
+        }
+        Update: {
+          academic_year?: string
+          class_code?: string
+          confidence?: Database["public"]["Enums"]["seat_confidence"]
+          confirmed_at?: string | null
+          exact_count?: number | null
+          id?: string
+          mid_session_accepted?: boolean | null
+          public_status?: Database["public"]["Enums"]["seat_public_status"]
+          range_label?: string | null
+          reported_at?: string
+          reported_via?: string | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seat_status_class_code_fkey"
+            columns: ["class_code"]
+            isOneToOne: false
+            referencedRelation: "class_levels"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "seat_status_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seat_status_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlists: {
+        Row: {
+          child_id: string | null
+          created_at: string
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          child_id?: string | null
+          created_at?: string
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          child_id?: string | null
+          created_at?: string
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlists_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlists_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlists_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      source_records: {
+        Row: {
+          content_hash: string
+          external_id: string
+          fetched_at: string
+          id: number
+          match_confidence: number | null
+          match_method: string | null
+          matched_school_id: string | null
+          payload: Json
+          source_id: number
+        }
+        Insert: {
+          content_hash: string
+          external_id: string
+          fetched_at?: string
+          id?: number
+          match_confidence?: number | null
+          match_method?: string | null
+          matched_school_id?: string | null
+          payload: Json
+          source_id: number
+        }
+        Update: {
+          content_hash?: string
+          external_id?: string
+          fetched_at?: string
+          id?: number
+          match_confidence?: number | null
+          match_method?: string | null
+          matched_school_id?: string | null
+          payload?: Json
+          source_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sources: {
+        Row: {
+          base_url: string | null
+          code: string
+          id: number
+          licence_note: string | null
+          name: string
+          trust_rank: number
+        }
+        Insert: {
+          base_url?: string | null
+          code: string
+          id?: number
+          licence_note?: string | null
+          name: string
+          trust_rank?: number
+        }
+        Update: {
+          base_url?: string | null
+          code?: string
+          id?: number
+          licence_note?: string | null
+          name?: string
+          trust_rank?: number
+        }
+        Relationships: []
+      }
+      spatial_ref_sys: {
+        Row: {
+          auth_name: string | null
+          auth_srid: number | null
+          proj4text: string | null
+          srid: number
+          srtext: string | null
+        }
+        Insert: {
+          auth_name?: string | null
+          auth_srid?: number | null
+          proj4text?: string | null
+          srid: number
+          srtext?: string | null
+        }
+        Update: {
+          auth_name?: string | null
+          auth_srid?: number | null
+          proj4text?: string | null
+          srid?: number
+          srtext?: string | null
+        }
+        Relationships: []
+      }
+      states: {
+        Row: {
+          code: string
+          id: number
+          is_city_state: boolean
+          name_en: string
+          name_hi: string | null
+          slug: string
+        }
+        Insert: {
+          code: string
+          id?: number
+          is_city_state?: boolean
+          name_en: string
+          name_hi?: string | null
+          slug: string
+        }
+        Update: {
+          code?: string
+          id?: number
+          is_city_state?: boolean
+          name_en?: string
+          name_hi?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      teacher_claims: {
+        Row: {
+          created_at: string
+          evidence: Json | null
+          id: string
+          method: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["claim_status"]
+          teacher_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          method: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["claim_status"]
+          teacher_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          method?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["claim_status"]
+          teacher_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_claims_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "teacher_claims_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      teacher_experience: {
+        Row: {
+          end_year: number | null
+          id: string
+          role_title: string
+          school_id: string | null
+          school_text: string | null
+          sort_order: number
+          start_year: number
+          teacher_id: string
+        }
+        Insert: {
+          end_year?: number | null
+          id?: string
+          role_title: string
+          school_id?: string | null
+          school_text?: string | null
+          sort_order?: number
+          start_year: number
+          teacher_id: string
+        }
+        Update: {
+          end_year?: number | null
+          id?: string
+          role_title?: string
+          school_id?: string | null
+          school_text?: string | null
+          sort_order?: number
+          start_year?: number
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_experience_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_experience_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_experience_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_qualifications: {
+        Row: {
+          detail: string | null
+          id: string
+          teacher_id: string
+          title: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          detail?: string | null
+          id?: string
+          teacher_id: string
+          title: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          detail?: string | null
+          id?: string
+          teacher_id?: string
+          title?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_qualifications_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_qualifications_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      teachers: {
+        Row: {
+          about: string | null
+          claimed_by: string | null
+          created_at: string
+          full_name: string
+          headline: string | null
+          id: string
+          is_listed: boolean
+          level: string | null
+          locality_id: number | null
+          open_to: string[]
+          photo_storage_path: string | null
+          primary_school_id: string | null
+          slug: string
+          status: Database["public"]["Enums"]["record_status"]
+          subject: string | null
+          teacher_code: number
+          updated_at: string
+          years_teaching: number | null
+        }
+        Insert: {
+          about?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          full_name: string
+          headline?: string | null
+          id?: string
+          is_listed?: boolean
+          level?: string | null
+          locality_id?: number | null
+          open_to?: string[]
+          photo_storage_path?: string | null
+          primary_school_id?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["record_status"]
+          subject?: string | null
+          teacher_code: number
+          updated_at?: string
+          years_teaching?: number | null
+        }
+        Update: {
+          about?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          full_name?: string
+          headline?: string | null
+          id?: string
+          is_listed?: boolean
+          level?: string | null
+          locality_id?: number | null
+          open_to?: string[]
+          photo_storage_path?: string | null
+          primary_school_id?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["record_status"]
+          subject?: string | null
+          teacher_code?: number
+          updated_at?: string
+          years_teaching?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "teachers_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teachers_primary_school_id_fkey"
+            columns: ["primary_school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teachers_primary_school_id_fkey"
+            columns: ["primary_school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      update_reports: {
+        Row: {
+          attachment_path: string | null
+          contact: string | null
+          created_at: string
+          id: string
+          message: string
+          reporter_id: string | null
+          reporter_type: string
+          school_id: string | null
+          status: Database["public"]["Enums"]["review_status"]
+        }
+        Insert: {
+          attachment_path?: string | null
+          contact?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          reporter_id?: string | null
+          reporter_type: string
+          school_id?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+        }
+        Update: {
+          attachment_path?: string | null
+          contact?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          reporter_id?: string | null
+          reporter_type?: string
+          school_id?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "update_reports_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "update_reports_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_missing_affiliation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      active_cities: {
+        Row: {
+          id: number | null
+          name_en: string | null
+          school_count: number | null
+          slug: string | null
+          state_id: number | null
+          state_slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geography_columns: {
+        Row: {
+          coord_dimension: number | null
+          f_geography_column: unknown
+          f_table_catalog: unknown
+          f_table_name: unknown
+          f_table_schema: unknown
+          srid: number | null
+          type: string | null
+        }
+        Relationships: []
+      }
+      geometry_columns: {
+        Row: {
+          coord_dimension: number | null
+          f_geometry_column: unknown
+          f_table_catalog: string | null
+          f_table_name: unknown
+          f_table_schema: unknown
+          srid: number | null
+          type: string | null
+        }
+        Insert: {
+          coord_dimension?: number | null
+          f_geometry_column?: unknown
+          f_table_catalog?: string | null
+          f_table_name?: unknown
+          f_table_schema?: unknown
+          srid?: number | null
+          type?: string | null
+        }
+        Update: {
+          coord_dimension?: number | null
+          f_geometry_column?: unknown
+          f_table_catalog?: string | null
+          f_table_name?: unknown
+          f_table_schema?: unknown
+          srid?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      schools_audit_summary: {
+        Row: {
+          audit_type: string | null
+          district_name: string | null
+          issue_count: number | null
+          last_issue_date: string | null
+          pending_count: number | null
+          resolved_count: number | null
+        }
+        Relationships: []
+      }
+      schools_coverage_summary: {
+        Row: {
+          affiliation_coverage_pct: number | null
+          district_name: string | null
+          schools_with_affiliation: number | null
+          schools_without_affiliation: number | null
+          state_id: number | null
+          total_schools: number | null
+          verified_cbse_schools: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools_duplicates_by_affiliation: {
+        Row: {
+          affiliation_number: string | null
+          count_in_district: number | null
+          district_name: string | null
+          school_ids: string[] | null
+          school_names: string[] | null
+          state_code: string | null
+        }
+        Relationships: []
+      }
+      schools_missing_affiliation: {
+        Row: {
+          board: string | null
+          city_name: string | null
+          created_at: string | null
+          district_name: string | null
+          id: string | null
+          management: Database["public"]["Enums"]["school_management"] | null
+          name_en: string | null
+          name_hi: string | null
+          udise_code: string | null
+        }
+        Relationships: []
+      }
+    }
+    Functions: {
+      _postgis_deprecate: {
+        Args: { newname: string; oldname: string; version: string }
+        Returns: undefined
+      }
+      _postgis_index_extent: {
+        Args: { col: string; tbl: unknown }
+        Returns: unknown
+      }
+      _postgis_pgsql_version: { Args: never; Returns: string }
+      _postgis_scripts_pgsql_version: { Args: never; Returns: string }
+      _postgis_selectivity: {
+        Args: { att_name: string; geom: unknown; mode?: string; tbl: unknown }
+        Returns: number
+      }
+      _postgis_stats: {
+        Args: { ""?: string; att_name: string; tbl: unknown }
+        Returns: string
+      }
+      _st_3dintersects: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_contains: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_containsproperly: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_coveredby:
+        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      _st_covers:
+        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      _st_crosses: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_dwithin: {
+        Args: {
+          geog1: unknown
+          geog2: unknown
+          tolerance: number
+          use_spheroid?: boolean
+        }
+        Returns: boolean
+      }
+      _st_equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      _st_intersects: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_linecrossingdirection: {
+        Args: { line1: unknown; line2: unknown }
+        Returns: number
+      }
+      _st_longestline: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      _st_maxdistance: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      _st_orderingequals: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_overlaps: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_sortablehash: { Args: { geom: unknown }; Returns: number }
+      _st_touches: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      _st_voronoi: {
+        Args: {
+          clip?: unknown
+          g1: unknown
+          return_polygons?: boolean
+          tolerance?: number
+        }
+        Returns: unknown
+      }
+      _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      addauth: { Args: { "": string }; Returns: boolean }
+      addgeometrycolumn:
+        | {
+            Args: {
+              catalog_name: string
+              column_name: string
+              new_dim: number
+              new_srid_in: number
+              new_type: string
+              schema_name: string
+              table_name: string
+              use_typmod?: boolean
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              column_name: string
+              new_dim: number
+              new_srid: number
+              new_type: string
+              schema_name: string
+              table_name: string
+              use_typmod?: boolean
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              column_name: string
+              new_dim: number
+              new_srid: number
+              new_type: string
+              table_name: string
+              use_typmod?: boolean
+            }
+            Returns: string
+          }
+      approve_application: {
+        Args: { p_application_id: string }
+        Returns: undefined
+      }
+      check_rate_limit: {
+        Args: {
+          p_key: string
+          p_max_attempts: number
+          p_window_seconds: number
+        }
+        Returns: boolean
+      }
+      create_application_order: {
+        Args: { p_child_id: string; p_product_code: string }
+        Returns: string
+      }
+      current_role_is: {
+        Args: { r: Database["public"]["Enums"]["user_role"] }
+        Returns: boolean
+      }
+      current_user_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      daitch_mokotoff: { Args: { "": string }; Returns: string[] }
+      disablelongtransactions: { Args: never; Returns: string }
+      dmetaphone: { Args: { "": string }; Returns: string }
+      dmetaphone_alt: { Args: { "": string }; Returns: string }
+      dropgeometrycolumn:
+        | {
+            Args: {
+              catalog_name: string
+              column_name: string
+              schema_name: string
+              table_name: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              column_name: string
+              schema_name: string
+              table_name: string
+            }
+            Returns: string
+          }
+        | { Args: { column_name: string; table_name: string }; Returns: string }
+      dropgeometrytable:
+        | {
+            Args: {
+              catalog_name: string
+              schema_name: string
+              table_name: string
+            }
+            Returns: string
+          }
+        | { Args: { schema_name: string; table_name: string }; Returns: string }
+        | { Args: { table_name: string }; Returns: string }
+      enablelongtransactions: { Args: never; Returns: string }
+      equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      event_slug: { Args: { p_code: number; p_title: string }; Returns: string }
+      fix_school_display_name: { Args: { input: string }; Returns: string }
+      fuzzy_candidates_in_districts: {
+        Args: { p_district_ids: number[]; p_limit?: number; p_name: string }
+        Returns: {
+          address: string
+          id: string
+          name_en: string
+          pincode: string
+          sim: number
+        }[]
+      }
+      geometry: { Args: { "": string }; Returns: unknown }
+      geometry_above: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_below: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_cmp: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      geometry_contained_3d: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_contains: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_contains_3d: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_distance_box: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      geometry_distance_centroid: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      geometry_eq: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_ge: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_gt: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_le: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_left: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_lt: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_overabove: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_overbelow: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_overlaps: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_overlaps_3d: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_overleft: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_overright: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_right: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_same: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_same_3d: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geometry_within: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_state_code_from_affiliation: {
+        Args: { affiliation_number: string }
+        Returns: string
+      }
+      gettransactionid: { Args: never; Returns: unknown }
+      is_reserved_school_slug: { Args: { candidate: string }; Returns: boolean }
+      is_school_admin: { Args: { sid: string }; Returns: boolean }
+      is_school_member: { Args: { sid: string }; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
+      job_slug: { Args: { p_code: number; p_title: string }; Returns: string }
+      longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_order_paid: {
+        Args: { p_order_id: string; p_payment_ref: string }
+        Returns: undefined
+      }
+      mint_event_code: { Args: never; Returns: number }
+      mint_job_code: { Args: never; Returns: number }
+      mint_post_code: { Args: never; Returns: number }
+      mint_school_slug: {
+        Args: {
+          p_district_id: number
+          p_locality_id: number
+          p_name: string
+          p_self_id: string
+        }
+        Returns: string
+      }
+      mint_teacher_code: { Args: never; Returns: number }
+      normalize_school_name: { Args: { input: string }; Returns: string }
+      populate_geometry_columns:
+        | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
+        | { Args: { use_typmod?: boolean }; Returns: string }
+      post_slug: { Args: { p_code: number; p_title: string }; Returns: string }
+      postgis_constraint_dims: {
+        Args: { geomcolumn: string; geomschema: string; geomtable: string }
+        Returns: number
+      }
+      postgis_constraint_srid: {
+        Args: { geomcolumn: string; geomschema: string; geomtable: string }
+        Returns: number
+      }
+      postgis_constraint_type: {
+        Args: { geomcolumn: string; geomschema: string; geomtable: string }
+        Returns: string
+      }
+      postgis_extensions_upgrade: { Args: never; Returns: string }
+      postgis_full_version: { Args: never; Returns: string }
+      postgis_geos_version: { Args: never; Returns: string }
+      postgis_lib_build_date: { Args: never; Returns: string }
+      postgis_lib_revision: { Args: never; Returns: string }
+      postgis_lib_version: { Args: never; Returns: string }
+      postgis_libjson_version: { Args: never; Returns: string }
+      postgis_liblwgeom_version: { Args: never; Returns: string }
+      postgis_libprotobuf_version: { Args: never; Returns: string }
+      postgis_libxml_version: { Args: never; Returns: string }
+      postgis_proj_version: { Args: never; Returns: string }
+      postgis_scripts_build_date: { Args: never; Returns: string }
+      postgis_scripts_installed: { Args: never; Returns: string }
+      postgis_scripts_released: { Args: never; Returns: string }
+      postgis_svn_version: { Args: never; Returns: string }
+      postgis_type_name: {
+        Args: {
+          coord_dimension: number
+          geomname: string
+          use_new_name?: boolean
+        }
+        Returns: string
+      }
+      postgis_version: { Args: never; Returns: string }
+      postgis_wagyu_version: { Args: never; Returns: string }
+      purge_expired_documents: { Args: never; Returns: number }
+      saras_fuzzy_candidates: {
+        Args: { p_district_id: number; p_limit?: number; p_name: string }
+        Returns: {
+          id: string
+          name_en: string
+          sim: number
+        }[]
+      }
+      save_order_intake: {
+        Args: { p_intake: Json; p_order_id: string }
+        Returns: undefined
+      }
+      school_slug_source: { Args: { input: string }; Returns: string }
+      school_slug_taken: {
+        Args: { candidate: string; self_id: string }
+        Returns: boolean
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      slugify_60: { Args: { input: string; max_len?: number }; Returns: string }
+      soundex: { Args: { "": string }; Returns: string }
+      st_3dclosestpoint: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_3ddistance: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      st_3dintersects: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      st_3dlongestline: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_3dmakebox: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_3dmaxdistance: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      st_3dshortestline: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_addpoint: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_angle:
+        | { Args: { line1: unknown; line2: unknown }; Returns: number }
+        | {
+            Args: { pt1: unknown; pt2: unknown; pt3: unknown; pt4?: unknown }
+            Returns: number
+          }
+      st_area:
+        | { Args: { geog: unknown; use_spheroid?: boolean }; Returns: number }
+        | { Args: { "": string }; Returns: number }
+      st_asencodedpolyline: {
+        Args: { geom: unknown; nprecision?: number }
+        Returns: string
+      }
+      st_asewkt: { Args: { "": string }; Returns: string }
+      st_asgeojson:
+        | {
+            Args: { geog: unknown; maxdecimaldigits?: number; options?: number }
+            Returns: string
+          }
+        | {
+            Args: { geom: unknown; maxdecimaldigits?: number; options?: number }
+            Returns: string
+          }
+        | {
+            Args: {
+              geom_column?: string
+              maxdecimaldigits?: number
+              pretty_bool?: boolean
+              r: Record<string, unknown>
+            }
+            Returns: string
+          }
+        | { Args: { "": string }; Returns: string }
+      st_asgml:
+        | {
+            Args: {
+              geog: unknown
+              id?: string
+              maxdecimaldigits?: number
+              nprefix?: string
+              options?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: { geom: unknown; maxdecimaldigits?: number; options?: number }
+            Returns: string
+          }
+        | { Args: { "": string }; Returns: string }
+        | {
+            Args: {
+              geog: unknown
+              id?: string
+              maxdecimaldigits?: number
+              nprefix?: string
+              options?: number
+              version: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              geom: unknown
+              id?: string
+              maxdecimaldigits?: number
+              nprefix?: string
+              options?: number
+              version: number
+            }
+            Returns: string
+          }
+      st_askml:
+        | {
+            Args: { geog: unknown; maxdecimaldigits?: number; nprefix?: string }
+            Returns: string
+          }
+        | {
+            Args: { geom: unknown; maxdecimaldigits?: number; nprefix?: string }
+            Returns: string
+          }
+        | { Args: { "": string }; Returns: string }
+      st_aslatlontext: {
+        Args: { geom: unknown; tmpl?: string }
+        Returns: string
+      }
+      st_asmarc21: { Args: { format?: string; geom: unknown }; Returns: string }
+      st_asmvtgeom: {
+        Args: {
+          bounds: unknown
+          buffer?: number
+          clip_geom?: boolean
+          extent?: number
+          geom: unknown
+        }
+        Returns: unknown
+      }
+      st_assvg:
+        | {
+            Args: { geog: unknown; maxdecimaldigits?: number; rel?: number }
+            Returns: string
+          }
+        | {
+            Args: { geom: unknown; maxdecimaldigits?: number; rel?: number }
+            Returns: string
+          }
+        | { Args: { "": string }; Returns: string }
+      st_astext: { Args: { "": string }; Returns: string }
+      st_astwkb:
+        | {
+            Args: {
+              geom: unknown
+              prec?: number
+              prec_m?: number
+              prec_z?: number
+              with_boxes?: boolean
+              with_sizes?: boolean
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              geom: unknown[]
+              ids: number[]
+              prec?: number
+              prec_m?: number
+              prec_z?: number
+              with_boxes?: boolean
+              with_sizes?: boolean
+            }
+            Returns: string
+          }
+      st_asx3d: {
+        Args: { geom: unknown; maxdecimaldigits?: number; options?: number }
+        Returns: string
+      }
+      st_azimuth:
+        | { Args: { geog1: unknown; geog2: unknown }; Returns: number }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
+      st_boundingdiagonal: {
+        Args: { fits?: boolean; geom: unknown }
+        Returns: unknown
+      }
+      st_buffer:
+        | {
+            Args: { geom: unknown; options?: string; radius: number }
+            Returns: unknown
+          }
+        | {
+            Args: { geom: unknown; quadsegs: number; radius: number }
+            Returns: unknown
+          }
+      st_centroid: { Args: { "": string }; Returns: unknown }
+      st_clipbybox2d: {
+        Args: { box: unknown; geom: unknown }
+        Returns: unknown
+      }
+      st_closestpoint: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_collect: { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }
+      st_concavehull: {
+        Args: {
+          param_allow_holes?: boolean
+          param_geom: unknown
+          param_pctconvex: number
+        }
+        Returns: unknown
+      }
+      st_contains: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      st_containsproperly: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      st_coorddim: { Args: { geometry: unknown }; Returns: number }
+      st_coveredby:
+        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_covers:
+        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_crosses: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_curvetoline: {
+        Args: { flags?: number; geom: unknown; tol?: number; toltype?: number }
+        Returns: unknown
+      }
+      st_delaunaytriangles: {
+        Args: { flags?: number; g1: unknown; tolerance?: number }
+        Returns: unknown
+      }
+      st_difference: {
+        Args: { geom1: unknown; geom2: unknown; gridsize?: number }
+        Returns: unknown
+      }
+      st_disjoint: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      st_distance:
+        | {
+            Args: { geog1: unknown; geog2: unknown; use_spheroid?: boolean }
+            Returns: number
+          }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
+      st_distancesphere:
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
+        | {
+            Args: { geom1: unknown; geom2: unknown; radius: number }
+            Returns: number
+          }
+      st_distancespheroid: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      st_dwithin: {
+        Args: {
+          geog1: unknown
+          geog2: unknown
+          tolerance: number
+          use_spheroid?: boolean
+        }
+        Returns: boolean
+      }
+      st_equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_expand:
+        | { Args: { box: unknown; dx: number; dy: number }; Returns: unknown }
+        | {
+            Args: { box: unknown; dx: number; dy: number; dz?: number }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              dm?: number
+              dx: number
+              dy: number
+              dz?: number
+              geom: unknown
+            }
+            Returns: unknown
+          }
+      st_force3d: { Args: { geom: unknown; zvalue?: number }; Returns: unknown }
+      st_force3dm: {
+        Args: { geom: unknown; mvalue?: number }
+        Returns: unknown
+      }
+      st_force3dz: {
+        Args: { geom: unknown; zvalue?: number }
+        Returns: unknown
+      }
+      st_force4d: {
+        Args: { geom: unknown; mvalue?: number; zvalue?: number }
+        Returns: unknown
+      }
+      st_generatepoints:
+        | { Args: { area: unknown; npoints: number }; Returns: unknown }
+        | {
+            Args: { area: unknown; npoints: number; seed: number }
+            Returns: unknown
+          }
+      st_geogfromtext: { Args: { "": string }; Returns: unknown }
+      st_geographyfromtext: { Args: { "": string }; Returns: unknown }
+      st_geohash:
+        | { Args: { geog: unknown; maxchars?: number }; Returns: string }
+        | { Args: { geom: unknown; maxchars?: number }; Returns: string }
+      st_geomcollfromtext: { Args: { "": string }; Returns: unknown }
+      st_geometricmedian: {
+        Args: {
+          fail_if_not_converged?: boolean
+          g: unknown
+          max_iter?: number
+          tolerance?: number
+        }
+        Returns: unknown
+      }
+      st_geometryfromtext: { Args: { "": string }; Returns: unknown }
+      st_geomfromewkt: { Args: { "": string }; Returns: unknown }
+      st_geomfromgeojson:
+        | { Args: { "": Json }; Returns: unknown }
+        | { Args: { "": Json }; Returns: unknown }
+        | { Args: { "": string }; Returns: unknown }
+      st_geomfromgml: { Args: { "": string }; Returns: unknown }
+      st_geomfromkml: { Args: { "": string }; Returns: unknown }
+      st_geomfrommarc21: { Args: { marc21xml: string }; Returns: unknown }
+      st_geomfromtext: { Args: { "": string }; Returns: unknown }
+      st_gmltosql: { Args: { "": string }; Returns: unknown }
+      st_hasarc: { Args: { geometry: unknown }; Returns: boolean }
+      st_hausdorffdistance: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      st_hexagon: {
+        Args: { cell_i: number; cell_j: number; origin?: unknown; size: number }
+        Returns: unknown
+      }
+      st_hexagongrid: {
+        Args: { bounds: unknown; size: number }
+        Returns: Record<string, unknown>[]
+      }
+      st_interpolatepoint: {
+        Args: { line: unknown; point: unknown }
+        Returns: number
+      }
+      st_intersection: {
+        Args: { geom1: unknown; geom2: unknown; gridsize?: number }
+        Returns: unknown
+      }
+      st_intersects:
+        | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_isvaliddetail: {
+        Args: { flags?: number; geom: unknown }
+        Returns: Database["public"]["CompositeTypes"]["valid_detail"]
+        SetofOptions: {
+          from: "*"
+          to: "valid_detail"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      st_length:
+        | { Args: { geog: unknown; use_spheroid?: boolean }; Returns: number }
+        | { Args: { "": string }; Returns: number }
+      st_letters: { Args: { font?: Json; letters: string }; Returns: unknown }
+      st_linecrossingdirection: {
+        Args: { line1: unknown; line2: unknown }
+        Returns: number
+      }
+      st_linefromencodedpolyline: {
+        Args: { nprecision?: number; txtin: string }
+        Returns: unknown
+      }
+      st_linefromtext: { Args: { "": string }; Returns: unknown }
+      st_linelocatepoint: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      st_linetocurve: { Args: { geometry: unknown }; Returns: unknown }
+      st_locatealong: {
+        Args: { geometry: unknown; leftrightoffset?: number; measure: number }
+        Returns: unknown
+      }
+      st_locatebetween: {
+        Args: {
+          frommeasure: number
+          geometry: unknown
+          leftrightoffset?: number
+          tomeasure: number
+        }
+        Returns: unknown
+      }
+      st_locatebetweenelevations: {
+        Args: { fromelevation: number; geometry: unknown; toelevation: number }
+        Returns: unknown
+      }
+      st_longestline: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_makebox2d: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_makeline: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_makevalid: {
+        Args: { geom: unknown; params: string }
+        Returns: unknown
+      }
+      st_maxdistance: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: number
+      }
+      st_minimumboundingcircle: {
+        Args: { inputgeom: unknown; segs_per_quarter?: number }
+        Returns: unknown
+      }
+      st_mlinefromtext: { Args: { "": string }; Returns: unknown }
+      st_mpointfromtext: { Args: { "": string }; Returns: unknown }
+      st_mpolyfromtext: { Args: { "": string }; Returns: unknown }
+      st_multilinestringfromtext: { Args: { "": string }; Returns: unknown }
+      st_multipointfromtext: { Args: { "": string }; Returns: unknown }
+      st_multipolygonfromtext: { Args: { "": string }; Returns: unknown }
+      st_node: { Args: { g: unknown }; Returns: unknown }
+      st_normalize: { Args: { geom: unknown }; Returns: unknown }
+      st_offsetcurve: {
+        Args: { distance: number; line: unknown; params?: string }
+        Returns: unknown
+      }
+      st_orderingequals: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      st_overlaps: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: boolean
+      }
+      st_perimeter: {
+        Args: { geog: unknown; use_spheroid?: boolean }
+        Returns: number
+      }
+      st_pointfromtext: { Args: { "": string }; Returns: unknown }
+      st_pointm: {
+        Args: {
+          mcoordinate: number
+          srid?: number
+          xcoordinate: number
+          ycoordinate: number
+        }
+        Returns: unknown
+      }
+      st_pointz: {
+        Args: {
+          srid?: number
+          xcoordinate: number
+          ycoordinate: number
+          zcoordinate: number
+        }
+        Returns: unknown
+      }
+      st_pointzm: {
+        Args: {
+          mcoordinate: number
+          srid?: number
+          xcoordinate: number
+          ycoordinate: number
+          zcoordinate: number
+        }
+        Returns: unknown
+      }
+      st_polyfromtext: { Args: { "": string }; Returns: unknown }
+      st_polygonfromtext: { Args: { "": string }; Returns: unknown }
+      st_project: {
+        Args: { azimuth: number; distance: number; geog: unknown }
+        Returns: unknown
+      }
+      st_quantizecoordinates: {
+        Args: {
+          g: unknown
+          prec_m?: number
+          prec_x: number
+          prec_y?: number
+          prec_z?: number
+        }
+        Returns: unknown
+      }
+      st_reduceprecision: {
+        Args: { geom: unknown; gridsize: number }
+        Returns: unknown
+      }
+      st_relate: { Args: { geom1: unknown; geom2: unknown }; Returns: string }
+      st_removerepeatedpoints: {
+        Args: { geom: unknown; tolerance?: number }
+        Returns: unknown
+      }
+      st_segmentize: {
+        Args: { geog: unknown; max_segment_length: number }
+        Returns: unknown
+      }
+      st_setsrid:
+        | { Args: { geog: unknown; srid: number }; Returns: unknown }
+        | { Args: { geom: unknown; srid: number }; Returns: unknown }
+      st_sharedpaths: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_shortestline: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_simplifypolygonhull: {
+        Args: { geom: unknown; is_outer?: boolean; vertex_fraction: number }
+        Returns: unknown
+      }
+      st_split: { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }
+      st_square: {
+        Args: { cell_i: number; cell_j: number; origin?: unknown; size: number }
+        Returns: unknown
+      }
+      st_squaregrid: {
+        Args: { bounds: unknown; size: number }
+        Returns: Record<string, unknown>[]
+      }
+      st_srid:
+        | { Args: { geog: unknown }; Returns: number }
+        | { Args: { geom: unknown }; Returns: number }
+      st_subdivide: {
+        Args: { geom: unknown; gridsize?: number; maxvertices?: number }
+        Returns: unknown[]
+      }
+      st_swapordinates: {
+        Args: { geom: unknown; ords: unknown }
+        Returns: unknown
+      }
+      st_symdifference: {
+        Args: { geom1: unknown; geom2: unknown; gridsize?: number }
+        Returns: unknown
+      }
+      st_symmetricdifference: {
+        Args: { geom1: unknown; geom2: unknown }
+        Returns: unknown
+      }
+      st_tileenvelope: {
+        Args: {
+          bounds?: unknown
+          margin?: number
+          x: number
+          y: number
+          zoom: number
+        }
+        Returns: unknown
+      }
+      st_touches: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_transform:
+        | {
+            Args: { from_proj: string; geom: unknown; to_proj: string }
+            Returns: unknown
+          }
+        | {
+            Args: { from_proj: string; geom: unknown; to_srid: number }
+            Returns: unknown
+          }
+        | { Args: { geom: unknown; to_proj: string }; Returns: unknown }
+      st_triangulatepolygon: { Args: { g1: unknown }; Returns: unknown }
+      st_union:
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }
+        | {
+            Args: { geom1: unknown; geom2: unknown; gridsize: number }
+            Returns: unknown
+          }
+      st_voronoilines: {
+        Args: { extend_to?: unknown; g1: unknown; tolerance?: number }
+        Returns: unknown
+      }
+      st_voronoipolygons: {
+        Args: { extend_to?: unknown; g1: unknown; tolerance?: number }
+        Returns: unknown
+      }
+      st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      st_wkbtosql: { Args: { wkb: string }; Returns: unknown }
+      st_wkttosql: { Args: { "": string }; Returns: unknown }
+      st_wrapx: {
+        Args: { geom: unknown; move: number; wrap: number }
+        Returns: unknown
+      }
+      teacher_slug: {
+        Args: { p_code: number; p_full_name: string }
+        Returns: string
+      }
+      text_soundex: { Args: { "": string }; Returns: string }
+      title_case_school_name: { Args: { input: string }; Returns: string }
+      unlockrows: { Args: { "": string }; Returns: number }
+      updategeometrysrid: {
+        Args: {
+          catalogn_name: string
+          column_name: string
+          new_srid_in: number
+          schema_name: string
+          table_name: string
+        }
+        Returns: string
+      }
+    }
+    Enums: {
+      admission_lead_status: "new" | "contacted" | "closed"
+      admission_status:
+        | "not_announced"
+        | "upcoming"
+        | "open"
+        | "closing_soon"
+        | "closed"
+        | "results_out"
+        | "postponed"
+        | "cancelled"
+      affiliation_status:
+        | "pending_teacher"
+        | "pending_school"
+        | "active"
+        | "declined_by_teacher"
+        | "declined_by_school"
+        | "removed"
+      application_status:
+        | "not_started"
+        | "preparing"
+        | "awaiting_parent_approval"
+        | "submitted"
+        | "fee_pending"
+        | "interview_scheduled"
+        | "result_selected"
+        | "result_waitlisted"
+        | "result_not_selected"
+        | "withdrawn"
+      claim_status: "unclaimed" | "pending" | "claimed" | "rejected"
+      consent_purpose:
+        | "account"
+        | "child_profile"
+        | "whatsapp_alerts"
+        | "application_help"
+        | "document_storage"
+        | "marketing"
+      doc_type:
+        | "birth_certificate"
+        | "photo_child"
+        | "photo_parent"
+        | "address_proof"
+        | "aadhaar_masked"
+        | "previous_report_card"
+        | "transfer_certificate"
+        | "caste_certificate"
+        | "income_certificate"
+        | "medical"
+        | "other"
+      form_mode: "online" | "offline" | "both" | "unknown"
+      job_employment_type: "full_time" | "part_time" | "contract" | "visiting"
+      order_status:
+        | "draft"
+        | "awaiting_payment"
+        | "paid"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "refunded"
+      post_kind: "news" | "press"
+      post_tier: "organic" | "featured" | "press_release"
+      provenance_source_type:
+        | "official"
+        | "school_reported"
+        | "schooloye_verified"
+        | "user_submitted"
+      record_status: "draft" | "published" | "hidden" | "closed" | "opt_out"
+      review_status:
+        | "pending"
+        | "approved"
+        | "edited"
+        | "rejected"
+        | "needs_triage"
+      school_event_type:
+        | "ptm"
+        | "open_house"
+        | "admission_test"
+        | "sports_day"
+        | "cultural"
+        | "workshop"
+        | "result_day"
+        | "holiday"
+        | "fee_deadline"
+        | "other"
+      school_gender: "coed" | "boys" | "girls"
+      school_management:
+        | "private_unaided"
+        | "private_aided"
+        | "government"
+        | "central_government"
+        | "local_body"
+        | "other"
+      school_member_role: "admin" | "staff"
+      school_tier: "A" | "B" | "C"
+      seat_confidence: "confirmed" | "reported" | "application_possible"
+      seat_public_status: "open" | "limited" | "waitlist" | "closed"
+      task_status: "open" | "in_progress" | "blocked" | "done" | "cancelled"
+      task_type:
+        | "verify_notice"
+        | "verify_update"
+        | "verify_record"
+        | "call_school"
+        | "application"
+        | "claim_review"
+        | "correction_request"
+        | "seat_update"
+      user_role: "parent" | "school_admin" | "ops" | "admin"
+      verification_status:
+        | "unverified"
+        | "source_verified"
+        | "ops_verified"
+        | "school_verified"
+      verification_status_v2: "unknown" | "pending" | "verified" | "conflicting"
+    }
+    CompositeTypes: {
+      geometry_dump: {
+        path: number[] | null
+        geom: unknown
+      }
+      valid_detail: {
+        valid: boolean | null
+        reason: string | null
+        location: unknown
+      }
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      admission_lead_status: ["new", "contacted", "closed"],
+      admission_status: [
+        "not_announced",
+        "upcoming",
+        "open",
+        "closing_soon",
+        "closed",
+        "results_out",
+        "postponed",
+        "cancelled",
+      ],
+      affiliation_status: [
+        "pending_teacher",
+        "pending_school",
+        "active",
+        "declined_by_teacher",
+        "declined_by_school",
+        "removed",
+      ],
+      application_status: [
+        "not_started",
+        "preparing",
+        "awaiting_parent_approval",
+        "submitted",
+        "fee_pending",
+        "interview_scheduled",
+        "result_selected",
+        "result_waitlisted",
+        "result_not_selected",
+        "withdrawn",
+      ],
+      claim_status: ["unclaimed", "pending", "claimed", "rejected"],
+      consent_purpose: [
+        "account",
+        "child_profile",
+        "whatsapp_alerts",
+        "application_help",
+        "document_storage",
+        "marketing",
+      ],
+      doc_type: [
+        "birth_certificate",
+        "photo_child",
+        "photo_parent",
+        "address_proof",
+        "aadhaar_masked",
+        "previous_report_card",
+        "transfer_certificate",
+        "caste_certificate",
+        "income_certificate",
+        "medical",
+        "other",
+      ],
+      form_mode: ["online", "offline", "both", "unknown"],
+      job_employment_type: ["full_time", "part_time", "contract", "visiting"],
+      order_status: [
+        "draft",
+        "awaiting_payment",
+        "paid",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "refunded",
+      ],
+      post_kind: ["news", "press"],
+      post_tier: ["organic", "featured", "press_release"],
+      provenance_source_type: [
+        "official",
+        "school_reported",
+        "schooloye_verified",
+        "user_submitted",
+      ],
+      record_status: ["draft", "published", "hidden", "closed", "opt_out"],
+      review_status: [
+        "pending",
+        "approved",
+        "edited",
+        "rejected",
+        "needs_triage",
+      ],
+      school_event_type: [
+        "ptm",
+        "open_house",
+        "admission_test",
+        "sports_day",
+        "cultural",
+        "workshop",
+        "result_day",
+        "holiday",
+        "fee_deadline",
+        "other",
+      ],
+      school_gender: ["coed", "boys", "girls"],
+      school_management: [
+        "private_unaided",
+        "private_aided",
+        "government",
+        "central_government",
+        "local_body",
+        "other",
+      ],
+      school_member_role: ["admin", "staff"],
+      school_tier: ["A", "B", "C"],
+      seat_confidence: ["confirmed", "reported", "application_possible"],
+      seat_public_status: ["open", "limited", "waitlist", "closed"],
+      task_status: ["open", "in_progress", "blocked", "done", "cancelled"],
+      task_type: [
+        "verify_notice",
+        "verify_update",
+        "verify_record",
+        "call_school",
+        "application",
+        "claim_review",
+        "correction_request",
+        "seat_update",
+      ],
+      user_role: ["parent", "school_admin", "ops", "admin"],
+      verification_status: [
+        "unverified",
+        "source_verified",
+        "ops_verified",
+        "school_verified",
+      ],
+      verification_status_v2: ["unknown", "pending", "verified", "conflicting"],
+    },
+  },
+} as const
