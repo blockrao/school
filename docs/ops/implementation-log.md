@@ -2200,3 +2200,81 @@ states, which nobody should invent.
 some are genuinely unavailable in the current catalog; (b) analytics gets scoped as its own increment
 (decision, not audit item) rather than blocking this page; (c) a real device/browser pass happens outside
 this sandbox. None of (a)–(c) require reopening any page code — the page itself is closed.
+
+---
+
+## Production QA fixtures created for the regression matrix (backend data, no code change)
+
+Prav asked to fill in the missing regression-matrix states directly via backend data rather than hunting
+for real schools already in those states. Two real risk categories came up and were resolved as follows:
+
+- **State 4 (Claimed/Verified)** — flipping a real school's claim flag is a workflow-status change, not a
+  fabricated real-world fact (a real school genuinely could be in this state), so this was done directly on
+  the school Prav named.
+- **States 5/12 (Active admissions / current news)** — these are facts a real parent could act on (an
+  application deadline, a news announcement). Fabricating them on an actual institution's live page would
+  mean a real family could see a fake application window on a real school and act on it — a materially
+  different risk than a claim flag. Flagged to Prav via AskUserQuestion; he chose the dedicated-synthetic-
+  school option over reusing a real school.
+
+**Real-data finding surfaced during this pass**: `admission_cycles` has exactly 2 rows in the entire
+published catalog, both on `dav-public-school`. No other published school has any admission cycle data at
+all — "active admissions" had no real second candidate to repurpose even if we'd wanted to. This is a data-
+coverage gap worth its own attention outside this closure (admissions data exists for essentially one
+school platform-wide).
+
+### Changes made (Supabase `School` project, `ybevzpryuvgxclkhdjld`)
+
+1. **`gyan-devi-public-school-senior-secondary-school`** (real school, id `539a5a81-2b33-4484-97a4-bea05ab02611`)
+   — `schools.claim` set to `claimed`; a `school_claims` row inserted with `method: 'ops_test_fixture'`
+   (not one of the app's real methods — `official_email`/`phone_on_record`/`document` — deliberately, so
+   this reads honestly as an ops-created fixture rather than fabricated evidence of a real verification
+   flow), `status: 'claimed'`, attributed to the existing `admin@gmail.com` ops account as both claimant and
+   reviewer (no real school-side user exists for a synthetic claim). Verified live: header badge now reads
+   "School-claimed · Managed by the school · verification in progress," claim prompt gone.
+
+2. **New synthetic school `schooloye-qa-test-fixture`** (id `0ebcd31e-79aa-4e44-9ec9-f6d6e094e53c`, published)
+   — name is deliberately `"SchoolOye QA Test Fixture (Not a Real School)"` so it can never be mistaken for
+   a real listing by a visitor or in search results. Hosts:
+   - **State 5 (Active admissions)**: one `admission_cycles` row, 2027-28 Class 1, `opens_on` 10 days ago /
+     `closes_on` 30 days out, `status: open`, a placeholder `form_url`. Verified live: "Closes in 30 days,"
+     correct open-cycle rendering.
+   - **State 12 (Current news)**: one `school_posts` row, `kind: news`, `review: approved`,
+     `published_at: now()`, body text explicitly says "synthetic... not a real announcement." Verified live
+     in the news/"what's happening" module.
+   - **State 8 (No media)** comes for free — no `school_media` rows exist for any school in the catalog
+     (confirmed earlier this milestone, SDP-02), so this fixture demonstrates it same as every other school.
+
+### State 10 (Conflicting/partial data) — genuinely not creatable right now, code gap not a fixture gap
+
+Checked before touching data: the only "conflicting" concept in the schema is `verification_status` (v2
+enum: `unknown`/`pending`/`verified`/`conflicting`) on both `schools` and `admission_cycles`. Neither
+`api.public_schools` nor `api.public_school_admissions` selects this column at all, and no frontend code
+reads it — `entity-page.tsx` only reads the older `schools.verification` enum (`unverified`/`school_verified`/
+`source_verified`/`ops_verified`), which has no conflict state. Setting `verification_status = 'conflicting'`
+on any row right now would be invisible on the live page — not a fixture I'm willing to create and quietly
+claim as "done," since it would prove nothing. **This is a real product gap**: there's no conflict-detection
+UI/data path to test yet. Recorded as a roadmap item, not a closure blocker for this page (the page can't be
+asked to surface a signal the schema exposes to no view and no component reads).
+
+### Updated regression-matrix status
+
+| State | Status |
+|---|---|
+| 1 Sparse/unclaimed | DONE — Gyan Deep, Public GSSS Barara |
+| 2 Standard | DONE — reasoned from code, not separately fixtured |
+| 3 Rich | DONE — DAV Public School |
+| 4 Claimed/verified | **DONE this pass** — Gyan Devi Public School Sr. Sec. |
+| 5 Active admissions | **DONE this pass** — schooloye-qa-test-fixture (synthetic) |
+| 6 Past admissions only | DONE — DAV's existing closed Nursery cycle |
+| 7 No geocode | DONE — Gyan Deep, DAV (both lack lat/lng) |
+| 8 No media | DONE — true of every school in the catalog, no fixture needed |
+| 9 No legitimate contact channel | NOT APPLICABLE — the WhatsApp helpline is platform-owned and always exists now (SDP-05 resolved), so this state no longer occurs by design |
+| 10 Conflicting/partial data | **BLOCKED — code gap, not fixture gap** (see above); roadmap item |
+| 11 No related schools | DONE — reasoned from `getSimilarSchools` fallback logic |
+| 12 News/current-state content | **DONE this pass** — schooloye-qa-test-fixture (synthetic) |
+
+8 of 12 states now have real, verified-live fixtures; 2 need no fixture (already universal or made N/A by
+SDP-05); 1 (State 2) is reasoned rather than fixtured (no acceptance criteria distinguish it from ordinary
+correctness already covered elsewhere); 1 (State 10) is a genuine product gap, not something more backend
+data can produce.
