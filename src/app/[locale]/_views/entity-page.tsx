@@ -10,7 +10,7 @@ import { ClaimCard } from "@/components/ui/claim-card";
 import { CoverageCard } from "@/components/ui/coverage-card";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
-import { EnrichmentBadge, EnrichmentMetadataSection } from "@/components/ui/enrichment-badge";
+import { EnrichmentMetadataSection } from "@/components/ui/enrichment-badge";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
@@ -1295,7 +1295,9 @@ export async function SchoolView({
                   <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>
                   <dd>{affiliationNo ?? <NotYetPublished />}</dd>
                 </div>
-                {/* UDISE Enrichment: Principal/Head Name (29 Sep 2026) — 100% coverage in UDISE data */}
+                {/* UDISE Enrichment: Principal/Head Name (29 Sep 2026) — 100% coverage in UDISE data.
+                  No per-field badge here (30 Sep 2026) — source/freshness is shown once, in the
+                  Data Enrichment section at the bottom of the page, not repeated next to every field. */}
                 {(() => {
                   // Extract principal name from principal_name field or from about_en
                   const principalName = school.principal_name ||
@@ -1303,15 +1305,7 @@ export async function SchoolView({
                   return principalName ? (
                     <div>
                       <dt className="text-meta font-semibold text-muted-ink">Principal</dt>
-                      <dd className="flex items-center gap-2">
-                        <span>{principalName}</span>
-                        {school.principal_name && school.enriched_at && (
-                          <EnrichmentBadge
-                            enrichedAt={school.enriched_at}
-                            enrichmentSources={school.enrichment_sources}
-                          />
-                        )}
-                      </dd>
+                      <dd>{principalName}</dd>
                     </div>
                   ) : null;
                 })()}
@@ -1575,12 +1569,6 @@ export async function SchoolView({
                     <div className="rounded-md bg-so-surface p-3">
                       <div className="mb-2 flex items-center justify-between">
                         <span className="text-meta font-semibold text-muted-ink">Address details</span>
-                        {school.enriched_at && (
-                          <EnrichmentBadge
-                            enrichedAt={school.enriched_at}
-                            enrichmentSources={school.enrichment_sources}
-                          />
-                        )}
                       </div>
                       <dl className="grid grid-cols-2 gap-2 text-body text-sm">
                         {school.address_street && (

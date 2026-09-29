@@ -90,7 +90,7 @@ export function EnrichmentMetadataSection({
       <dl className="space-y-2 text-sm">
         {enrichedDate && (
           <div className="flex justify-between">
-            <dt className="text-blue-700">Last enriched</dt>
+            <dt className="text-blue-700">Last changed</dt>
             <dd className="font-medium text-blue-900">
               {enrichedDate.toLocaleDateString("en-IN")}
               {" "}
