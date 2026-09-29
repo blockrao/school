@@ -94,9 +94,15 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
   const { bundle, city } = resolved;
   const { school, board } = bundle;
   const name = school.name_en ?? "School";
-  const areaLabel = school.locality_name ?? city?.cityName ?? "India";
   const grades = formatGradeRange(school.min_class, school.max_class);
-
+  // Same rule as the H1's h1LocationSuffix below (SEO review, 2026-09-29):
+  // locality AND city together when both are known, never either/or — a
+  // school with a verified locality still needs its city for context
+  // ("Sector 10, Gurugram", not just "Sector 10"). locality_name is only
+  // ever real, verified data (see breadcrumbTrail below); never inferred
+  // from geocode_precision or invented for a school we've only pincode-
+  // matched to a city.
+  const areaLabel = [school.locality_name, city?.cityName].filter(Boolean).join(", ") || "India";
   return {
     title: `${name}, ${areaLabel} — SchoolOye`,
     description: buildSchoolMetaDescription({
