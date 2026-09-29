@@ -1269,7 +1269,14 @@ export async function SchoolView({
                     school itself. */}
                   {school.claim === "claimed" ? "From the school" : "About this school"}
                 </h2>
-                <p className="text-body leading-relaxed">{school.about_en}</p>
+                {/* UDISE Enrichment (29 Sep 2026) — remove auto-filled principal/type info
+                  from about_en display since it's now shown separately in School facts. */}
+                <p className="text-body leading-relaxed">
+                  {school.about_en
+                    ?.replace(/Principal:\s*[^|]+\s*\|\s*Type:\s*[^|]+\s*(\|)?/gi, "")
+                    ?.trim() ||
+                    school.about_en}
+                </p>
               </section>
             )}
 
@@ -1288,6 +1295,18 @@ export async function SchoolView({
                   <dt className="text-meta font-semibold text-muted-ink">Affiliation no.</dt>
                   <dd>{affiliationNo ?? <NotYetPublished />}</dd>
                 </div>
+                {/* UDISE Enrichment: Principal/Head Name (29 Sep 2026) — 100% coverage in UDISE data */}
+                {(() => {
+                  // Extract principal name from principal_name field or from about_en
+                  const principalName = school.principal_name ||
+                    (school.about_en?.match(/Principal:\s*([^|]+)/)?.[1]?.trim());
+                  return principalName ? (
+                    <div>
+                      <dt className="text-meta font-semibold text-muted-ink">Principal</dt>
+                      <dd>{principalName}</dd>
+                    </div>
+                  ) : null;
+                })()}
                 {/* Increment 7: "Grades" row removed — it rendered the exact same
                   `grades` string already shown in the header and the Decision
                   Strip's Entry classes slot, with no added value (unlike Board,
@@ -1331,6 +1350,37 @@ export async function SchoolView({
                 )}
               </dl>
             </section>
+
+            {/* UDISE Enrichment: Contact Information Section (29 Sep 2026) */}
+            {(school.email?.length || school.phone?.length) && (
+              <section aria-labelledby="contact-heading" className="flex flex-col gap-3">
+                <h2 id="contact-heading" className="font-display text-card font-semibold">
+                  Contact information
+                </h2>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-body">
+                  {school.email && school.email.length > 0 && (
+                    <div>
+                      <dt className="text-meta font-semibold text-muted-ink">Email</dt>
+                      <dd>
+                        <a href={`mailto:${school.email[0]}`} className="text-ruled-blue hover:underline">
+                          {school.email[0]}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                  {school.phone && school.phone.length > 0 && (
+                    <div>
+                      <dt className="text-meta font-semibold text-muted-ink">Phone</dt>
+                      <dd>
+                        <a href={`tel:${school.phone[0]}`} className="text-ruled-blue hover:underline">
+                          {school.phone[0]}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </section>
+            )}
 
             <section
               aria-labelledby="admissions-heading"
@@ -1525,17 +1575,78 @@ export async function SchoolView({
                 <h2 id="location-heading" className="font-display text-card font-semibold">
                   {t(dict, "school_page.location_heading")}
                 </h2>
-                <p className="text-body">
-                  {school.address ?? t(dict, "common.address_not_yet_published")}
-                  {mapPoint && (
-                    <span className="text-meta text-muted-ink">
-                      {t(dict, "school_page.location_precision_note", {
-                        precision: school.geocode_precision ?? "pincode",
-                      })}
-                    </span>
+                {/* UDISE Enrichment: Structured Address Display (29 Sep 2026) */}
+                <div className="space-y-3">
+                  {school.address && (
+                    <div className="flex flex-col gap-2">
+                      <div className="text-body">
+                        <div className="font-semibold text-ink">{school.address}</div>
+                        {school.address_pincode && (
+                          <div className="text-meta text-muted-ink">Pin: {school.address_pincode}</div>
+                        )}
+                      </div>
+                    </div>
                   )}
-                </p>
-                {evidenceByField.address && <SourceLine evidence={evidenceByField.address} />}
+                  {!school.address && (
+                    <p className="text-body">{t(dict, "common.address_not_yet_published")}</p>
+                  )}
+                  {evidenceByField.address && <SourceLine evidence={evidenceByField.address} />}
+
+                  {/* Structured Address Components — display when available */}
+                  {(school.address_street || school.address_area || school.address_city ||
+                    school.address_district || school.address_state || school.address_pincode) && (
+                    <div className="rounded-md bg-so-surface p-3">
+                      <div className="mb-2 text-meta font-semibold text-muted-ink">Address details</div>
+                      <dl className="grid grid-cols-2 gap-2 text-body text-sm">
+                        {school.address_street && (
+                          <>
+                            <dt className="font-semibold text-muted-ink">Street</dt>
+                            <dd className="truncate" title={school.address_street}>{school.address_street}</dd>
+                          </>
+                        )}
+                        {school.address_area && (
+                          <>
+                            <dt className="font-semibold text-muted-ink">Area</dt>
+                            <dd>{school.address_area}</dd>
+                          </>
+                        )}
+                        {school.address_city && (
+                          <>
+                            <dt className="font-semibold text-muted-ink">City</dt>
+                            <dd>{school.address_city}</dd>
+                          </>
+                        )}
+                        {school.address_district && (
+                          <>
+                            <dt className="font-semibold text-muted-ink">District</dt>
+                            <dd>{school.address_district}</dd>
+                          </>
+                        )}
+                        {school.address_state && (
+                          <>
+                            <dt className="font-semibold text-muted-ink">State</dt>
+                            <dd>{school.address_state}</dd>
+                          </>
+                        )}
+                        {(school.address_pincode || school.pincode) && (
+                          <>
+                            <dt className="font-semibold text-muted-ink">Pincode</dt>
+                            <dd>{school.address_pincode || school.pincode}</dd>
+                          </>
+                        )}
+                      </dl>
+                    </div>
+                  )}
+                </div>
+
+                {mapPoint && (
+                  <span className="text-meta text-muted-ink">
+                    {t(dict, "school_page.location_precision_note", {
+                      precision: school.geocode_precision ?? "pincode",
+                    })}
+                  </span>
+                )}
+
                 {/* Increment 10 — wires the existing AreaMapLazy island (already
                   built and used on the locality page, src/lib/db/public-adapter
                   LocalityPageBody) onto the entity page too: same component,
