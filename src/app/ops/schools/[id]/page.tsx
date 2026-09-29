@@ -78,6 +78,29 @@ export default async function OpsSchoolDetailPage({ params }: { params: Promise<
             ? identifiers.map((i) => `${i.scheme}: ${i.value}`).join(" · ")
             : "No identifiers on file"}
         </p>
+        {/* Enrichment provenance (moved here from the public entity page, 30 Sep
+          2026 — per-field confidence scores and source acronyms like "UDISE"
+          are actionable for staff deciding whether to trust/re-check a field,
+          but meant nothing to a parent reading the public page). */}
+        {(school.enriched_at || (school.enrichment_sources?.length ?? 0) > 0) && (
+          <div className="mt-2 border-t border-rule pt-2">
+            <p>
+              Enrichment: {school.enrichment_sources?.join(", ") || "unknown source"}
+              {school.enriched_at &&
+                ` · last changed ${new Date(school.enriched_at).toLocaleDateString("en-IN")}`}
+            </p>
+            {school.data_quality_flags &&
+              Object.keys(school.data_quality_flags as Record<string, number | null>).length > 0 && (
+                <p className="mt-1">
+                  Confidence:{" "}
+                  {Object.entries(school.data_quality_flags as Record<string, number | null>)
+                    .filter(([, v]) => typeof v === "number")
+                    .map(([field, score]) => `${field} ${Math.round((score as number) * 100)}%`)
+                    .join(" · ")}
+                </p>
+              )}
+          </div>
+        )}
       </div>
 
       <form action={updateSchool} className="mt-6 flex flex-col gap-6">

@@ -10,7 +10,6 @@ import { ClaimCard } from "@/components/ui/claim-card";
 import { CoverageCard } from "@/components/ui/coverage-card";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
-import { EnrichmentMetadataSection } from "@/components/ui/enrichment-badge";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
@@ -1928,18 +1927,15 @@ export async function SchoolView({
           </aside>
         </div>
 
-        {/* Enrichment Metadata (1 Oct 2026) — display when available to show
-          data freshness, sources, and quality scores. Builds trust by making
-          enrichment visible and auditable. */}
-        {(school.enriched_at || (school.enrichment_sources && school.enrichment_sources.length > 0)) && (
-          <div className="border-t border-so-line py-6">
-            <EnrichmentMetadataSection
-              enrichedAt={school.enriched_at}
-              enrichmentSources={school.enrichment_sources}
-              dataQualityFlags={school.data_quality_flags}
-            />
-          </div>
-        )}
+        {/* Enrichment metadata (source/freshness/per-field confidence scores)
+          is deliberately NOT shown on this public page (removed 30 Sep 2026)
+          — it's data-pipeline observability info (e.g. "UDISE", per-field
+          confidence percentages) that means nothing to a parent deciding
+          about a school, and it duplicates/undercuts the simpler trust
+          language this page already uses (Verified/Not yet verified, the
+          footer disclaimer below, SourceLine on admissions). It's surfaced
+          instead on the ops school detail page, where "UDISE" and a quality
+          score are actually actionable. See src/app/ops/schools/[id]. */}
 
         {/* Increment 10 — footer disclaimer (design block 18): static, no data
           dependency. States what "Verified" does and doesn't mean, and the
