@@ -56,6 +56,17 @@ select
   -- most of it). A real column, not routed through field_provenance, same
   -- reasoning as that migration's header comment.
   s.udise_code,
+  -- UDISE Enrichment (29 Sep 2026, see supabase/migrations/20260929120000_udise_enrichment_schema.sql):
+  -- Principal name, structured address components, and audit trail for enriched school data.
+  s.principal_name,
+  s.address_street,
+  s.address_area,
+  s.address_city,
+  s.address_district,
+  s.address_state,
+  s.address_state_code,
+  s.address_pincode,
+  s.address_source,
   st.slug as state_slug,
   -- City-states (D-126): the city is the state itself (e.g. delhi), never a district.
   case when st.is_city_state then st.slug else d.slug end as city_slug
