@@ -2092,3 +2092,33 @@ and a sandbox limitation — not unfinished page work, and each is recorded as i
 than blocking this closure. INC-11A–D can now proceed on a canonical page that is code-complete,
 consistent between visible facts and structured data, and verified live against both a sparse
 (`gyan-deep-senior-secondary-school`) and a dense (`dav-public-school`) real production record.
+
+---
+
+## SDP-05 (WhatsApp School) — resolved, shipped (`87d5a1a`)
+
+The exception recorded above assumed SDP-05 required a **per-school** verified WhatsApp channel — a
+schema field with no verification workflow to ever populate it, correctly deferred. Prav resolved this
+by directing a different design entirely: a single **platform-owned** SchoolOye WhatsApp helpline number
+(`919999188022`), used identically across every school page. This isn't the deferred feature built anyway
+under pressure — it's a different, simpler feature that needs no per-school data model at all, and fits
+the same controlled-intermediary principle already locked for "Contact school": SchoolOye is the
+intermediary, routing the enquiry itself rather than exposing a school-provided channel.
+
+**Shipped:**
+- "WhatsApp School" pill added to the action-pills row (unconditional, next to "Contact school"),
+  and a matching link in the aside Contact card.
+- `https://wa.me/919999188022?text=<encoded>`, pre-filled with the school's name and canonical URL so
+  the helpline knows which school the message concerns. Deliberately distinct from the existing
+  numberless `wa.me/?text=` "share this page" links elsewhere on the page (EligibilityChecker,
+  ShareSheet, exams page) — those are share links with no destination number; this is a contact link
+  with a fixed destination.
+- No schema/DB change, no new verification workflow — resolves cleanly within the existing architecture,
+  consistent with the Increment 10 audit's "no new architecture" constraint.
+- Verified: typecheck clean, lint clean (292 files), 141/141 tests passing (JSON-LD/CTA markup isn't
+  unit-tested in this codebase's existing pattern, unchanged by this commit).
+
+**Status: SDP-05 is now CLOSED as shipped**, not an exception. The School Detail Page — Production
+Closure milestone's only remaining structural exceptions are SDP-29 (analytics infrastructure) and
+SDP-25 (sandbox device-testing limitation) — both genuine, product-wide items outside this page's scope,
+unaffected by this change.
