@@ -3129,3 +3129,106 @@ an explicit scope decision (the 10–15 school proof-of-concept above) before th
 DEFERRED/BLOCKED. Everything answerable from existing code and live read-only data (items 2, 4, 5, 6,
 7, 11) is DONE, including one shipped fix (item 5) and two corrected reporting bugs (item 4's Delhi
 figure, and the P0 in item 0) that would otherwise have stood as wrong "facts" in this log.
+
+## 2026-09-29 — Jaipur identity-resolution pilot (15 schools)
+
+Brief items 8/9, scoped to 15 schools per Prav's decision (12 Jaipur + 3 Haryana "stress
+cases" deliberately picked from the 23 unverified SARAS fuzzy-matches, since Jaipur itself
+currently has zero SARAS/UDISE overlap and so can't produce a real CONFLICTING/AMBIGUOUS
+example on its own — see the prior entry's finding). No database writes made — this is a
+classification exercise against live data plus live external checks (WebFetch/WebSearch),
+not an enrichment pass. Every classification below is either a live external check made this
+session or a distinct, already-ingested source_records row; nothing here is inferred or
+guessed at the identity level.
+
+**Method per school:** SchoolOye entity → UDISE (schools.udise_code / matched source_records)
+→ CBSE affiliation via school_affiliations/SARAS → official website (live-fetched or
+web-searched this session) → classify. No fuzzy match was accepted as MATCHED on its own
+confidence score alone — every MATCHED verdict below rests on either a confidence-1.000
+direct/exact source, or independent agreement between two sources.
+
+### Jaipur (12) — all single-candidate SARAS creates (`new_from_saras`, confidence 1.000);
+none currently have a UDISE code, so the website leg was the only available cross-check.
+
+| School | SARAS | Website check (live, this session) | Verdict |
+|---|---|---|---|
+| Aurobindo International School | 1.000 | **Live, address matches exactly** (Sirsi Road), CBSE confirmed | **MATCHED**, cross-corroborated |
+| Jayshree Periwal High School | 1.000 | **Live, address matches exactly** (3 Chitrakoot Scheme, Ajmer Road) | **MATCHED**, cross-corroborated |
+| Banyan Tree School | 1.000 | Live, but a multi-city chain corporate site (Delhi/Chandigarh/Jaipur/Jagdishpur/Bhopal) — doesn't confirm *this* Jaipur campus specifically | MATCHED (SARAS only) — website leg **AMBIGUOUS** |
+| Maheshwari Girls Pub School | 1.000 | Live, confirms "CBSE, Delhi" affiliation but states no address/location at all — can't rule out a different school using the same "mgps" branding | MATCHED (SARAS only) — website leg **AMBIGUOUS** |
+| American International School | 1.000 | Stored URL is literally truncated (`http://www.americanintern`) — doesn't resolve | MATCHED (SARAS only) — website leg **data-quality failure** |
+| Bombay World School | 1.000 | Stored URL doesn't resolve (checked http and https) | MATCHED (SARAS only) — website leg **dead link** |
+| Golden Era Academy | 1.000 | Stored URL doesn't resolve | MATCHED (SARAS only) — website leg **dead link** |
+| Mahrishi Dayanand Public School | 1.000 | Stored URL doesn't resolve | MATCHED (SARAS only) — website leg **dead link** |
+| Oxford International Public School | 1.000 | Stored URL doesn't resolve | MATCHED (SARAS only) — website leg **dead link** |
+| Central Academy | 1.000 | No stored URL; web search found only listing aggregators + the same SARAS record, no independent official site | MATCHED (SARAS only) — no website found |
+| Edify World School | 1.000 | No stored URL; same as above | MATCHED (SARAS only) — no website found |
+| Yugantar International School | 1.000 | No stored URL; same as above | MATCHED (SARAS only) — no website found |
+
+### Haryana (3) — deliberately picked from the 23 unverified `fuzzy_name_block` matches (0.900
+confidence) to stress-test the exact failure mode item 8 warns about.
+
+| School | SARAS (fuzzy, 0.900) | UDISE (independent) | Verdict |
+|---|---|---|---|
+| DAV Police Public School, Panipat | Address: "POLICE LINE, G.T. ROAD, PANIPAT" | Exact match, address: "NEW POLICE LINES, G.T. ROAD, PANIPAT" — **agrees** | **MATCHED** — fuzzy match upgraded to confirmed by independent UDISE agreement |
+| "Modern," Faridabad | Address: "SECTOR 17 FARIDABAD HARYANA" | Exact match, address: **"Village Jasana, Faridabad"** — a different part of the district entirely | **CONFLICTING** — the two sources plausibly describe two different physical schools, not one. This affiliation (530012) is already live in `school_affiliations` and rendering on the public page as if confirmed. |
+| D.A.V Public School, Faridabad | Two separate SARAS snapshots, both fuzzy-matched to the same row, founding years 1987 vs 2016 | No UDISE match on file | **CONFLICTING** (already found in the prior entry — the source for the field_provenance defect that entry flagged) |
+
+**One of three Haryana stress cases was a genuine, live, wrong identity linkage** — not a
+close call. "Modern," Faridabad is currently displaying CBSE affiliation 530012 (Sector 17)
+sourced from a 0.900-confidence name+block match, while its own UDISE record — independently
+looked up, confidence 1.000 — places the physical school in Village Jasana. A 1-in-3 failure
+rate on a small sample is not proof the other 20 unreviewed fuzzy matches are equally bad, but
+it's a strong argument for reviewing all 23, not treating this as a one-off.
+
+**Recommended, not executed** (same read-only rule as every DB-write recommendation in this
+log): re-verify "Modern," Faridabad's affiliation against UDISE/another source before trusting
+it; if it can't be resolved, remove the `school_affiliations` row rather than leave a
+plausibly-wrong CBSE affiliation number live on a public page.
+```sql
+-- only after manual confirmation this affiliation is actually wrong:
+delete from school_affiliations where school_id = '74d1080e-5aa3-4ead-b632-91067812e995' and affiliation_no = '530012';
+```
+
+### Measurement (item 9)
+
+- **Schools attempted:** 15 (12 Jaipur, 3 Haryana stress cases).
+- **UDISE match rate:** 3/15 (20%) — all 3 Haryana; 0/12 Jaipur (matches the district-wide
+  finding that Jaipur currently has zero SARAS/UDISE overlap).
+- **CBSE/SARAS match rate:** 15/15 (100%) have an affiliation number, but only 12/15 (80%) at
+  genuine confidence (1.000, single-candidate); 3/15 (20%) are unverified 0.900 fuzzy matches.
+- **Official website corroboration rate:** 2/15 (13%) independently confirmed live
+  (Aurobindo, Jayshree Periwal). 2/15 ambiguous (chain site; no-address site). 5/15 stored URLs
+  don't resolve at all. 3/15 have no website on file and none could be found by search.
+- **Ambiguous records:** 2 (both Jaipur, website leg only — identity itself isn't in doubt).
+- **Conflicting records:** 2 (both Haryana — one identity-level, one fact-level).
+- **Fields enriched:** 0 — this pass classified, it didn't write. Any actual enrichment
+  (adding the corroborated website/address back as evidence, removing the bad affiliation)
+  is a separate, deliberate follow-up.
+- **Major failure modes, ranked by how often they showed up:**
+  1. **Stored website URLs are frequently stale or wrong** — 5 of 9 checked didn't resolve at
+     all, one was truncated at the data-entry level. This is the single biggest blocker to
+     using "does the website corroborate" as a cheap identity check — it wasn't cheap, most of
+     it came back "can't tell."
+  2. **A confidence score alone doesn't tell you if a fuzzy match is right** — "Modern,"
+     Faridabad's 0.900 match looked exactly as plausible as the other 22 until cross-checked
+     against UDISE. Nothing about the SARAS record itself flagged it as risky.
+  3. **Chain/multi-campus schools can't be identity-confirmed by their own website** — a
+     corporate homepage naming five cities doesn't tell you which Jaipur address is real.
+  4. **Jaipur specifically has no automatic cross-source corroboration available today** — the
+     UDISE direct-lookup pipeline simply hasn't reached these 22 schools yet; closing that gap
+     (not more SARAS work) is what would actually strengthen Jaipur's pages.
+- **% producing a stronger canonical page:** 2/12 Jaipur schools (17%) gained a genuine second
+  independent source from this pass; the other 10 are exactly as strong (or as unverified) as
+  before. For the 3 Haryana cases: 1 got confirmed (Panipat), 2 got correctly flagged as
+  needing review instead of being silently trusted — which is the pilot doing its job, not a
+  failure of it.
+
+**Does this process scale?** Partially, and unevenly. The SARAS/UDISE cross-check is free once
+both sources are ingested (pure SQL, as done for the 3 Haryana cases) — that part scales fine.
+The website-corroboration leg does not scale as manual WebFetch-per-school: at roughly 1 fetch
++ judgment call per school, 15 took a meaningful chunk of a session and returned confirmation
+for only 2. Recommendation: **prioritize closing the UDISE direct-lookup gap for Jaipur** (the
+same mechanism that already delivered 6,914 exact matches elsewhere) over scaling the
+website-check leg — it's a proven, cheap, unambiguous signal where SARAS/fuzzy matching is
+neither.
