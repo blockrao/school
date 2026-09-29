@@ -17,7 +17,7 @@ function formatDistanceToNow(date: Date): string {
 interface EnrichmentBadgeProps {
   enrichedAt?: string | null;
   enrichmentSources?: string[] | null;
-  dataQualityFlags?: Record<string, number> | Record<number, unknown> | null;
+  dataQualityFlags?: Record<string, number | null> | null;
   className?: string;
 }
 
@@ -65,7 +65,7 @@ export function EnrichmentBadge({
 interface EnrichmentMetadataProps {
   enrichedAt?: string | null;
   enrichmentSources?: string[] | null;
-  dataQualityFlags?: Record<string, number> | Record<number, unknown> | null;
+  dataQualityFlags?: Record<string, number | null> | null;
 }
 
 /**

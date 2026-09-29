@@ -77,8 +77,15 @@ export const publicSchoolContract = z.object({
   enriched_at: z.string().nullable().optional(),
   /** Which sources (UDISE, CBSE_SARAS, etc.) contributed to enrichment */
   enrichment_sources: z.array(z.string()).nullable().optional(),
-  /** Per-field data quality scores (0.0-1.0 confidence). Example: {"principal_name": 0.95} */
-  data_quality_flags: z.record(z.string(), z.number()).nullable().optional(),
+  /** Per-field data quality scores (0.0-1.0 confidence). Example: {"principal_name": 0.95}.
+   * Per-key value is `z.number().nullable()`, not a bare `z.number()` — the real jsonb
+   * has null for fields the enrichment source didn't cover (e.g. {"address_area": null}
+   * when UDISE had no area value for that school), and z.record's value schema applies
+   * to every key regardless of the record's own .nullable(). A bare z.number() rejected
+   * those nulls and, since every one of the 6,918 enriched rows has at least one null
+   * quality value, threw for every one of them — the second half of the 500s on
+   * /school/[slug] and /schools alongside the enriched_at fix above (found 30 Sep 2026). */
+  data_quality_flags: z.record(z.string(), z.number().nullable()).nullable().optional(),
 });
 
 /** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */
