@@ -1,30 +1,41 @@
 import { deadlineState } from "@/lib/deadline";
 import { formatDate } from "@/lib/format";
+import type { SchoolActivityItem } from "@/lib/school-activity";
 import { titleCase } from "@/lib/text";
 
 /**
- * AI/Search Answer-Sentence Pattern v1 (29 Sep 2026) — draft for the
- * Admissions section, reviewed with Prav before rolling the pattern to other
- * sections.
+ * AI/Search Answer-Sentence Pattern v1 (29 Sep 2026).
  *
  * Why this exists: the page currently states facts as a `dt`/`dd` table
- * (label -> value). Answer engines (Google AI Overviews, ChatGPT, Perplexity)
- * don't read a page's prose so much as extract short, self-contained blocks
- * they can quote without the surrounding context — a table cell doesn't
- * survive that extraction as a coherent claim ("Closes 31 Oct 2026" quoted
- * alone answers nothing; "closes 31 Oct 2026" *for what, at which school* is
- * lost). A single plain-English sentence that names the school, the class,
- * the session and the actual date carries its own context and is what
- * actually gets lifted into an answer.
+ * (label -> value) or as fragments joined only by CSS layout (a pill, a date
+ * span, a location span). Answer engines (Google AI Overviews, ChatGPT,
+ * Perplexity) don't read a page's prose so much as extract short,
+ * self-contained blocks they can quote without the surrounding context — a
+ * table cell or a bare date span doesn't survive that extraction as a
+ * coherent claim ("Closes 31 Oct 2026" quoted alone answers nothing; "closes
+ * 31 Oct 2026" *for what, at which school* is lost). A single plain-English
+ * sentence that names the school and the actual fact carries its own context
+ * and is what actually gets lifted into an answer.
+ *
+ * **Reframed 29 Sep 2026 (Prav):** the first draft of this file led with
+ * Admissions, but admissions is the wrong thing to optimize first — a given
+ * parent hits it once every few years. `buildActivityAnswer` below (News/
+ * Events/Jobs, via the existing "What's happening" feed) is the actual
+ * priority: it's the part of the page that changes and gets asked about all
+ * year, every year, which is what makes a page worth an answer engine citing
+ * repeatedly rather than once. `buildAdmissionsAnswer` stays — admissions is
+ * still a real, high-stakes query type — but it's the second component here,
+ * not the lead.
  *
  * Ground rules (same SDP-31 discipline as everywhere else on this page):
- * - Never invents a date, session or status the DB doesn't actually have.
+ * - Never invents a date, status or fact the DB doesn't actually have.
  * - Every branch traces to a real, distinguishable knowledge state — no
  *   "smoothing over" a null into a guess.
- * - Reuses `deadlineState` (IST-calendar-day, already the single source of
- *   truth for "is this deadline actually still live") rather than
- *   re-deriving open/closed/upcoming independently — this file must never
- *   disagree with what the Admissions section's own deadline pill says.
+ * - Reuses each domain's own existing status logic (`deadlineState` for
+ *   admissions; `SchoolActivityItem.status`, already computed once by
+ *   `buildSchoolActivityFeed` from `eventTemporalStatus`/`jobStatus`, for
+ *   activity) rather than re-deriving status independently — this file must
+ *   never disagree with what the section's own pill/label already says.
  * - Says nothing about how to apply (SchoolOye enquiry vs. the school's own
  *   form) — that distinction lives in the CTA, not the answer sentence, so
  *   this never mislabels a SchoolOye lead as a binding school application.
@@ -128,5 +139,70 @@ export function buildAdmissionsAnswer(
     // switch must still be exhaustive against DeadlineState's full type.
     default:
       return `Admission dates for ${classLabel} at ${schoolName} (${session}) have not yet been published.`;
+  }
+}
+
+/**
+ * The recurring, sticky counterpart to `buildAdmissionsAnswer` above — one
+ * sentence per News/Event/Job item in the "What's happening" feed
+ * (`school-activity.ts`). This is the content that actually changes through
+ * the year, so it's what makes the page worth a repeat visit (or a repeat AI
+ * citation), unlike admissions. Takes a `SchoolActivityItem` directly (the
+ * exact shape `buildSchoolActivityFeed` already produces and
+ * `ActivityFeedItem` already renders) so this never recomputes status
+ * independently and can never drift from what the card itself shows.
+ */
+export function buildActivityAnswer(schoolName: string, item: SchoolActivityItem): string {
+  switch (item.kind) {
+    case "news": {
+      const post = item.data;
+      const date = formatDate(post.published_at, ANSWER_DATE_FORMAT);
+      // The school-authored `body` is often already prose, but a headline +
+      // bare date span (as currently rendered) isn't one coherent, quotable
+      // unit by itself — this sentence exists to give it one, regardless of
+      // how the authored body itself is structured.
+      return `${schoolName} announced on ${date}: ${post.title}.`;
+    }
+
+    case "event": {
+      const event = item.data;
+      const date = formatDate(event.starts_at, ANSWER_DATE_FORMAT);
+      const at = event.location ? ` at ${event.location}` : "";
+      switch (item.status) {
+        case "cancelled":
+          return `${schoolName}'s ${event.title}, originally scheduled for ${date}${at}, was cancelled.`;
+        case "ongoing":
+          return `${schoolName}'s ${event.title}${at} is happening now (started ${date}).`;
+        case "completed":
+          return `${schoolName} held ${event.title} on ${date}${at}.`;
+        default:
+          return `${schoolName} is holding ${event.title} on ${date}${at}.`;
+      }
+    }
+
+    case "job": {
+      const job = item.data;
+      const role = job.subject ? `${job.title} (${job.subject})` : job.title;
+      switch (item.status) {
+        case "filled":
+          return `The ${role} position at ${schoolName} has been filled.`;
+        case "closed":
+          return `Applications for the ${role} position at ${schoolName} have closed.`;
+        case "cancelled":
+          return `${schoolName} withdrew its ${role} posting.`;
+        default:
+          return job.closes_at
+            ? `${schoolName} is hiring for ${role}, applications close ${formatDate(
+                job.closes_at,
+                ANSWER_DATE_FORMAT,
+              )}.`
+            : `${schoolName} is hiring for ${role}.`;
+      }
+    }
+
+    default: {
+      const exhaustive: never = item;
+      throw new Error(`Unhandled SchoolActivityItem kind: ${JSON.stringify(exhaustive)}`);
+    }
   }
 }
