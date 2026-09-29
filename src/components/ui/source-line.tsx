@@ -45,7 +45,7 @@ export function SourceLine({
       ) : (
         `Source: ${evidence.source_name}`
       )}
-      {` · added ${dateLabel}`}
+      {` · as of ${dateLabel}`}
     </span>
   );
 }
