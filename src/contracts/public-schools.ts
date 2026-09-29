@@ -40,6 +40,9 @@ export const publicSchoolContract = z.object({
   aliases: z.array(z.string()),
   state_slug: z.string().nullable(),
   city_slug: z.string().nullable(),
+  /** UDISE+ school code (Government of India) — see
+   * supabase/migrations/20260929100000_school_udise_identity.sql. */
+  udise_code: z.string().nullable(),
 });
 
 /** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */

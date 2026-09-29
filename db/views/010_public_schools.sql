@@ -49,6 +49,13 @@ select
   s.about_hi,
   s.status::text as status,
   s.aliases,
+  -- Identity & Search Presence Foundation v1 (29 Sep 2026, see
+  -- supabase/migrations/20260929100000_school_udise_identity.sql): UDISE+
+  -- school code, the one stable external identifier most of the corpus
+  -- actually has (CBSE affiliation only covers ~4% of schools; UDISE+ covers
+  -- most of it). A real column, not routed through field_provenance, same
+  -- reasoning as that migration's header comment.
+  s.udise_code,
   st.slug as state_slug,
   -- City-states (D-126): the city is the state itself (e.g. delhi), never a district.
   case when st.is_city_state then st.slug else d.slug end as city_slug

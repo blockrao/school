@@ -2822,3 +2822,73 @@ header comment. Test rows cleaned up (`delete ... where event_type in (...)`) af
 no residue left in `analytics_events`.
 
 **Verification:** `pnpm test` (161/161), `pnpm run typecheck`, `pnpm run lint` all pass.
+
+## 2026-09-29 — Identity & Search Presence Foundation v1 (ID-03/ID-04/ID-06)
+
+Prompted by a concrete commercial deadline: before sales outreach to a school begins, that
+school's SchoolOye page should already show up in Google for searches of its own name. Reviewed
+live production data before writing any code (`mcp__Supabase__execute_sql`, read-only) rather than
+assuming the identity layer was starting from zero:
+
+- `field_provenance` already holds 85,068 sourced facts covering 10,642/10,670 schools (UDISE+:
+  6,914 matched records; Haryana Dept of Education: 8,197; Delhi DoE: 1,743; CBSE SARAS via
+  Wayback/Common Crawl archive: 376 — live SARAS blocks bots, so archive is the only working
+  route today). 61,895 of those rows (73%) are `licence_class = 'open'` — publicly attributable —
+  but none of it reached the page (`src/lib/provenance.ts`'s own header comment already named this
+  exact gap: "Deliberately NOT wired to field_provenance ... would require a new public view
+  filtering to licence_class = 'open'").
+- Board/affiliation coverage is the real thin spot: only 461/10,670 schools (4.3%) have any board
+  affiliation record. This is the actual CBSE SARAS gap — not "we have no data," but "we're
+  missing the one field CBSE parents recognize as authoritative."
+- `schools.last_verified_at` is null for all 10,670 schools, and every `licence_class='open'`
+  field_provenance row has `verified_at IS NULL` (bulk-import snapshots, never a verification
+  event) — confirmed live before deciding NOT to backfill a manufactured "checked" date anywhere.
+
+**What shipped this round** (schema changes not yet applied — see below):
+
+- `supabase/migrations/20260929100000_school_udise_identity.sql` — `schools.udise_code`, a
+  first-class identifier promoted from `source_records.external_id` (source=udise,
+  match_confidence=1.000, match_method='udise_direct_lookup' only — verified zero duplicate/
+  ambiguous matches live before deciding a unique index was safe). CBSE affiliation was already
+  first-class via `school_affiliations`; UDISE+ — the source actually covering most of the corpus
+  — wasn't.
+- `db/views/106_public_field_evidence.sql` — the open-licence view `provenance.ts` already named
+  as the prerequisite. Exposes `field`, `evidence_url`, `created_at`, `source_name` per school.
+- `src/components/ui/source-line.tsx` — deliberately NOT `ProvenanceChip`: that component's tiers
+  ("School verified", "SchoolOye checked", "Source record checked") all describe a verification
+  *event*, and this data has none. `SourceLine` makes a strictly weaker claim: "Source: {name} ·
+  added {date}", never "checked"/"verified". Wired into School facts (Established) and Location
+  (Address) — the two schools.* fields with the most field_provenance coverage.
+- JSON-LD `identifier` extended from a single board-affiliation PropertyValue to an array that
+  also includes `udise_code` when present (single value preserved when only one identifier
+  exists, per schema.org's own shape).
+- `docs/ops/outreach-readiness-query.sql` — a plain SQL query (not a persisted view — see its own
+  header for why) narrowing which schools are worth the manual GSC "Request Indexing" step:
+  published, in one of the 24 districts actually wired into a `sitemap-<slug>.xml` route file
+  (`src/lib/sitemap.ts` LAUNCH_CITY_SLUGS — stricter and more accurate than
+  `districts`-derived `is_launch`, which is true for far more districts than are ever reachable
+  via this app's sitemap), has a real external identifier, and isn't thin. Run live (read-only)
+  before committing: ~6,500 schools already clear this bar across the 24 launched districts —
+  but only 22 in Jaipur, against 200-1,000 in most Haryana districts. Jaipur's weak showing here,
+  not Haryana's, is the strongest argument for where to run the CBSE SARAS pilot first.
+
+**Explicitly not done this round, on purpose:**
+
+- No schema/view applied to the live DB — per `scripts/db-migrate.mjs`/`scripts/db-views.mjs`'s
+  standing rule, Claude writes migration/view files and stops; a human runs
+  `pnpm db:migrate 20260929100000_school_udise_identity.sql --confirm` then
+  `pnpm db:views --confirm`.
+- No `last_verified_at` backfill from field_provenance — would conflate "we have sourced facts"
+  with "the record was verified," which is a different, stronger claim this data doesn't support.
+- No `IDENTITY_READY`/`PAGE_READY`/.../`OUTREACH_READY` state machine (columns, enum, ops
+  dashboard) — that's real infrastructure worth building once the readiness criteria above have
+  been used and corrected against an actual pilot, not before. Building it now would mean
+  guessing at the schema twice instead of once.
+- No CBSE SARAS pilot fetch executed — SARAS blocks bots, so this needs either browser automation
+  against the Wayback/Common Crawl archive route (source `saras_archive`, already registered) or
+  a small manual per-school lookup pass. Next actual work item once a target school list exists.
+
+**Verification:** `pnpm test` — 168/168 (7 new, `src/lib/school-activity.test.ts` from the prior
+increment this session). `pnpm run typecheck` and `biome check .` both pass clean. `db:types`/
+`verify:views` not re-run — both require the migration/view to be live first; `verify:views`'s
+registry already updated with `api.public_field_evidence` ahead of that.

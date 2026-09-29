@@ -17,6 +17,7 @@ import { ProvenanceChip } from "@/components/ui/provenance-chip";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { ShareButton } from "@/components/ui/share-button";
+import { SourceLine } from "@/components/ui/source-line";
 import { EmptyState } from "@/components/ui/state-message";
 import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
@@ -28,6 +29,7 @@ import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
   getPublicAdmissionsBySchoolId,
+  getPublicFieldEvidenceBySchoolId,
   type getPublicLocalityBySlug,
   getPublicSchoolEventsBySchoolId,
   getPublicSchoolJobsBySchoolId,
@@ -516,6 +518,7 @@ export async function SchoolView({
     events,
     jobs,
     recentAdmissionUpdates,
+    fieldEvidence,
   ] = await Promise.all([
     getPublicAdmissionsBySchoolId(school.id),
     getShortlistedSchoolIds([school.id]),
@@ -538,6 +541,9 @@ export async function SchoolView({
     // Increment 10 — api.public_admission_updates (db/views/096_public_admission_updates.sql):
     // already scoped to admission_cycles-only, allowlisted fields, real changes only.
     getRecentAdmissionUpdatesBySchoolId(school.id),
+    // Identity & Search Presence Foundation v1 (29 Sep 2026) — api.public_field_evidence
+    // (db/views/106_public_field_evidence.sql): open-licence per-field source attribution.
+    getPublicFieldEvidenceBySchoolId(school.id),
   ]);
   const similarSchools = similarSchoolsRaw.filter((s) => s.id !== school.id).slice(0, 4);
 
@@ -547,6 +553,19 @@ export async function SchoolView({
   // domain's own model/provenance/canonical page is unchanged; this is a
   // display-order projection only (see src/lib/school-activity.ts header).
   const activity = buildSchoolActivityFeed(news, events, jobs, now);
+
+  // Identity & Search Presence Foundation v1 (29 Sep 2026) — one row per
+  // field for lookup by the School facts/Location sections below. A field can
+  // have more than one open-licence source (e.g. UDISE+ and a state
+  // department both reporting `address`); keep the most recently recorded
+  // one rather than picking arbitrarily.
+  const evidenceByField: Record<string, (typeof fieldEvidence)[number]> = {};
+  for (const row of fieldEvidence) {
+    const existing = evidenceByField[row.field];
+    if (!existing || new Date(row.created_at) > new Date(existing.created_at)) {
+      evidenceByField[row.field] = row;
+    }
+  }
 
   // Increment 10 — eligibility checker input. Mirrors exams/[slug]/page.tsx's
   // toEligibilityCycles exactly (same shape, same deadlineState/deadlineToPill use);
@@ -738,16 +757,30 @@ export async function SchoolView({
     // the controlled intermediary now (contact routes through the enquiry form, not a
     // raw number/address anywhere on the page), so JSON-LD stays consistent with the
     // visible page rather than exposing what the UI deliberately no longer shows.
-    // No SchoolOye/DB id (D-121 §10); the board affiliation no. is a public official identifier.
-    ...(affiliationNo && board
-      ? {
-          identifier: {
-            "@type": "PropertyValue",
-            propertyID: `${board.board_name} affiliation no.`,
-            value: affiliationNo,
-          },
-        }
-      : {}),
+    // No SchoolOye/DB id (D-121 §10); board affiliation no. and UDISE+ code are
+    // public official identifiers. Identity & Search Presence Foundation v1
+    // (29 Sep 2026) adds udise_code as a second array entry — schema.org's
+    // `identifier` accepts one PropertyValue or an array of them, so a school
+    // with only one of the two still gets a single value, not a pointless
+    // one-element array.
+    ...(() => {
+      const identifiers = [
+        ...(affiliationNo && board
+          ? [
+              {
+                "@type": "PropertyValue",
+                propertyID: `${board.board_name} affiliation no.`,
+                value: affiliationNo,
+              },
+            ]
+          : []),
+        ...(school.udise_code
+          ? [{ "@type": "PropertyValue", propertyID: "UDISE+ code", value: school.udise_code }]
+          : []),
+      ];
+      if (identifiers.length === 0) return {};
+      return { identifier: identifiers.length === 1 ? identifiers[0] : identifiers };
+    })(),
     ...(board ? { memberOf: { "@type": "Organization", name: board.board_name } } : {}),
     // SEO review, 2026-09-29: previously locality-only (school.locality_name ?
     // {...} : {}), so areaServed vanished entirely for the common case of a
@@ -1085,7 +1118,12 @@ export async function SchoolView({
                   nothing. See docs/ops/implementation-log.md Increment 7. */}
                 <div>
                   <dt className="text-meta font-semibold text-muted-ink">Established</dt>
-                  <dd>{school.established_year ?? <NotYetPublished />}</dd>
+                  <dd>
+                    {school.established_year ?? <NotYetPublished />}
+                    {evidenceByField.established_year && (
+                      <SourceLine evidence={evidenceByField.established_year} className="mt-0.5" />
+                    )}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-meta font-semibold text-muted-ink">Medium</dt>
@@ -1097,6 +1135,21 @@ export async function SchoolView({
                     )}
                   </dd>
                 </div>
+                {/* Identity & Search Presence Foundation v1 (29 Sep 2026) — UDISE+
+                  code, promoted to a first-class column in this increment
+                  (supabase/migrations/20260929100000_school_udise_identity.sql).
+                  Board affiliation only covers ~4% of schools; UDISE+ covers most
+                  of the corpus, so this is the identifier most schools actually
+                  have. Only rendered when present — never "Not yet published"
+                  here, since most schools genuinely have no board affiliation on
+                  file yet and that's the honest state, but a missing UDISE code
+                  isn't a comparable "gap to flag" the same way. */}
+                {school.udise_code && (
+                  <div>
+                    <dt className="text-meta font-semibold text-muted-ink">UDISE+ code</dt>
+                    <dd>{school.udise_code}</dd>
+                  </div>
+                )}
               </dl>
             </section>
 
@@ -1303,6 +1356,7 @@ export async function SchoolView({
                     </span>
                   )}
                 </p>
+                {evidenceByField.address && <SourceLine evidence={evidenceByField.address} />}
                 {/* Increment 10 — wires the existing AreaMapLazy island (already
                   built and used on the locality page, src/lib/db/public-adapter
                   LocalityPageBody) onto the entity page too: same component,

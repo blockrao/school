@@ -12,6 +12,7 @@ import {
   type PublicExamMilestone,
   type PublicExamParticipatingSchool,
   type PublicExamReservationSplit,
+  type PublicFieldEvidence,
   type PublicJob,
   type PublicNews,
   type PublicSchool,
@@ -28,6 +29,7 @@ import {
   publicDistrictContract,
   publicEventContract,
   publicExamAdmissionContract,
+  publicFieldEvidenceContract,
   publicJobContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
@@ -722,6 +724,24 @@ export async function listPublicAdmissionCycles(
  * filters to `review = 'approved'` and a published school; nothing further to filter
  * here.
  */
+/**
+ * Open-licence, per-field source attribution for one school (Identity &
+ * Search Presence Foundation v1, ID-04, 29 Sep 2026) — db/views/106_public_field_evidence.sql.
+ * Keyed by `field` (a `schools` column name: "address", "pincode",
+ * "established_year", "management", "gender", "website", ...) so the school
+ * page can look up `evidenceByField[field]` for whichever fact it's
+ * rendering. Never claims "checked" or "verified" — see the view's header
+ * comment for why (every row's source timestamp is a bulk-import date, not a
+ * verification event).
+ */
+export async function getPublicFieldEvidenceBySchoolId(
+  schoolId: string,
+): Promise<PublicFieldEvidence[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_field_evidence").select("*").eq("school_id", schoolId);
+  return (data ?? []).map((row) => publicFieldEvidenceContract.parse(row));
+}
+
 export async function getPublicSchoolNewsBySchoolId(schoolId: string): Promise<PublicSchoolNews[]> {
   const api = createApiSchemaClient();
   const { data } = await api
