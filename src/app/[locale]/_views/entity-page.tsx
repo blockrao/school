@@ -45,6 +45,7 @@ import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
 import { classifyAdmissionProvenance, classifySchoolProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
+import { buildSchoolMetaDescription } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
@@ -71,14 +72,29 @@ export function localityMetadata(locale: string, resolved: ResolvedLocality): Me
   };
 }
 
+/**
+ * Increment 11 (Entity Page Quality) — description used to unconditionally
+ * promise "board, grades, fees and admission dates" for every school
+ * regardless of whether any of that was actually known (flagged during the
+ * Gyan Deep Sr.sec. manual page audit — description building logic and its
+ * rationale now live in buildSchoolMetaDescription, src/lib/school-metadata.ts).
+ * Board is already fetched by getPublicSchoolBundle, so this needs no extra query.
+ */
 export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metadata {
   const { bundle, city } = resolved;
-  const { school } = bundle;
+  const { school, board } = bundle;
   const name = school.name_en ?? "School";
   const areaLabel = school.locality_name ?? city?.cityName ?? "India";
+  const grades = formatGradeRange(school.min_class, school.max_class);
+
   return {
     title: `${name}, ${areaLabel} — SchoolOye`,
-    description: `${name}: board, grades, fees and admission dates in ${areaLabel}.`,
+    description: buildSchoolMetaDescription({
+      name,
+      areaLabel,
+      boardName: board?.board_name ?? null,
+      grades,
+    }),
     alternates: { canonical: localeCanonical(locale, schoolPath("en", school.slug)) },
   };
 }
