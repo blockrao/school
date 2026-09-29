@@ -56,7 +56,11 @@ import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-activity";
 import { schoolAreaLabel } from "@/lib/school-area-label";
-import { buildSchoolMetaDescription, schoolPageTitle } from "@/lib/school-metadata";
+import {
+  buildSchoolMetaDescription,
+  meetsIndexabilityGate,
+  schoolPageTitle,
+} from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
@@ -113,6 +117,22 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
       grades,
     }),
     alternates: { canonical: localeCanonical(locale, schoolPath("en", school.slug)) },
+    // Indexability & Metadata Alignment v1 (29 Sep 2026) — matches the pattern
+    // already used by place-page.tsx/schools/compare: omit `robots` entirely
+    // (indexable by default) rather than asserting `index: true`, and only
+    // emit the tag at all for the noindex case.
+    robots: meetsIndexabilityGate(school, board) ? undefined : { index: false, follow: true },
+    // Shared Open Graph fields (29 Sep 2026) — schoolMetadata had no
+    // `openGraph` block at all, and neither did the root layout, so
+    // `og:site_name`/`og:locale` were never emitted anywhere on the site, not
+    // just this page. Adding them here rather than at the layout level for
+    // now since this is the one page this increment scoped; `og:title` /
+    // `og:description` / `og:url` still come from Next's title/description/
+    // metadataBase defaults, unaffected by this block. Locale is hard-coded
+    // to the one locale actually served today (`schoolPath("en", ...)` above,
+    // `localeCanonical`'s only real variant) — derive it from `locale` once a
+    // second one is genuinely live, not before.
+    openGraph: { siteName: "SchoolOye", locale: "en_IN" },
   };
 }
 
@@ -839,7 +859,22 @@ export async function SchoolView({
       if (identifiers.length === 0) return {};
       return { identifier: identifiers.length === 1 ? identifiers[0] : identifiers };
     })(),
-    ...(board ? { memberOf: { "@type": "Organization", name: board.board_name } } : {}),
+    // Board abbreviation (29 Sep 2026) — board_code ("CBSE") was already real,
+    // typed, already-queried data (publicSchoolBoardContract) that nothing on
+    // this page used; every mention used the full legal name only. Adding it
+    // as `alternateName` here keeps board_name as the one authoritative name
+    // (matches the identifier propertyID and Quick Facts text below) while
+    // still giving machines the recognized short form — full identity +
+    // recognized abbreviation, not replacing the formal name with a shorter one.
+    ...(board
+      ? {
+          memberOf: {
+            "@type": "Organization",
+            name: board.board_name,
+            alternateName: board.board_code,
+          },
+        }
+      : {}),
     // SEO review, 2026-09-29: previously locality-only (school.locality_name ?
     // {...} : {}), so areaServed vanished entirely for the common case of a
     // school with no locality match — same either/or gap as the old H1/title

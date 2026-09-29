@@ -68,6 +68,11 @@ redirect and lifecycle state. Summary:
     school's own page.
 - Description: the page's snapshot sentence, ≤155 characters.
 - OG image via `next/og`, showing the name and current admission status.
+- `og:site_name` = "SchoolOye", `og:locale` = "en_IN" — added 29 Sep 2026 (school page's
+  `openGraph` block was missing entirely before this, and so was any site-wide default; `og:title`/
+  `og:description`/`og:url` still come from `title`/`description`/`metadataBase`, unaffected).
+  Locale is hard-coded to the only one actually served today — derive it from the route once a
+  second locale is genuinely live, not before.
 - **hreflang:** only on pages with a translation: one entry per available language plus
   `x-default` → English (D-121). Untranslated pages emit none.
 
@@ -80,7 +85,10 @@ Alignment v1) to match what's actually implemented — this section had drifted 
   canonical URL + `#school` fragment (a `WebPage` node owns the bare canonical URL itself, with
   `mainEntity` pointing at this `@id` — not one flat node standing in for the page). `name`,
   `alternateName`, `description`, `address` (`PostalAddress`), `geo`, `foundingDate`, `areaServed`,
-  `memberOf` (board), `additionalProperty` (grade range — no first-class schema.org property fits,
+  `memberOf` (board — `name` is the full legal name, plus `alternateName` = `board.board_code`
+  ["CBSE" etc.], added 29 Sep 2026: this was already real, typed, already-queried data
+  (`publicSchoolBoardContract.board_code`) that nothing on the page used; full name stays the one
+  authoritative `name`, never replaced by the shorter form), `additionalProperty` (grade range — no first-class schema.org property fits,
   so this is the documented escape hatch for a real, displayed fact that doesn't map to one),
   `subjectOf` (this school's own News/Events/Jobs, each of which carries its own
   `NewsArticle`/`Event`/`JobPosting` JSON-LD on its own canonical page and references this `@id`
@@ -127,11 +135,16 @@ Alignment v1) to match what's actually implemented — this section had drifted 
 
 ## 5. Indexing, sitemaps, crawlers
 
-- **Gate (MVP, D-114):** a school page is indexable at L2 — name, address with locality/pincode, board,
-  phone or website, each sourced. *Earlier rule, superseded:* indexable only at L3 (D-090, coordinates at pincode precision or
-  better, D-109); the page emits
-  `<meta name="robots" content="noindex,follow">` otherwise. Government schools stay `noindex`
-  until L3 (D-092).
+- **Gate (MVP, D-114), implemented 29 Sep 2026:** a school page is indexable at L2 — name, address
+  + pincode, board, and phone or website (`meetsIndexabilityGate` in `entity-page.tsx`); the page
+  emits `<meta name="robots" content="noindex,follow">` otherwise via `schoolMetadata()`'s `robots`
+  field. Government schools follow the same L2 rule (D-114) — this doc previously said they stay
+  `noindex` until L3 (D-092), which was the earlier rule D-114 itself superseded; that line was
+  stale and has been corrected to match `docs/spec/data-and-trust.md` §4, the authoritative
+  render/index level table. *Earlier rule, superseded:* indexable only at L3 (D-090, coordinates at
+  pincode precision or better, D-109) — coordinates remain relevant only to the "distance from"
+  feature (D-109), not the index gate. Deliberately field-presence only, not a completeness score
+  or a second per-field evidence join — see the function's own header comment.
 - **Indexing:** production is always open to crawlers; only Vercel Preview is noindex (D-120).
   (D-094). While off, `robots.ts` disallows everything.
 - **Sitemaps:** route handlers per launched city (`sitemap-{city}.xml`) plus `sitemap-site.xml`,

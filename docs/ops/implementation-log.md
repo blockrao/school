@@ -3299,3 +3299,53 @@ this evidence came from an archived snapshot, not a live fetch. Prav explicitly 
 to apply this migration directly (no `DATABASE_URL` in this session's `.env.local`, so it went
 through `mcp__Supabase__execute_sql` rather than `db-migrate.mjs`) — applied and recorded in
 `schema_migrations` by hand to match what the script would have done.
+
+## 2026-09-29 — Indexability & Metadata Alignment v1
+
+Independent audit of a live page (`lancers-convent-sr-sec-school`, real school with a real
+upcoming event) requested right after the Freshness & GEO Alignment v1 entry above, followed by a
+second-opinion review of that audit. Scoped, agreed increment — not a broader audit.
+
+**Implemented:**
+- **School-page indexability gate (the one real gap found).** `seo-geo.md` §5 documented an L2
+  `noindex,follow` gate (MVP, D-114) that `schoolMetadata()` never actually implemented — every
+  school page emitted default indexable robots regardless of data completeness. Fixed with
+  `meetsIndexabilityGate()` (`src/lib/school-metadata.ts`, pure/tested — 9 new unit tests): name,
+  address + pincode, board, and phone or website, all field-presence checks against
+  `docs/spec/data-and-trust.md` §4's L2 row, deliberately not a new completeness-scoring system.
+  Wired into `schoolMetadata()`'s `robots` field, same `undefined`-when-indexable pattern already
+  used by `place-page.tsx`/`schools`/`compare`.
+  **Doc correction alongside this:** `seo-geo.md` previously said government schools stay `noindex`
+  until L3 (D-092) — stale; `data-and-trust.md` §4 already states D-114 superseded that carve-out
+  and government schools follow the same L2 rule. Corrected `seo-geo.md` to match, rather than
+  implementing a government-specific branch that the actual spec doesn't call for.
+- **`og:site_name` / `og:locale`.** `schoolMetadata()` had no `openGraph` block at all, and neither
+  did the root layout, so neither tag was ever emitted anywhere on the site. Added
+  `openGraph: { siteName: "SchoolOye", locale: "en_IN" }` to `schoolMetadata()`. Locale is
+  hard-coded to the one locale actually served today; derive from the route once a second is live.
+- **`board.board_code` ("CBSE") added as `alternateName`.** Real, typed, already-queried data
+  (`publicSchoolBoardContract.board_code`) that nothing on the page used — every mention used only
+  the full legal name. Added `alternateName: board.board_code` to the `memberOf` Organization node
+  in `schoolJsonLd`; `board_name` stays the one authoritative `name` everywhere else (identifier
+  propertyID, Quick Facts text) — full identity + recognized abbreviation, not a replacement.
+
+**Confirmed, no code change:**
+- The `dateModified` value in the pasted live-page snapshot (`2026-09-23T19:41:43.712Z`) predates
+  both the Dandiya Night event (`created_at` 2026-09-29 11:17:29) and commit `345141e` (the fix
+  that made `dateModified` include events at all, committed 11:42:59 — 25 minutes later). Stale
+  snapshot from before that deploy propagated, not a bug; worth one live recheck, no code change.
+- Title, meta description, canonical, and all three JSON-LD blocks (`WebPage`, `HighSchool`,
+  `BreadcrumbList`) render exactly as the code specifies. The event itself renders correctly
+  on-page ("What's happening" section — title, date, location, status, correct link).
+
+**Explicitly not implemented (per the second-opinion review, to keep this increment finite):**
+- `event` property on the School/HighSchool node — schema.org's `domainIncludes` for `event`
+  couldn't be confidently verified (fetch blocked; not confident enough in recollection after the
+  `inLanguage` mistake earlier this week to ship it). Existing `subjectOf` already covers the
+  relationship correctly. Leave alone until verified via Rich Results Test, if ever.
+- Locality breadcrumb backfill (`lancers-convent-sr-sec-school` has no resolved
+  `locality_slug`/`locality_name` — a data gap, not a code bug; don't manufacture one from the
+  address string), IndexNow, admission-cycle `Event` schema, a universal schema-property framework,
+  a new completeness-scoring system, a second generic freshness engine.
+
+183 tests passing (174 → 183). Typecheck and lint clean.

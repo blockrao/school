@@ -1,3 +1,37 @@
+import type { PublicSchool, PublicSchoolBoard } from "@/contracts";
+
+/**
+ * Indexability & Metadata Alignment v1 (29 Sep 2026) — the L2 render/index gate
+ * (MVP, D-114; docs/spec/data-and-trust.md §4): name, address + pincode, board,
+ * and phone or website. Below this, the page still renders (never 404s — it's
+ * a real canonical URL) but `schoolMetadata()` emits `noindex,follow` rather
+ * than leaving it indexable by default, so a sparse record can't sit in
+ * Google's index while evidence is still being gathered. Government schools
+ * follow this same rule — D-114 superseded the earlier government-only L3
+ * carve-out (D-092); seo-geo.md previously described that superseded rule and
+ * has been corrected alongside this.
+ *
+ * Deliberately field presence, not a completeness score: this pipeline only
+ * ever populates these columns from a sourced value (see SourceLine /
+ * field_provenance elsewhere on the school page), so presence already implies
+ * provenance without a second, heavier per-field evidence join just for the
+ * gate. Keep this list in sync with data-and-trust.md §4's L2 row if that
+ * table ever changes. Pulled in here rather than left inline in
+ * entity-page.tsx for the same reason as schoolPageTitle/
+ * buildSchoolMetaDescription above: pure and testable without a DB or a
+ * server-only env import in the loop.
+ */
+export function meetsIndexabilityGate(
+  school: Pick<PublicSchool, "name_en" | "address" | "pincode" | "phone" | "website">,
+  board: Pick<PublicSchoolBoard, "board_name"> | null,
+): boolean {
+  const hasIdentity = school.name_en != null;
+  const hasAddress = Boolean(school.address) && Boolean(school.pincode);
+  const hasBoard = board != null;
+  const hasContactChannel = Boolean((school.phone && school.phone.length > 0) || school.website);
+  return hasIdentity && hasAddress && hasBoard && hasContactChannel;
+}
+
 /**
  * Increment 11 (Entity Page Quality) — `schoolMetadata()` in entity-page.tsx
  * used to unconditionally promise "board, grades, fees and admission dates"
