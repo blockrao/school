@@ -20,7 +20,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const post = code === null ? null : await getPublicNewsByCode(code);
 
   const title = post?.title ?? "SchoolOye";
-  const subtitle = post ? [KIND_LABEL[post.kind], post.school_name].filter(Boolean).join(" · ") : "";
+  const subtitle = post
+    ? [KIND_LABEL[post.kind], post.school_name].filter(Boolean).join(" · ")
+    : "";
 
   return new ImageResponse(
     <div
