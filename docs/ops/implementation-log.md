@@ -1944,3 +1944,52 @@ exposing raw contact details:
 **Status: milestone open. Nothing built yet against the newly-locked contact model or the newly-added
 items (SDP-13/19/22/23/28/29/31/32) — those are freshly scoped, not yet started. Everything marked 🟢
 was verified earlier this session or in 10R and is being carried forward, not re-done.**
+
+## SDP execution round — shipped, not just scoped
+
+Prav asked to stop scoping and start shipping. Three items landed this round (commit `d0a6763`, on top
+of the `bb3fee0` metadata fix); two more decided without further discussion, in line with the locked
+principles, rather than left open for another round.
+
+**SDP-04 (contact model) — shipped**: raw `school.phone`/`school.email` removed from the action pills
+(the old `tel:` "Call" pill is gone), the Contact card, `schoolJsonLd`, and the `/index.md` AI-crawler
+twin (`src/app/[locale]/school/[slug]/index.md/route.ts` — found during this pass, same violation,
+previously unaudited). "Contact school" now routes to the existing `sendEnquiry`-backed form — first
+action, matching Discover → Understand → Contact → Enquire → Apply. Website/Directions unchanged
+(official channels, not private contact details).
+
+**SDP-03 (trust wording) — shipped, minimal-risk cut**: removed the header-level `ProvenanceChip`,
+which read the exact same two columns as `recordBadge`/`FreshnessLine` immediately above and restated
+the identical fact a third time. Four overlapping messages down to three. `identityBand`/`recordBadge`
+both stay — they're similar for the dominant unclaimed case but genuinely diverge for `school_claimed`
+vs `verified`, so collapsing them would lose a real distinction. `ProvenanceChip` stays on admission
+cycles, where it's not duplicating anything.
+
+**SDP-21 (similar schools) — shipped**: `getSimilarSchools()` + `listPublicSchoolsByCity()`
+(`src/lib/db/public-adapter.ts`) — locality-first, same-city fallback (capped at 8, ordered by name)
+only when the locality lookup returns nothing. Fixes the 99%-of-schools dead-feature finding without
+touching the "nearby" heading or introducing any distance claim.
+
+**SDP-05 (WhatsApp) — decided: stays deferred, not built.** Genuinely blocked on a real product
+decision (add a verified-channel schema field + decide how a school gets verified for it), not
+something to invent unilaterally mid-execution-pass. Recorded as deferred alongside Fees/Events, not
+silently dropped — needs Prav's call before any schema work.
+
+**SDP-22 (map coverage for the 36% with no geocode) — decided: stays deferred.** A city-centroid
+fallback map is technically possible (`cities.centroid` exists in the DB) but is not currently exposed
+anywhere in the adapter/type layer (`PublicCityArea` has no lat/lng field) — building it is new
+view/type plumbing, not a quick win, and risks the same "spliced in mid-pass" mistake as the admissions-
+view column-order incident earlier this session. Text-only location fallback is an acceptable, honest
+state (no map ≠ wrong map) until this gets its own scoped pass.
+
+**SDP-02 (identity photos) — decided: intentionally deferred**, same shape as Facilities/Media:
+`PhotoPlaceholder` is honest filler for a domain (`school_media`) with 0 rows and no public projection,
+not an oversight. Matches the pattern already locked for Facilities in the earlier backlog board.
+
+**Verification**: 141/141 tests, typecheck clean, lint clean (292 files) after every change in this
+round.
+
+**Still open, needs Prav specifically**: SDP-05's actual schema decision (if/when WhatsApp School gets
+built), and everything else in the SDP-01–34 table not marked 🟢 or resolved above (title HP-01, FAQ/
+JSON-LD restructure HP-03/06, Coverage semantics reframe SDP-20, accessibility/analytics passes SDP-28/
+29, and the SDP-34 dense-data validation pass — `dav-public-school` is next).
