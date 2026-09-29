@@ -1273,9 +1273,8 @@ export async function SchoolView({
                   from about_en display since it's now shown separately in School facts. */}
                 <p className="text-body leading-relaxed">
                   {school.about_en
-                    ?.replace(/Principal:\s*[^|]+\s*\|\s*Type:\s*[^|]+\s*(\|)?/gi, "")
-                    ?.trim() ||
-                    school.about_en}
+                    ? school.about_en.replace(/Principal:\s*[^|]+\s*\|\s*Type:\s*[^|]+\s*(\|)?/gi, "").trim()
+                    : ""}
                 </p>
               </section>
             )}
