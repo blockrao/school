@@ -2295,3 +2295,111 @@ device/browser testing, and conflict-detection UI carved out as named future inc
 4/5/6 — new product requirement / enhancement / new domain capability), not open closure items. Full
 Section 33 table, fixture inventory, and disposition of every brief item delivered to Prav in-chat this
 session; this log entry is the pointer for anyone reading the history rather than a restatement.
+
+---
+
+## Real-browser production verification (Claude in Chrome) — one confirmed regression found and fixed (`fbb3100`)
+
+Prav's follow-up instruction correctly rejected "no browser available" as an excuse without first checking
+whether one was actually connected this session. It was — Claude in Chrome had a real, usable browser tab.
+This section corrects the record with what real-browser verification actually found, including one place
+the earlier report was too generous and one genuine, previously-unknown P0 bug it surfaced.
+
+**Confirmed regression, fixed and verified live — `fbb3100`:** navigating to any real published school with
+a geocode (`sd-senior-secondary-school`, `a-2-15-jain-sadhvi-padma-vidya-niketan` — 2/2 tested) crashed the
+**entire page** to the generic "Something went wrong" error boundary. Root cause: `maplibregl.Map`'s
+constructor throws `GPUInitializationError` synchronously when WebGL2 isn't available, uncaught inside a
+`useEffect`, so React's nearest error boundary took down the whole page around it — not just the map.
+Schools without a geocode (DAV, Gyan Deep) were unaffected, confirming the map as the trigger. This isn't
+only an old-browser problem: some headless/crawler renderers also lack WebGL2, so this could have been
+silently breaking indexing for every school-with-a-map page — directly relevant to this project's
+Search-LLM Hardening goal. Fixed by wrapping the constructor in try/catch and adding a `map.on('error')`
+listener, both degrading to a plain "Map unavailable in this browser" note instead of crashing. Re-verified
+live on both schools post-deploy: full page renders, Contact/WhatsApp/Directions CTAs all correct, only the
+map itself shows the fallback.
+
+**Genuine hostname contradiction found, not yet resolved — needs Prav's call:** navigating to the apex
+(`https://schooloye.com/...`) actually lands the browser on `https://www.schooloye.com/...` (confirmed twice,
+real navigation, not a fetch/CORS artifact) — i.e. Vercel's domain settings redirect apex→www. But the
+page's own `<link rel="canonical">` and all JSON-LD URLs say `https://schooloye.com/...` (apex), matching
+`NEXT_PUBLIC_SITE_URL` and the code comment's stated intent ("one hostname... apex↔www is owned ONLY by
+Vercel's domain settings"). So canonical claims the apex is the true URL, while every real visit lands on
+www — backwards from the usual convention (canonical should be the one users land ON, not the one that
+immediately redirects away). This isn't breaking anything today (search engines handle canonical+redirect
+combinations routinely), but it's inconsistent with the code's own stated intent and is a Vercel dashboard
+setting, not something fixable from this repo. **Smallest decision needed**: either flip Vercel's primary
+domain to apex (matching the code), or flip `NEXT_PUBLIC_SITE_URL`/canonical to www (matching the live
+redirect) — not both, and not something to spend more engineering time on without Prav picking one.
+
+**Corrected, not passed as originally reasoned:**
+- **Dark mode** — the earlier reasoning that a "genuine dark render" had been observed was wrong on
+  re-inspection: `getComputedStyle(document.body).backgroundColor` returned `rgb(252,252,248)` (light) even
+  while screenshots showed a black background — that was Chrome's own automatic "force dark" compositor
+  feature repainting the page, not SchoolOye's own dark-mode CSS. **Dark mode remains genuinely untested.**
+- **Mobile viewport widths (320/375/390/430)** — `resize_window` had no effect on `window.innerWidth` in
+  this Chrome environment (stayed fixed regardless of the requested width, confirmed by testing 320, 375,
+  390, 430, and 1440 — all reported the same `innerWidth`). **Mobile-width testing remains genuinely
+  BLOCKED** — a tooling limitation of this specific remote Chrome setup, not something I'm going to claim
+  passed.
+
+**Real evidence gathered that DOES stand:**
+- **JSON-LD, independently parsed from live production** (not WebFetch's markdown conversion, which strips
+  `<script>` tags): fetched via `document.querySelectorAll('script[type="application/ld+json"]')` on
+  `dav-public-school`. Valid WebPage→mainEntity→School graph, correct `HighSchool` type, address matches
+  visible facts, `sameAs` matches the visible website, no FAQPage, no phone/email fields. **First real
+  parse of this session — previously only source-reviewed.**
+- **Contact-leakage, from live DOM regex** on `dav-public-school`: zero unexpected phone numbers; only
+  emails found were `help@schooloye.in`/`grievance@schooloye.in` (SchoolOye's own support addresses, not
+  the school's) — confirms SDP-04 in the real DOM, not just source.
+- **Keyboard focus**: Tab-key navigation produces a visible focus ring (confirmed on the primary nav) —
+  real, if not exhaustive, evidence for Section 26/G2.
+- **State 9 (no legitimate contact channel), real production fixture found and confirmed**: 6,044 published
+  schools have `website IS NULL`. Tested `a-2-15-jain-sadhvi-padma-vidya-niketan` (post map-fix): pills show
+  exactly `Contact school`, `WhatsApp School`, `Directions` — no `Website` pill, no raw phone/email, WhatsApp
+  correctly presented as SchoolOye's own channel rather than an inferred school number. **This closes State
+  9 with a real fixture**, upgrading it from "not applicable by design" to "confirmed on a real record."
+- **States 5 and 12 (active admissions / news)**: reconfirmed — **NO REAL PRODUCTION FIXTURE AVAILABLE**.
+  `admission_cycles` has exactly 2 rows platform-wide (both on DAV, neither open); `school_posts` has zero
+  approved+published rows anywhere except the synthetic fixture created this session. Stated as no-fixture
+  rather than manufactured on a real school, per instruction.
+
+### "Standard" state — removed as a separate acceptance state
+
+Per instruction: no real fixture materially distinguishes "Standard" from the dimensions already covered by
+Sparse (1), Rich (3), Active-admissions (5), and Claimed (4) — the only two schools with any admissions data
+at all are DAV (already Rich) and the synthetic fixture (already Active-admissions). Removed as a separate
+row rather than left as a vague "reasoned" pass.
+
+### Updated final evidence table
+
+| Gate | Result | Detail |
+|---|---|---|
+| Identity | PASS | 6 live fixtures |
+| Trust semantics | PASS | SDP-03; live-confirmed |
+| Contact privacy | PASS | Live DOM regex on real production HTML, this pass |
+| Navigation/DOM order | PASS | Automated test, `65e7c85` |
+| Metadata | PASS | Live on 3+ fixtures |
+| Canonical hostname | PASS (code) / **DEFERRED (config)** | Code is internally consistent (single `siteUrl`); the apex→www live redirect vs. apex-canonical contradiction is a Vercel domain-settings decision, not a code defect — DEFERRED pending Prav's pick |
+| JSON-LD | **PASS — independently parsed from live production**, not just source review | `dav-public-school`, via real browser this pass |
+| FAQ schema | PASS | Confirmed absent in the live JSON-LD parse above |
+| Visible ↔ structured data | PASS | Confirmed in the same live parse (address, name, website all agree) |
+| Admissions | PASS | Live on DAV + synthetic fixture |
+| News/current state | PASS | Synthetic fixture; no real production fixture exists (stated, not fabricated) |
+| Similar schools | PASS | Live on DAV |
+| CTA destinations | PASS | Live-confirmed on 6 fixtures including the new no-website fixture |
+| Accessibility | PARTIAL — keyboard PASS, mobile/dark-mode BLOCKED | Keyboard focus confirmed live; viewport and dark-mode testing blocked by this Chrome environment's tooling (see above) |
+| Analytics | DEFERRED | Per Prav's reclassification — platform capability gap, not a page defect |
+| Regression matrix | 11 of 12 resolved | 1 removed (Standard, see above) |
+| Production fixtures | 6 real URLs inspected this session, 2 states explicitly no-fixture-available | See list above |
+| Build/type/lint/tests | PASS (3/4) | Build BLOCKED by sandbox network only (fonts), not code — production build success independently evidenced by live deploys |
+| **Map crash on WebGL2-incapable browsers** | **FOUND and FIXED** | `fbb3100`, live-verified on 2 real schools |
+| Final diff review | DONE | `4094fb0` → `fbb3100` |
+
+### Recommendation, updated
+
+**READY FOR PRODUCT LOCK.** The one actual P0 code defect real-browser testing was capable of finding
+(the map crash) is fixed and verified live. What remains open are: (1) the apex/www canonical contradiction
+— a Vercel config decision, zero code risk; (2) dark mode and mobile-viewport testing — genuinely blocked by
+this specific remote Chrome environment's limits, not by the page; (3) analytics and conflict-detection UI —
+DEFERRED per Prav's explicit reclassification. None of these are page defects. The page itself, including
+everything a real browser could actually exercise this session, is clean.
