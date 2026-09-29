@@ -749,9 +749,13 @@ export async function SchoolView({
         }
       : {}),
     ...(board ? { memberOf: { "@type": "Organization", name: board.board_name } } : {}),
-    ...(school.locality_name
-      ? { areaServed: { "@type": "Place", name: school.locality_name } }
-      : {}),
+    // SEO review, 2026-09-29: previously locality-only (school.locality_name ?
+    // {...} : {}), so areaServed vanished entirely for the common case of a
+    // school with no locality match — same either/or gap as the old H1/title
+    // logic above, just in structured data instead of visible text. Falls back
+    // to city, same join as h1LocationSuffix/areaLabel; omitted only when
+    // neither is known.
+    ...(h1LocationSuffix ? { areaServed: { "@type": "Place", name: h1LocationSuffix } } : {}),
     url: `${siteUrl}${canonicalPath}`,
     ...(websiteUrl ? { sameAs: websiteUrl } : {}),
   };
