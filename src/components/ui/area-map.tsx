@@ -2,7 +2,7 @@
 
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Free, no-API-key MapLibre-style basemap (https://openfreemap.org). CLAUDE.md
@@ -49,19 +49,37 @@ export function AreaMap({
   zoom?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Increment 11 closure finding (Prav's V2 brief, Section 22/27 — "no broken
+  // map"): MapLibre's constructor throws synchronously (GPUInitializationError)
+  // when WebGL2 isn't available (older browsers, some crawler/headless
+  // renderers, embedded webviews). That throw happened inside this effect with
+  // nothing catching it, so React's nearest error boundary caught it and the
+  // ENTIRE page crashed to "Something went wrong" — confirmed reproducible in
+  // production on every school with a geocode. A map failure must only ever
+  // disable the map, never take down the page around it.
+  const [mapFailed, setMapFailed] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: STYLE_URL,
-      center: [centerLng, centerLat],
-      zoom,
-      // compact:false — attribution (OpenStreetMap contributors, OpenFreeMap) must
-      // be directly visible, not hidden behind a click-to-expand "i" icon.
-      attributionControl: { compact: false },
-    });
+    let map: maplibregl.Map;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: STYLE_URL,
+        center: [centerLng, centerLat],
+        zoom,
+        // compact:false — attribution (OpenStreetMap contributors, OpenFreeMap) must
+        // be directly visible, not hidden behind a click-to-expand "i" icon.
+        attributionControl: { compact: false },
+      });
+    } catch {
+      setMapFailed(true);
+      return;
+    }
+    // Async failures (style/tile load errors) surface here rather than throwing —
+    // same graceful-degradation contract as the constructor try/catch above.
+    map.on("error", () => setMapFailed(true));
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
     map.on("load", () => {
@@ -125,6 +143,17 @@ export function AreaMap({
 
     return () => map.remove();
   }, [points, centerLat, centerLng, zoom]);
+
+  if (mapFailed) {
+    return (
+      <div
+        role="note"
+        className="flex h-80 w-full items-center justify-center rounded-md border border-rule bg-margin-paper p-4 text-center text-body text-muted-ink md:h-96"
+      >
+        Map unavailable in this browser. The address above is still accurate.
+      </div>
+    );
+  }
 
   return (
     <div
