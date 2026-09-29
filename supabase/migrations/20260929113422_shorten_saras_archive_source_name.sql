@@ -16,9 +16,16 @@
 -- that, not just tidy up copy. "(archived copy)" keeps the signal in far
 -- fewer words.
 --
--- Per Prav's standing rule (scripts/db-migrate.mjs header): Claude writes
--- migration files and stops. A human runs
--- `pnpm db:migrate 20260929113422_shorten_saras_archive_source_name.sql --confirm`.
+-- Per Prav's standing rule (scripts/db-migrate.mjs header): Claude normally
+-- writes migration files and stops for a human to run with --confirm. Prav
+-- explicitly authorized Claude to apply this one directly (29 Sep 2026, no
+-- DATABASE_URL in this session's .env.local, so it went through
+-- mcp__Supabase__execute_sql rather than this script). Kept as a checked-in
+-- migration file regardless, for the same reason every other schema/data
+-- change here is: a readable, reviewable record of what happened and why.
+-- Applied and recorded in schema_migrations by hand to match what
+-- db-migrate.mjs would have done, so a future run of this file is a no-op,
+-- not a second attempt at an already-applied change.
 
 update public.sources
 set name = 'CBSE SARAS (archived copy)'

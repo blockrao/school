@@ -3232,3 +3232,70 @@ for only 2. Recommendation: **prioritize closing the UDISE direct-lookup gap for
 same mechanism that already delivered 6,914 exact matches elsewhere) over scaling the
 website-check leg — it's a proven, cheap, unambiguous signal where SARAS/fuzzy matching is
 neither.
+
+## 2026-09-29 — Canonical Page Freshness & GEO Alignment v1
+
+**Scope:** a full section-by-section structured-data audit of the school entity page against its
+own spec (`docs/guidelines/seo-geo.md`), followed by a fix pass, a correction pass after a
+second-opinion review, and a small copy/data cleanup. Four commits: `454930c`, `172bee5`,
+`182030c`, `188a905`.
+
+**Audit findings and disposition:**
+- `WebPage.dateModified` was missing entirely despite the spec requiring it. **Fixed** — computed
+  as `max(verifiedAt, visible per-field evidence, admission-cycle updates)`, never the build/
+  request time. Two clocks kept explicitly distinct: `verifiedAt` ("was this actually verified")
+  and `dateModified` ("did the published page change") must never be conflated — locked in code
+  comments and in seo-geo.md §6a.
+- Medium of instruction and grade range were shown on the page but never promoted to structured
+  data. **Fixed** — `inLanguage` and an `additionalProperty` `PropertyValue` respectively.
+- News/Events/Jobs each already had their own JSON-LD on their own canonical pages, but only
+  referenced the school by a bare name string, not its `@id`. **Fixed** — `publisher`/`organizer`/
+  `hiringOrganization` now carry `@id` back to the school's own JSON-LD node, which gets a
+  `subjectOf` back to each item — one connected graph.
+- `identifier`/`sameAs` documentation had drifted from what the code actually does (board
+  affiliation + UDISE+ identifiers; SARAS CBSE-affiliation-detail-page `sameAs`, deterministic by
+  affiliation no., CBSE-board schools only). **Fixed** — doc rewritten to match; deliberately did
+  **not** add the equivalent UDISE+ KYS record URL to `sameAs` since only one live example was
+  confirmed and the URL's trailing segment isn't verified to generalize across schools.
+- Admission-window `Event` schema — proposed, then explicitly dropped per Prav's direction
+  ("forget this admission test, it was mainly to test a record"). Doc updated to say admission
+  cycles stay in the domain model, not `Event` schema; a real single-occurrence event (admission
+  test, PTM, open house) already gets a correct `Event` on its own `/events` page.
+- Title (`schoolMetadata()`) had drifted from the spec's query-shaped pattern to a bare
+  `{Name}, {Area}`. A second-opinion review correctly noted that restoring the old literal pattern
+  (`Admission {session}, Fees & Contact`) would repeat a mistake this codebase already fixed once
+  — `buildSchoolMetaDescription` (Increment 11) had already dropped "Fees" (no data pipeline
+  exists) and named generic sections instead of promising a specific admission date. **Fixed** —
+  new shared `schoolPageTitle()` (`src/lib/school-metadata.ts`) used by both `schoolMetadata()`'s
+  `<title>` and `webPageJsonLd.name` (which is locked to match it exactly, per the earlier Identity
+  Projection Consistency fix) — `{Name}, {Area}: Admissions, Facts & Contact · SchoolOye`.
+- IndexNow — confirmed genuinely unimplemented (searched the whole repo). Scoped down in the doc:
+  it notifies participating search engines of URL changes, it is not a universal AI/GEO freshness
+  mechanism, and it's lower priority than canonical URLs/sitemaps/indexability/structured data.
+
+**A real bug found in the fix itself, from the second-opinion review:** `dateModified` was
+computed from every field in `evidenceByField`, but `api.public_field_evidence` covers many fields
+per school (85,068 rows, 10,642 schools) while the page only ever renders a `SourceLine` for two of
+them (`established_year`, `address`). An old bulk-import row for a field never shown on the page
+(name/phone/udise_code provenance) could have inflated a page's claimed freshness with nothing
+visible having actually changed. **Fixed** — restricted to `PAGE_VISIBLE_EVIDENCE_FIELDS`, kept in
+exact sync with what `SourceLine` is actually called for.
+
+**Known gap, not fixed this pass:** `sitemap.ts`'s `lastmod` still uses `school.last_verified_at`
+alone (computed once per city across every school in the district), not the wider per-school
+freshness projection the entity page's `dateModified` now uses. Needs a heavier per-school join at
+sitemap-generation scale (thousands of schools per city) — documented in seo-geo.md §5, not
+attempted here.
+
+**Separate small cleanup, same session:** `SourceLine`'s `· added {date}` read like an admin log
+entry — changed to `· as of {date}` (never "verified"/"checked", per the component's own existing
+rule that this bulk-import evidence has zero real verification events behind it). Separately,
+`sources.id=11`'s display name, "CBSE SARAS (via Wayback Machine / Common Crawl archive)," read as
+clunky on a parent-facing page — shortened to "CBSE SARAS (archived copy)" via migration
+`20260929113422_shorten_saras_archive_source_name.sql` (2,351 evidence rows / 375 schools
+affected), deliberately not collapsed to plain "CBSE SARAS" since that would make it visually
+indistinguishable from `sources.id=4` (the live SARAS site) and drop the one on-page signal that
+this evidence came from an archived snapshot, not a live fetch. Prav explicitly authorized Claude
+to apply this migration directly (no `DATABASE_URL` in this session's `.env.local`, so it went
+through `mcp__Supabase__execute_sql` rather than `db-migrate.mjs`) — applied and recorded in
+`schema_migrations` by hand to match what the script would have done.
