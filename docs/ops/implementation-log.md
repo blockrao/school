@@ -1690,3 +1690,69 @@ rather than being merged into a single card or given a shared `/events`/`/news` 
 **Verification**: 137/137 tests, typecheck clean, lint clean, zero migration/RLS changes.
 
 **Status: 🔒 LOCKED by Prav.**
+
+## Increment 10 Code-Complete & Closure Audit
+
+Ran the full closure/QA audit (not a feature-selection exercise) against the locked canonical page:
+all 26 checklist items classified against live code + live production data (project
+`ybevzpryuvgxclkhdjld`). Verdict: **CODE COMPLETE WITH DATA LIMITATIONS** — every approved element is
+implemented and wired to a real public data path; the only gaps are production content volume, not
+engineering (News: 0 approved posts in `school_posts`, entire table empty; admissions: 12
+`admission_cycles` rows total across 8,297 published schools, only 1 `status='open'`; claim: 1
+claimed school out of 8,298).
+
+Key domain findings, each checked directly against schema/code rather than assumed:
+- **Events**: `public.events` confirmed analytics-only (`id, name, anon_id, user_id, city_id,
+  school_id, class_code, props, utm, at`) — no calendar semantics, not evidence of event capability.
+- **Fees**: `fee_items` = 0 rows, no `api.*` projection. Deferred, not required for closure. No new fee
+  model created.
+- **Facilities**: `school_facilities` exists, 0 rows, no `api.*` projection, no UI consumer. Zero-row
+  state is a backend/projection gap, not (only) a data problem — but building the projection is new
+  scope. Facility model not touched.
+- **Media**: `school_media` exists, 0 rows, no `api.*` projection, not consumed. Same shape as
+  Facilities.
+- **Official notices**: no `school_notices` invented. `admission_notices` (276 rows) is internal-only
+  (`/portal/notices`, `/ops/notices`), no public projection, never read by `public-adapter.ts` or the
+  entity page — News is the only mechanism currently reaching the public page.
+- **Parent voice**: no review/rating table exists anywhere in schema. Confirmed fully deferred.
+- **Nearby/Similar**: "Similar schools nearby" is `listPublicSchoolsByLocality` (same-locality
+  membership), distinct from `listLocalityNeighbors`/`api.public_locality_neighbors` (which does carry
+  real `distance_meters`, used only on locality pages). No distance figure is ever shown on the school
+  page, so nothing here is misrepresented as distance-ranked capability — re-confirms the earlier
+  false-finding correction in this audit's own terms.
+
+Engineering verification: 137/137 tests, typecheck clean, lint clean (290 files). `pnpm run build`
+still fails in-sandbox on the same pre-existing Google Fonts egress block (environment, not code).
+
+No architecture issues found (no duplicate models, no unnecessary tables, `events` not reused as a
+domain table, `telephone`/`email` in JSON-LD confirmed pre-existing on `api.public_schools` rather than
+a new leak, no fabricated provenance). No Increment 11 proposed, per explicit instruction.
+
+### Post-closure backlog board (Prav's four-bucket pass, agreed)
+
+Reconciled every deferred/loose item from the audit into one board so the backlog doesn't silently
+regrow into Increment 11 scope-creep:
+
+| Item | Status | Action |
+|---|---|---|
+| Increment 10 canonical page | 🟢 LOCKED | Done |
+| News pipeline | 🟢 Done / no content | Data acquisition |
+| Admissions | 🟢 Done / extremely sparse | Data acquisition |
+| Fees | ⚪ Deferred | Future |
+| Events | ⚪ Deferred | Future vertical |
+| Jobs | ⚪ Deferred | Future vertical |
+| Parent Voice | ⚪ Deferred | Future |
+| "What's happening" unified card | 🟢 Decision closed | Independent modules (Admissions → Recent admission updates → News), not merged |
+| Admission timeline visualization | ⚪ Deferred | Future UX |
+| Advanced sticky nav | ⚪ Deferred | Future UX |
+| Identity photos | 🟡 Decision pending | `PhotoPlaceholder` renders unconditionally in the header (and in teacher/feature cards) — confirmed a static box, never wired to `school_media`. Was this an intentional placeholder or simply missed? Awaiting Prav's call |
+| Facilities | ⚪ Deferred | `school_facilities` = deferred until there is meaningful production data and a justified public projection |
+| Coverage `ledger` variant | ⚪ Deferred | `CoverageCard` already supports `variant="ledger"` (implemented, real code path) — default `buckets` remains canonical; no work |
+| Claimed D1 rail | ⚪ Deferred | Wait for claimed-school volume/usage to justify the richer rail (currently 1 claimed school) |
+| Website URL backfill | ⚪ Technical backlog | Display bug already fixed (`normalizeExternalUrl`); backfilling schemes in the underlying data is data hygiene, not product scope |
+
+**Next**: once the Identity-photos decision is recorded, the board is fully closed. Planned next
+exercise is a **SchoolOye Launch Readiness Audit** — deliberately not called "Increment 11 Audit" —
+focused on Jaipur + Haryana + Delhi data coverage, school acquisition, admissions coverage, and parent
+usefulness, since production evidence shows the binding constraint is content/data density, not page
+features.
