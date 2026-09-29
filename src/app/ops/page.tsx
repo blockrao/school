@@ -95,7 +95,13 @@ export default async function OpsHomePage() {
           "/ops/posts",
           "School news & PR",
           "Review news and press updates submitted by schools.",
-          counts.schoolPosts,
+          counts.schoolPosts + counts.newsListings,
+        )}
+        {queueCard(
+          "/ops/events",
+          "School events",
+          "Approve events for the site-wide /events listing.",
+          counts.eventListings,
         )}
         {queueCard(
           "/ops/orders",

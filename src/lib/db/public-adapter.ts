@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import {
   type PublicAdmissionUpdate,
+  type PublicEvent,
   type PublicExamAdmission,
   type PublicExamApplicationStep,
   type PublicExamCentre,
@@ -11,9 +12,11 @@ import {
   type PublicExamMilestone,
   type PublicExamParticipatingSchool,
   type PublicExamReservationSplit,
+  type PublicNews,
   type PublicSchool,
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
+  type PublicSchoolEvent,
   type PublicSchoolNews,
   type PublicSchoolRanking,
   publicAdmissionUpdateContract,
@@ -21,12 +24,15 @@ import {
   publicBoardContract,
   publicCityContract,
   publicDistrictContract,
+  publicEventContract,
   publicExamAdmissionContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
+  publicNewsContract,
   publicSchoolAdmissionContract,
   publicSchoolBoardContract,
   publicSchoolContract,
+  publicSchoolEventContract,
   publicSchoolNewsContract,
   publicSchoolRankingContract,
   publicSchoolRedirectContract,
@@ -695,6 +701,62 @@ export async function getPublicSchoolNewsBySchoolId(schoolId: string): Promise<P
     .eq("school_id", schoolId)
     .order("published_at", { ascending: false });
   return (data ?? []).map((row) => publicSchoolNewsContract.parse(row));
+}
+
+/**
+ * A school's own events, newest-starting-first — reads only
+ * `api.public_school_events` (db/views/102_public_school_events.sql), which shows every
+ * event for a published school regardless of listing_review (own-page visibility has no
+ * ops gate — see the migration's header comment).
+ */
+export async function getPublicSchoolEventsBySchoolId(
+  schoolId: string,
+): Promise<PublicSchoolEvent[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_school_events")
+    .select("*")
+    .eq("school_id", schoolId)
+    .order("starts_at", { ascending: true });
+  return (data ?? []).map((row) => publicSchoolEventContract.parse(row));
+}
+
+/** Resolves a canonical /events/{slug} page by its permanent event_code (D-125-style). */
+export async function getPublicEventByCode(code: number): Promise<PublicEvent | null> {
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_events").select("*").eq("event_code", code).maybeSingle();
+  return data ? publicEventContract.parse(data) : null;
+}
+
+export type PublicEventFilters = { cityId?: number; eventType?: string };
+
+/** Site-wide /events aggregator (db/views/103_public_events.sql) — approved listings only. */
+export async function listPublicEvents(filters: PublicEventFilters = {}): Promise<PublicEvent[]> {
+  const api = createApiSchemaClient();
+  let query = api.from("public_events").select("*");
+  if (filters.cityId) query = query.eq("city_id", filters.cityId);
+  if (filters.eventType) query = query.eq("event_type", filters.eventType);
+  const { data } = await query.order("starts_at", { ascending: true });
+  return (data ?? []).map((row) => publicEventContract.parse(row));
+}
+
+/** Resolves a canonical /news/{slug} page by its permanent post_code (D-125-style). */
+export async function getPublicNewsByCode(code: number): Promise<PublicNews | null> {
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_news").select("*").eq("post_code", code).maybeSingle();
+  return data ? publicNewsContract.parse(data) : null;
+}
+
+export type PublicNewsFilters = { cityId?: number; tier?: string };
+
+/** Site-wide /news aggregator (db/views/101_public_news.sql) — approved listings only. */
+export async function listPublicNews(filters: PublicNewsFilters = {}): Promise<PublicNews[]> {
+  const api = createApiSchemaClient();
+  let query = api.from("public_news").select("*");
+  if (filters.cityId) query = query.eq("city_id", filters.cityId);
+  if (filters.tier) query = query.eq("tier", filters.tier);
+  const { data } = await query.order("published_at", { ascending: false });
+  return (data ?? []).map((row) => publicNewsContract.parse(row));
 }
 
 /**

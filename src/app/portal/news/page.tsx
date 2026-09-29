@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/ui/state-message";
 import { getMySchoolId, listPostsForSchool } from "@/lib/db/portal";
+import { requestNewsListing } from "./[id]/actions";
 
 export const metadata: Metadata = {
   title: "News & PR — SchoolOye portal",
@@ -23,6 +24,20 @@ const REVIEW_CLASS: Record<string, string> = {
   edited: "border-pill-open-bd bg-pill-open-bg text-pill-open-fg",
   rejected: "border-pill-closed-bd bg-pill-closed-bg text-muted-ink",
   needs_triage: "border-sponsored-border text-muted-ink",
+};
+
+const LISTING_LABEL: Record<string, string> = {
+  pending: "Listing requested — awaiting review",
+  approved: "Listed on /news",
+  edited: "Listed on /news",
+  rejected: "Listing not approved",
+  needs_triage: "Listing requested — awaiting review",
+};
+
+const TIER_LABEL: Record<string, string> = {
+  organic: "Organic",
+  featured: "Featured",
+  press_release: "Press release",
 };
 
 export default async function SchoolNewsPage() {
@@ -84,6 +99,34 @@ export default async function SchoolNewsPage() {
                 >
                   {REVIEW_LABEL[post.review] ?? post.review}
                 </span>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-rule pt-3">
+                {post.tier !== "organic" && (
+                  <span className="text-meta font-semibold text-ruled-blue">
+                    {TIER_LABEL[post.tier]}
+                  </span>
+                )}
+                {post.requested_tier && post.tier === "organic" && (
+                  <span className="text-meta text-muted-ink">
+                    {TIER_LABEL[post.requested_tier]} requested — our team will follow up
+                  </span>
+                )}
+                {post.listing_review ? (
+                  <span className="text-meta text-muted-ink">
+                    {LISTING_LABEL[post.listing_review] ?? post.listing_review}
+                  </span>
+                ) : (
+                  <form action={requestNewsListing}>
+                    <input type="hidden" name="postId" value={post.id} />
+                    <button
+                      type="submit"
+                      className="text-meta font-semibold text-ruled-blue underline"
+                    >
+                      Request listing on /news →
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           ))}

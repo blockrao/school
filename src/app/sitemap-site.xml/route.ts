@@ -1,8 +1,20 @@
-import { listPublicAreas, listPublicExams } from "@/lib/db/public-adapter";
+import {
+  listPublicAreas,
+  listPublicEvents,
+  listPublicExams,
+  listPublicNews,
+} from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
 import { urlEntry, urlSetXml } from "@/lib/sitemap";
-import { statePath, teacherPath } from "@/lib/urls";
+import {
+  eventPath,
+  eventsRootPath,
+  newsPath,
+  newsRootPath,
+  statePath,
+  teacherPath,
+} from "@/lib/urls";
 
 /**
  * Site-wide static + data-driven pages that aren't scoped to one city —
@@ -16,10 +28,17 @@ import { statePath, teacherPath } from "@/lib/urls";
  * anonymous visitors — none of those belong in a sitemap.
  */
 export async function GET() {
-  const [exams, teachers, areas] = await Promise.all([
+  const [exams, teachers, areas, events, news] = await Promise.all([
     listPublicExams(),
     listPublicTeachers(),
     listPublicAreas(),
+    // SEO/GEO follow-up (29 Sep 2026): api.public_events / api.public_news
+    // already filter to listing_review = 'approved' — every row here is a
+    // real, ops-cleared canonical page. Volume is nowhere near schools'
+    // 8,000+, so these share this site-wide file rather than getting their
+    // own sitemap-<slug>.xml the way a city does.
+    listPublicEvents(),
+    listPublicNews(),
   ]);
 
   const teacherLastmod = (createdAt: string | null | undefined) =>
@@ -54,6 +73,18 @@ export async function GET() {
     ),
     urlEntry(siteUrl, "/tools/age-eligibility"),
     urlEntry(siteUrl, "/admissions/help"),
+    urlEntry(siteUrl, eventsRootPath("en")),
+    ...events.map((event) =>
+      urlEntry(
+        siteUrl,
+        eventPath("en", event.event_slug),
+        event.listing_reviewed_at ? new Date(event.listing_reviewed_at) : undefined,
+      ),
+    ),
+    urlEntry(siteUrl, newsRootPath("en")),
+    ...news.map((post) =>
+      urlEntry(siteUrl, newsPath("en", post.post_slug), new Date(post.published_at)),
+    ),
     urlEntry(siteUrl, "/privacy"),
     urlEntry(siteUrl, "/terms"),
   ];

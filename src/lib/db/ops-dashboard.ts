@@ -9,6 +9,8 @@ export type OpsCounts = {
   seats: number;
   corrections: number;
   schoolPosts: number;
+  newsListings: number;
+  eventListings: number;
   myOpenTasks: number;
   openTasks: number;
 };
@@ -31,6 +33,8 @@ export async function getOpsCounts(): Promise<OpsCounts> {
     seats,
     corrections,
     schoolPosts,
+    newsListings,
+    eventListings,
     openTasks,
     myOpenTasks,
   ] = await Promise.all([
@@ -61,6 +65,14 @@ export async function getOpsCounts(): Promise<OpsCounts> {
       .select("id", { count: "exact", head: true })
       .eq("review", "pending"),
     supabase
+      .from("school_posts")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_review", "pending"),
+    supabase
+      .from("school_events")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_review", "pending"),
+    supabase
       .from("ops_tasks")
       .select("id", { count: "exact", head: true })
       .in("status", ["open", "in_progress"]),
@@ -81,6 +93,8 @@ export async function getOpsCounts(): Promise<OpsCounts> {
     seats: seats.count ?? 0,
     corrections: corrections.count ?? 0,
     schoolPosts: schoolPosts.count ?? 0,
+    newsListings: newsListings.count ?? 0,
+    eventListings: eventListings.count ?? 0,
     openTasks: openTasks.count ?? 0,
     myOpenTasks: myOpenTasks.count ?? 0,
   };

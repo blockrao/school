@@ -27,6 +27,7 @@ import {
   getBoardNamesBySchoolId,
   getPublicAdmissionsBySchoolId,
   type getPublicLocalityBySlug,
+  getPublicSchoolEventsBySchoolId,
   getPublicSchoolNewsBySchoolId,
   getRecentAdmissionUpdatesBySchoolId,
   getSimilarSchools,
@@ -40,6 +41,7 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
+import { EVENT_STATUS_LABEL, eventTemporalStatus } from "@/lib/event-status";
 import { normalizeExternalUrl } from "@/lib/external-url";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
@@ -50,8 +52,10 @@ import { buildSchoolMetaDescription } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
+  eventPath,
   localityPath as localityHref,
   lp,
+  newsPath,
   schoolPath,
   statePath,
   teacherPath,
@@ -328,21 +332,33 @@ export async function SchoolView({
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
 
-  const [admissions, shortlistedIdsSet, similarSchoolsRaw, team, news, recentAdmissionUpdates] =
-    await Promise.all([
-      getPublicAdmissionsBySchoolId(school.id),
-      getShortlistedSchoolIds([school.id]),
-      // Increment 11 (SDP-21) — locality-first, same-city fallback; see
-      // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
-      getSimilarSchools(school),
-      listPublicSchoolTeam(school.id),
-      // Increment 10 — api.public_school_news (db/views/095_public_school_news.sql):
-      // already filtered to review='approved'/published school/published_at not null.
-      getPublicSchoolNewsBySchoolId(school.id),
-      // Increment 10 — api.public_admission_updates (db/views/096_public_admission_updates.sql):
-      // already scoped to admission_cycles-only, allowlisted fields, real changes only.
-      getRecentAdmissionUpdatesBySchoolId(school.id),
-    ]);
+  const [
+    admissions,
+    shortlistedIdsSet,
+    similarSchoolsRaw,
+    team,
+    news,
+    events,
+    recentAdmissionUpdates,
+  ] = await Promise.all([
+    getPublicAdmissionsBySchoolId(school.id),
+    getShortlistedSchoolIds([school.id]),
+    // Increment 11 (SDP-21) — locality-first, same-city fallback; see
+    // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
+    getSimilarSchools(school),
+    listPublicSchoolTeam(school.id),
+    // Increment 10 — api.public_school_news (db/views/095_public_school_news.sql):
+    // already filtered to review='approved'/published school/published_at not null.
+    getPublicSchoolNewsBySchoolId(school.id),
+    // SEO/GEO follow-up (29 Sep 2026) — api.public_school_events
+    // (db/views/102_public_school_events.sql): every event for this school,
+    // regardless of site-wide /events listing status (own-page visibility has
+    // no ops gate).
+    getPublicSchoolEventsBySchoolId(school.id),
+    // Increment 10 — api.public_admission_updates (db/views/096_public_admission_updates.sql):
+    // already scoped to admission_cycles-only, allowlisted fields, real changes only.
+    getRecentAdmissionUpdatesBySchoolId(school.id),
+  ]);
   const similarSchools = similarSchoolsRaw.filter((s) => s.id !== school.id).slice(0, 4);
 
   // Increment 10 — eligibility checker input. Mirrors exams/[slug]/page.tsx's
@@ -602,6 +618,7 @@ export async function SchoolView({
       show: recentAdmissionUpdates.length > 0,
     },
     { id: "news-heading", label: "News", show: news.length > 0 },
+    { id: "events-heading", label: "Events", show: events.length > 0 },
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
     { id: "coverage-heading", label: "What SchoolOye knows", show: true },
@@ -1043,10 +1060,20 @@ export async function SchoolView({
                       className="flex flex-col gap-1 rounded-md border border-rule p-3"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-display font-semibold">{post.title}</span>
+                        <Link
+                          href={newsPath(locale, post.post_slug)}
+                          className="font-display font-semibold hover:text-ruled-blue"
+                        >
+                          {post.title}
+                        </Link>
                         {post.kind === "press" && (
                           <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
                             Press
+                          </span>
+                        )}
+                        {post.tier !== "organic" && (
+                          <span className="rounded-full border border-ruled-blue px-2 py-0.5 text-meta font-semibold text-ruled-blue">
+                            {post.tier === "featured" ? "Featured" : "Press release"}
                           </span>
                         )}
                       </div>
@@ -1075,6 +1102,74 @@ export async function SchoolView({
                       </div>
                     </article>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {/* SEO/GEO follow-up (29 Sep 2026): shows every event for this school
+              regardless of whether it has been (or ever will be) listed on the
+              site-wide /events aggregator — own-page visibility has no ops gate.
+              Each event links to its own canonical page only once it has one
+              worth linking to publicly (an approved listing); before that, the
+              event still renders inline here, just without a link out, since the
+              canonical page's content is identical either way and linking pre-
+              listing would surface an unreviewed page as if it were a normal
+              search result. */}
+            {events.length > 0 && (
+              <section aria-labelledby="events-heading" className="flex flex-col gap-3">
+                <h2 id="events-heading" className="font-display text-card font-semibold">
+                  Events
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {events.map((event) => {
+                    const status = eventTemporalStatus(
+                      {
+                        startsAt: new Date(event.starts_at),
+                        endsAt: event.ends_at ? new Date(event.ends_at) : null,
+                        cancelledAt: event.cancelled_at ? new Date(event.cancelled_at) : null,
+                      },
+                      now,
+                    );
+                    const isListed = event.listing_review === "approved";
+                    const title = <span className="font-display font-semibold">{event.title}</span>;
+                    return (
+                      <article
+                        key={event.id}
+                        className="flex flex-col gap-1 rounded-md border border-rule p-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          {isListed ? (
+                            <Link
+                              href={eventPath(locale, event.event_slug)}
+                              className="font-display font-semibold hover:text-ruled-blue"
+                            >
+                              {event.title}
+                            </Link>
+                          ) : (
+                            title
+                          )}
+                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+                            {EVENT_STATUS_LABEL[status]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-meta text-muted-ink">
+                          <span>
+                            {new Date(event.starts_at).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                          {event.location && (
+                            <>
+                              <span>·</span>
+                              <span>{event.location}</span>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             )}

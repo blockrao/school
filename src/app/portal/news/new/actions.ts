@@ -10,6 +10,7 @@ const postSchema = z.object({
   title: z.string().trim().min(1).max(200),
   body: z.string().trim().min(1).max(5000),
   sourceUrl: z.string().url().optional().or(z.literal("")),
+  requestedTier: z.enum(["organic", "featured", "press_release"]).optional(),
 });
 
 export async function submitSchoolPost(formData: FormData) {
@@ -20,6 +21,7 @@ export async function submitSchoolPost(formData: FormData) {
     title: formData.get("title"),
     body: formData.get("body"),
     sourceUrl: formData.get("sourceUrl") || "",
+    requestedTier: formData.get("requestedTier") || "organic",
   });
   if (!parsed.success) {
     redirect(`${notPath}?error=invalid`);
@@ -31,6 +33,14 @@ export async function submitSchoolPost(formData: FormData) {
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
 
+  // SEO/GEO follow-up (29 Sep 2026): an organic post goes live on the
+  // school's OWN page immediately — no ops pre-review for that tier of
+  // visibility, `review: "approved"` is set right here rather than left
+  // "pending". `tier` itself always stays 'organic' at insert (RLS enforces
+  // this — school_posts_member_insert requires tier = 'organic'); a school
+  // can only ever *request* featured/press_release via `requested_tier`,
+  // never grant it to itself. Publish-to-site-wide-/news is a separate,
+  // later step (see requestPostListing) which does still need ops review.
   const { error } = await supabase.from("school_posts").insert({
     school_id: schoolId,
     kind: parsed.data.kind,
@@ -38,7 +48,12 @@ export async function submitSchoolPost(formData: FormData) {
     body: parsed.data.body,
     source_url: parsed.data.sourceUrl || null,
     created_by: user?.id,
-    review: "pending",
+    review: "approved",
+    published_at: new Date().toISOString(),
+    requested_tier:
+      parsed.data.requestedTier && parsed.data.requestedTier !== "organic"
+        ? parsed.data.requestedTier
+        : null,
   });
 
   if (error) {

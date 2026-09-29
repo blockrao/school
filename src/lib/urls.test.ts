@@ -4,10 +4,16 @@ import { describe, expect, it } from "vitest";
 import {
   ARCHIVE_YEAR_RE,
   cityPath,
+  eventPath,
+  eventsRootPath,
   homePath,
   isValidEntitySlug,
   localityPath,
   lp,
+  newsPath,
+  newsRootPath,
+  parseEventCode,
+  parsePostCode,
   parseTeacherCode,
   SCHOOL_RESERVED_SLUGS,
   schoolPath,
@@ -56,6 +62,34 @@ describe("teacher URLs (D-125)", () => {
   it("rejects slugs without a 5–6 digit code", () => {
     for (const bad of ["priya-sharma", "priya-sharma-1234", "priya-sharma-1234567"]) {
       expect(parseTeacherCode(bad)).toBeNull();
+    }
+  });
+});
+
+describe("event and news URLs (SEO/GEO follow-up)", () => {
+  it("builds /events/{title}-{code} and /news/{title}-{code} and reads the permanent code back", () => {
+    expect(eventPath("en", "annual-sports-day-2026-48213")).toBe(
+      "/events/annual-sports-day-2026-48213",
+    );
+    expect(parseEventCode("annual-sports-day-2026-48213")).toBe(48213);
+    expect(parseEventCode("founders-day-2-104857")).toBe(104857);
+
+    expect(newsPath("en", "school-wins-state-championship-77213")).toBe(
+      "/news/school-wins-state-championship-77213",
+    );
+    expect(parsePostCode("school-wins-state-championship-77213")).toBe(77213);
+    expect(parsePostCode("press-note-2-104857")).toBe(104857);
+  });
+
+  it("builds the /events and /news aggregator root paths", () => {
+    expect(eventsRootPath("en")).toBe("/events");
+    expect(newsRootPath("en")).toBe("/news");
+  });
+
+  it("rejects slugs without a 5–6 digit code", () => {
+    for (const bad of ["annual-day", "annual-day-1234", "annual-day-1234567"]) {
+      expect(parseEventCode(bad)).toBeNull();
+      expect(parsePostCode(bad)).toBeNull();
     }
   });
 });

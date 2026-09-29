@@ -2493,3 +2493,70 @@ completeness scoring here now would itself violate this brief's own "do NOT buil
 Per the brief's closure rule: A1–A4 and B1 are clean, so this follow-up is complete. No
 broader School Detail Page backlog reopened; none of the explicitly-out-of-scope roadmap
 items (Section C) were touched.
+
+## 2026-09-29 — Events + News depth (Prav's "real depth and robustness" request)
+
+Prav's framing, verbatim: events and news are "going to bring us the value and much closer
+the schools and management" — ahead of admissions and every other feature, which he sees as
+parity with competitors. He gave an explicit, detailed product spec (this log paraphrases it;
+see the migration header comment for his exact words) and asked me to refine it as PM and
+implement, not just plan it.
+
+**What was there before:** no real "events" domain (the `events` table is analytics
+telemetry, unrelated). `school_posts` was a 2-kind (news/press), 1-production-row MVP with a
+single `review` gate that conflated "visible at all" with "ops approved."
+
+**Product decisions made as PM (refining Prav's spec):**
+
+1. **Two-tier visibility, not one.** Tier 1: a school's own event/post shows on *their own*
+   school page the moment they create it — no ops gate, same trust tier as any other
+   self-reported fact already on the page (min_class, address, etc.). Tier 2: a separate
+   "request listing" action, ops-reviewed, gates inclusion in the public `/events` and `/news`
+   aggregators. This is a deliberate redefinition of `school_posts.review`'s meaning (used to
+   gate all visibility; now only gates the school's own page, and the app sets it to
+   `approved` immediately on insert) — safe because only 1 production `school_posts` row
+   existed.
+2. **Permanent canonical URL per event/post, identity separate from status.** Reused the
+   existing teacher_code mechanism (D-125) exactly: a random, unique, never-reused numeric
+   code minted once via a trigger, baked into the slug; a guard trigger refuses any change to
+   the code; editing the title only changes the display part of the slug, and a stale slug
+   301s to the canonical one. "Stays there forever, just the status changes" is built this
+   way, not as a mutable status column on identity.
+3. **Temporal status (Upcoming/Ongoing/Completed/Cancelled) is derived, never stored** — a new
+   pure function `eventTemporalStatus()` (`src/lib/event-status.ts`), computed from
+   `starts_at`/`ends_at`/`cancelled_at` at render time, mirroring `deadlineState()`'s existing
+   pattern. Can't go stale because there's nothing to go stale.
+4. **Featured posts / press releases are tier-gated, not payment-gated.** `post_tier` enum
+   (`organic`/`featured`/`press_release`); RLS lets a school insert/hold only `organic` for
+   itself. `requested_tier` is a free field a school can set to express interest; only staff
+   can actually grant a paid tier (`grantPostTier` action).
+
+**Built:** migration `20260929050000_events_and_news_depth.sql` (post_tier enum,
+`school_posts` code/slug/tier/listing columns + triggers, full `school_events` table +
+RLS/triggers); 4 new/changed DB views (`095_public_school_news` extended,
+`101_public_news`/`102_public_school_events`/`103_public_events` new); contracts
+(`public-events`, `public-news`, `public-school-events`, `public-school-news` extended);
+`src/lib/urls.ts` event/post path + code-parsing helpers (D-125 pattern); adapter functions in
+`public-adapter.ts`/`portal.ts`; portal pages for creating events/posts and requesting listing
+(`/portal/events`, `/portal/news`); ops queues for listing approval and tier grants
+(`/ops/events`, `/ops/posts` — now 3 sections: listing requests, tier requests, base review);
+canonical public pages and aggregators (`/events/[slug]`, `/events`, `/news/[slug]`, `/news`)
+with Event/NewsArticle/PressRelease JSON-LD; an Events section added to the school entity page
+between News and Location; sitemap entries for both aggregators and every canonical page.
+
+**Verification:** `pnpm test` (153 tests, including 6 new `eventTemporalStatus` cases and new
+`urls.test.ts` event/news URL cases) and `pnpm run typecheck`/`pnpm run lint` all pass.
+`pnpm run build` fails only on the pre-existing, unrelated sandbox Google Fonts network
+restriction (same failure seen before this feature, not a regression). `src/lib/db/types.ts`
+was hand-updated to match the migration (sandbox has no `DATABASE_URL_RO`, so
+`pnpm db:types` couldn't run against the live schema) — flagged inline in that file's header;
+re-run `pnpm db:types` once that's available to confirm and drop the note.
+
+**Deliberately not built — flagged for Prav:** there is no billing/commerce system in this
+schema, and Prav's spec explicitly wants featured posts / press releases "sold separately as a
+productized service." Building a payment flow here would be exactly the kind of unrequested
+abstraction the SEO/GEO brief's principle (D) warns against, so `requested_tier` just records
+interest and ops manually flips `tier` once payment is confirmed elsewhere. This is a real
+open decision point, not an oversight: Prav needs to say how featured/press-release payment
+should actually work (a payment link, an invoice process, a Razorpay/Stripe integration to
+build later) before this can be automated end-to-end.

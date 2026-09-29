@@ -87,6 +87,45 @@ export function parseTeacherCode(slug: string): number | null {
   return match ? Number(match[1]) : null;
 }
 
+/**
+ * Events + news aggregator + canonical entity URLs (SEO/GEO follow-up,
+ * 29 Sep 2026). Same permanent-code mechanism as teachers (D-125): editing
+ * an event/post title only changes the display part of the slug, never the
+ * trailing code a canonical page resolves by — see
+ * 20260929050000_events_and_news_depth.sql.
+ */
+export function eventsRootPath(locale: string): string {
+  return lp(locale, "/events");
+}
+
+export function eventPath(locale: string, slug: string): string {
+  return lp(locale, `/events/${slug}`);
+}
+
+export function newsRootPath(locale: string): string {
+  return lp(locale, "/news");
+}
+
+export function newsPath(locale: string, slug: string): string {
+  return lp(locale, `/news/${slug}`);
+}
+
+/** The permanent event code at the end of an event slug (5 digits, 6 once 5-digit codes run out). */
+export const EVENT_CODE_RE = /-(\d{5,6})$/;
+
+export function parseEventCode(slug: string): number | null {
+  const match = EVENT_CODE_RE.exec(slug);
+  return match ? Number(match[1]) : null;
+}
+
+/** The permanent post code at the end of a news/press post slug. */
+export const POST_CODE_RE = /-(\d{5,6})$/;
+
+export function parsePostCode(slug: string): number | null {
+  const match = POST_CODE_RE.exec(slug);
+  return match ? Number(match[1]) : null;
+}
+
 /** Archive view year segment: exactly YYYY-YY (D-121 §4). */
 export const ARCHIVE_YEAR_RE = /^\d{4}-\d{2}$/;
 

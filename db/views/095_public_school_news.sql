@@ -5,13 +5,27 @@
 -- policy on the base table, and this migration deliberately does not add one. Instead
 -- this view (running as its owner, same mechanism every other api.* view over an
 -- RLS-protected table already uses) exposes only rows that are:
---   - review = 'approved'   (ops has reviewed and approved the post)
+--   - review = 'approved'   (own-page visibility gate — the school's own detail page.
+--     As of 20260929050000_events_and_news_depth.sql, organic self-published posts are
+--     set to 'approved' immediately by the portal action, not held for ops pre-review;
+--     `review` now means "this post is live on the school's own page", not "ops signed
+--     off before anyone could see it". Featured/press_release-tier posts still go
+--     through a real ops review before `review` flips to 'approved', since ops/sales
+--     is the one creating/finishing those rows.
 --   - published_at is not null   (the school/ops has actually published it, not just
 --     had it approved and left sitting)
 --   - the owning school is status = 'published'   (same D-119 publish gate as every
 --     other public view)
+-- This view is the SCHOOL'S OWN PAGE feed only — it does not filter on
+-- `listing_review`, so a post appears here whether or not the school has ever
+-- requested (or been granted) a spot on the site-wide /news aggregator. See
+-- 101_public_news.sql for the site-wide, listing_review='approved'-gated feed.
 -- Reviewer/author identity (`reviewed_by`, `created_by`) and internal workflow state
 -- (`review`, `reviewed_at`, timestamps) are never exposed here.
+--
+-- Increment (SEO/GEO follow-up, 29 Sep 2026): appended `post_code`, `slug`, `tier`,
+-- `listing_requested_at`, `listing_review` at the end — see 020_public_school_admissions.sql's
+-- header for why new columns must always be appended, never spliced in earlier.
 create or replace view api.public_school_news as
 select
   sp.id,
@@ -21,7 +35,12 @@ select
   sp.title,
   sp.body,
   sp.source_url,
-  sp.published_at
+  sp.published_at,
+  sp.post_code,
+  sp.slug as post_slug,
+  sp.tier,
+  sp.listing_requested_at,
+  sp.listing_review
 from school_posts sp
 join schools s on s.id = sp.school_id
 where sp.review = 'approved'

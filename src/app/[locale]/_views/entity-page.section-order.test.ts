@@ -33,6 +33,7 @@ describe("SchoolView sticky sub-nav order matches rendered section order", () =>
       "admissions-heading",
       "admission-updates-heading",
       "news-heading",
+      "events-heading",
       "location-heading",
       "teachers-heading",
       "coverage-heading",

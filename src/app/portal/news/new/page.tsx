@@ -31,7 +31,8 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
         Publish news or a PR update
       </h1>
       <p className="mt-1 text-body text-muted-ink">
-        An award, a new campus, a milestone — checked by SchoolOye before it goes live.
+        An award, a new campus, a milestone — goes live on your school page right away. You can
+        separately request a spot on SchoolOye's main /news page once it's published.
       </p>
 
       <form action={submitSchoolPost} className="mt-6 flex flex-col gap-4">
@@ -78,6 +79,25 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
             placeholder="https://yourschool.edu.in/news/..."
             className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
           />
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">
+            Interested in a paid boost? (optional)
+          </span>
+          <select
+            name="requestedTier"
+            defaultValue="organic"
+            className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+          >
+            <option value="organic">No, just publish normally</option>
+            <option value="featured">Request: Featured post</option>
+            <option value="press_release">Request: Press release (productized)</option>
+          </select>
+          <span className="text-meta text-muted-ink">
+            Featured posts and press releases are a paid SchoolOye service — our team will follow up
+            with you. This doesn't change how your post publishes today.
+          </span>
         </label>
 
         {errorCode && (
