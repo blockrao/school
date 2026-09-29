@@ -4,6 +4,11 @@ import { listPublicJobs } from "@/lib/db/public-adapter";
 import { localeCanonical } from "@/lib/seo";
 import { jobPath, jobsRootPath } from "@/lib/urls";
 
+// Same reasoning as news/page.tsx and events/page.tsx: a live discovery feed
+// with no dynamic function and no revalidate would otherwise cache
+// indefinitely, so a newly-posted job wouldn't show here until the next deploy.
+export const revalidate = 900;
+
 const EMPLOYMENT_TYPE_LABEL: Record<string, string> = {
   full_time: "Full-time",
   part_time: "Part-time",

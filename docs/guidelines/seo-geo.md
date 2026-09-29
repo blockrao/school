@@ -28,6 +28,7 @@ redirect and lifecycle state. Summary:
 | Exam | `/exams/{slug}` |
 | Teacher | `/teacher/{first-middle-last}-{teacher_code}` (issued at registration, D-125) |
 | Discovery | `/schools`, `/schools/{state}`, `/schools/{state}/{city}`, `/schools/{state}/{city}/{locality}`; city-states (Delhi) at `/schools/{state}[/{locality}]` (D-126) |
+| Event / News / Job | `/events/{slug}`, `/news/{slug}`, `/jobs/{slug}` — flat, no school/city/locality segment. `{slug}` ends in a permanent numeric code (D-125-style); editing the title only ever changes the slug's display part, and an old slug 301s to the current one. **No school/city/locality in the URL, by the same reasoning as the School row above** — that context lives in the title/H1 (see §3) and the breadcrumb, which already carry ~all of a URL segment's SEO weight with none of its fragility: embedding a school's slug or locality into an event/news/job URL would mean any school re-slug, locality correction, or city merge either breaks every one of that school's item URLs or forces a redirect chain that doesn't exist today. **Open question, not yet decided (29 Sep 2026):** whether to prefix these with `/{citySlug}/{schoolSlug}/` anyway, for reasons other than ranking (e.g. link-glance trust). If revisited, do it as a redirect-safe addition (permanent code stays the resolution key; old flat URLs 301 to the new prefixed ones) — never a breaking rename. |
 | Other languages | `/{lang}/…` only when that page is translated; otherwise 404 |
 
 - Filters are query parameters, `noindex`; pagination is self-canonical and indexable.
@@ -54,6 +55,17 @@ redirect and lifecycle state. Summary:
     actually exists and is fed real data before trusting this line.
   - City admissions: `{City} School Admissions {session}: Open Now & Closing Soon · SchoolOye`
   - Exam: `{Exam} {session}: Dates, Eligibility, Fees · SchoolOye`
+  - **Event / News / Job (added 29 Sep 2026):** `{Item title}, {School}, {Locality, City if known}
+    — SchoolOye`, e.g. "Dandiya Night 2026, Lancer's Convent SR Sec School, Delhi — SchoolOye".
+    Built via the shared `schoolAreaLabel(localityName, cityName)` helper (`src/lib/school-area-
+    label.ts`) — same locality+city join the school page's own title/H1 use, so a school and every
+    item under it read as one consistent entity everywhere they appear, not just on its own page.
+    Drop the area clause entirely when neither locality nor city is known (never write "India").
+    H1 follows the same rule. Applies to every `{item}/[slug]` detail page in this family
+    (`/events`, `/news`, `/jobs` today) and to any future one — **not** to `/school/{slug}` itself,
+    which already carries this in its own title, or to admission/fee pages nested under a school
+    (`/school/{slug}/admissions`), which inherit the school's context by virtue of being on that
+    school's own page.
 - Description: the page's snapshot sentence, ≤155 characters.
 - OG image via `next/og`, showing the name and current admission status.
 - **hreflang:** only on pages with a translation: one entry per available language plus
