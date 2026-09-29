@@ -187,3 +187,69 @@ export async function cancelEvent(eventId: string, schoolId: string): Promise<bo
     .eq("school_id", schoolId);
   return !error;
 }
+
+export type PortalJob = {
+  id: string;
+  title: string;
+  employment_type: "full_time" | "part_time" | "contract" | "visiting";
+  subject: string | null;
+  description: string;
+  experience_required: string | null;
+  salary_range: string | null;
+  location: string | null;
+  apply_url: string | null;
+  apply_email: string | null;
+  class_codes: string[];
+  closes_at: string | null;
+  filled_at: string | null;
+  cancelled_at: string | null;
+  slug: string;
+  listing_requested_at: string | null;
+  listing_review: "pending" | "approved" | "edited" | "rejected" | "needs_triage" | null;
+  created_at: string;
+};
+
+export async function listJobsForSchool(schoolId: string): Promise<PortalJob[]> {
+  const supabase = await createSessionClient();
+  const { data } = await supabase
+    .from("school_jobs")
+    .select(
+      "id, title, employment_type, subject, description, experience_required, salary_range, location, apply_url, apply_email, class_codes, closes_at, filled_at, cancelled_at, slug, listing_requested_at, listing_review, created_at",
+    )
+    .eq("school_id", schoolId)
+    .order("created_at", { ascending: false });
+  return (data as PortalJob[] | null) ?? [];
+}
+
+/** Same listing-request gate as requestPostListing/requestEventListing, for the school's own jobs. */
+export async function requestJobListing(jobId: string, schoolId: string): Promise<boolean> {
+  const supabase = await createSessionClient();
+  const { error } = await supabase
+    .from("school_jobs")
+    .update({ listing_requested_at: new Date().toISOString(), listing_review: "pending" })
+    .eq("id", jobId)
+    .eq("school_id", schoolId);
+  return !error;
+}
+
+/** Lets a school mark a job filled without deleting the row — the canonical page persists. */
+export async function markJobFilled(jobId: string, schoolId: string): Promise<boolean> {
+  const supabase = await createSessionClient();
+  const { error } = await supabase
+    .from("school_jobs")
+    .update({ filled_at: new Date().toISOString() })
+    .eq("id", jobId)
+    .eq("school_id", schoolId);
+  return !error;
+}
+
+/** Lets a school withdraw its own job posting without deleting the row. */
+export async function cancelJob(jobId: string, schoolId: string): Promise<boolean> {
+  const supabase = await createSessionClient();
+  const { error } = await supabase
+    .from("school_jobs")
+    .update({ cancelled_at: new Date().toISOString() })
+    .eq("id", jobId)
+    .eq("school_id", schoolId);
+  return !error;
+}

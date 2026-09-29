@@ -4,10 +4,12 @@
 // 2026-09-29: school_events (new table) and school_posts' post_code/slug/tier/
 // requested_tier/listing_* columns, plus the post_tier and school_event_type
 // enums, were added by hand to match supabase/migrations/
-// 20260929050000_events_and_news_depth.sql — DATABASE_URL_RO isn't set in this
-// sandbox, so `pnpm db:types` couldn't regenerate from the live schema. Re-run
-// `pnpm db:types` the next time DATABASE_URL_RO is available to confirm this
-// matches and let this note go away.
+// 20260929050000_events_and_news_depth.sql. school_jobs (new table) and the
+// job_employment_type enum were likewise added by hand to match
+// 20260929060000_school_jobs.sql. DATABASE_URL_RO isn't set in this sandbox,
+// so `pnpm db:types` couldn't regenerate from the live schema either time.
+// Re-run `pnpm db:types` the next time DATABASE_URL_RO is available to
+// confirm this matches and let this note go away.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -1716,6 +1718,87 @@ export type Database = {
         };
         Relationships: [];
       };
+      school_jobs: {
+        Row: {
+          id: string;
+          school_id: string;
+          job_code: number;
+          slug: string;
+          title: string;
+          employment_type: Database["public"]["Enums"]["job_employment_type"];
+          subject: string | null;
+          description: string;
+          experience_required: string | null;
+          salary_range: string | null;
+          location: string | null;
+          apply_url: string | null;
+          apply_email: string | null;
+          class_codes: string[];
+          closes_at: string | null;
+          filled_at: string | null;
+          cancelled_at: string | null;
+          listing_requested_at: string | null;
+          listing_review: Database["public"]["Enums"]["review_status"] | null;
+          listing_reviewed_by: string | null;
+          listing_reviewed_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          job_code?: number;
+          slug?: string;
+          title: string;
+          employment_type?: Database["public"]["Enums"]["job_employment_type"];
+          subject?: string | null;
+          description: string;
+          experience_required?: string | null;
+          salary_range?: string | null;
+          location?: string | null;
+          apply_url?: string | null;
+          apply_email?: string | null;
+          class_codes?: string[];
+          closes_at?: string | null;
+          filled_at?: string | null;
+          cancelled_at?: string | null;
+          listing_requested_at?: string | null;
+          listing_review?: Database["public"]["Enums"]["review_status"] | null;
+          listing_reviewed_by?: string | null;
+          listing_reviewed_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          job_code?: number;
+          slug?: string;
+          title?: string;
+          employment_type?: Database["public"]["Enums"]["job_employment_type"];
+          subject?: string | null;
+          description?: string;
+          experience_required?: string | null;
+          salary_range?: string | null;
+          location?: string | null;
+          apply_url?: string | null;
+          apply_email?: string | null;
+          class_codes?: string[];
+          closes_at?: string | null;
+          filled_at?: string | null;
+          cancelled_at?: string | null;
+          listing_requested_at?: string | null;
+          listing_review?: Database["public"]["Enums"]["review_status"] | null;
+          listing_reviewed_by?: string | null;
+          listing_reviewed_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       school_slug_history: {
         Row: {
           school_id: string;
@@ -2369,6 +2452,7 @@ export type Database = {
         | "medical"
         | "other";
       form_mode: "online" | "offline" | "both" | "unknown";
+      job_employment_type: "full_time" | "part_time" | "contract" | "visiting";
       order_status:
         | "draft"
         | "awaiting_payment"

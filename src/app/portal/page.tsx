@@ -87,6 +87,12 @@ export default async function PortalDashboardPage() {
             Events
           </Link>
           <Link
+            href="/portal/jobs"
+            className="flex h-11 items-center rounded-md border border-ruled-blue px-4 font-semibold text-ruled-blue"
+          >
+            Jobs
+          </Link>
+          <Link
             href="/portal/team"
             className="flex h-11 items-center rounded-md border border-ruled-blue px-4 font-semibold text-ruled-blue"
           >

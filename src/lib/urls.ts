@@ -126,6 +126,26 @@ export function parsePostCode(slug: string): number | null {
   return match ? Number(match[1]) : null;
 }
 
+/**
+ * Jobs aggregator + canonical entity URLs (29 Sep 2026, 20260929060000_school_jobs.sql).
+ * Same permanent-code mechanism as events/news/teachers (D-125).
+ */
+export function jobsRootPath(locale: string): string {
+  return lp(locale, "/jobs");
+}
+
+export function jobPath(locale: string, slug: string): string {
+  return lp(locale, `/jobs/${slug}`);
+}
+
+/** The permanent job code at the end of a job slug. */
+export const JOB_CODE_RE = /-(\d{5,6})$/;
+
+export function parseJobCode(slug: string): number | null {
+  const match = JOB_CODE_RE.exec(slug);
+  return match ? Number(match[1]) : null;
+}
+
 /** Archive view year segment: exactly YYYY-YY (D-121 §4). */
 export const ARCHIVE_YEAR_RE = /^\d{4}-\d{2}$/;
 

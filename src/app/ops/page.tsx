@@ -104,6 +104,12 @@ export default async function OpsHomePage() {
           counts.eventListings,
         )}
         {queueCard(
+          "/ops/jobs",
+          "School jobs",
+          "Approve job postings for the site-wide /jobs listing.",
+          counts.jobListings,
+        )}
+        {queueCard(
           "/ops/orders",
           "Application Help orders",
           "Confirm payment on manual-provider orders.",

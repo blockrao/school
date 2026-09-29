@@ -2560,3 +2560,37 @@ interest and ops manually flips `tier` once payment is confirmed elsewhere. This
 open decision point, not an oversight: Prav needs to say how featured/press-release payment
 should actually work (a payment link, an invoice process, a Razorpay/Stripe integration to
 build later) before this can be automated end-to-end.
+
+## 2026-09-29 — Jobs (reused the events/news pattern)
+
+Prav's framing: jobs have "a lot of overlaps on what you just built" — so this reuses the
+Events/News two-tier visibility + permanent-code canonical URL design exactly rather than
+inventing anything new.
+
+**Product shape:** a school admin posts a job -> live on their own school page immediately
+(no ops gate) -> the school separately requests a listing on the site-wide `/jobs` page ->
+ops approves/rejects. Every job gets a permanent `job_code`/slug (D-125 mechanism, same guard
+trigger pattern as events/posts/teachers) — editing the title only changes the display part of
+the slug. A job's Open/Closed/Filled/Cancelled status is derived at render time from
+`closes_at`/`filled_at`/`cancelled_at` (`src/lib/job-status.ts`, mirrors `eventTemporalStatus()`
+and `deadlineState()`), never stored.
+
+**Built:** migration `20260929060000_school_jobs.sql` (`job_employment_type` enum,
+`school_jobs` table + RLS/triggers/code-guard); views `104_public_school_jobs`
+(own-page feed) and `105_public_jobs` (site-wide aggregator, excludes filled/cancelled);
+contracts (`public-jobs`, `public-school-jobs`); `src/lib/urls.ts` job path + code-parsing
+helpers; adapter functions in `public-adapter.ts`/`portal.ts`; portal pages
+(`/portal/jobs`, `/portal/jobs/new`) with request-listing/mark-filled/cancel actions; an ops
+queue (`/ops/jobs`) added to the ops home page's counts; canonical public pages
+(`/jobs/[slug]` with JobPosting JSON-LD, `/jobs` aggregator); a Jobs section on the school
+entity page between Events and Location; sitemap entries for both the aggregator and every
+canonical job page.
+
+**Verification:** `pnpm test` (161 tests, including 5 new `jobStatus` cases and new
+`urls.test.ts` job URL cases), `pnpm run typecheck`, `pnpm run lint` all pass. `pnpm run build`
+fails only on the same pre-existing, unrelated sandbox Google Fonts network restriction seen
+in every prior entry — not a regression. `src/lib/db/types.ts` was hand-updated again for the
+same reason as the events/news entry (no `DATABASE_URL_RO` in this sandbox); noted inline.
+
+No open product gaps here unlike events/news' tier billing — jobs have no paid tier, so
+nothing was deliberately left unbuilt.

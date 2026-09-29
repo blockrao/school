@@ -2,6 +2,7 @@ import {
   listPublicAreas,
   listPublicEvents,
   listPublicExams,
+  listPublicJobs,
   listPublicNews,
 } from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
@@ -10,6 +11,8 @@ import { urlEntry, urlSetXml } from "@/lib/sitemap";
 import {
   eventPath,
   eventsRootPath,
+  jobPath,
+  jobsRootPath,
   newsPath,
   newsRootPath,
   statePath,
@@ -28,17 +31,18 @@ import {
  * anonymous visitors — none of those belong in a sitemap.
  */
 export async function GET() {
-  const [exams, teachers, areas, events, news] = await Promise.all([
+  const [exams, teachers, areas, events, news, jobs] = await Promise.all([
     listPublicExams(),
     listPublicTeachers(),
     listPublicAreas(),
-    // SEO/GEO follow-up (29 Sep 2026): api.public_events / api.public_news
-    // already filter to listing_review = 'approved' — every row here is a
-    // real, ops-cleared canonical page. Volume is nowhere near schools'
-    // 8,000+, so these share this site-wide file rather than getting their
-    // own sitemap-<slug>.xml the way a city does.
+    // SEO/GEO follow-up (29 Sep 2026): api.public_events / api.public_news /
+    // api.public_jobs already filter to listing_review = 'approved' — every
+    // row here is a real, ops-cleared canonical page. Volume is nowhere near
+    // schools' 8,000+, so these share this site-wide file rather than
+    // getting their own sitemap-<slug>.xml the way a city does.
     listPublicEvents(),
     listPublicNews(),
+    listPublicJobs(),
   ]);
 
   const teacherLastmod = (createdAt: string | null | undefined) =>
@@ -84,6 +88,14 @@ export async function GET() {
     urlEntry(siteUrl, newsRootPath("en")),
     ...news.map((post) =>
       urlEntry(siteUrl, newsPath("en", post.post_slug), new Date(post.published_at)),
+    ),
+    urlEntry(siteUrl, jobsRootPath("en")),
+    ...jobs.map((job) =>
+      urlEntry(
+        siteUrl,
+        jobPath("en", job.job_slug),
+        job.listing_reviewed_at ? new Date(job.listing_reviewed_at) : undefined,
+      ),
     ),
     urlEntry(siteUrl, "/privacy"),
     urlEntry(siteUrl, "/terms"),

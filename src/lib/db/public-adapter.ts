@@ -12,11 +12,13 @@ import {
   type PublicExamMilestone,
   type PublicExamParticipatingSchool,
   type PublicExamReservationSplit,
+  type PublicJob,
   type PublicNews,
   type PublicSchool,
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
   type PublicSchoolEvent,
+  type PublicSchoolJob,
   type PublicSchoolNews,
   type PublicSchoolRanking,
   publicAdmissionUpdateContract,
@@ -26,6 +28,7 @@ import {
   publicDistrictContract,
   publicEventContract,
   publicExamAdmissionContract,
+  publicJobContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
   publicNewsContract,
@@ -33,6 +36,7 @@ import {
   publicSchoolBoardContract,
   publicSchoolContract,
   publicSchoolEventContract,
+  publicSchoolJobContract,
   publicSchoolNewsContract,
   publicSchoolRankingContract,
   publicSchoolRedirectContract,
@@ -757,6 +761,41 @@ export async function listPublicNews(filters: PublicNewsFilters = {}): Promise<P
   if (filters.tier) query = query.eq("tier", filters.tier);
   const { data } = await query.order("published_at", { ascending: false });
   return (data ?? []).map((row) => publicNewsContract.parse(row));
+}
+
+/**
+ * A school's own job postings, newest first — reads only
+ * `api.public_school_jobs` (db/views/104_public_school_jobs.sql), which shows every
+ * job for a published school regardless of listing_review (own-page visibility has no
+ * ops gate — see the migration's header comment).
+ */
+export async function getPublicSchoolJobsBySchoolId(schoolId: string): Promise<PublicSchoolJob[]> {
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_school_jobs")
+    .select("*")
+    .eq("school_id", schoolId)
+    .order("created_at", { ascending: false });
+  return (data ?? []).map((row) => publicSchoolJobContract.parse(row));
+}
+
+/** Resolves a canonical /jobs/{slug} page by its permanent job_code (D-125-style). */
+export async function getPublicJobByCode(code: number): Promise<PublicJob | null> {
+  const api = createApiSchemaClient();
+  const { data } = await api.from("public_jobs").select("*").eq("job_code", code).maybeSingle();
+  return data ? publicJobContract.parse(data) : null;
+}
+
+export type PublicJobFilters = { cityId?: number; employmentType?: string };
+
+/** Site-wide /jobs aggregator (db/views/105_public_jobs.sql) — approved listings only. */
+export async function listPublicJobs(filters: PublicJobFilters = {}): Promise<PublicJob[]> {
+  const api = createApiSchemaClient();
+  let query = api.from("public_jobs").select("*");
+  if (filters.cityId) query = query.eq("city_id", filters.cityId);
+  if (filters.employmentType) query = query.eq("employment_type", filters.employmentType);
+  const { data } = await query.order("created_at", { ascending: false });
+  return (data ?? []).map((row) => publicJobContract.parse(row));
 }
 
 /**

@@ -28,6 +28,7 @@ import {
   getPublicAdmissionsBySchoolId,
   type getPublicLocalityBySlug,
   getPublicSchoolEventsBySchoolId,
+  getPublicSchoolJobsBySchoolId,
   getPublicSchoolNewsBySchoolId,
   getRecentAdmissionUpdatesBySchoolId,
   getSimilarSchools,
@@ -46,6 +47,7 @@ import { normalizeExternalUrl } from "@/lib/external-url";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
+import { JOB_STATUS_LABEL, jobStatus } from "@/lib/job-status";
 import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolMetaDescription } from "@/lib/school-metadata";
@@ -53,6 +55,7 @@ import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
   eventPath,
+  jobPath,
   localityPath as localityHref,
   lp,
   newsPath,
@@ -339,6 +342,7 @@ export async function SchoolView({
     team,
     news,
     events,
+    jobs,
     recentAdmissionUpdates,
   ] = await Promise.all([
     getPublicAdmissionsBySchoolId(school.id),
@@ -355,6 +359,10 @@ export async function SchoolView({
     // regardless of site-wide /events listing status (own-page visibility has
     // no ops gate).
     getPublicSchoolEventsBySchoolId(school.id),
+    // 29 Sep 2026 — api.public_school_jobs (db/views/104_public_school_jobs.sql):
+    // every job posting for this school, regardless of site-wide /jobs listing
+    // status (own-page visibility has no ops gate — same pattern as events).
+    getPublicSchoolJobsBySchoolId(school.id),
     // Increment 10 — api.public_admission_updates (db/views/096_public_admission_updates.sql):
     // already scoped to admission_cycles-only, allowlisted fields, real changes only.
     getRecentAdmissionUpdatesBySchoolId(school.id),
@@ -619,6 +627,7 @@ export async function SchoolView({
     },
     { id: "news-heading", label: "News", show: news.length > 0 },
     { id: "events-heading", label: "Events", show: events.length > 0 },
+    { id: "jobs-heading", label: "Jobs", show: jobs.length > 0 },
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
     { id: "coverage-heading", label: "What SchoolOye knows", show: true },
@@ -1164,6 +1173,64 @@ export async function SchoolView({
                             <>
                               <span>·</span>
                               <span>{event.location}</span>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {jobs.length > 0 && (
+              <section aria-labelledby="jobs-heading" className="flex flex-col gap-3">
+                <h2 id="jobs-heading" className="font-display text-card font-semibold">
+                  Jobs
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {jobs.map((job) => {
+                    const status = jobStatus(
+                      {
+                        closesAt: job.closes_at ? new Date(job.closes_at) : null,
+                        filledAt: job.filled_at ? new Date(job.filled_at) : null,
+                        cancelledAt: job.cancelled_at ? new Date(job.cancelled_at) : null,
+                      },
+                      now,
+                    );
+                    // Same reasoning as the Events section above: only link to
+                    // the canonical /jobs/{slug} page once it's actually been
+                    // approved for the site-wide listing — an unlisted job's
+                    // canonical page still resolves for anyone with the direct
+                    // link, but this page shouldn't surface it as if it were.
+                    const isListed = job.listing_review === "approved";
+                    const title = <span className="font-display font-semibold">{job.title}</span>;
+                    return (
+                      <article
+                        key={job.id}
+                        className="flex flex-col gap-1 rounded-md border border-rule p-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          {isListed ? (
+                            <Link
+                              href={jobPath(locale, job.job_slug)}
+                              className="font-display font-semibold hover:text-ruled-blue"
+                            >
+                              {job.title}
+                            </Link>
+                          ) : (
+                            title
+                          )}
+                          <span className="rounded-full border border-rule px-2 py-0.5 text-meta text-muted-ink">
+                            {JOB_STATUS_LABEL[status]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-meta text-muted-ink">
+                          {job.subject && <span>{job.subject}</span>}
+                          {job.location && (
+                            <>
+                              {job.subject && <span>·</span>}
+                              <span>{job.location}</span>
                             </>
                           )}
                         </div>

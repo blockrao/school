@@ -8,11 +8,14 @@ import {
   eventsRootPath,
   homePath,
   isValidEntitySlug,
+  jobPath,
+  jobsRootPath,
   localityPath,
   lp,
   newsPath,
   newsRootPath,
   parseEventCode,
+  parseJobCode,
   parsePostCode,
   parseTeacherCode,
   SCHOOL_RESERVED_SLUGS,
@@ -90,6 +93,24 @@ describe("event and news URLs (SEO/GEO follow-up)", () => {
     for (const bad of ["annual-day", "annual-day-1234", "annual-day-1234567"]) {
       expect(parseEventCode(bad)).toBeNull();
       expect(parsePostCode(bad)).toBeNull();
+    }
+  });
+});
+
+describe("job URLs", () => {
+  it("builds /jobs/{title}-{code} and reads the permanent code back", () => {
+    expect(jobPath("en", "pgt-mathematics-52104")).toBe("/jobs/pgt-mathematics-52104");
+    expect(parseJobCode("pgt-mathematics-52104")).toBe(52104);
+    expect(parseJobCode("librarian-2-104857")).toBe(104857);
+  });
+
+  it("builds the /jobs aggregator root path", () => {
+    expect(jobsRootPath("en")).toBe("/jobs");
+  });
+
+  it("rejects slugs without a 5–6 digit code", () => {
+    for (const bad of ["pgt-mathematics", "pgt-mathematics-1234", "pgt-mathematics-1234567"]) {
+      expect(parseJobCode(bad)).toBeNull();
     }
   });
 });
