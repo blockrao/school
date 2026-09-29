@@ -8,6 +8,10 @@
 // job_employment_type enum were likewise added by hand to match
 // 20260929060000_school_jobs.sql, and admission_leads (new table) plus the
 // admission_lead_status enum to match 20260929070000_admission_leads.sql.
+// A 4th round (same day, Activity & Admissions Consolidation increment) added
+// by hand to match 20260929090000_activity_admissions_v1.sql: rejection_reason
+// on school_posts/school_events/school_jobs, withdrawn_at on school_posts, and
+// the new analytics_events table.
 // DATABASE_URL_RO isn't set in this sandbox, so `pnpm db:types` couldn't
 // regenerate from the live schema any of those times. Re-run `pnpm db:types`
 // the next time DATABASE_URL_RO is available to confirm this matches and let
@@ -339,6 +343,39 @@ export type Database = {
           language?: string;
           active?: boolean;
           utm?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      analytics_events: {
+        Row: {
+          id: string;
+          event_type: string;
+          entity_type: string | null;
+          entity_id: string | null;
+          school_id: string | null;
+          user_id: string | null;
+          metadata: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_type: string;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          school_id?: string | null;
+          user_id?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_type?: string;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          school_id?: string | null;
+          user_id?: string | null;
+          metadata?: Json | null;
           created_at?: string;
         };
         Relationships: [];
@@ -1650,6 +1687,8 @@ export type Database = {
           listing_review: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by: string | null;
           listing_reviewed_at: string | null;
+          rejection_reason: string | null;
+          withdrawn_at: string | null;
         };
         Insert: {
           id?: string;
@@ -1673,6 +1712,8 @@ export type Database = {
           listing_review?: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by?: string | null;
           listing_reviewed_at?: string | null;
+          rejection_reason?: string | null;
+          withdrawn_at?: string | null;
         };
         Update: {
           id?: string;
@@ -1696,6 +1737,8 @@ export type Database = {
           listing_review?: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by?: string | null;
           listing_reviewed_at?: string | null;
+          rejection_reason?: string | null;
+          withdrawn_at?: string | null;
         };
         Relationships: [];
       };
@@ -1719,6 +1762,7 @@ export type Database = {
           listing_review: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by: string | null;
           listing_reviewed_at: string | null;
+          rejection_reason: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1742,6 +1786,7 @@ export type Database = {
           listing_review?: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by?: string | null;
           listing_reviewed_at?: string | null;
+          rejection_reason?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1765,6 +1810,7 @@ export type Database = {
           listing_review?: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by?: string | null;
           listing_reviewed_at?: string | null;
+          rejection_reason?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1794,6 +1840,7 @@ export type Database = {
           listing_review: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by: string | null;
           listing_reviewed_at: string | null;
+          rejection_reason: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1820,6 +1867,7 @@ export type Database = {
           listing_review?: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by?: string | null;
           listing_reviewed_at?: string | null;
+          rejection_reason?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1846,6 +1894,7 @@ export type Database = {
           listing_review?: Database["public"]["Enums"]["review_status"] | null;
           listing_reviewed_by?: string | null;
           listing_reviewed_at?: string | null;
+          rejection_reason?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;

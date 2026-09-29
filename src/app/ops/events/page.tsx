@@ -25,10 +25,13 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
 export default async function OpsEventsPage() {
   const { supabase } = await requireStaff();
 
+  // P1.5: includes 'edited' — a materially-edited, previously-approved event
+  // is demoted here (school_events_enforce_edit_lock) and needs the same
+  // re-review as a fresh 'pending' request, not just 'pending' itself.
   const { data: events } = await supabase
     .from("school_events")
     .select("id, school_id, event_type, title, description, starts_at, location, created_at")
-    .eq("listing_review", "pending")
+    .in("listing_review", ["pending", "edited"])
     .order("created_at", { ascending: true });
 
   const schoolIds = [...new Set((events ?? []).map((e) => e.school_id))];
@@ -75,21 +78,28 @@ export default async function OpsEventsPage() {
                     {event.location ? ` · ${event.location}` : ""}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-col gap-2">
                   <form action={approveEventListing}>
                     <input type="hidden" name="eventId" value={event.id} />
                     <button
                       type="submit"
-                      className="flex h-10 items-center rounded-md bg-ruled-blue px-3 text-meta font-semibold text-copy-white"
+                      className="flex h-10 w-full items-center justify-center rounded-md bg-ruled-blue px-3 text-meta font-semibold text-copy-white"
                     >
                       Approve listing
                     </button>
                   </form>
-                  <form action={rejectEventListing}>
+                  <form action={rejectEventListing} className="flex flex-col gap-1.5">
+                    <textarea
+                      name="reason"
+                      required
+                      rows={2}
+                      placeholder="Reason for rejection (shown to the school)"
+                      className="w-56 rounded-md border border-line-blue-strong bg-copy-white p-2 text-meta outline-none"
+                    />
                     <input type="hidden" name="eventId" value={event.id} />
                     <button
                       type="submit"
-                      className="flex h-10 items-center rounded-md border border-ink px-3 text-meta font-semibold"
+                      className="flex h-10 items-center justify-center rounded-md border border-ink px-3 text-meta font-semibold"
                     >
                       Reject
                     </button>

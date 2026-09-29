@@ -134,6 +134,16 @@ export function jobsRootPath(locale: string): string {
   return lp(locale, "/jobs");
 }
 
+/**
+ * Site-wide admissions discovery page (P1.6, Activity & Admissions
+ * Consolidation, 29 Sep 2026) — reuses the existing admission_cycles model
+ * via listPublicAdmissionCycles, not a new data model. Distinct from
+ * `/admissions/help` (a separate, pre-existing paid-services flow).
+ */
+export function admissionsRootPath(locale: string): string {
+  return lp(locale, "/admissions");
+}
+
 export function jobPath(locale: string, slug: string): string {
   return lp(locale, `/jobs/${slug}`);
 }

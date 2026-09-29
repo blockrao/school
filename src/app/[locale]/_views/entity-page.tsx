@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
+import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
@@ -947,28 +948,30 @@ export async function SchoolView({
                               ? ` · ${formatCurrency(cycle.registration_fee)}`
                               : ""}
                           </span>
-                          {/* 29 Sep 2026: the primary path is now capturing a verified
-                            lead for the school (see the "Apply for admission" section
-                            below, `submitAdmissionLead`), not sending the parent
-                            straight off-site. The school's own form stays as a
-                            secondary, clearly-labelled option — some schools' actual
-                            process still needs it — but it no longer leads. */}
+                          {/* 29 Sep 2026 (Activity & Admissions Consolidation, P0.2):
+                            this is a lead/enquiry capture, not an application, so the
+                            CTA no longer says "Apply" — it says what it actually does.
+                            The school's own form is the one place an application can
+                            actually be submitted, so it's labelled as such and kept as
+                            a fully visible, equally-weighted option (never removed —
+                            some schools have no other process). Clicking through to it
+                            logs "admission_external_click" (see actions.ts). */}
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                             <a
                               href="#apply-heading"
                               className="font-semibold text-ruled-blue text-meta"
                             >
-                              Apply for this class →
+                              Request admission information →
                             </a>
                             {cycle.form_url && (
-                              <a
+                              <TrackedApplyLink
                                 href={cycle.form_url}
+                                cycleId={cycle.cycle_id}
+                                schoolId={school.id}
                                 className="text-meta text-muted-ink underline"
-                                target="_blank"
-                                rel="noopener noreferrer nofollow"
                               >
-                                or use the school's own form ↗
-                              </a>
+                                Apply on school&rsquo;s official website ↗
+                              </TrackedApplyLink>
                             )}
                           </div>
                           {/* Increment 10 — per-cycle ProvenanceChip. `verification`
@@ -1428,16 +1431,16 @@ export async function SchoolView({
                 className="flex flex-col gap-2 rounded-md border border-rule p-4"
               >
                 <h2 id="apply-heading" className="font-display text-card font-semibold">
-                  Apply for admission
+                  Request admission information
                 </h2>
                 {applySent ? (
                   <p className="text-body text-muted-ink">
-                    Your application has been sent to {name}. They have your name and phone number
-                    and will reach out directly.
+                    Your request has been sent to {name}. They have your name and phone number and
+                    will reach out directly.
                   </p>
                 ) : applyErrorCode === "already_applied" ? (
                   <p className="text-body text-muted-ink">
-                    You've already applied for this class — {name} has your details.
+                    You've already sent a request for this class — {name} has your details.
                   </p>
                 ) : user ? (
                   <form action={submitAdmissionLead} className="flex flex-col gap-3">
@@ -1480,22 +1483,22 @@ export async function SchoolView({
                     <label className="flex items-start gap-2 text-meta text-muted-ink">
                       <input type="checkbox" name="consent" required className="mt-0.5" />
                       <span>
-                        Share my name and phone number with {name} so they can process my
-                        application.
+                        Share my name and phone number with {name} so they can respond to my
+                        request.
                       </span>
                     </label>
                     {applyErrorCode && applyErrorCode !== "already_applied" && (
                       <FieldError id="apply-error">
                         {applyErrorCode === "consent_required"
                           ? "Check the consent box to share your details with the school."
-                          : "Something went wrong sending your application. Please try again."}
+                          : "Something went wrong sending your request. Please try again."}
                       </FieldError>
                     )}
                     <button
                       type="submit"
                       className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
                     >
-                      Apply →
+                      Request admission information →
                     </button>
                   </form>
                 ) : (
@@ -1506,7 +1509,7 @@ export async function SchoolView({
                     )}
                     className="w-fit font-semibold text-ruled-blue"
                   >
-                    Sign in to apply
+                    Sign in to request information
                   </Link>
                 )}
               </section>

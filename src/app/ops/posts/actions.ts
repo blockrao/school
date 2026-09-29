@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import { requireStaff } from "@/lib/db/ops";
 
 export async function approvePost(formData: FormData) {
@@ -42,21 +43,50 @@ export async function approvePostListing(formData: FormData) {
   const postId = String(formData.get("postId") ?? "");
   const { supabase, user } = await requireStaff();
 
+  const { data: post } = await supabase
+    .from("school_posts")
+    .select("school_id")
+    .eq("id", postId)
+    .maybeSingle();
+
   await supabase
     .from("school_posts")
     .update({
       listing_review: "approved",
       listing_reviewed_by: user?.id,
       listing_reviewed_at: new Date().toISOString(),
+      rejection_reason: null,
     })
     .eq("id", postId);
+
+  await logAnalyticsEvent({
+    eventType: "listing_reviewed",
+    entityType: "news",
+    entityId: postId,
+    schoolId: post?.school_id,
+    metadata: { decision: "approved" },
+  });
 
   redirect("/ops/posts");
 }
 
+/**
+ * P1.5: requires a reason, carried on `rejection_reason` so the school sees
+ * why on /portal/news and can fix it before resubmitting ("Request →
+ * Rejected with reason → Edit → Resubmit"). The row itself stays freely
+ * editable once rejected — see school_posts_enforce_edit_lock — so there is
+ * no separate "unlock" step here.
+ */
 export async function rejectPostListing(formData: FormData) {
   const postId = String(formData.get("postId") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
   const { supabase, user } = await requireStaff();
+
+  const { data: post } = await supabase
+    .from("school_posts")
+    .select("school_id")
+    .eq("id", postId)
+    .maybeSingle();
 
   await supabase
     .from("school_posts")
@@ -64,8 +94,17 @@ export async function rejectPostListing(formData: FormData) {
       listing_review: "rejected",
       listing_reviewed_by: user?.id,
       listing_reviewed_at: new Date().toISOString(),
+      rejection_reason: reason || null,
     })
     .eq("id", postId);
+
+  await logAnalyticsEvent({
+    eventType: "listing_reviewed",
+    entityType: "news",
+    entityId: postId,
+    schoolId: post?.school_id,
+    metadata: { decision: "rejected" },
+  });
 
   redirect("/ops/posts");
 }

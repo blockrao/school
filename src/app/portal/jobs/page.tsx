@@ -105,8 +105,15 @@ export default async function SchoolJobsPage() {
                   </span>
                 </div>
 
+                {job.rejection_reason && (
+                  <p className="mt-2 rounded-md border border-pill-closed-bd bg-pill-closed-bg p-2 text-meta">
+                    <span className="font-semibold">Not approved for /jobs: </span>
+                    {job.rejection_reason}
+                  </p>
+                )}
+
                 <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-rule pt-3">
-                  {job.listing_review ? (
+                  {job.listing_review && job.listing_review !== "rejected" ? (
                     <span className="text-meta text-muted-ink">
                       {LISTING_LABEL[job.listing_review] ?? job.listing_review}
                     </span>
@@ -117,10 +124,18 @@ export default async function SchoolJobsPage() {
                         type="submit"
                         className="text-meta font-semibold text-ruled-blue underline"
                       >
-                        Request listing on /jobs →
+                        {job.listing_review === "rejected"
+                          ? "Resubmit for review →"
+                          : "Request listing on /jobs →"}
                       </button>
                     </form>
                   )}
+                  <Link
+                    href={`/portal/jobs/${job.id}`}
+                    className="text-meta font-semibold text-ruled-blue underline"
+                  >
+                    Edit
+                  </Link>
                   {status === "open" && (
                     <>
                       <form action={markJobFilledAction}>

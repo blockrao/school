@@ -9,6 +9,7 @@ import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
 import { urlEntry, urlSetXml } from "@/lib/sitemap";
 import {
+  admissionsRootPath,
   eventPath,
   eventsRootPath,
   jobPath,
@@ -76,6 +77,10 @@ export async function GET() {
       ),
     ),
     urlEntry(siteUrl, "/tools/age-eligibility"),
+    // P1.6 (Activity & Admissions Consolidation) — the aggregator root only;
+    // individual cycles are rows on each school's own canonical page, not
+    // separate URLs here.
+    urlEntry(siteUrl, admissionsRootPath("en")),
     urlEntry(siteUrl, "/admissions/help"),
     urlEntry(siteUrl, eventsRootPath("en")),
     ...events.map((event) =>

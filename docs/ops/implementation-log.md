@@ -2659,3 +2659,138 @@ regression. `src/lib/db/types.ts` was hand-updated a third time for the same rea
 events/news and jobs entries (no `DATABASE_URL_RO` in this sandbox); noted inline — please
 re-run `pnpm db:types` once DB credentials are available to confirm and drop the note (now
 covering three hand-patched tables/enums total).
+
+## 2026-09-29 — Activity & Admissions Consolidation Increment (P0/P1 fixes from the verification pass)
+
+Directly follows the verification pass logged just above ("Admissions CTA redesign" entry and
+the accompanying audit): Prav asked for a tightly scoped set of fixes against that audit's
+findings — not a new architecture. Scope, verbatim from the brief: fix the RLS lifecycle bug,
+fix the admissions CTA semantics (lead capture, not "apply"), investigate the 10
+`school_id = NULL` admission_cycles rows, restore edit/lifecycle UI for News/Events/Jobs, add a
+rejection-reason + resubmission flow, build one real site-wide `/admissions` page reusing the
+existing model, add sharing mechanics, and add a minimum analytics event list. Explicitly out
+of scope: any of the broader SchoolOye architecture (CMS, payments, search engine, CRM,
+notification platform, crawling).
+
+**P0.1 — RLS lifecycle bug (the audit's headline finding).** The three `*_member_update_unlisted`
+policies gated every UPDATE on `listing_requested_at is null` — a row-level gate that couldn't
+tell "editing content" from "cancelling an event"/"marking a job filled"/"withdrawing a post",
+so requesting a site-wide listing permanently locked a row against its own legitimate lifecycle
+actions. Fixed in `20260929090000_activity_admissions_v1.sql` by splitting the concern: RLS
+(`school_*_member_update`) now lets a school member attempt an update on their own row at any
+time; a new `BEFORE UPDATE` trigger per table (`school_*_enforce_edit_lock`) does the actual
+policing via a jsonb-diff (`to_jsonb(old) - strip = to_jsonb(new) - strip`, `strip` = that
+table's lifecycle/bookkeeping columns) — a lifecycle-only or listing-request-only change is
+always allowed regardless of review state; a content change while `listing_review = 'pending'`
+is blocked outright (ops can't have the row shift under them mid-review); a content change to
+an `approved` (live on the aggregator) row is allowed but demotes `listing_review` to the
+pre-existing-but-previously-unreachable `'edited'` enum value, clearing the reviewer, so the
+aggregator keeps showing the last-approved version until re-review; anything else (never
+requested, or currently rejected) is freely editable. `is_staff()` bypasses the trigger
+entirely, same as before. Regression-tested empirically against the live DB (no JS/PostgREST
+integration-test harness exists yet — the verification pass confirmed that) via
+`supabase/tests/activity_lifecycle_edit_lock.sql`, run with `mcp__Supabase__execute_sql` inside
+a `begin;`/`rollback;` block against the QA fixture school: 6/6 assertions passed, including the
+exact bug scenario (cancel succeeding while `listing_review = 'pending'`) and the demotion and
+free-resubmission-after-rejection behaviors. Zero residual test data confirmed afterward.
+
+**P0.2 — Admissions CTA semantics.** The audit's finding stands: this is a lead/enquiry, not an
+application (no document upload, no submission to a school system — a phone-OTP-verified name
+and phone number handed to the school, same trust level as everywhere else on the parent side).
+Copy changed throughout `entity-page.tsx`/`actions.ts` to say that: the per-cycle CTA is now
+"Request admission information →" (was "Apply for this class →"); the external-form link is now
+"Apply on school's official website ↗" (was "or use the school's own form ↗") — still fully
+visible, never removed, since some schools have no other process; the lead-capture section
+heading is "Request admission information" (was "Apply for admission"); its submit button,
+confirmation copy, already-submitted state, error copy, and signed-out link all follow the same
+information/request framing rather than "apply". Internal identifiers (the `?apply_sent=1`/
+`?apply_error=` query params, `#apply-heading` anchor, `admission_leads` table name) are left
+unchanged — they're not parent-facing.
+
+**P0.3 — the 10 `school_id = NULL` admission_cycles rows.** The verification pass's own finding
+here was wrong, and this increment corrects it rather than "fixing" data that was never broken:
+querying `exam_id` on those 10 rows shows they all reference real rows in `exams` (AISSEE,
+JNVST, RMS CET — national multi-school entrance exams), and `pg_constraint` confirms a
+`CHECK ((school_id IS NOT NULL) <> (exam_id IS NOT NULL))` constraint enforcing this as
+intentional design. These rows already power `/exams/[slug]` via the `public-exam-admissions`
+contract. **No cleanup was performed** — there was nothing to clean up. This correction should
+propagate back to whoever received the original "10 orphaned rows" claim from the verification
+pass.
+
+**P1.4 — edit UI + lifecycle actions for News/Events/Jobs.** Added `updatePost`/`updateEvent`/
+`updateJob` and `withdrawPost` (news' equivalent of cancel/mark-filled — a retraction, pulled
+from both feeds) to `portal.ts`, plus `getPostForSchool`/`getEventForSchool`/`getJobForSchool`
+for the new edit pages. New `[id]/page.tsx` edit forms under `/portal/{news,events,jobs}/[id]`,
+disabled and annotated while `listing_review = 'pending'` (the edit-lock's own error surfaces as
+an `?error=locked` redirect back to the same page, not a generic failure). `requestPostListing`/
+`requestEventListing`/`requestJobListing` double as the resubmit action — no new DB function
+needed, since a rejected row is already freely editable and the existing "request" call is
+exactly "set pending + clear the timestamp" either way. List pages gained Edit links,
+rejection-reason banners, and a relabeled "Resubmit for review →" button when
+`listing_review = 'rejected'`; the news list page also gained a Withdraw action.
+
+**P1.5 — rejection reason + resubmission.** `rejection_reason` (text, all three tables) is now
+required (a `<textarea required>` in each ops review page) on reject, cleared on approve or on
+resubmission, and shown to the school both on the edit page and the list page. Ops queue queries
+(`ops/{posts,events,jobs}/page.tsx`) broadened from `.eq("listing_review", "pending")` to
+`.in("listing_review", ["pending", "edited"])`, so a materially-edited-then-demoted row
+re-enters the queue instead of silently disappearing. Full loop confirmed by the P0.1 regression
+test's assertions 5–6 (demotion to `'edited'`, free editing after `'rejected'`) plus the
+UI wiring above — "Request → Rejected with reason → Edit → Resubmit" end to end.
+
+**P1.6 — site-wide `/admissions` page.** New `src/app/[locale]/admissions/page.tsx`, reusing
+`api.public_school_admissions` unfiltered via the already-added `listPublicAdmissionCycles()` —
+no new admissions data model. City filter needed `city_slug`/`city_name` on that view (added,
+`create or replace view` appended after the last existing column per this repo's convention);
+class filter and status filter (open/closing-soon/upcoming/closed, via the existing
+`deadlineState`/`deadlineToPill` pipeline, not the raw stored `status` column the audit flagged
+as sometimes-stale) are derived in-memory from one unfiltered fetch — deliberately not a search
+engine, matching the brief's "do not build an elaborate search engine" instruction and the
+actual data volume (~a dozen rows). Each row carries the same dual CTA as the entity page
+("Request admission information →" to the school's own page anchor, "Apply on school's official
+website ↗" tracked externally) and the existing `ProvenanceChip`. Added to
+`sitemap-site.xml` (aggregator root only — individual cycles aren't separate canonical URLs).
+
+**P1.7 — sharing/distribution mechanics.** New `<ShareBar>` component (copy link, WhatsApp,
+native share where supported) wired into the News/Events/Jobs canonical `[slug]` pages — a
+sibling of the pre-existing `<ShareButton>` (school entity page only, no WhatsApp, no
+analytics) rather than an edit to it, since threading an always-visible WhatsApp link and
+explicit analytics through that single-button component would have changed its existing call
+site's behavior for no benefit there. Open Graph + Twitter Card metadata added to all three
+pages' `generateMetadata` (previously title/description/canonical only, no social preview tags
+at all — confirmed by the audit). A small `<TrackedApplyLink>` client component wraps the one
+external "apply on the school's site" link (entity page + `/admissions`) purely to fire its
+analytics event before navigating away.
+
+**P1.8 — minimum analytics.** One new table, `analytics_events` (append-only, anonymous insert
+allowed, staff-only select) — the audit found zero analytics infrastructure anywhere in this
+codebase, so this is deliberately not a platform: one insert helper (`src/lib/analytics.ts`),
+one route (`/api/track`, for the one client-side case — `ShareBar`'s `sendBeacon` calls — that
+has no server round-trip otherwise), and direct calls from Server Components/Actions for
+everything else. Six event types wired up this round: `page_view` (News/Events/Jobs canonical
+pages, `/admissions`), `share` (with method: whatsapp/copy_link/native), `admission_lead_submit`,
+`admission_external_click`, `listing_requested`, `listing_reviewed` (with decision:
+approved/rejected). `event_type` is a free-text column by design, so a later increment can add
+more without a migration.
+
+**Real-data caveat, stated plainly per the brief's instruction not to fabricate evidence:** the
+verification pass found 1 QA-fixture news post, 0 real events, and 0 real jobs in production.
+Sharing and the edit/lifecycle/rejection UI for these three types are implemented and covered by
+the P0.1 regression test against the QA fixture school, but there is no real published News,
+Events, or Jobs content in production today to demonstrate them against end to end. Admissions
+has 2 schools with real cycles (plus the 12 exam-scoped ones, now correctly understood as
+belonging to `/exams`), so `/admissions` and the entity-page CTA changes have real data to
+render against.
+
+**Verification:** `pnpm test` — 161/161 passing (unchanged; this increment's new logic is
+DB-trigger-level and page-composition-level, not new pure functions needing dedicated unit
+tests). `pnpm run typecheck` and `pnpm run lint` (`biome check`, with `biome check --write .`
+applied for import-order/formatting) both pass clean. `pnpm run build` fails only on the same
+pre-existing, unrelated sandbox Google Fonts network restriction seen in every prior entry in
+this log (confirmed via the proxy status endpoint: `fonts.googleapis.com:443` gets a `403`
+`connect_rejected` from the sandbox's egress policy) — not a regression from this work.
+`src/lib/db/types.ts` was hand-updated a 4th time for the same reason as every prior round (no
+`DATABASE_URL_RO` in this sandbox): `rejection_reason` on `school_posts`/`school_events`/
+`school_jobs`, `withdrawn_at` on `school_posts`, and the new `analytics_events` table; noted
+inline, now covering four hand-patched rounds total — please re-run `pnpm db:types` once DB
+credentials are available.

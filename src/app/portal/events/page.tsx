@@ -111,8 +111,15 @@ export default async function SchoolEventsPage() {
                   </span>
                 </div>
 
+                {event.rejection_reason && (
+                  <p className="mt-2 rounded-md border border-pill-closed-bd bg-pill-closed-bg p-2 text-meta">
+                    <span className="font-semibold">Not approved for /events: </span>
+                    {event.rejection_reason}
+                  </p>
+                )}
+
                 <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-rule pt-3">
-                  {event.listing_review ? (
+                  {event.listing_review && event.listing_review !== "rejected" ? (
                     <span className="text-meta text-muted-ink">
                       {LISTING_LABEL[event.listing_review] ?? event.listing_review}
                     </span>
@@ -123,10 +130,18 @@ export default async function SchoolEventsPage() {
                         type="submit"
                         className="text-meta font-semibold text-ruled-blue underline"
                       >
-                        Request listing on /events →
+                        {event.listing_review === "rejected"
+                          ? "Resubmit for review →"
+                          : "Request listing on /events →"}
                       </button>
                     </form>
                   )}
+                  <Link
+                    href={`/portal/events/${event.id}`}
+                    className="text-meta font-semibold text-ruled-blue underline"
+                  >
+                    Edit
+                  </Link>
                   {status !== "cancelled" && status !== "completed" && (
                     <form action={cancelEventAction}>
                       <input type="hidden" name="eventId" value={event.id} />

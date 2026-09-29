@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/ui/state-message";
 import { getMySchoolId, listPostsForSchool } from "@/lib/db/portal";
-import { requestNewsListing } from "./[id]/actions";
+import { requestNewsListing, withdrawNewsPost } from "./[id]/actions";
 
 export const metadata: Metadata = {
   title: "News & PR — SchoolOye portal",
@@ -78,11 +78,17 @@ export default async function SchoolNewsPage() {
       ) : (
         <div className="mt-6 flex flex-col gap-3">
           {posts.map((post) => (
-            <div key={post.id} className="rounded-md border border-rule bg-copy-white p-4">
+            <div
+              key={post.id}
+              className={`rounded-md border border-rule bg-copy-white p-4 ${
+                post.withdrawn_at ? "opacity-60" : ""
+              }`}
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <span className="text-meta font-semibold text-muted-ink capitalize">
                     {post.kind === "press" ? "Press release" : "News"}
+                    {post.withdrawn_at ? " · Withdrawn" : ""}
                   </span>
                   <h2 className="font-display text-card font-semibold">{post.title}</h2>
                   <p className="mt-1 max-w-2xl whitespace-pre-wrap text-body text-muted-ink">
@@ -101,6 +107,13 @@ export default async function SchoolNewsPage() {
                 </span>
               </div>
 
+              {post.rejection_reason && (
+                <p className="mt-2 rounded-md border border-pill-closed-bd bg-pill-closed-bg p-2 text-meta">
+                  <span className="font-semibold">Not approved for /news: </span>
+                  {post.rejection_reason}
+                </p>
+              )}
+
               <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-rule pt-3">
                 {post.tier !== "organic" && (
                   <span className="text-meta font-semibold text-ruled-blue">
@@ -112,7 +125,7 @@ export default async function SchoolNewsPage() {
                     {TIER_LABEL[post.requested_tier]} requested — our team will follow up
                   </span>
                 )}
-                {post.listing_review ? (
+                {post.listing_review && post.listing_review !== "rejected" ? (
                   <span className="text-meta text-muted-ink">
                     {LISTING_LABEL[post.listing_review] ?? post.listing_review}
                   </span>
@@ -123,7 +136,25 @@ export default async function SchoolNewsPage() {
                       type="submit"
                       className="text-meta font-semibold text-ruled-blue underline"
                     >
-                      Request listing on /news →
+                      {post.listing_review === "rejected"
+                        ? "Resubmit for review →"
+                        : "Request listing on /news →"}
+                    </button>
+                  </form>
+                )}
+                {!post.withdrawn_at && (
+                  <Link
+                    href={`/portal/news/${post.id}`}
+                    className="text-meta font-semibold text-ruled-blue underline"
+                  >
+                    Edit
+                  </Link>
+                )}
+                {!post.withdrawn_at && (
+                  <form action={withdrawNewsPost}>
+                    <input type="hidden" name="postId" value={post.id} />
+                    <button type="submit" className="text-meta text-muted-ink underline">
+                      Withdraw
                     </button>
                   </form>
                 )}

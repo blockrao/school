@@ -692,6 +692,31 @@ export async function getPublicAdmissionsBySchoolId(
 }
 
 /**
+ * Sensible initial filtering for the site-wide /admissions discovery page
+ * (Activity & Admissions Consolidation, 29 Sep 2026): city, class, and the
+ * derived deadline-pill status the rest of the app already uses (open/
+ * closing-soon/upcoming/closed/not-announced) — not the raw stored
+ * `admission_cycles.status` column, since the verification pass found that
+ * column can disagree with the actual dates. Reuses
+ * `api.public_school_admissions` unfiltered rather than a new view/model.
+ */
+export type PublicAdmissionCycleFilters = {
+  citySlug?: string;
+  classCode?: string;
+};
+
+export async function listPublicAdmissionCycles(
+  filters: PublicAdmissionCycleFilters = {},
+): Promise<PublicSchoolAdmission[]> {
+  const api = createApiSchemaClient();
+  let query = api.from("public_school_admissions").select("*");
+  if (filters.citySlug) query = query.eq("city_slug", filters.citySlug);
+  if (filters.classCode) query = query.eq("class_code", filters.classCode);
+  const { data } = await query.order("closes_on", { ascending: true, nullsFirst: false });
+  return (data ?? []).map((row) => publicSchoolAdmissionContract.parse(row));
+}
+
+/**
  * Approved, published news/press posts for one school, newest first — reads only
  * `api.public_school_news` (db/views/095_public_school_news.sql), which already
  * filters to `review = 'approved'` and a published school; nothing further to filter

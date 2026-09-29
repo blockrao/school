@@ -29,6 +29,11 @@ export const publicSchoolAdmissionContract = z.object({
   // 29 Sep 2026 — appended for the admission-leads CTA (20260929070000_admission_leads.sql),
   // which needs a real cycle id to record which class/session a lead applies to.
   cycle_id: z.string(),
+  // 29 Sep 2026 (Activity & Admissions Consolidation) — appended for the
+  // site-wide /admissions discovery page (city filter + display), which
+  // reuses this view unfiltered rather than a new admissions data model.
+  city_slug: z.string().nullable(),
+  city_name: z.string().nullable(),
 });
 
 export type PublicSchoolAdmission = z.infer<typeof publicSchoolAdmissionContract>;

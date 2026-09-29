@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { LOCALES, lp } from "@/lib/urls";
 
@@ -129,6 +130,13 @@ export async function submitAdmissionLead(formData: FormData) {
     const code = error.code === "23505" ? "already_applied" : "failed";
     redirect(`${returnPath}?apply_error=${code}#apply-heading`);
   }
+
+  await logAnalyticsEvent({
+    eventType: "admission_lead_submit",
+    entityType: "admission_cycle",
+    entityId: cycleId,
+    schoolId: parsed.data.schoolId,
+  });
 
   redirect(`${returnPath}?apply_sent=1#apply-heading`);
 }

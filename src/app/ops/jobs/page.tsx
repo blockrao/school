@@ -19,10 +19,11 @@ const EMPLOYMENT_TYPE_LABEL: Record<string, string> = {
 export default async function OpsJobsPage() {
   const { supabase } = await requireStaff();
 
+  // P1.5: includes 'edited' — see the matching comment in ops/events/page.tsx.
   const { data: jobs } = await supabase
     .from("school_jobs")
     .select("id, school_id, title, employment_type, subject, description, location, created_at")
-    .eq("listing_review", "pending")
+    .in("listing_review", ["pending", "edited"])
     .order("created_at", { ascending: true });
 
   const schoolIds = [...new Set((jobs ?? []).map((j) => j.school_id))];
@@ -64,21 +65,28 @@ export default async function OpsJobsPage() {
                     {job.location ? ` · ${job.location}` : ""}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-col gap-2">
                   <form action={approveJobListing}>
                     <input type="hidden" name="jobId" value={job.id} />
                     <button
                       type="submit"
-                      className="flex h-10 items-center rounded-md bg-ruled-blue px-3 text-meta font-semibold text-copy-white"
+                      className="flex h-10 w-full items-center justify-center rounded-md bg-ruled-blue px-3 text-meta font-semibold text-copy-white"
                     >
                       Approve listing
                     </button>
                   </form>
-                  <form action={rejectJobListing}>
+                  <form action={rejectJobListing} className="flex flex-col gap-1.5">
+                    <textarea
+                      name="reason"
+                      required
+                      rows={2}
+                      placeholder="Reason for rejection (shown to the school)"
+                      className="w-56 rounded-md border border-line-blue-strong bg-copy-white p-2 text-meta outline-none"
+                    />
                     <input type="hidden" name="jobId" value={job.id} />
                     <button
                       type="submit"
-                      className="flex h-10 items-center rounded-md border border-ink px-3 text-meta font-semibold"
+                      className="flex h-10 items-center justify-center rounded-md border border-ink px-3 text-meta font-semibold"
                     >
                       Reject
                     </button>

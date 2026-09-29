@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { ShareBar } from "@/components/ui/share-bar";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import { getPublicJobByCode } from "@/lib/db/public-adapter";
 import { JOB_STATUS_LABEL, jobStatus } from "@/lib/job-status";
 import { localeCanonical } from "@/lib/seo";
@@ -28,10 +30,20 @@ export async function generateMetadata({
   if (code === null) return { title: "Not found" };
   const job = await getPublicJobByCode(code);
   if (!job) return { title: "Not found" };
+  const canonical = localeCanonical(locale, jobPath("en", job.job_slug));
+  const description = `${EMPLOYMENT_TYPE_LABEL[job.employment_type]} opening at ${job.school_name}${job.subject ? ` — ${job.subject}` : ""}`;
   return {
     title: `${job.title}, ${job.school_name} — SchoolOye`,
-    description: `${EMPLOYMENT_TYPE_LABEL[job.employment_type]} opening at ${job.school_name}${job.subject ? ` — ${job.subject}` : ""}`,
-    alternates: { canonical: localeCanonical(locale, jobPath("en", job.job_slug)) },
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      title: job.title,
+      description,
+      url: canonical,
+      siteName: "SchoolOye",
+    },
+    twitter: { card: "summary", title: job.title, description },
   };
 }
 
@@ -46,6 +58,13 @@ export default async function JobPage({ params }: PageProps<"/[locale]/jobs/[slu
   const job = await getPublicJobByCode(code);
   if (!job) notFound();
   if (job.job_slug !== slug) permanentRedirect(jobPath(locale, job.job_slug));
+
+  await logAnalyticsEvent({
+    eventType: "page_view",
+    entityType: "job",
+    entityId: job.id,
+    schoolId: job.school_id,
+  });
 
   const now = new Date();
   const status = jobStatus({ closesAt: job.closes_at ? new Date(job.closes_at) : null }, now);
@@ -117,6 +136,14 @@ export default async function JobPage({ params }: PageProps<"/[locale]/jobs/[slu
           {new Date(job.closes_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
         </p>
       )}
+
+      <ShareBar
+        title={job.title}
+        entityType="job"
+        entityId={job.id}
+        schoolId={job.school_id}
+        className="mt-6"
+      />
     </div>
   );
 }

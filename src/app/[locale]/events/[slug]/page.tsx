@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { ShareBar } from "@/components/ui/share-bar";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import { getPublicEventByCode } from "@/lib/db/public-adapter";
 import { EVENT_STATUS_LABEL, eventTemporalStatus } from "@/lib/event-status";
 import { localeCanonical } from "@/lib/seo";
@@ -27,11 +29,21 @@ export async function generateMetadata({
   if (code === null) return { title: "Not found" };
   const event = await getPublicEventByCode(code);
   if (!event) return { title: "Not found" };
+  const canonical = localeCanonical(locale, eventPath("en", event.event_slug));
+  const description =
+    event.description ?? `${EVENT_TYPE_LABEL[event.event_type]} at ${event.school_name}`;
   return {
     title: `${event.title}, ${event.school_name} — SchoolOye`,
-    description:
-      event.description ?? `${EVENT_TYPE_LABEL[event.event_type]} at ${event.school_name}`,
-    alternates: { canonical: localeCanonical(locale, eventPath("en", event.event_slug)) },
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      title: event.title,
+      description,
+      url: canonical,
+      siteName: "SchoolOye",
+    },
+    twitter: { card: "summary", title: event.title, description },
   };
 }
 
@@ -46,6 +58,13 @@ export default async function EventPage({ params }: PageProps<"/[locale]/events/
   const event = await getPublicEventByCode(code);
   if (!event) notFound();
   if (event.event_slug !== slug) permanentRedirect(eventPath(locale, event.event_slug));
+
+  await logAnalyticsEvent({
+    eventType: "page_view",
+    entityType: "event",
+    entityId: event.id,
+    schoolId: event.school_id,
+  });
 
   const now = new Date();
   const status = eventTemporalStatus(
@@ -134,6 +153,14 @@ export default async function EventPage({ params }: PageProps<"/[locale]/events/
           Source: {event.source_url}
         </a>
       )}
+
+      <ShareBar
+        title={event.title}
+        entityType="event"
+        entityId={event.id}
+        schoolId={event.school_id}
+        className="mt-6"
+      />
     </div>
   );
 }

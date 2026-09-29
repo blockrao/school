@@ -33,10 +33,11 @@ export default async function OpsPostsPage() {
       .eq("review", "pending")
       .order("created_at", { ascending: true }),
     // The real day-to-day queue now: schools asking for a spot on /news.
+    // P1.5: includes 'edited' — see the matching comment in ops/events/page.tsx.
     supabase
       .from("school_posts")
       .select("id, school_id, kind, title, body, source_url, tier, created_at")
-      .eq("listing_review", "pending")
+      .in("listing_review", ["pending", "edited"])
       .order("created_at", { ascending: true }),
     // Sales-mediated: a school expressed interest in a paid tier.
     supabase
@@ -101,21 +102,28 @@ export default async function OpsPostsPage() {
                       </a>
                     ) : null}
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 flex-col gap-2">
                     <form action={approvePostListing}>
                       <input type="hidden" name="postId" value={post.id} />
                       <button
                         type="submit"
-                        className="flex h-10 items-center rounded-md bg-ruled-blue px-3 text-meta font-semibold text-copy-white"
+                        className="flex h-10 w-full items-center justify-center rounded-md bg-ruled-blue px-3 text-meta font-semibold text-copy-white"
                       >
                         Approve listing
                       </button>
                     </form>
-                    <form action={rejectPostListing}>
+                    <form action={rejectPostListing} className="flex flex-col gap-1.5">
+                      <textarea
+                        name="reason"
+                        required
+                        rows={2}
+                        placeholder="Reason for rejection (shown to the school)"
+                        className="w-56 rounded-md border border-line-blue-strong bg-copy-white p-2 text-meta outline-none"
+                      />
                       <input type="hidden" name="postId" value={post.id} />
                       <button
                         type="submit"
-                        className="flex h-10 items-center rounded-md border border-ink px-3 text-meta font-semibold"
+                        className="flex h-10 items-center justify-center rounded-md border border-ink px-3 text-meta font-semibold"
                       >
                         Reject
                       </button>

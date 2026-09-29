@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { ShareBar } from "@/components/ui/share-bar";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import { getPublicNewsByCode } from "@/lib/db/public-adapter";
 import { localeCanonical } from "@/lib/seo";
 import { newsPath, parsePostCode, schoolPath } from "@/lib/urls";
@@ -19,10 +21,20 @@ export async function generateMetadata({
   if (code === null) return { title: "Not found" };
   const post = await getPublicNewsByCode(code);
   if (!post) return { title: "Not found" };
+  const canonical = localeCanonical(locale, newsPath("en", post.post_slug));
+  const description = post.body.slice(0, 160);
   return {
     title: `${post.title}, ${post.school_name} — SchoolOye`,
-    description: post.body.slice(0, 160),
-    alternates: { canonical: localeCanonical(locale, newsPath("en", post.post_slug)) },
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description,
+      url: canonical,
+      siteName: "SchoolOye",
+    },
+    twitter: { card: "summary", title: post.title, description },
   };
 }
 
@@ -36,6 +48,13 @@ export default async function NewsPostPage({ params }: PageProps<"/[locale]/news
   const post = await getPublicNewsByCode(code);
   if (!post) notFound();
   if (post.post_slug !== slug) permanentRedirect(newsPath(locale, post.post_slug));
+
+  await logAnalyticsEvent({
+    eventType: "page_view",
+    entityType: "news",
+    entityId: post.id,
+    schoolId: post.school_id,
+  });
 
   const newsJsonLd = {
     "@context": "https://schema.org",
@@ -83,6 +102,14 @@ export default async function NewsPostPage({ params }: PageProps<"/[locale]/news
           Source: {post.source_url}
         </a>
       )}
+
+      <ShareBar
+        title={post.title}
+        entityType="news"
+        entityId={post.id}
+        schoolId={post.school_id}
+        className="mt-6"
+      />
     </div>
   );
 }
