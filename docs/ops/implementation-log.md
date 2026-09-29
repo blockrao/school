@@ -1756,3 +1756,115 @@ exercise is a **SchoolOye Launch Readiness Audit** — deliberately not called "
 focused on Jaipur + Haryana + Delhi data coverage, school acquisition, admissions coverage, and parent
 usefulness, since production evidence shows the binding constraint is content/data density, not page
 features.
+
+## Gyan Deep Sr.sec. — manual production-page audit
+
+Prav asked for a personal check of one live page (`schooloye.com/school/gyan-deep-senior-secondary-
+school`) rather than reasoning from architecture alone — captured production HTML read directly,
+cross-checked against the live DB row for this school (`0ade062a-b0ed-45a5-a1a7-0b2912cd09bb`).
+
+**Confirmed working correctly:**
+- `normalizeExternalUrl` fix (10R) verified on real data: `website` stored schemeless
+  (`www.gyandeepschool.org`) renders as `https://www.gyandeepschool.org` on both the action pill and
+  Contact card.
+- Board facts genuinely blank (0 of 492 `api.public_school_boards` rows belong to this school) — "Not
+  yet published" is a true data gap, not a rendering bug.
+- Sticky nav / shortcuts order matches DOM order (School facts → Admissions → Location → Coverage →
+  Contact) — confirms the 10R nav-order fix is live in production, not just in source.
+
+**New findings, not caught by the Increment 10 closure audit** (that audit checked code correctness;
+these are data-coverage-rate problems upstream of the code):
+- **"Similar schools nearby" is non-functional across ~all of production.** It depends on
+  `school.locality_id`; **8,210 of 8,298 published schools (99%) have `locality_id = null`.** The code
+  is correct (no fake relationship is fabricated) but a shipped discovery feature is effectively dead
+  sitewide, not just for sparse records. No same-city fallback exists.
+- **No map for ~a third of schools.** `mapPoint` requires lat/lng; **2,969 of 8,298 (36%) have no
+  geocode.** Same shape as above — correct behavior, real coverage gap.
+- **Trust-state message stacking.** Unclaimed/unverified records (8,297 of 8,298) show four
+  overlapping "we haven't verified this" messages before any content: identity-band description,
+  record-badge label, freshness fallback, and ProvenanceChip. Each reads a genuinely distinct column,
+  so nothing is wrong, but it reads as redundant. (Independently flagged by a second agent's review —
+  see below.)
+
+## Second-opinion review (external agent) — verified against evidence, mixed results
+
+Prav had a second agent independently review the same captured HTML. Cross-checked every claim against
+source and live data before acting on any of it:
+
+**Confirmed correct, real, sitewide (not just this school):**
+- **Meta description was a single hardcoded template** (`schoolMetadata()` in
+  `entity-page.tsx`) — `"${name}: board, grades, fees and admission dates in ${areaLabel}."` unconditionally,
+  for all 8,298 published schools, regardless of whether any of it exists. Given fees has zero rows
+  anywhere and only 12 `admission_cycles` rows exist total, this was a real, sitewide false-advertising
+  problem in search snippets. **Fixed same session — see below.**
+- Trust-wording redundancy (both audits independently found this).
+
+**Claims checked and found wrong — do not act on these as stated:**
+- *"Raw email exposed in JSON-LD vs. controlled UI."* False premise: the same raw email is already
+  plain-text in the visible Contact card, unobfuscated. Removing it from JSON-LD only achieves nothing
+  without a real decision about the visible card too.
+- *"Nav order ≠ DOM order."* Stale — this was the original Increment 10 audit finding, already fixed in
+  10R, and reconfirmed live in this exact captured HTML (see above). The other agent cited an old
+  finding without re-checking it against the evidence it says it reviewed.
+- *"schooloye.com / www.schooloye.com inconsistency."* Not found anywhere in the page — canonical, OG,
+  Twitter, JSON-LD, breadcrumbs, footer all consistently use `schooloye.com` with no `www.`. The only
+  `www.` in play was the entry URL, which correctly redirects to apex (by design, confirmed earlier
+  this session).
+- *"Conflicts with an earlier architectural decision [on synthetic FAQ / raw contact exposure]."*
+  Searched the full implementation log — no such decision exists on record for either claim. Treat
+  FAQ-removal and contact-exposure as new decisions to make on the merits, not as enforcing precedent.
+
+## Entity Page Quality / Search–LLM Hardening — increment defined, HP-01 through HP-12
+
+Prav has named this the next increment (tracked before INC-11A–D), framed as integrity/hardening that
+must lock before the page becomes the acquisition-scale template — not a cosmetic SEO pass. Status of
+each item as of this session:
+
+| # | Item | Status | Note |
+|---|---|---|---|
+| HP-01 | Data-aware `<title>` | ⚪ Not started | Current title (`${name}, ${areaLabel} — SchoolOye`) makes no false claims today — unlike the description, it was never confirmed broken. Needs a decision on whether it should be *enriched* (e.g. with board) rather than *fixed* |
+| HP-02 | Data-aware meta description | 🟢 **Done** | `buildSchoolMetaDescription()`, `src/lib/school-metadata.ts`, commit `bb3fee0`. Fees claim removed entirely (no pipeline exists); board/grades only asserted when known. 4 new tests, 141/141 total |
+| HP-03 | Remove synthetic FAQ JSON-LD | 🟡 Decision pending | Not a bug — no prior policy against it exists on record. Recommendation: Google restricted FAQ rich results to authoritative gov/health sites in 2023, so there's likely no SEO upside left regardless; leaning toward removal on that basis alone |
+| HP-04 | Remove raw contact/email leakage from structured data | 🟡 Decision pending, bigger than scoped | JSON-LD-only removal is cosmetic — the same email is already plain-text in the visible Contact card. Needs a real contact-exposure policy decision (route through platform enquiry vs. show raw contact) covering the visible page, not just markup |
+| HP-05 | Normalize `schooloye.com` vs `www.schooloye.com` | 🟢 **Verified no defect** | No inconsistency exists anywhere in the page's own markup. Close this item rather than carry it as open work |
+| HP-06 | Correct `WebPage → mainEntity → School` JSON-LD relationship | ⚪ Not started | Real schema restructure, not a quick fix — needs its own scoping pass |
+| HP-07 | Align sticky nav with DOM order | 🟢 **Already done** | Fixed in Increment 10R, reconfirmed live in the Gyan Deep audit above. Close this item, don't carry it into Hardening scope |
+| HP-08 | Clarify source/verification trust semantics | ⚪ Not started | Both this session's audit and the second-opinion review independently found the same 4-message stacking (identity band / record badge / freshness / ProvenanceChip). Needs actual replacement copy, not just "cleanup" |
+| HP-09 | Visible fact ↔ JSON-LD consistency audit | ⚪ Not started | Process item — best run after HP-01/02/04/06 land, so it audits the settled model rather than needing a redo |
+| HP-10 | Define structured-data promotion rules | ⚪ Not started | Documentation exercise |
+| HP-11 | Reusable Entity Page QA checklist/tests | ⚪ Not started | `school-metadata.test.ts` is the first real test in this lineage |
+| HP-12 | Validate against Gyan Deep (sparse/unclaimed) + one richer school | 🟡 Half done | Gyan Deep already manually audited twice this session (this agent + second-opinion agent). Still need a dense-data pass — candidate: `dav-public-school` (Gurugram), the only school in production with an open admission cycle |
+
+**Still outstanding from the prior backlog close-out, unresolved:** Identity-photos decision
+(`PhotoPlaceholder` renders unconditionally — was this intentional or missed?) — asked earlier this
+session, not yet answered. Should be closed alongside HP-08's trust-copy decision, since both are
+"what does the header actually communicate" calls.
+
+## Post-Hardening backlog — INC-11A through INC-11D, preserved with known findings attached
+
+Recorded as named by Prav, so later work doesn't rediscover what this session already found:
+
+- **INC-11A — Discovery** (`/schools`, geography hierarchy, search, pagination, filters, sorting,
+  cards, compare, canonical/indexability, filter SEO safety, production geography coverage,
+  Jaipur/Haryana/Delhi launch readiness). **Known input**: the locality_id-null finding above (99% of
+  schools) is a direct threat to any geography-hierarchy or filter-by-locality feature in this audit —
+  the underlying data most such features would need largely doesn't exist yet.
+- **INC-11B — Admissions** (discovery, open-admission filtering, actionable cycles, expired/current
+  handling, application URLs, school coverage, enquiry/application intent, manual-research economics,
+  whether "Find Seats" is justified). **Known input**: only 12 `admission_cycles` rows exist in all of
+  production (1 open, 4 closing_soon, 3 results_out, 2 closed, 2 not_announced) — "actionable cycles"
+  and "manual research economics" will be a content-ops question before an engineering one.
+- **INC-11C — Data Coverage** (identity, board, grades, management, gender, address, contact, website,
+  facilities, teachers, admissions, photos, provenance, verification). **Known input**: board
+  affiliation (492 rows total across 8,298 schools), facilities (0 rows, no public projection), media/
+  photos (0 rows, no projection, `PhotoPlaceholder` always static), locality (8,210/8,298 null),
+  geocode (2,969/8,298 null) — this session already has hard numbers for several of these dimensions.
+- **INC-11D — School Acquisition** (claim funnel, school onboarding, member creation, school dashboard,
+  school updates, enquiry flow, school incentive/value proposition, effort to acquire first 100
+  schools). **Known input**: exactly 1 of 8,298 published schools is claimed today. Pairs directly with
+  the still-open Identity-photos and Claimed-D1-rail decisions (D1 rail explicitly deferred until
+  claimed-school volume justifies it).
+
+**Sequencing, as decided**: Hardening (HP-01–12) locks first, using Gyan Deep + one richer school as the
+validation pair, before any of INC-11A–D starts. Then those four audits run and their results — not the
+original architecture sequence — decide the next implementation increment.
