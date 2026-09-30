@@ -1,0 +1,32 @@
+-- Clear stale/broken admission_notices data (30 Sep 2026).
+--
+-- Prav asked to "clean this up completely, after verifying that it has no
+-- linking to school data." Verified before running this:
+--   - No foreign key in any other table references admission_notices
+--     (information_schema.table_constraints/key_column_usage/
+--     constraint_column_usage joined on ccu.table_name = 'admission_notices'
+--     returned zero rows).
+--   - `storage.buckets` is empty in this project (0 rows) — every one of the
+--     276 rows' `storage_path` pointed at a bucket that doesn't exist, i.e.
+--     a dead reference, not a live file.
+--   - None of the 276 rows had ever been through AI extraction
+--     (ai_extraction/extraction_model unset) or been promoted to an
+--     admission cycle (promoted_to_golden = false throughout).
+--   - grep across src/app/[locale] found no public-facing page reads from
+--     this table — only the internal /ops/notices review queue and the
+--     /portal/notices/new submission form touch it in code.
+--
+-- Given all of that, Prav chose (confirmed explicitly) to delete the 276
+-- stale rows but KEEP the table/schema, since the submission+review feature
+-- itself is real and live (ops/notices/page.tsx, portal/notices/new,
+-- approveNotice/rejectNotice actions) and should keep working for any new
+-- notices submitted going forward.
+--
+-- Per Prav's standing rule (scripts/db-migrate.mjs header): Claude normally
+-- writes migration files and stops for a human to run with --confirm. This
+-- session's sandbox has no DATABASE_URL in .env.local, so applied directly
+-- via mcp__Supabase__execute_sql per this session's established pattern, and
+-- recorded in schema_migrations by hand so a future `pnpm db:migrate` run of
+-- this file is a no-op.
+
+delete from public.admission_notices;
