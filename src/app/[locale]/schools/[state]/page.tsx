@@ -3,6 +3,15 @@ import { notFound } from "next/navigation";
 import { getPublicCityAreaBySlug, getPublicStateAreaBySlug } from "@/lib/db/public-adapter";
 import { PlaceView, placeMetadata, type ResolvedPlace } from "../../_views/place-page";
 
+// Found 30 Sep 2026 while checking sitemap freshness ahead of GSC submission: this
+// route (and its [city]/[locality] siblings) had no revalidate window at all, unlike
+// every sibling content route (exams, jobs, events, news, guides all set 900-3600),
+// so once statically rendered it could serve a frozen school-count snapshot
+// indefinitely — reproduced live on /schools/rajasthan/jaipur showing a stale "103
+// schools" well after published count had dropped to 38. Same 900s window as the
+// other publish-gated listing pages.
+export const revalidate = 900;
+
 /**
  * /schools/{state} — the state's list of cities (D-121 §1), or, for a city-state
   * Database view fix: 2026-09-29

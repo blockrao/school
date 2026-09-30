@@ -6,6 +6,10 @@ import { LocalityView, localityMetadata } from "../../../_views/entity-page";
 import { PlaceView, placeMetadata } from "../../../_views/place-page";
 import { resolveLocality } from "../../../_views/resolve";
 
+// See [state]/page.tsx for why this is here — same missing-revalidate bug,
+// reproduced live on this exact route.
+export const revalidate = 900;
+
 /**
  * /schools/{state}/{city} — a city (D-121 §1). For a city-state (Delhi, D-126)
  * the second segment is an area within the city: /schools/delhi/{locality}.
