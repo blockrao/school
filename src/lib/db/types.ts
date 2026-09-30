@@ -12,6 +12,12 @@
 // by hand to match 20260929090000_activity_admissions_v1.sql: rejection_reason
 // on school_posts/school_events/school_jobs, withdrawn_at on school_posts, and
 // the new analytics_events table.
+// 30 Sep 2026 (Admission notices -> admission_cycles gap): admission_status
+// was missing two values the live enum actually has — `postponed` and
+// `cancelled` (confirmed directly against the production enum via
+// `select enumlabel from pg_enum where enumtypid = 'admission_status'::regtype`,
+// which also matches src/lib/database.types.ts, the separately-generated
+// Supabase-MCP types file). Added by hand, same as every other round below.
 // DATABASE_URL_RO isn't set in this sandbox, so `pnpm db:types` couldn't
 // regenerate from the live schema any of those times. Re-run `pnpm db:types`
 // the next time DATABASE_URL_RO is available to confirm this matches and let
@@ -2554,7 +2560,9 @@ export type Database = {
         | "open"
         | "closing_soon"
         | "closed"
-        | "results_out";
+        | "results_out"
+        | "postponed"
+        | "cancelled";
       application_status:
         | "not_started"
         | "preparing"
