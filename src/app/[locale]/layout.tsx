@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { HtmlLangSync } from "@/components/shell/html-lang-sync";
 import { MobileBottomNav } from "@/components/shell/mobile-bottom-nav";
 import { SiteFooter } from "@/components/shell/site-footer";
 import { SiteHeader } from "@/components/shell/site-header";
@@ -27,6 +28,14 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   // rendered/cached again.
   return (
     <>
+      {/* Root layout (src/app/layout.tsx) hardcodes <html lang="en"> and sits
+          above this segment, so it can't see `locale` without a dynamic API
+          call that would break static rendering/ISR sitewide — see
+          HtmlLangSync's own comment for the full tradeoff and the real,
+          static-safe fix (splitting into multiple root layouts) this stands
+          in for. Client-side only: fixes the DOM for real visitors and any
+          JS-executing crawler, not the raw server-rendered HTML. */}
+      <HtmlLangSync locale={locale} />
       <SiteHeader locale={locale} areas={areas} dict={dict} />
       <main className="flex-1">{children}</main>
       <SiteFooter locale={locale} dict={dict} />
