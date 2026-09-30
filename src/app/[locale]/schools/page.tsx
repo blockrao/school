@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
-import { StatusPill } from "@/components/ui/badges";
+import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
 import { RemovableFilterChip } from "@/components/ui/filter-chip";
 import { NotYetPublished } from "@/components/ui/freshness-line";
@@ -14,6 +14,7 @@ import {
   getBoardNamesBySchoolId,
   getCitiesByDistrictIds,
   getSelectedCityArea,
+  listActiveFeaturedPlacementsByCity,
   listDistrictFilterOptions,
   listPublicBoards,
   listPublicSchoolsByDistrict,
@@ -93,7 +94,7 @@ export default async function SchoolsPage({
 
   const schoolFilters = { query: q, boardId, maxClass, admissionsOpen, page, pageSize: PAGE_SIZE };
 
-  const [{ schools, total }, filterOptions] = await Promise.all([
+  const [{ schools, total }, filterOptions, featuredPlacements] = await Promise.all([
     siteWide
       ? searchPublicSchoolsSiteWide(schoolFilters)
       : area
@@ -110,7 +111,15 @@ export default async function SchoolsPage({
       : area
         ? listDistrictFilterOptions(area.districtIds)
         : Promise.resolve({ boards: [], maxClasses: [] }),
+    // Sponsored is city-scoped (featured_placements.city_id) — a site-wide name
+    // search spans every launched city, so there's no single city to show
+    // sponsored cards for; skip it there rather than picking one arbitrarily.
+    // Provision only — featured_placements has zero rows today, see place-page.tsx.
+    !siteWide && area
+      ? listActiveFeaturedPlacementsByCity(area.citySlug, { classCode: maxClass })
+      : Promise.resolve([]),
   ]);
+  const sponsoredSchoolIds = new Set(featuredPlacements.map((p) => p.school_id));
 
   const schoolIds = schools.map((s) => s.id);
   const districtIds = schools.map((s) => s.district_id).filter((id) => id != null);
@@ -165,6 +174,22 @@ export default async function SchoolsPage({
       <h1 className="font-display text-title-m md:text-title-d">
         {siteWide ? `Search results for "${q}"` : `Schools in ${area?.cityName ?? "your city"}`}
       </h1>
+
+      {!siteWide && (
+        <div className="mt-4 flex flex-col gap-2 rounded-md border border-rule bg-copy-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-body">
+            <span className="font-semibold">Get alerts for this search.</span> We'll message you on
+            WhatsApp when a school here publishes admission dates or a deadline is coming up
+            {maxClass ? ` for ${formatGradeRange(null, maxClass)}` : ""}.
+          </p>
+          <Link
+            href={`${localePrefix(locale)}/alerts${maxClass ? `?class=${maxClass}` : ""}`}
+            className="flex h-11 shrink-0 items-center justify-center rounded-md border border-ink px-4 font-semibold"
+          >
+            Get alerts
+          </Link>
+        </div>
+      )}
 
       <Form action={basePath} className="mt-4 flex flex-wrap items-end gap-3">
         {compareIds.length > 0 && (
@@ -335,6 +360,8 @@ export default async function SchoolsPage({
                   href={schoolPath(locale, school.slug)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
+                  sponsored={sponsoredSchoolIds.has(school.id)}
+                  sponsoredNote={<SponsoredWhyDisclosure />}
                   now={now}
                   deadline={deadline}
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
