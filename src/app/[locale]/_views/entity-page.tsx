@@ -738,6 +738,24 @@ export async function SchoolView({
     now,
   });
 
+  // Header CTA copy, keyed off the same admissions pillStatus the Decision
+  // Strip already computes — never a fourth independent read of the cycle.
+  // Deliberately NOT "Alert me when admissions open": there is no
+  // subscription/notification pipeline behind SaveButton, only the real
+  // shortlist toggle (My Schools). The label says what actually happens —
+  // bookmarking the school — while still reflecting admissions urgency in
+  // its wording, so it reads as purposeful rather than a generic "Save".
+  const admissionsSlot = decisionSlots.find((s) => s.id === "admissions");
+  const admissionPillStatus =
+    admissionsSlot?.status === "available" ? admissionsSlot.pillStatus : undefined;
+  const headerCtaLabelSave =
+    admissionPillStatus === "open" || admissionPillStatus === "closing-soon"
+      ? "Track this admission cycle"
+      : admissionPillStatus === "closed"
+        ? "Save for next year's cycle"
+        : "Save to track this school";
+  const headerCtaLabelSaved = "Tracking ✓ — in My Schools";
+
   const coverageTopics = buildCoverage(decisionSlots, {
     hasIdentity: school.name_en != null,
     hasBoardAffiliation: board?.board_name != null,
@@ -1074,16 +1092,62 @@ export async function SchoolView({
           <span className="text-ink">{name}</span>
         </nav>
 
+        {/* Trust banner (elevates the existing identityBand from a small text
+          line to a full-bleed header band — design school-entity-page-v2's
+          C1–C3). Same three states, same copy, no new data: identityBand
+          already carries the heading/description this reads, computed from
+          schools.claim/verification exactly as before. "verified" gets the
+          so-accent treatment (dark-mode aware via the same tokens the V2
+          chrome uses); the other two states stay a quiet neutral band rather
+          than inventing a second color for "school-claimed" vs "unclaimed" —
+          the two-tier badge/FreshnessLine row below already distinguishes
+          them in text. */}
+        <div
+          className={`-mx-4 mb-4 flex flex-col gap-3 border-y px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:-mx-10 md:px-10 ${
+            identity.state === "verified"
+              ? "border-so-accent/30 bg-so-accent-soft"
+              : "border-so-line2 bg-so-surface"
+          }`}
+        >
+          <div className="flex items-start gap-2">
+            {identity.state === "verified" && (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+                className="mt-0.5 shrink-0 text-so-accent"
+                style={{ strokeWidth: 1.4, strokeLinecap: "round", strokeLinejoin: "round" }}
+              >
+                <path d="M4 1.5h5.5l3 3V14.5H4z M9.5 1.5v3h3 M6.2 9.4l1.5 1.5 2.7-3" />
+              </svg>
+            )}
+            <div className="flex flex-col gap-0.5">
+              <span
+                className={`text-meta font-semibold ${
+                  identity.state === "verified" ? "text-so-accent" : "text-muted-ink"
+                }`}
+              >
+                {identity.heading}
+              </span>
+              <span className="text-meta text-slate">{identity.description}</span>
+            </div>
+          </div>
+          <SaveButton
+            schoolId={school.id}
+            saved={shortlistedIdsSet.has(school.id)}
+            locale={locale}
+            labelSave={headerCtaLabelSave}
+            labelSaved={headerCtaLabelSaved}
+            span="w-fit shrink-0 px-4"
+            variant="primary"
+          />
+        </div>
+
         <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:gap-4">
           <PhotoPlaceholder className="hidden h-24 w-32 shrink-0 sm:block" label={name} />
-          <div className="flex flex-col gap-0.5">
-            <span
-              className={`text-meta font-semibold ${identity.state === "verified" ? "text-board-green" : "text-muted-ink"}`}
-            >
-              {identity.heading}
-            </span>
-            <span className="text-meta text-slate">{identity.description}</span>
-          </div>
         </div>
 
         <div className="flex flex-col gap-2 border-b border-rule pb-6">
@@ -1141,14 +1205,12 @@ export async function SchoolView({
               content, flagged independently by two separate audits this session.
               recordBadge + FreshnessLine already carry this story; nothing is lost
               by dropping the chip here. Kept on admission cycles below, where it
-              carries a genuinely distinct, cycle-level signal. */}
+              carries a genuinely distinct, cycle-level signal. Increment 12 —
+              the plain "Save" button that used to sit here is removed too:
+              it's the same toggleShortlist action now surfaced once, as the
+              elevated, state-aware CTA in the trust banner above, rather than
+              two separate Save controls for one school on the same page. */}
             <ShareButton title={name} />
-            <SaveButton
-              schoolId={school.id}
-              saved={shortlistedIdsSet.has(school.id)}
-              locale={locale}
-              span="w-fit px-4"
-            />
           </div>
           <div className="flex flex-wrap items-center gap-4 text-meta">
             <Link
