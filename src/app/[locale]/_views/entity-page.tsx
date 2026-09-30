@@ -1093,21 +1093,19 @@ export async function SchoolView({
         </nav>
 
         {/* Trust banner (elevates the existing identityBand from a small text
-          line to a full-bleed header band — design school-entity-page-v2's
-          C1–C3). Same three states, same copy, no new data: identityBand
-          already carries the heading/description this reads, computed from
-          schools.claim/verification exactly as before. "verified" gets the
-          so-accent treatment (dark-mode aware via the same tokens the V2
-          chrome uses); the other two states stay a quiet neutral band rather
-          than inventing a second color for "school-claimed" vs "unclaimed" —
-          the two-tier badge/FreshnessLine row below already distinguishes
-          them in text. */}
+          line — design school-entity-page-v2's C1–C3). Same three states,
+          same copy, no new data. Checked against the mockup's actual mobile
+          frames (not just the idea): only the "verified" state gets a boxed,
+          colored card there — "Disclosure-backed"/"Unclaimed" both render as
+          plain text with no border or fill, inset like any other line, never
+          full-bleed. Matched exactly rather than boxing every state, which
+          is what the first pass here did. */}
         <div
-          className={`-mx-4 mb-4 flex flex-col gap-3 border-y px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:-mx-10 md:px-10 ${
+          className={
             identity.state === "verified"
-              ? "border-so-accent/30 bg-so-accent-soft"
-              : "border-so-line2 bg-so-surface"
-          }`}
+              ? "mb-4 flex flex-col gap-3 rounded-md border border-so-accent/30 bg-so-accent-soft p-4 sm:flex-row sm:items-center sm:justify-between"
+              : "mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          }
         >
           <div className="flex items-start gap-2">
             {identity.state === "verified" && (
