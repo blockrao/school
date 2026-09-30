@@ -76,7 +76,7 @@ export function CoverageCard({
               {known.map((topic) => (
                 <li
                   key={topic.id}
-                  className="rounded-full border border-rule bg-copy-white px-3 py-1 text-meta font-medium text-ink"
+                  className="rounded-full border border-pill-open-bd bg-pill-open-bg px-3 py-1 text-meta font-medium text-pill-open-fg"
                 >
                   {topic.label}
                 </li>

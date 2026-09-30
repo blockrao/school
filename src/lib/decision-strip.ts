@@ -1,4 +1,4 @@
-import { deadlineState } from "@/lib/deadline";
+import { type DeadlinePillStatus, deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatDate } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 
@@ -40,6 +40,12 @@ export type DecisionSlot =
       value: string;
       context?: string;
       sourceLabel?: string;
+      // Only the admissions slot sets this today — reuses the same
+      // open/closing-soon/upcoming/closed vocabulary StatusPill already
+      // renders elsewhere (search results, DeadlineMargin), so "Open"/"Closes
+      // 15 Nov" in the strip gets the same color a user already learned to
+      // read as urgency, instead of the strip's plain black-on-white value.
+      pillStatus?: DeadlinePillStatus;
     }
   | { id: string; label: string; status: "unverified" };
 
@@ -81,7 +87,13 @@ export function buildAdmissionsSlot(
   if (admission.closes_on) {
     const state = deadlineState({ closesAt: new Date(admission.closes_on) }, now);
     if (state.status === "closed") {
-      return { id: "admissions", label, status: "available", value: "Closed" };
+      return {
+        id: "admissions",
+        label,
+        status: "available",
+        value: "Closed",
+        pillStatus: "closed",
+      };
     }
   }
 
@@ -93,7 +105,20 @@ export function buildAdmissionsSlot(
   const context = admission.opens_on
     ? `Registration from ${formatDate(admission.opens_on)}`
     : undefined;
-  return { id: "admissions", label, status: "available", value, context };
+  const pillStatus = (
+    admission.opens_on || admission.closes_on
+      ? deadlineToPill(
+          deadlineState(
+            {
+              opensAt: admission.opens_on ? new Date(admission.opens_on) : null,
+              closesAt: admission.closes_on ? new Date(admission.closes_on) : null,
+            },
+            now,
+          ),
+        ).status
+      : undefined
+  ) satisfies DeadlinePillStatus | undefined;
+  return { id: "admissions", label, status: "available", value, context, pillStatus };
 }
 
 /**

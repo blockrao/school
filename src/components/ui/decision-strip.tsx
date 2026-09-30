@@ -1,3 +1,4 @@
+import { StatusPill } from "@/components/ui/badges";
 import type { DecisionSlot } from "@/lib/decision-strip";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,13 @@ export function DecisionStrip({ slots, className }: { slots: DecisionSlot[]; cla
           <span className="text-meta text-muted-ink">{slot.label}</span>
           {slot.status === "available" ? (
             <>
-              <span className="font-semibold text-body text-ink">{slot.value}</span>
+              {slot.pillStatus ? (
+                <StatusPill status={slot.pillStatus} className="w-fit">
+                  {slot.value}
+                </StatusPill>
+              ) : (
+                <span className="font-semibold text-body text-ink">{slot.value}</span>
+              )}
               {slot.context && <span className="text-meta text-slate">{slot.context}</span>}
             </>
           ) : (
