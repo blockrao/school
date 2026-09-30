@@ -1,0 +1,41 @@
+-- Revoke public EXECUTE on internal trigger-only functions (30 Sep 2026).
+--
+-- Part of the database audit Prav asked for. The Supabase security advisor
+-- flagged 3 SECURITY DEFINER functions as directly callable via PostgREST
+-- RPC (/rest/v1/rpc/<name>) by anon and/or authenticated, even though none
+-- of them are meant to be called directly:
+--   - audit_trigger()             -- fires on 15 table triggers
+--   - messages_touch_conversation() -- fires on 1 table trigger
+--   - rls_auto_enable()           -- an event-trigger function that, on
+--     inspection, isn't currently attached to any event trigger (pg_event_
+--     trigger has no row for it) -- so it's dead code today regardless;
+--     left in place rather than dropped since removing dead code wasn't
+--     asked for, just locked down like the others.
+--
+-- Left untouched: is_staff(), is_school_admin(), is_school_member(),
+-- current_role_is(), current_user_role() -- these ARE meant to be called
+-- under the querying role's own privileges, because RLS policies invoke
+-- them by name from inside USING/WITH CHECK clauses (see
+-- 20260930130000_consolidate_permissive_rls_policies.sql). Revoking EXECUTE
+-- on those would break every policy that calls them. Also left untouched:
+-- approve_application/create_application_order/save_order_intake/
+-- check_rate_limit (called directly via supabase.rpc(...) from client code
+-- in src/lib/rate-limit.ts, src/app/[locale]/admissions/**, src/lib/db/
+-- ops.ts) and the postgis st_estimatedextent() overloads (extension
+-- internals, not worth the risk of touching).
+--
+-- Verified after applying: updating a schools row still produces a new
+-- audit_log row via the trigger (revoking EXECUTE only blocks the direct
+-- SQL-call/RPC path, not trigger firing, which Postgres invokes
+-- independently of the calling role's EXECUTE grant).
+--
+-- Per Prav's standing rule (scripts/db-migrate.mjs header): Claude normally
+-- writes migration files and stops for a human to run with --confirm. This
+-- session's sandbox has no DATABASE_URL in .env.local, so applied directly
+-- via mcp__Supabase__execute_sql per this session's established pattern, and
+-- recorded in schema_migrations by hand so a future `pnpm db:migrate` run of
+-- this file is a no-op.
+
+revoke execute on function public.audit_trigger() from anon, authenticated;
+revoke execute on function public.rls_auto_enable() from anon, authenticated;
+revoke execute on function public.messages_touch_conversation() from anon, authenticated;
