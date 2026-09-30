@@ -103,6 +103,10 @@
 
 @layer base {
   html {
+    /* One deliberate light theme, no dark variant — tells the browser not to
+       auto-dark-mode this page (see layout.tsx's color-scheme meta tag) and
+       keeps native form controls (date pickers, scrollbars) light too. */
+    color-scheme: light;
     background: var(--color-copy-white);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;

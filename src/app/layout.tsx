@@ -56,6 +56,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "SchoolOye",
   description: "Find and compare schools in Delhi, Gurugram and Haryana.",
+  // The app has one deliberate light theme (globals.css), no dark variant. Without
+  // this, a browser/device set to dark mode auto-"force-dark"s the page — guessing
+  // at backgrounds vs. text vs. borders and washing out the brand palette into a
+  // flat black-and-white look. This just opts the page out of that guesswork.
+  other: { "color-scheme": "light" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
