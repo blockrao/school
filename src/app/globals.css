@@ -103,9 +103,12 @@
 
 @layer base {
   html {
-    /* One deliberate light theme, no dark variant — tells the browser not to
-       auto-dark-mode this page (see layout.tsx's color-scheme meta tag) and
-       keeps native form controls (date pickers, scrollbars) light too. */
+    /* Most content is light-only still (the V2 so-* chrome tokens below are the
+       one real dark theme so far, via prefers-color-scheme and unaffected by
+       this) — declaring it stops the browser auto-dark-moding the rest of the
+       page (see layout.tsx's color-scheme meta tag) and keeps native form
+       controls (date pickers, scrollbars) light to match. Revisit to
+       "light dark" once page content also has real dark values. */
     color-scheme: light;
     background: var(--color-copy-white);
     color: var(--color-ink);

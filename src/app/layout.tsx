@@ -56,10 +56,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "SchoolOye",
   description: "Find and compare schools in Delhi, Gurugram and Haryana.",
-  // The app has one deliberate light theme (globals.css), no dark variant. Without
-  // this, a browser/device set to dark mode auto-"force-dark"s the page — guessing
-  // at backgrounds vs. text vs. borders and washing out the brand palette into a
-  // flat black-and-white look. This just opts the page out of that guesswork.
+  // Most page content still only has light-mode colors (globals.css); the V2
+  // so-* chrome tokens (SiteHeader/SiteFooter/nav) are the one real dark theme
+  // so far, via @media (prefers-color-scheme: dark) — unaffected by this. Without
+  // declaring color-scheme, a browser/device in dark mode auto-"force-dark"s
+  // everything that HASN'T opted into real dark styling — guessing at backgrounds
+  // vs. text vs. borders and washing the unmigrated page content out to flat
+  // black-and-white. Revisit to "light dark" once page content gets real dark
+  // values too, so form controls/scrollbars match whichever theme is active.
   other: { "color-scheme": "light" },
 };
 
