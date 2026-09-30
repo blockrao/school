@@ -12,6 +12,7 @@ export function SchoolCard({
   href,
   meta,
   sponsored = false,
+  sponsoredNote,
   deadline,
   now = new Date(),
   status,
@@ -24,6 +25,10 @@ export function SchoolCard({
   href: string;
   meta: string;
   sponsored?: boolean;
+  /** Rendered next to the "Sponsored" tag when `sponsored` is true — the
+   * transparency disclosure (D-089/N-13: sponsored placement is always
+   * labelled and never reorders results). Ignored when `sponsored` is false. */
+  sponsoredNote?: ReactNode;
   deadline: DeadlineInput;
   now?: Date;
   status: ReactNode;
@@ -53,8 +58,17 @@ export function SchoolCard({
         <span>{state.bottom}</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3">
+        {sponsored && (
+          // Outside the <Link> below deliberately: sponsoredNote is an
+          // interactive disclosure ("Why this is here"), and nesting
+          // interactive content inside the card's own link would make its
+          // click target ambiguous (and is invalid HTML to boot).
+          <span className="flex flex-wrap items-center gap-2">
+            <SponsoredTag />
+            {sponsoredNote}
+          </span>
+        )}
         <Link href={href} className="flex min-w-0 flex-col gap-1.5">
-          {sponsored && <SponsoredTag className="self-start" />}
           <span className="font-display text-card font-semibold">{name}</span>
           <span className="text-body text-muted-ink">{meta}</span>
           {status}

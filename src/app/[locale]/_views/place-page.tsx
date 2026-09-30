@@ -3,7 +3,8 @@ import Form from "next/form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
-import { StatusPill } from "@/components/ui/badges";
+import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
+import { CompareTray } from "@/components/ui/compare-tray";
 import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
@@ -15,6 +16,7 @@ import {
   getPublicCityAreaBySlug,
   getPublicStateAreaBySlug,
   getPublicTownAreaBySlug,
+  listActiveFeaturedPlacementsByCity,
   listDistrictFilterOptions,
   listLocalityNeighbors,
   listPublicLocalitiesByCity,
@@ -29,6 +31,7 @@ import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
   homePath,
+  localePrefix,
   localityPath,
   schoolPath,
   schoolsRootPath,
@@ -45,13 +48,21 @@ function parseFilters(searchParams: { [key: string]: string | string[] | undefin
     : searchParams.admissions;
   const pageParam = Array.isArray(searchParams.page) ? searchParams.page[0] : searchParams.page;
 
+  const compareParam = Array.isArray(searchParams.compare)
+    ? searchParams.compare[0]
+    : searchParams.compare;
+
   const boardId = boardParam ? Number(boardParam) : undefined;
   const maxClass = gradeParam || undefined;
   const admissionsOpen = admissionsParam === "open";
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
+  const compareIds = (compareParam || "").split(",").filter(Boolean);
 
-  return { boardId, maxClass, admissionsOpen, page };
+  return { boardId, maxClass, admissionsOpen, page, compareIds };
 }
+
+/** Matches schools/page.tsx's own compare tray — same URL-param pattern, same limit. */
+const COMPARE_LIMIT = 4;
 
 /**
  * Resolves the `[city]` segment four ways, in order: a real city, a town
@@ -414,23 +425,29 @@ export async function PlaceView({
   const { city } = resolved;
   if (!city.isLaunch) notFound();
 
-  const { boardId, maxClass, admissionsOpen, page } = parseFilters(rawSearchParams);
+  const { boardId, maxClass, admissionsOpen, page, compareIds } = parseFilters(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
 
   // district-scoped, not city_id-scoped: schools pending /ops locality
   // assignment still belong on the city's "all schools" listing.
-  const [{ schools, total }, filterOptions, localities, categoryLinks] = await Promise.all([
-    listPublicSchoolsByDistrict(city.districtIds, {
-      boardId,
-      maxClass,
-      admissionsOpen,
-      page,
-      pageSize: PAGE_SIZE,
-    }),
-    listDistrictFilterOptions(city.districtIds),
-    listPublicLocalitiesByCity(city.citySlug),
-    getBoardCategoryLinksForDistrict(city.districtIds),
-  ]);
+  const [{ schools, total }, filterOptions, localities, categoryLinks, featuredPlacements] =
+    await Promise.all([
+      listPublicSchoolsByDistrict(city.districtIds, {
+        boardId,
+        maxClass,
+        admissionsOpen,
+        page,
+        pageSize: PAGE_SIZE,
+      }),
+      listDistrictFilterOptions(city.districtIds),
+      listPublicLocalitiesByCity(city.citySlug),
+      getBoardCategoryLinksForDistrict(city.districtIds),
+      // Provision only — featured_placements has zero rows today (no sponsored
+      // inventory yet, ships ahead of selling any). An empty result here must
+      // render exactly like it does now: no sponsored cards, no reordering.
+      listActiveFeaturedPlacementsByCity(city.citySlug, { classCode: maxClass }),
+    ]);
+  const sponsoredSchoolIds = new Set(featuredPlacements.map((p) => p.school_id));
 
   const schoolIds = schools.map((s) => s.id);
   const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
@@ -442,15 +459,43 @@ export async function PlaceView({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const basePath = cityPath(locale, city.stateSlug, city.citySlug);
 
-  function pageHref(targetPage: number) {
+  function buildHref(
+    overrides: Partial<{
+      board: string;
+      grade: string;
+      admissions: string;
+      compare: string;
+      page: string;
+    }>,
+  ) {
+    const merged = {
+      board: boardId !== undefined ? String(boardId) : "",
+      grade: maxClass ?? "",
+      admissions: admissionsOpen ? "open" : "",
+      compare: compareIds.join(","),
+      page: "",
+      ...overrides,
+    };
     const qs = new URLSearchParams();
-    if (boardId !== undefined) qs.set("board", String(boardId));
-    if (maxClass) qs.set("grade", maxClass);
-    if (admissionsOpen) qs.set("admissions", "open");
-    if (targetPage > 1) qs.set("page", String(targetPage));
+    for (const [key, value] of Object.entries(merged)) {
+      if (value) qs.set(key, value);
+    }
     const query = qs.toString();
     return query ? `${basePath}?${query}` : basePath;
   }
+
+  function pageHref(targetPage: number) {
+    return buildHref({ page: targetPage > 1 ? String(targetPage) : "" });
+  }
+
+  function compareToggleHref(schoolId: string): string | null {
+    const inCompare = compareIds.includes(schoolId);
+    if (!inCompare && compareIds.length >= COMPARE_LIMIT) return null;
+    const next = inCompare ? compareIds.filter((id) => id !== schoolId) : [...compareIds, schoolId];
+    return buildHref({ compare: next.join(",") });
+  }
+
+  const alertsHref = `${localePrefix(locale)}/alerts${maxClass ? `?class=${maxClass}` : ""}`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -470,7 +515,7 @@ export async function PlaceView({
   };
 
   return (
-    <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
+    <div className="mx-auto max-w-(--container-page) px-4 py-6 pb-24 md:px-10 md:py-9 md:pb-9">
       <script
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
@@ -529,7 +574,24 @@ export async function PlaceView({
         </div>
       )}
 
+      <div className="mt-5 flex flex-col gap-2 rounded-md border border-rule bg-copy-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-body">
+          <span className="font-semibold">Get alerts for this search.</span> We'll message you on
+          WhatsApp when a school here publishes admission dates or a deadline is coming up
+          {maxClass ? ` for ${formatGradeRange(null, maxClass)}` : ""}.
+        </p>
+        <Link
+          href={alertsHref}
+          className="flex h-11 shrink-0 items-center justify-center rounded-md border border-ink px-4 font-semibold"
+        >
+          Get alerts
+        </Link>
+      </div>
+
       <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
+        {compareIds.length > 0 && (
+          <input type="hidden" name="compare" value={compareIds.join(",")} />
+        )}
         <label className="flex flex-col gap-1">
           <span className="text-meta font-semibold text-muted-ink">Board</span>
           <select
@@ -598,23 +660,57 @@ export async function PlaceView({
               const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
               const pill = deadlineToPill(deadlineState(deadline, now));
 
+              const inCompare = compareIds.includes(school.id);
+              const toggleHref = compareToggleHref(school.id);
+
               return (
                 <SchoolCard
                   key={school.id}
                   href={schoolPath(locale, school.slug)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
+                  sponsored={sponsoredSchoolIds.has(school.id)}
+                  sponsoredNote={<SponsoredWhyDisclosure />}
                   now={now}
                   deadline={deadline}
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
-                    <SaveButton
-                      schoolId={school.id}
-                      saved={shortlistedIds.has(school.id)}
-                      locale={locale}
-                    />
+                    <>
+                      <SaveButton
+                        schoolId={school.id}
+                        saved={shortlistedIds.has(school.id)}
+                        locale={locale}
+                        span="col-span-1"
+                      />
+                      {toggleHref ? (
+                        <Link
+                          href={toggleHref}
+                          role="checkbox"
+                          aria-checked={inCompare}
+                          className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
+                            inCompare
+                              ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
+                              : "border-line-blue text-ink"
+                          }`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
+                              inCompare ? "bg-ruled-blue" : "bg-copy-white"
+                            }`}
+                          >
+                            {inCompare && "✓"}
+                          </span>
+                          {inCompare ? "Remove" : "Compare"}
+                        </Link>
+                      ) : (
+                        <span className="flex h-11 items-center justify-center text-meta text-muted-ink">
+                          Limit (4)
+                        </span>
+                      )}
+                    </>
                   }
                 />
               );
@@ -656,6 +752,17 @@ export async function PlaceView({
             <span />
           )}
         </nav>
+      )}
+
+      {compareIds.length >= 2 && (
+        <div className="fixed inset-x-0 bottom-16 z-40 p-3 md:bottom-3 md:left-1/2 md:right-auto md:w-fit md:-translate-x-1/2">
+          <CompareTray
+            selectedCount={compareIds.length}
+            totalCount={COMPARE_LIMIT}
+            clearHref={buildHref({ compare: "" })}
+            compareHref={`${localePrefix(locale)}/compare?ids=${compareIds.join(",")}`}
+          />
+        </div>
       )}
     </div>
   );

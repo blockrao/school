@@ -12,6 +12,7 @@ import {
   type PublicExamMilestone,
   type PublicExamParticipatingSchool,
   type PublicExamReservationSplit,
+  type PublicFeaturedPlacement,
   type PublicFieldEvidence,
   type PublicJob,
   type PublicNews,
@@ -29,6 +30,7 @@ import {
   publicDistrictContract,
   publicEventContract,
   publicExamAdmissionContract,
+  publicFeaturedPlacementContract,
   publicFieldEvidenceContract,
   publicJobContract,
   publicLocalityContract,
@@ -1248,6 +1250,37 @@ export async function listSchoolRankings(citySlug: string): Promise<PublicSchool
     .order("category", { ascending: true })
     .order("rank", { ascending: true });
   return (data ?? []).map((row) => publicSchoolRankingContract.parse(row));
+}
+
+export type { PublicFeaturedPlacement };
+
+/**
+ * Sponsored/paid listing placements for the school search page (30 Sep 2026,
+ * school search redesign) — provision only. `featured_placements` has zero
+ * rows today (Prav confirmed: no sponsored inventory yet, this ships ahead of
+ * actually selling any, per docs/spec/admissions-tracker.md T-6/D-089 "not
+ * before 1 Dec"). Reads api.public_featured_placements, which already
+ * applies the school publish-gate and the active-window filter
+ * (starts_on/ends_on) — every row this returns is live *today*, so the
+ * caller never needs its own date check and an empty result here should
+ * simply mean "render no sponsored cards", never a fallback or invented one.
+ * `classCode` narrows to placements that either target no specific class
+ * (empty class_codes = "every class") or explicitly include it — matches how
+ * the listing page's own class/grade filter scopes results.
+ */
+export async function listActiveFeaturedPlacementsByCity(
+  citySlug: string,
+  opts?: { classCode?: string; placement?: string },
+): Promise<PublicFeaturedPlacement[]> {
+  const api = createApiSchemaClient();
+  let query = api.from("public_featured_placements").select("*").eq("city_slug", citySlug);
+  if (opts?.placement) query = query.eq("placement", opts.placement);
+  const { data } = await query;
+  const rows = (data ?? []).map((row) => publicFeaturedPlacementContract.parse(row));
+  if (!opts?.classCode) return rows;
+  return rows.filter(
+    (r) => r.class_codes.length === 0 || r.class_codes.includes(opts.classCode as string),
+  );
 }
 
 export type {

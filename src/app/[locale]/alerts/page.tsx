@@ -94,6 +94,14 @@ export default async function AlertsPage({ params, searchParams }: PageProps<"/[
   const schoolId = first(rawSearchParams.school_id);
   const confirmed = first(rawSearchParams.confirmed) === "1";
   const errorCode = first(rawSearchParams.error);
+  // Pre-check one class from a `class` query param (e.g. the city listing
+  // page's own `grade` filter value, "c1".."c12") — added 30 Sep 2026 for the
+  // school search redesign's "Get alerts for this search" entry point, which
+  // has no school_id to pre-check a class from the way the school-page entry
+  // point does below. Doesn't replace that: a school-scoped link can carry
+  // both, and school.max_class still wins if it disagrees (a school-scoped
+  // signup should reflect the actual school, not a stale filter value).
+  const classParam = first(rawSearchParams.class);
 
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
@@ -157,7 +165,11 @@ export default async function AlertsPage({ params, searchParams }: PageProps<"/[
                     name="classCodes"
                     value={`c${n}`}
                     className="sr-only"
-                    defaultChecked={school ? n === school.max_class?.replace("c", "") : false}
+                    defaultChecked={
+                      school
+                        ? n === school.max_class?.replace("c", "")
+                        : n === classParam?.replace("c", "")
+                    }
                   />
                   <span lang={isHi ? "hi" : undefined}>
                     {copy.classPrefix} {n}

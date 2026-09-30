@@ -3,6 +3,7 @@ export * from "@/contracts/public-areas";
 export * from "@/contracts/public-corridors";
 export * from "@/contracts/public-events";
 export * from "@/contracts/public-exam-admissions";
+export * from "@/contracts/public-featured-placements";
 export * from "@/contracts/public-field-evidence";
 export * from "@/contracts/public-jobs";
 export * from "@/contracts/public-localities";

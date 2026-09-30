@@ -83,3 +83,23 @@ export function SponsoredTag({ className }: { className?: string }) {
     </span>
   );
 }
+
+/**
+ * "Why this is here" transparency disclosure for a sponsored card (D-089,
+ * N-13: sponsored placement is always labelled and never reorders results —
+ * this is the label's own explanation, not a settings/ops control). A plain
+ * <details>, not a link to a separate page — there's no sponsored-placements
+ * program to write a whole guide page about yet (featured_placements has zero
+ * rows today), and the honest one-line disclosure doesn't need one.
+ */
+export function SponsoredWhyDisclosure({ className }: { className?: string }) {
+  return (
+    <details className={cn("text-meta text-muted-ink", className)}>
+      <summary className="cursor-pointer underline">Why this is here</summary>
+      <p className="mt-1 max-w-64">
+        This school paid to appear here. Sponsorship never changes the order of the schools around
+        it.
+      </p>
+    </details>
+  );
+}
