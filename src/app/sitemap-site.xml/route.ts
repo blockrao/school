@@ -7,7 +7,7 @@ import {
 } from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
-import { urlEntry, urlSetXml } from "@/lib/sitemap";
+import { SITEMAP_CACHE_CONTROL, urlEntry, urlSetXml } from "@/lib/sitemap";
 import {
   admissionsRootPath,
   eventPath,
@@ -106,5 +106,7 @@ export async function GET() {
     urlEntry(siteUrl, "/terms"),
   ];
 
-  return new Response(urlSetXml(entries), { headers: { "Content-Type": "application/xml" } });
+  return new Response(urlSetXml(entries), {
+    headers: { "Content-Type": "application/xml", "Cache-Control": SITEMAP_CACHE_CONTROL },
+  });
 }

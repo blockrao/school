@@ -1,5 +1,5 @@
 import { siteUrl } from "@/lib/env.server";
-import { LAUNCH_CITY_SLUGS, listLiveLaunchedCitySlugs } from "@/lib/sitemap";
+import { LAUNCH_CITY_SLUGS, listLiveLaunchedCitySlugs, SITEMAP_CACHE_CONTROL } from "@/lib/sitemap";
 
 /**
  * The sitemapindex referenced from robots.txt — sitemap-site.xml (homepage,
@@ -20,5 +20,7 @@ export async function GET() {
 ${sitemapSlugs.map((slug) => `  <sitemap><loc>${siteUrl}/sitemap-${slug}.xml</loc></sitemap>`).join("\n")}
 </sitemapindex>
 `;
-  return new Response(body, { headers: { "Content-Type": "application/xml" } });
+  return new Response(body, {
+    headers: { "Content-Type": "application/xml", "Cache-Control": SITEMAP_CACHE_CONTROL },
+  });
 }

@@ -60,6 +60,27 @@ export const LAUNCH_CITY_SLUGS = [
   "yamunanagar",
 ];
 
+/**
+ * Cache-Control for every sitemap Response (index, sitemap-site.xml, and
+ * each sitemap-<city>.xml). Found 30 Sep 2026: none of these routes set any
+ * Cache-Control at all, and while Next itself re-runs them fresh on every
+ * request (uncached fetch -> dynamic rendering under the 'auto' route
+ * config, confirmed live: sitemap-charkhi-dadri.xml correctly 404s the
+ * instant its is_launch flips false), the *index* kept listing that city's
+ * sitemap long after — reproducible across repeated fetches with cache-
+ * busting query params. With no explicit header, Vercel's edge is free to
+ * apply its own default heuristic to the 200 response (while a 404 like the
+ * per-city case typically isn't cached the same way), which is the only
+ * place this staleness could be hiding since both routes read the exact
+ * same listPublicAreas() data (getPublicCityAreaBySlug -> getPublicAreaBySlug
+ * -> listPublicAreas, see public-adapter.ts). s-maxage=900 matches this
+ * repo's page-level ISR convention (`export const revalidate = 900`, used
+ * on every dynamic page route) so a sitemap is never staler than the pages
+ * it lists; stale-while-revalidate keeps a request from ever blocking on a
+ * cache miss.
+ */
+export const SITEMAP_CACHE_CONTROL = "public, max-age=0, s-maxage=900, stale-while-revalidate=1800";
+
 export function xmlEscape(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -128,7 +149,9 @@ function maxVerifiedAt(schools: PublicSchool[]): Date | undefined {
 export async function buildCitySitemapResponse(citySlug: string): Promise<Response> {
   const city = await getPublicCityAreaBySlug(citySlug);
   if (!city?.isLaunch) {
-    return new Response("Not found", { status: 404 });
+    // no-store: a city flipping is_launch back on shouldn't have to wait out
+    // a cached 404 on this route (same reasoning as the 200 case above).
+    return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
 
   // "indexableSchools" here used to mean only "published" (api.public_schools'
@@ -176,7 +199,9 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
     ),
   ];
 
-  return new Response(urlSetXml(entries), { headers: { "Content-Type": "application/xml" } });
+  return new Response(urlSetXml(entries), {
+    headers: { "Content-Type": "application/xml", "Cache-Control": SITEMAP_CACHE_CONTROL },
+  });
 }
 
 /**
