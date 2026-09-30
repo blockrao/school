@@ -266,23 +266,27 @@ export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | nu
 }
 
 /**
- * Launched areas shaped for the shared shell (SiteHeader/MobileBottomNav/SiteFooter's
+ * Every area shaped for the shared shell (SiteHeader/MobileBottomNav/SiteFooter's
  * city picker) — every layout that renders that shell needs exactly this. Was
  * duplicated ad hoc in src/app/[locale]/layout.tsx; pulled in here (2026-09-28) when
  * src/app/for-schools/layout.tsx needed the identical list, so the two can't drift.
+ *
+ * Launch gate removed (30 Sep 2026, Prav): there is no more area-level gate —
+ * every district/city-state always appears here. Visibility now lives
+ * entirely at the school record (schools.status = 'published'), controlled
+ * by the ops portal; a city with zero published schools yet just renders an
+ * empty state rather than being hidden from navigation.
  */
 export async function listLaunchedCityOptions(
   locale: string,
 ): Promise<{ slug: string; name: string; stateSlug: string; href: string }[]> {
   const areas = await listPublicAreas();
-  return areas
-    .filter((area) => area.is_launch)
-    .map((area) => ({
-      slug: area.slug,
-      name: area.name,
-      stateSlug: area.state_slug,
-      href: cityPath(locale, area.state_slug, area.slug),
-    }));
+  return areas.map((area) => ({
+    slug: area.slug,
+    name: area.name,
+    stateSlug: area.state_slug,
+    href: cityPath(locale, area.state_slug, area.slug),
+  }));
 }
 
 export type PublicStateAreaCity = { slug: string; name: string; schoolCount: number };
@@ -295,18 +299,16 @@ export type PublicStateArea = {
 };
 
 /**
- * State canonical page's data (docs/seo-canonical-pages-spec.md) — every launched
- * city in the state, with an honest (render-gated, not raw) count each, sorted
- * by count descending. Built from listPublicAreas() (already state-per-area,
- * no slug column on states so state.name is matched via slugify — same
- * approach as getPublicStateBySlug) rather than a new query. A state with no
- * launched cities returns null: it isn't a real page yet, just like a district
- * with is_launch=false isn't a real city page.
+ * State canonical page's data (docs/seo-canonical-pages-spec.md) — every city
+ * in the state, with an honest (render-gated, not raw) count each, sorted by
+ * count descending. Built from listPublicAreas() (already state-per-area, no
+ * slug column on states so state.name is matched via slugify — same approach
+ * as getPublicStateBySlug) rather than a new query.
  */
 export async function getPublicStateAreaBySlug(stateSlug: string): Promise<PublicStateArea | null> {
   // City-states (Delhi) have no separate state page: /schools/{state} is the city (D-126).
   const areas = (await listPublicAreas()).filter(
-    (a) => a.is_launch && !a.is_city_state && a.state_slug === stateSlug,
+    (a) => !a.is_city_state && a.state_slug === stateSlug,
   );
   if (areas.length === 0) return null;
 
@@ -328,13 +330,12 @@ export async function getPublicStateAreaBySlug(stateSlug: string): Promise<Publi
 }
 
 /**
- * Which launched city the current request should show: the user's own choice
+ * Which city the current request should show: the user's own choice
  * (CITY_COOKIE_NAME, set by src/components/shell/city-picker.tsx) if it's
- * still a launched area, otherwise the platform default (the first launched
- * area — today, and for the foreseeable future, Jaipur). Every page that
- * used to hardcode DISTRICT_SLUG/CITY_SLUG = "jaipur" should call this
- * instead, so it automatically follows both the user's pick and whichever
- * city is actually launched, with no per-page constant to keep in sync.
+ * still a real area, otherwise the platform default (Jaipur). Every page
+ * that used to hardcode DISTRICT_SLUG/CITY_SLUG = "jaipur" should call this
+ * instead, so it automatically follows the user's pick, with no per-page
+ * constant to keep in sync.
  *
  * Reads a cookie, so any Server Component that calls this opts into dynamic
  * (per-request) rendering for that render — there is no way to personalize
@@ -345,22 +346,17 @@ export async function getPublicStateAreaBySlug(stateSlug: string): Promise<Publi
  * has no visitor to personalize for anyway).
  */
 export async function getSelectedAreaSlug(): Promise<string> {
-  const launched = (await listPublicAreas()).filter((a) => a.is_launch);
-  // "First launched area" isn't a stable notion — listPublicAreas() has no
-  // ORDER BY, so its row order follows Postgres's own scan order (by
-  // district id), not launch priority. Jaipur is picked as the default
-  // deliberately: it's SchoolOye's primary/home market (2026-09-28 product
-  // decision — operational priority, not a technical availability
-  // distinction). is_launch itself (db/views/040_public_areas.sql, D-119) is
-  // purely data-driven — "does this district have ≥1 published school" — so
-  // every other launched area (Gurugram included, 480 published schools as
-  // of this writing) is real, published inventory, not a thinner or
-  // test-only area; Jaipur just isn't allowed to lose the default silently
-  // to whichever area Postgres happens to return first.
-  const fallback = launched.find((a) => a.slug === "jaipur")?.slug ?? launched[0]?.slug ?? "jaipur";
+  const areas = await listPublicAreas();
+  // "First area" isn't a stable notion — listPublicAreas() has no ORDER BY,
+  // so its row order follows Postgres's own scan order (by district id).
+  // Jaipur is picked as the default deliberately: it's SchoolOye's primary/
+  // home market (2026-09-28 product decision), not a technical availability
+  // distinction — Jaipur just isn't allowed to lose the default silently to
+  // whichever area Postgres happens to return first.
+  const fallback = areas.find((a) => a.slug === "jaipur")?.slug ?? areas[0]?.slug ?? "jaipur";
   const store = await cookies();
   const cookieSlug = store.get(CITY_COOKIE_NAME)?.value;
-  return cookieSlug && launched.some((a) => a.slug === cookieSlug) ? cookieSlug : fallback;
+  return cookieSlug && areas.some((a) => a.slug === cookieSlug) ? cookieSlug : fallback;
 }
 
 /**
@@ -470,15 +466,12 @@ export async function listPublicSchoolsByDistrict(
 }
 
 /**
- * Published schools across every launched city (2026-09-28) — what the header
- * search box and /schools page's `q` search actually need. Before this
- * existed, the only "search" was listPublicSchoolsByDistrict scoped to
+ * Published schools across every city (2026-09-28) — what the header search
+ * box and /schools page's `q` search actually need. Before this existed, the
+ * only "search" was listPublicSchoolsByDistrict scoped to
  * getSelectedCityArea() — a visitor typing a school name that happened to be
- * in a different launched city than their currently-selected one got zero
- * results, even though the school was live on the site. Deliberately
- * restricted to launched districts only (listLaunchedDistrictIds), not every
- * district with a publish-gate pass: a result whose city page 404s
- * (city.isLaunch === false) would be worse than not surfacing it at all.
+ * in a different city than their currently-selected one got zero results,
+ * even though the school was live on the site.
  */
 export async function searchPublicSchoolsSiteWide(
   filters: PublicSchoolFilters,
@@ -487,10 +480,10 @@ export async function searchPublicSchoolsSiteWide(
   return queryPublicSchools(districtIds, filters);
 }
 
-/** district_id of every launched area — see api.public_areas.is_launch. */
+/** district_id of every area — see api.public_areas. */
 export async function listLaunchedDistrictIds(): Promise<number[]> {
   const areas = await listPublicAreas();
-  return areas.filter((a) => a.is_launch).flatMap((a) => a.district_ids);
+  return areas.flatMap((a) => a.district_ids);
 }
 
 /**

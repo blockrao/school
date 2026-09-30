@@ -29,7 +29,6 @@ export default async function LocalityPage({
 
   if (resolved.kind === "town") {
     const { town } = resolved;
-    if (!town.isLaunch) notFound();
     if (town.stateSlug !== state) {
       permanentRedirect(localityPath(locale, town.stateSlug, town.citySlug, town.townSlug));
     }

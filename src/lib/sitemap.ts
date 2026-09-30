@@ -2,7 +2,6 @@ import "server-only";
 import {
   getBoardNamesBySchoolId,
   getPublicCityAreaBySlug,
-  listPublicAreas,
   listPublicLocalitiesByCity,
   listPublicSchoolsByDistrict,
   type PublicSchool,
@@ -12,28 +11,27 @@ import { meetsIndexabilityGate } from "@/lib/school-metadata";
 import { cityPath, localityPath, schoolPath } from "@/lib/urls";
 
 /**
- * Every city with its own child sitemap route file
+ * Every city/area with its own child sitemap route file
  * (`src/app/sitemap-<slug>.xml/route.ts`, one per entry here — see
- * buildCitySitemapXml below). A literal per-city route file, not a dynamic
- * segment, for two reasons: (1) Next.js App Router doesn't support a folder
- * name that mixes a literal `.xml` suffix with a dynamic segment
+ * buildCitySitemapResponse below). A literal per-city route file, not a
+ * dynamic segment, for two reasons: (1) Next.js App Router doesn't support a
+ * folder name that mixes a literal `.xml` suffix with a dynamic segment
  * (`sitemap-[city].xml` isn't valid — see dynamic-routes.md, a segment must
  * be wholly `[param]`), and (2) the top-level dynamic slot is already taken
  * by `[locale]`, and Next.js doesn't allow two different dynamic segment
  * names at the same level, which also rules out `generateSitemaps()`'s own
  * `/sitemap/[id].xml` convention living usefully alongside it here.
  *
- * 2026-09-28: expanded from a 1-city hardcoded list to all 22 districts
- * where api.public_areas.is_launch is true as of that date (see
- * db/views/040_public_areas.sql's data-driven policy). This array is NOT
- * read from the DB at runtime — `sitemap.xml/route.ts` (the index) only
- * lists a city here if a matching route file also exists, so the two must
- * be added together. When a 23rd (or later) city clears the is_launch bar,
- * add its slug here AND create `src/app/sitemap-<slug>.xml/route.ts` calling
+ * Launch gate removed entirely (30 Sep 2026, Prav) — every area always has
+ * a real page, so this is just the list of areas that exist (api.public_areas),
+ * one entry per district-or-city-state row. NOT read from the DB at runtime —
+ * `sitemap.xml/route.ts` (the index) lists every slug here unconditionally,
+ * and each one needs a matching route file. When a new area is added, add its
+ * slug here AND create `src/app/sitemap-<slug>.xml/route.ts` calling
  * `buildCitySitemapResponse("<slug>")` — copy any existing one, they're
  * identical one-liners.
  */
-export const LAUNCH_CITY_SLUGS = [
+export const CITY_SITEMAP_SLUGS = [
   "jaipur",
   "gurugram",
   "delhi",
@@ -63,21 +61,15 @@ export const LAUNCH_CITY_SLUGS = [
 /**
  * Cache-Control for every sitemap Response (index, sitemap-site.xml, and
  * each sitemap-<city>.xml). Found 30 Sep 2026: none of these routes set any
- * Cache-Control at all, and while Next itself re-runs them fresh on every
- * request (uncached fetch -> dynamic rendering under the 'auto' route
- * config, confirmed live: sitemap-charkhi-dadri.xml correctly 404s the
- * instant its is_launch flips false), the *index* kept listing that city's
- * sitemap long after — reproducible across repeated fetches with cache-
- * busting query params. With no explicit header, Vercel's edge is free to
- * apply its own default heuristic to the 200 response (while a 404 like the
- * per-city case typically isn't cached the same way), which is the only
- * place this staleness could be hiding since both routes read the exact
- * same listPublicAreas() data (getPublicCityAreaBySlug -> getPublicAreaBySlug
- * -> listPublicAreas, see public-adapter.ts). s-maxage=900 matches this
- * repo's page-level ISR convention (`export const revalidate = 900`, used
- * on every dynamic page route) so a sitemap is never staler than the pages
- * it lists; stale-while-revalidate keeps a request from ever blocking on a
- * cache miss.
+ * Cache-Control at all, and the sitemap.xml index was observed serving a
+ * stale copy in production (still listing a city sitemap well after that
+ * city's data should have dropped it) — reproducible across repeated
+ * fetches with cache-busting query params, with no explicit header on the
+ * Response to stop a CDN from applying its own default caching heuristic to
+ * the 200. s-maxage=900 matches this repo's page-level ISR convention
+ * (`export const revalidate = 900`, used on every dynamic page route) so a
+ * sitemap is never staler than the pages it lists; stale-while-revalidate
+ * keeps a request from ever blocking on a cache miss.
  */
 export const SITEMAP_CACHE_CONTROL = "public, max-age=0, s-maxage=900, stale-while-revalidate=1800";
 
@@ -137,20 +129,19 @@ function maxVerifiedAt(schools: PublicSchool[]): Date | undefined {
 
 /**
  * Shared body for every `src/app/sitemap-<slug>.xml/route.ts` file — see
- * LAUNCH_CITY_SLUGS above for why there's one literal file per city instead
+ * CITY_SITEMAP_SLUGS above for why there's one literal file per city instead
  * of a dynamic route. Each of those files is just:
  *
  *   export async function GET() { return buildCitySitemapResponse("<slug>"); }
  *
- * 404s if the city isn't actually launched (is_launch=false), so a stale
- * route file left behind after a city drops out of launch — sourcing
- * regressed, say — stops serving instead of silently listing a dead city.
+ * 404s only if the slug isn't a real area at all (a stale/renamed route
+ * file). There is no launch gate any more (removed 30 Sep 2026) — every real
+ * area's sitemap always serves, even with zero published schools yet; its
+ * <url> list is just the city/locality pages until schools get published.
  */
 export async function buildCitySitemapResponse(citySlug: string): Promise<Response> {
   const city = await getPublicCityAreaBySlug(citySlug);
-  if (!city?.isLaunch) {
-    // no-store: a city flipping is_launch back on shouldn't have to wait out
-    // a cached 404 on this route (same reasoning as the 200 case above).
+  if (!city) {
     return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
 
@@ -202,15 +193,4 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
   return new Response(urlSetXml(entries), {
     headers: { "Content-Type": "application/xml", "Cache-Control": SITEMAP_CACHE_CONTROL },
   });
-}
-
-/**
- * Every launched city's is_launch flag, live from the DB — used by
- * sitemap.xml/route.ts to drop a city from the index the moment it stops
- * qualifying, even though LAUNCH_CITY_SLUGS (which route files exist) stays
- * static until someone adds/removes a file.
- */
-export async function listLiveLaunchedCitySlugs(): Promise<Set<string>> {
-  const areas = await listPublicAreas();
-  return new Set(areas.filter((a) => a.is_launch).map((a) => a.slug));
 }

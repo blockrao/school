@@ -25,11 +25,11 @@ export async function generateMetadata({
 export default async function TermsPage() {
   // Describes the platform's actual current scope, not any one visitor's chosen
   // city — a Terms page states where the service operates, so it lists every
-  // launched city rather than following the sy_city cookie.
-  const launchedAreas = (await listPublicAreas()).filter((a) => a.is_launch);
+  // area rather than following the sy_city cookie.
+  const areas = await listPublicAreas();
   const cityListText =
-    launchedAreas.length > 0
-      ? launchedAreas.map((a) => `${a.name}, ${a.state}`).join("; ")
+    areas.length > 0
+      ? areas.map((a) => `${a.name}, ${a.state}`).join("; ")
       : "the cities it currently serves";
 
   return (

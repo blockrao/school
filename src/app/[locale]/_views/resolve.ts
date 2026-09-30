@@ -46,7 +46,7 @@ export async function resolveLocality(citySlug: string, localitySlug: string) {
   if (town && town.citySlug === citySlug) return { kind: "town" as const, town };
 
   const city = await getPublicCityAreaBySlug(citySlug);
-  if (!city?.isLaunch) return null;
+  if (!city) return null;
   const locality = await getPublicLocalityBySlug(city.citySlug, localitySlug);
   if (!locality) return null;
   return { kind: "locality" as const, resolved: { city, locality } satisfies ResolvedLocality };

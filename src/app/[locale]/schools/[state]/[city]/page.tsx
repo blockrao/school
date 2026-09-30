@@ -17,7 +17,7 @@ async function load(stateSlug: string, second: string) {
     return locality ? ({ kind: "locality", locality } as const) : null;
   }
   const city = await getPublicCityAreaBySlug(second);
-  if (!city?.isLaunch || city.isCityState) return null;
+  if (!city || city.isCityState) return null;
   return { kind: "city", city, wrongState: city.stateSlug !== stateSlug } as const;
 }
 

@@ -8,20 +8,17 @@ import { cityPath, localePrefix } from "@/lib/urls";
  * Only lists cities/pages with something real behind them. The design's footer includes
  * a multi-city switcher and a "Report an update" link — neither screen exists yet (not in
  * the current build order), so they're left out rather than linked to nothing. "Schools by
- * city" lists launch areas from listPublicAreas() (is_launch), not a hardcoded link — this
- * grew from 2 to 22 cities on 2026-09-28 when is_launch became data-driven (see
- * db/views/040_public_areas.sql), so cities are now grouped by state and sorted by school
- * count within each group, rather than the flat unsorted list that worked fine at 2 entries.
+ * city" lists every area from listPublicAreas() — no launch gate (removed 30 Sep 2026;
+ * see db/views/040_public_areas.sql) — grouped by state and sorted by school count within
+ * each group.
  * Privacy and Terms are real (if placeholder-content) pages — see their own files — so
  * they're linked here now that the site is public.
  */
 export async function SiteFooter({ locale, dict }: { locale: string; dict: Dictionary }) {
   const areas = await listPublicAreas();
-  const launchAreas = areas
-    .filter((a) => a.is_launch)
-    .sort((a, b) => b.school_count - a.school_count);
-  const areasByState = new Map<string, typeof launchAreas>();
-  for (const area of launchAreas) {
+  const sortedAreas = [...areas].sort((a, b) => b.school_count - a.school_count);
+  const areasByState = new Map<string, typeof sortedAreas>();
+  for (const area of sortedAreas) {
     const group = areasByState.get(area.state);
     if (group) {
       group.push(area);
@@ -114,7 +111,7 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
           </div>
         </div>
 
-        {launchAreas.length > 0 && (
+        {sortedAreas.length > 0 && (
           <div className="flex flex-col gap-4 border-t border-so-line pt-5">
             <span className="text-meta font-semibold text-so-ink">
               {t(dict, "footer.schools_by_city")}

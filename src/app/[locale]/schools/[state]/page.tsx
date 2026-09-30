@@ -10,7 +10,7 @@ import { PlaceView, placeMetadata, type ResolvedPlace } from "../../_views/place
  */
 async function resolve(stateSlug: string): Promise<ResolvedPlace | null> {
   const cityState = await getPublicCityAreaBySlug(stateSlug);
-  if (cityState?.isCityState) return cityState.isLaunch ? { kind: "city", city: cityState } : null;
+  if (cityState?.isCityState) return { kind: "city", city: cityState };
   const state = await getPublicStateAreaBySlug(stateSlug);
   return state ? { kind: "state", state } : null;
 }

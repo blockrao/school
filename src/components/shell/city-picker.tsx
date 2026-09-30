@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 /**
  * Shows the user's chosen city and lets them switch it. Selecting a city saves
  * it (cookie, one year) so it's remembered on the next visit, and navigates to
- * that city. Only launched cities (`api.public_areas.is_launch`) are offered —
- * this list grows automatically as more cities launch, no code change needed
- * here.
+ * that city. Every area (`api.public_areas`) is offered — no launch gate any
+ * more (removed 30 Sep 2026) — this list grows automatically as new areas are
+ * added, no code change needed here.
  */
 export function CityPicker({ areas, className }: { areas: CityOption[]; className?: string }) {
   const [open, setOpen] = useState(false);

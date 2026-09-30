@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
@@ -72,8 +71,8 @@ const COMPARE_LIMIT = 4;
  * differently-named dynamic segment at this directory level — see that doc's
  * routing notes), or a legacy district slug to redirect from. District never
  * reaches the UI — it's only used inside
- * getPublicCityAreaBySlug/getRedirectCitySlugForDistrictSlug to check the
- * launch flag and resolve old links.
+ * getPublicCityAreaBySlug/getRedirectCitySlugForDistrictSlug to resolve old
+ * links.
  */
 export async function resolvePlace(citySlug: string) {
   const city = await getPublicCityAreaBySlug(citySlug);
@@ -395,7 +394,6 @@ export async function PlaceView({
 
   if (resolved.kind === "town") {
     const { town } = resolved;
-    if (!town.isLaunch) notFound();
 
     const [schools, neighbors] = await Promise.all([
       listPublicSchoolsByLocality(town.localityId),
@@ -423,7 +421,6 @@ export async function PlaceView({
   }
 
   const { city } = resolved;
-  if (!city.isLaunch) notFound();
 
   const { boardId, maxClass, admissionsOpen, page, compareIds } = parseFilters(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;

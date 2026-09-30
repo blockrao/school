@@ -571,7 +571,6 @@ export type Database = {
           name_hi: string | null;
           slug: string;
           centroid: unknown | null;
-          is_launch: boolean;
         };
         Insert: {
           id?: number;
@@ -580,7 +579,6 @@ export type Database = {
           name_hi?: string | null;
           slug: string;
           centroid?: unknown | null;
-          is_launch?: boolean;
         };
         Update: {
           id?: number;
@@ -589,7 +587,6 @@ export type Database = {
           name_hi?: string | null;
           slug?: string;
           centroid?: unknown | null;
-          is_launch?: boolean;
         };
         Relationships: [];
       };
@@ -2482,17 +2479,10 @@ export type Database = {
       };
     };
     Views: {
-      active_cities: {
-        Row: {
-          id: number | null;
-          name_en: string | null;
-          slug: string | null;
-          state_id: number | null;
-          state_slug: string | null;
-          school_count: number | null;
-        };
-        Relationships: [];
-      };
+      // active_cities dropped 30 Sep 2026 (launch gate removal) — it filtered
+      // on cities.is_launch, which was dropped in the same migration
+      // (20260930190000_remove_launch_gate_entirely.sql). Confirmed unused in
+      // app code before dropping.
     };
     Functions: {
       approve_application: {

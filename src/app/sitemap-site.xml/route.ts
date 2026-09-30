@@ -22,7 +22,7 @@ import {
 
 /**
  * Site-wide static + data-driven pages that aren't scoped to one city —
- * the twin of sitemap-<city>.xml (see LAUNCH_CITY_SLUGS in lib/sitemap.ts),
+ * the twin of sitemap-<city>.xml (see CITY_SITEMAP_SLUGS in lib/sitemap.ts),
  * registered in sitemap.xml's index alongside the city sitemaps.
  *
  * Deliberately excludes pages that are real routes but not indexable:
@@ -49,19 +49,17 @@ export async function GET() {
   const teacherLastmod = (createdAt: string | null | undefined) =>
     createdAt ? new Date(createdAt) : undefined;
 
-  // State canonical pages (docs/seo-canonical-pages-spec.md) — a state is
-  // "launched" the moment any one of its cities is, so this is derived from
-  // the same is_launch data as the city sitemaps rather than a hardcoded
-  // list. Not its own per-state sitemap file (no routing constraint forces
-  // that split the way it does for cities — see lib/sitemap.ts) — just more
-  // entries in this one.
-  const launchedStateSlugs = [
-    ...new Set(areas.filter((a) => a.is_launch).map((a) => a.state_slug)),
-  ];
+  // State canonical pages (docs/seo-canonical-pages-spec.md) — every state
+  // with at least one area, derived from the same areas data as the city
+  // sitemaps rather than a hardcoded list. No launch gate any more (removed
+  // 30 Sep 2026) — every state with any area gets a page. Not its own
+  // per-state sitemap file (no routing constraint forces that split the way
+  // it does for cities — see lib/sitemap.ts) — just more entries in this one.
+  const stateSlugs = [...new Set(areas.map((a) => a.state_slug))];
 
   const entries = [
     urlEntry(siteUrl, ""),
-    ...launchedStateSlugs.map((slug) => urlEntry(siteUrl, statePath("en", slug))),
+    ...stateSlugs.map((slug) => urlEntry(siteUrl, statePath("en", slug))),
     urlEntry(siteUrl, "/teachers"),
     ...teachers.map((teacher) =>
       urlEntry(siteUrl, teacherPath("en", teacher.slug), teacherLastmod(teacher.created_at)),
