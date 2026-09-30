@@ -30,8 +30,13 @@ export async function applyNoticeCycle(formData: FormData) {
   const noticeUrl = String(formData.get("noticeUrl") ?? "");
   const classCode = String(formData.get("classCode") ?? "").trim();
   const academicYear = String(formData.get("academicYear") ?? "").trim();
-  const sourceType =
-    formData.get("sourceType") === "school_reported" ? "school_reported" : "official";
+  // The only proposal source this form is ever rendered from is the portal
+  // form (src/lib/admission-notice-review.ts always sets sourceType:
+  // "school_reported" there), so this hidden field only ever carries that
+  // one value in practice. Defaulting to "school_reported" rather than
+  // "official" avoids misrepresenting a school's own self-reported notice as
+  // officially sourced if the hidden field were ever missing or tampered with.
+  const sourceType = formData.get("sourceType") === "official" ? "official" : "school_reported";
   const statusOverride = String(formData.get("statusOverride") ?? "auto");
   const opensOn = String(formData.get("opensOn") ?? "").trim() || null;
   const closesOn = String(formData.get("closesOn") ?? "").trim() || null;

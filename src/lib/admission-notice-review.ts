@@ -1,37 +1,32 @@
 import { istCalendarDayDiff } from "@/lib/ist-date";
 
 /**
- * Closes a real gap flagged 30 Sep 2026: `admission_notices` (populated by
- * both the crawler that discovers admission/disclosure pages on a school's
- * own site, and the school portal's "Post an admission notice" form) had a
- * `review` workflow — pending -> approved/rejected — that stopped at
- * `approved` and never wrote anything to `admission_cycles`. An "approved"
- * notice sat there having changed nothing the public page reads. This module
- * is the pure logic for turning one notice's `extraction` payload into
- * editable, ops-confirmed proposals for real `admission_cycles` rows.
+ * Closes a real gap flagged 30 Sep 2026: the school portal's "Post an
+ * admission notice" form (`submitAdmissionNotice`,
+ * src/app/portal/notices/new/actions.ts) writes to `admission_notices`, whose
+ * `review` workflow — pending -> approved/rejected — stopped at `approved`
+ * and never wrote anything to `admission_cycles`, the table the public page
+ * actually reads. An "approved" notice sat there having changed nothing.
+ * This module is the pure logic for turning one notice's `extraction`
+ * payload into an editable, ops-confirmed proposal for a real
+ * `admission_cycles` row.
  *
- * Two real extraction shapes exist in production today (checked directly
- * against live data, not assumed):
- * - The crawler's shape carries `extraction.cycles: [...]`, already
- *   normalized close to `admission_cycles`'s own columns (class_code,
- *   opens_on, closes_on, form_mode, registration_fee_inr, ...) — the
- *   overwhelming majority of usable rows.
- * - The portal form's shape (`submitAdmissionNotice`,
- *   src/app/portal/notices/new/actions.ts) is flatter: one cycle's worth of
- *   fields, `classes` as free text (school typed "Nursery, LKG, Class 1"),
- *   never a `class_code`.
- * Most crawled pages carry neither (contact info, fee PDFs, unreadable
- * scans) — `extractProposedCycles` returns `[]` for those, same as before:
- * nothing to publish, "Approve"/"Reject" (unchanged) is still the right
- * action for them.
+ * Scope note (30 Sep 2026, Prav): `admission_notices` also carries rows from
+ * a separate site-crawling pipeline (its extraction shape has a `cycles[]`
+ * array already normalized close to `admission_cycles`'s own columns). Prav
+ * confirmed that data source is not wanted and told this not to be wired to
+ * this flow anywhere — so `extractProposedCycles` recognizes ONLY the portal
+ * form's shape below (`session` + `form_type`) and returns `[]` for anything
+ * else, `cycles[]` included, same as it already does for a contact-info-only
+ * or unreadable extraction. Don't add the crawler shape back here without
+ * asking again.
  *
- * `classCode` is deliberately left `null` whenever the source didn't supply
- * one we can trust as one of the fixed `class_levels` codes (every portal-
- * form submission, and any crawler cycle whose class_code isn't recognized).
- * The review UI must force staff to pick one explicitly rather than guessing
- * from free text — the same "never fabricate a mapping" rule this codebase
- * already applies to `class_label_ambiguous`/`class_label_note` on the table
- * itself.
+ * `classCode` is always `null` here — the portal form's `classes` field is
+ * free text the school typed (e.g. "Nursery, LKG, Class 1"), never a
+ * `class_levels` code, so the review UI must force staff to pick one
+ * explicitly rather than guessing from free text — the same "never
+ * fabricate a mapping" rule this codebase already applies to
+ * `class_label_ambiguous`/`class_label_note` on the table itself.
  */
 
 export type ProposedCycle = {
@@ -50,10 +45,9 @@ export type ProposedCycle = {
   selectionNotes: string | null;
   classLabelAmbiguous: boolean;
   classLabelNote: string | null;
-  /** "official" for a document the crawler found published on the school's
-   * own site; "school_reported" for the portal form, which is the school
-   * self-reporting to SchoolOye directly rather than a published document. */
-  sourceType: "official" | "school_reported";
+  /** Always "school_reported" — the only source this module builds proposals
+   * from is the portal form, the school self-reporting to SchoolOye directly. */
+  sourceType: "school_reported";
 };
 
 const KNOWN_FORM_MODES = new Set(["online", "offline", "both", "unknown"]);
@@ -69,34 +63,6 @@ function asNumber(value: unknown): number | null {
     return Number.isFinite(n) ? n : null;
   }
   return null;
-}
-
-function fromCrawlerCycle(raw: unknown, knownClassCodes: ReadonlySet<string>): ProposedCycle {
-  const c = (raw ?? {}) as Record<string, unknown>;
-  const rawCode = asString(c.class_code);
-  return {
-    classCode: rawCode && knownClassCodes.has(rawCode) ? rawCode : null,
-    classLabelHint: rawCode,
-    academicYear: "", // filled in by the caller from extraction.academic_year — one value per notice, not per cycle
-    opensOn: asString(c.opens_on),
-    closesOn: asString(c.closes_on),
-    resultsOn: asString(c.results_on),
-    formMode: (() => {
-      const m = asString(c.form_mode);
-      return m && KNOWN_FORM_MODES.has(m) ? (m as ProposedCycle["formMode"]) : "unknown";
-    })(),
-    formUrl: asString(c.form_url),
-    registrationFee: asNumber(c.registration_fee_inr),
-    dobFrom: asString(c.dob_from),
-    dobTo: asString(c.dob_to),
-    documentsRequired: Array.isArray(c.documents_required)
-      ? c.documents_required.filter((d): d is string => typeof d === "string")
-      : null,
-    selectionNotes: asString(c.selection_notes),
-    classLabelAmbiguous: c.class_label_ambiguous === true,
-    classLabelNote: asString(c.class_label_note),
-    sourceType: "official",
-  };
 }
 
 function fromPortalForm(extraction: Record<string, unknown>): ProposedCycle {
@@ -126,21 +92,16 @@ function fromPortalForm(extraction: Record<string, unknown>): ProposedCycle {
   };
 }
 
-/** `[]` means nothing structured to publish — the existing plain Approve/Reject is still right for this notice. */
-export function extractProposedCycles(
-  extraction: unknown,
-  knownClassCodes: ReadonlySet<string>,
-): ProposedCycle[] {
+/**
+ * `[]` means nothing to publish — the existing plain Approve/Reject is still
+ * right for this notice. Recognizes only the portal form's shape (`session` +
+ * `form_type`) — see the scope note above for why the crawler's `cycles[]`
+ * shape is deliberately not handled here.
+ */
+export function extractProposedCycles(extraction: unknown): ProposedCycle[] {
   if (extraction === null || typeof extraction !== "object") return [];
   const e = extraction as Record<string, unknown>;
 
-  if (Array.isArray(e.cycles) && e.cycles.length > 0) {
-    const academicYear = asString(e.academic_year) ?? "";
-    return e.cycles.map((raw) => ({ ...fromCrawlerCycle(raw, knownClassCodes), academicYear }));
-  }
-
-  // The portal form's flatter shape: distinguishable by having `session` +
-  // `form_type`, fields the crawler's extraction never produces.
   if (typeof e.session === "string" && typeof e.form_type === "string") {
     return [fromPortalForm(e)];
   }

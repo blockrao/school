@@ -1,64 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { deriveAdmissionStatus, extractProposedCycles } from "@/lib/admission-notice-review";
 
-const CLASS_CODES = new Set(["nursery", "lkg", "ukg", "c1", "c9", "c12"]);
-
 describe("extractProposedCycles", () => {
-  it("returns [] for extraction with no cycles and no portal-form shape (contact-info-only pages)", () => {
-    expect(extractProposedCycles({ email: ["a@b.com"], phone: [] }, CLASS_CODES)).toEqual([]);
-    expect(extractProposedCycles(null, CLASS_CODES)).toEqual([]);
-    expect(extractProposedCycles({ unreadable: true }, CLASS_CODES)).toEqual([]);
+  it("returns [] for extraction with no portal-form shape (contact-info-only pages, unreadable scans)", () => {
+    expect(extractProposedCycles({ email: ["a@b.com"], phone: [] })).toEqual([]);
+    expect(extractProposedCycles(null)).toEqual([]);
+    expect(extractProposedCycles({ unreadable: true })).toEqual([]);
   });
 
-  it("maps the crawler's cycles[] shape, carrying the notice-level academic_year onto every cycle", () => {
-    const proposed = extractProposedCycles(
-      {
+  it("does not recognize the crawler's cycles[] shape — that data source is out of scope by design", () => {
+    expect(
+      extractProposedCycles({
         academic_year: "2024-25",
-        cycles: [
-          {
-            class_code: "c9",
-            opens_on: null,
-            closes_on: null,
-            results_on: "2024-02-26",
-            form_mode: "online",
-            registration_fee_inr: null,
-            class_label_ambiguous: false,
-          },
-        ],
-      },
-      CLASS_CODES,
-    );
-    expect(proposed).toHaveLength(1);
-    expect(proposed[0]).toMatchObject({
-      classCode: "c9",
-      academicYear: "2024-25",
-      resultsOn: "2024-02-26",
-      formMode: "online",
-      sourceType: "official",
-    });
-  });
-
-  it("never trusts a class_code the class_levels table doesn't recognize", () => {
-    const [proposed] = extractProposedCycles(
-      { academic_year: "2027-28", cycles: [{ class_code: "std-9-ish" }] },
-      CLASS_CODES,
-    );
-    expect(proposed.classCode).toBeNull();
-    expect(proposed.classLabelHint).toBe("std-9-ish");
+        cycles: [{ class_code: "c9", form_mode: "online" }],
+      }),
+    ).toEqual([]);
   });
 
   it("maps the portal form's flat shape to one always-ambiguous proposal needing a class pick", () => {
-    const proposed = extractProposedCycles(
-      {
-        session: "2027-28",
-        classes: "Nursery, LKG, Class 1",
-        form_type: "online",
-        opens_on: "2027-01-10",
-        closes_on: "2027-02-10",
-        registration_fee: "500",
-      },
-      CLASS_CODES,
-    );
+    const proposed = extractProposedCycles({
+      session: "2027-28",
+      classes: "Nursery, LKG, Class 1",
+      form_type: "online",
+      opens_on: "2027-01-10",
+      closes_on: "2027-02-10",
+      registration_fee: "500",
+    });
     expect(proposed).toHaveLength(1);
     expect(proposed[0]).toMatchObject({
       classCode: null,

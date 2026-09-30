@@ -27,8 +27,6 @@ export default async function OpsNoticesPage({
     supabase.from("class_levels").select("code, label_en").order("sort_order"),
   ]);
 
-  const knownClassCodes = new Set((classLevels ?? []).map((c) => c.code));
-
   const schoolIds = [
     ...new Set((notices ?? []).map((n) => n.school_id).filter((id): id is string => !!id)),
   ];
@@ -39,7 +37,7 @@ export default async function OpsNoticesPage({
     <div className="mx-auto max-w-(--container-page) px-4 py-6 md:px-10 md:py-9">
       <h1 className="font-display text-title-m md:text-title-d">Admission notices</h1>
       <p className="mt-1 text-body text-muted-ink">
-        Notices discovered on schools' own sites or posted through the portal, awaiting review.
+        Notices posted by schools through the portal, awaiting review.
       </p>
 
       {published === "1" && (
@@ -70,7 +68,7 @@ export default async function OpsNoticesPage({
       ) : (
         <div className="mt-6 flex flex-col gap-3">
           {notices.map((notice) => {
-            const proposals = extractProposedCycles(notice.extraction, knownClassCodes);
+            const proposals = extractProposedCycles(notice.extraction);
             const hasPublishableProposal = proposals.length > 0 && notice.school_id;
             return (
               <div
