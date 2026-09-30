@@ -140,6 +140,8 @@
     "official_bulletin": "Official information bulletin ↗",
     "verified_footer_note": "Every date above is checked against the official notification before publishing — see the timeline for exactly when each stage was verified.",
     "whatsapp_share_text": "{name} {year} — dates, fees, syllabus & eligibility, verified: {url}",
-    "eligibility_share_text": "Check if your child is eligible for {name} {year}: {url}"
+    "eligibility_share_text": "Check if your child is eligible for {name} {year}: {url}",
+    "read_in_hindi": "हिन्दी में पढ़ें",
+    "read_in_english": "Read in English"
   }
 }

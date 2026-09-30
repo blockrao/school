@@ -757,6 +757,14 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
     .filter((event): event is NonNullable<typeof event> => event !== null);
   const examName = pick(locale, exam.name_en, exam.name_hi);
   const otherName = locale === "hi" ? exam.name_en : exam.name_hi;
+  // Visible EN/HI toggle for this one page — see locale-switcher.tsx: the
+  // header's toggle stays a permanent no-op site-wide (it's a sibling of
+  // page content in [locale]/layout.tsx, so it has no way to know whether
+  // THIS page has a translation), and its own comment already calls for the
+  // real toggle to live per-page instead, linking to /hi/... only where
+  // that translation is actually published. RMS CET is the first exam to
+  // reach that bar (2026-09-30).
+  const hindiAvailable = locale === "hi" || examHasCompleteHindi(cycles);
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -776,6 +784,16 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
       ))}
       <h1 className="font-display text-title-m md:text-title-d">{examName}</h1>
       {otherName && <p className="mt-1 text-body text-muted-ink">{otherName}</p>}
+      {hindiAvailable && (
+        <p className="mt-1">
+          <a
+            href={examPath(locale === "hi" ? "en" : "hi", slug)}
+            className="font-semibold text-meta text-ruled-blue"
+          >
+            {locale === "hi" ? t(dict, "exam.read_in_english") : t(dict, "exam.read_in_hindi")}
+          </a>
+        </p>
+      )}
       <p className="mt-2 text-body text-muted-ink">
         {exam.conducting_body ?? t(dict, "exam.conducted_nationally")}
         {exam.official_site && (

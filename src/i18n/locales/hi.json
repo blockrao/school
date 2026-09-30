@@ -140,6 +140,8 @@
     "official_bulletin": "आधिकारिक सूचना बुलेटिन ↗",
     "verified_footer_note": "ऊपर दी गई हर तिथि प्रकाशित करने से पहले आधिकारिक सूचना से जांची जाती है — हर चरण कब सत्यापित हुआ, यह समयरेखा में देखें।",
     "whatsapp_share_text": "{name} {year} — तिथियां, शुल्क, पाठ्यक्रम और पात्रता, सत्यापित: {url}",
-    "eligibility_share_text": "जांचें कि आपका बच्चा {name} {year} के लिए पात्र है या नहीं: {url}"
+    "eligibility_share_text": "जांचें कि आपका बच्चा {name} {year} के लिए पात्र है या नहीं: {url}",
+    "read_in_hindi": "हिन्दी में पढ़ें",
+    "read_in_english": "Read in English"
   }
 }
