@@ -15,11 +15,12 @@ import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
+import { examHasCompleteHindi } from "@/lib/i18n-completeness";
 import { formatCurrency } from "@/lib/format";
 import { istDateLabel } from "@/lib/ist-date";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
-import { examPath, localePrefix } from "@/lib/urls";
+import { examPath, homePath, localePrefix } from "@/lib/urls";
 
 const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 
@@ -43,12 +44,20 @@ export async function generateMetadata({
   const title = `${exam.name_en} — Dates, Eligibility & Application ${exam.academic_year} | SchoolOye`;
   const description = `${exam.name_en}${exam.conducting_body ? ` (${exam.conducting_body})` : ""}: application dates, eligibility, fees and the full admission timeline for ${exam.academic_year}, verified against the official notification.`;
 
+  // Only advertise a Hindi alternate once every field on the page is
+  // actually translated — see @/lib/i18n-completeness. Google (and,
+  // per the 30 Sep audit, Gemini/Copilot which lean on Google/Bing
+  // search) uses hreflang to route Hindi-language queries here; ChatGPT
+  // and Perplexity don't reliably honour it, so real, cited Hindi
+  // content still matters more than this tag for those two specifically.
+  const translated = examHasCompleteHindi(cycles) ? (["hi"] as const) : [];
+
   return {
     title,
     description,
     alternates: {
       canonical: localeCanonical(locale, `/exams/${slug}`),
-      languages: localeAlternates(`/exams/${slug}`),
+      languages: localeAlternates(`/exams/${slug}`, translated),
     },
   };
 }
@@ -535,6 +544,60 @@ function toEligibilityCycles(cycles: PublicExamAdmission[], now: Date): Eligibil
     });
 }
 
+// Structured data. Exam pages were the one page type on the site without any
+// JSON-LD (SchoolOye Live Site Audit, 30 Sep 2026) — BreadcrumbList mirrors
+// the pattern already used on school/news/jobs/events pages; Event uses the
+// OnlineEventAttendanceMode + VirtualLocation workaround already agreed for
+// exam-day schema (schema.org requires a location; the exam is administered
+// at many physical centres, so a single postal address would be wrong).
+function examBreadcrumbJsonLd(locale: string, slug: string, nameEn: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}${homePath(locale)}` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Entrance Exams",
+        item: `${siteUrl}${localePrefix(locale)}/exams`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: nameEn,
+        item: `${siteUrl}${examPath(locale, slug)}`,
+      },
+    ],
+  };
+}
+
+function examDateMilestone(cycle: PublicExamAdmission): PublicExamMilestone | undefined {
+  return cycle.milestones.find((milestone) => /exam date|written exam/i.test(milestone.label_en));
+}
+
+function cycleEventJsonLd(cycle: PublicExamAdmission, locale: string, slug: string) {
+  const milestone = examDateMilestone(cycle);
+  const examDate = milestone?.starts_on ?? milestone?.ends_on;
+  if (!examDate) return null;
+
+  const url = `${siteUrl}${examPath(locale, slug)}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: `${cycle.name_en} — ${classLabel(cycle.class_code)} ${cycle.academic_year}`,
+    startDate: examDate,
+    eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: { "@type": "VirtualLocation", url },
+    url,
+    description: `${cycle.name_en} written examination for ${classLabel(cycle.class_code)}, ${cycle.academic_year}. Verified against the official notification.`,
+    ...(cycle.conducting_body
+      ? { organizer: { "@type": "Organization", name: cycle.conducting_body } }
+      : {}),
+  };
+}
+
 export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams/[slug]">) {
   const { locale, slug } = await params;
   const cycles = await getPublicAdmissionsByExamSlug(slug);
@@ -543,9 +606,27 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
   const exam = cycles[0];
   const now = new Date();
   const eligibilityCycles = toEligibilityCycles(cycles, now);
+  const breadcrumbJsonLd = examBreadcrumbJsonLd(locale, slug, exam.name_en);
+  const eventJsonLds = cycles
+    .map((cycle) => cycleEventJsonLd(cycle, locale, slug))
+    .filter((event): event is NonNullable<typeof event> => event !== null);
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {eventJsonLds.map((event, i) => (
+        <script
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed-order, non-reorderable script tags
+          key={i}
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(event) }}
+        />
+      ))}
       <h1 className="font-display text-title-m md:text-title-d">{exam.name_en}</h1>
       {exam.name_hi && <p className="mt-1 text-body text-muted-ink">{exam.name_hi}</p>}
       <p className="mt-2 text-body text-muted-ink">

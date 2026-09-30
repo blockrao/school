@@ -8,12 +8,12 @@ import {
   getSelectedCityArea,
   listOpenAdmissionsByDistrict,
   listPublicBoards,
+  listPublicExams,
   listPublicSchoolsByDistrict,
-  type PublicOpenAdmission,
 } from "@/lib/db/public-adapter";
 import { deadlineState } from "@/lib/deadline";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
-import { cityPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
+import { cityPath, examPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 // South West Delhi stays built but unlinked — see CLAUDE.md. Which city renders
@@ -37,26 +37,67 @@ function admissionPillStatus(status: ReturnType<typeof deadlineState>["status"])
   return status === "closing-soon" || status === "deadline-day" ? "closing-soon" : "open";
 }
 
-function AdmissionRow({
-  admission,
-  locale,
-  now,
-}: {
-  admission: PublicOpenAdmission;
-  locale: string;
-  now: Date;
-}) {
-  const state = deadlineState(
-    { closesAt: admission.closesOn ? new Date(admission.closesOn) : null },
-    now,
-  );
+// Unifies school admission cycles and national exam cycles into one
+// "Admissions open now" list. Exams are not district-scoped like schools
+// are, so they were previously left out of this module entirely — the
+// homepage could say "no open admission windows" while an exam page was
+// live and closing within days (SchoolOye Live Site Audit, 30 Sep 2026).
+type ClosingSoonItem = {
+  key: string;
+  href: string;
+  nameEn: string;
+  closesOn: string | null;
+};
+
+function closingSoonItems(
+  locale: string,
+  schoolAdmissions: readonly { schoolId: string; slug: string; nameEn: string; closesOn: string | null }[],
+  exams: readonly { slug: string; nameEn: string; soonestOpensOn: string | null; soonestClosesOn: string | null }[],
+  now: Date,
+  limit: number,
+): ClosingSoonItem[] {
+  const schoolItems: ClosingSoonItem[] = schoolAdmissions.map((admission) => ({
+    key: `school-${admission.schoolId}`,
+    href: schoolPath(locale, admission.slug),
+    nameEn: admission.nameEn,
+    closesOn: admission.closesOn,
+  }));
+
+  const examItems: ClosingSoonItem[] = exams
+    .filter((exam) => {
+      const state = deadlineState(
+        {
+          opensAt: exam.soonestOpensOn ? new Date(exam.soonestOpensOn) : null,
+          closesAt: exam.soonestClosesOn ? new Date(exam.soonestClosesOn) : null,
+        },
+        now,
+      );
+      return (
+        state.status === "open" || state.status === "closing-soon" || state.status === "deadline-day"
+      );
+    })
+    .map((exam) => ({
+      key: `exam-${exam.slug}`,
+      href: examPath(locale, exam.slug),
+      nameEn: exam.nameEn,
+      closesOn: exam.soonestClosesOn,
+    }));
+
+  return [...schoolItems, ...examItems]
+    .sort((a, b) => {
+      if (!a.closesOn) return 1;
+      if (!b.closesOn) return -1;
+      return a.closesOn.localeCompare(b.closesOn);
+    })
+    .slice(0, limit);
+}
+
+function AdmissionRow({ item, now }: { item: ClosingSoonItem; now: Date }) {
+  const state = deadlineState({ closesAt: item.closesOn ? new Date(item.closesOn) : null }, now);
   const pillStatus = admissionPillStatus(state.status);
 
   return (
-    <Link
-      href={schoolPath(locale, admission.slug)}
-      className="flex min-h-17 border-b border-rule-soft hover:bg-margin-paper"
-    >
+    <Link href={item.href} className="flex min-h-17 border-b border-rule-soft hover:bg-margin-paper">
       <div
         className={cn(
           "flex w-18 shrink-0 flex-col justify-center gap-0.5 border-r-2 py-2 pr-1.5 text-meta",
@@ -68,7 +109,7 @@ function AdmissionRow({
         <span>{state.bottom}</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 py-2 pl-3">
-        <span className="truncate font-display text-card font-semibold">{admission.nameEn}</span>
+        <span className="truncate font-display text-card font-semibold">{item.nameEn}</span>
         <StatusPill status={pillStatus} className="self-start">
           {pillStatus === "closing-soon" ? "Closing soon" : "Open"}
         </StatusPill>
@@ -83,13 +124,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   const area = await getSelectedCityArea();
 
-  const [schoolsResult, openAdmissions, boards] = area
-    ? await Promise.all([
-        listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 }),
-        listOpenAdmissionsByDistrict(area.districtIds, 3),
-        listPublicBoards(),
-      ])
-    : [{ total: 0 }, [], []];
+  const [schoolsResult, openAdmissions, boards, exams] = await Promise.all([
+    area ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 }) : Promise.resolve({ total: 0 }),
+    area ? listOpenAdmissionsByDistrict(area.districtIds, 4) : Promise.resolve([]),
+    area ? listPublicBoards() : Promise.resolve([]),
+    listPublicExams(),
+  ]);
+  const admissionsClosingSoon = closingSoonItems(locale, openAdmissions, exams, now, 4);
 
   const schoolCount = schoolsResult.total;
   const districtLabel = area?.cityName ?? "your city";
@@ -172,15 +213,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </Link>
         </div>
 
-        {openAdmissions.length > 0 ? (
+        {admissionsClosingSoon.length > 0 ? (
           <div className="flex flex-col">
-            {openAdmissions.map((admission) => (
-              <AdmissionRow
-                key={admission.schoolId}
-                admission={admission}
-                locale={locale}
-                now={now}
-              />
+            {admissionsClosingSoon.map((item) => (
+              <AdmissionRow key={item.key} item={item} now={now} />
             ))}
           </div>
         ) : (
