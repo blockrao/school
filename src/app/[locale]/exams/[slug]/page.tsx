@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
 import { StatusPill } from "@/components/ui/badges";
@@ -11,12 +11,14 @@ import type {
   PublicExamMilestone,
   PublicExamParticipatingSchool,
 } from "@/contracts";
+import { getDictionary } from "@/i18n/dictionary";
+import { t } from "@/i18n/t";
 import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
-import { examHasCompleteHindi } from "@/lib/i18n-completeness";
 import { formatCurrency } from "@/lib/format";
+import { examHasCompleteHindi } from "@/lib/i18n-completeness";
 import { istDateLabel } from "@/lib/ist-date";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
@@ -32,6 +34,20 @@ const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 export const revalidate = 900;
 
 // design-pending — no Exam Hub screen exists in design/ yet. See docs/design-gaps.md.
+
+/**
+ * Picks the Hindi value for a field when the page is rendering in Hindi AND
+ * that specific field actually has Hindi content, falling back to English
+ * otherwise. Field-level, not page-level: some fields (pattern/syllabus/
+ * corrections/participating-school names, none of which have a `_hi` column
+ * yet) always fall back to English even on a fully Hindi-gated page — see
+ * "SchoolOye Live Site Audit — Full Hindi parity" (30 Sep 2026) on why
+ * English proper nouns/technical terms staying put inside Hindi copy is the
+ * intended code-mixing style, not a gap.
+ */
+function pick(locale: string, en: string, hi: string | null | undefined): string {
+  return locale === "hi" && hi ? hi : en;
+}
 
 export async function generateMetadata({
   params,
@@ -62,11 +78,15 @@ export async function generateMetadata({
   };
 }
 
-function MilestoneRow({ milestone }: { milestone: PublicExamMilestone }) {
+function MilestoneRow({ milestone, locale }: { milestone: PublicExamMilestone; locale: string }) {
   const starts = milestone.starts_on ? istDateLabel(new Date(milestone.starts_on)) : null;
   const ends = milestone.ends_on ? istDateLabel(new Date(milestone.ends_on)) : null;
   const dateLabel =
-    starts && ends && starts !== ends ? `${starts} – ${ends}` : (starts ?? ends ?? "Date TBA");
+    starts && ends && starts !== ends
+      ? `${starts} – ${ends}`
+      : (starts ?? ends ?? pick(locale, "Date TBA", "तिथि घोषित होना बाकी"));
+  const label = pick(locale, milestone.label_en, milestone.label_hi);
+  const detail = pick(locale, milestone.detail_en ?? "", milestone.detail_hi);
 
   return (
     <li className="flex items-start gap-3 border-rule border-b py-3 last:border-b-0">
@@ -74,10 +94,8 @@ function MilestoneRow({ milestone }: { milestone: PublicExamMilestone }) {
         {dateLabel}
       </span>
       <div className="flex flex-col gap-0.5">
-        <span className="font-medium text-body">{milestone.label_en}</span>
-        {milestone.detail_en && (
-          <span className="text-meta text-muted-ink">{milestone.detail_en}</span>
-        )}
+        <span className="font-medium text-body">{label}</span>
+        {detail && <span className="text-meta text-muted-ink">{detail}</span>}
       </div>
     </li>
   );
@@ -91,22 +109,32 @@ function SectionHeading({ children }: { children: ReactNode }) {
   );
 }
 
-function FeeTiers({ cycle }: { cycle: PublicExamAdmission }) {
+function FeeTiers({
+  cycle,
+  locale,
+  dict,
+}: {
+  cycle: PublicExamAdmission;
+  locale: string;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (cycle.fee_tiers.length === 0) return null;
   return (
     <div>
-      <SectionHeading>Application fee</SectionHeading>
+      <SectionHeading>{t(dict, "exam.application_fee")}</SectionHeading>
       <table className="w-full text-body">
         <tbody>
           {cycle.fee_tiers.map((tier) => (
             <tr key={tier.category_label_en} className="border-rule border-b last:border-b-0">
-              <td className="py-1.5 pr-3 text-muted-ink">{tier.category_label_en}</td>
+              <td className="py-1.5 pr-3 text-muted-ink">
+                {pick(locale, tier.category_label_en, tier.category_label_hi)}
+              </td>
               <td className="py-1.5 text-right font-semibold">{formatCurrency(tier.amount)}</td>
             </tr>
           ))}
           {cycle.late_fee_amount != null && (
             <tr>
-              <td className="py-1.5 pr-3 text-meta text-muted-ink">Late fee (extended window)</td>
+              <td className="py-1.5 pr-3 text-meta text-muted-ink">{t(dict, "exam.late_fee")}</td>
               <td className="py-1.5 text-right text-meta text-muted-ink">
                 {formatCurrency(cycle.late_fee_amount)}
               </td>
@@ -118,26 +146,33 @@ function FeeTiers({ cycle }: { cycle: PublicExamAdmission }) {
   );
 }
 
-function EligibilityNotes({ cycle }: { cycle: PublicExamAdmission }) {
+function EligibilityNotes({
+  cycle,
+  locale,
+  dict,
+}: {
+  cycle: PublicExamAdmission;
+  locale: string;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (!cycle.eligibility_notes_en && !cycle.dob_from && !cycle.dob_to) return null;
+  const notes = pick(locale, cycle.eligibility_notes_en ?? "", cycle.eligibility_notes_hi);
   return (
     <div>
-      <SectionHeading>Eligibility</SectionHeading>
+      <SectionHeading>{t(dict, "exam.eligibility")}</SectionHeading>
       {(cycle.dob_from || cycle.dob_to) && (
         <p className="mb-1 text-body">
-          Date of birth:{" "}
+          {t(dict, "exam.date_of_birth")}{" "}
           <span className="font-semibold">
             {cycle.dob_from ? istDateLabel(new Date(cycle.dob_from)) : "—"} to{" "}
             {cycle.dob_to ? istDateLabel(new Date(cycle.dob_to)) : "—"}
           </span>{" "}
           <a href={`#${ELIGIBILITY_CHECKER_ID}`} className="font-semibold text-ruled-blue">
-            Not sure? Check your eligibility ↓
+            {t(dict, "exam.check_eligibility_cta")}
           </a>
         </p>
       )}
-      {cycle.eligibility_notes_en && (
-        <p className="text-body text-muted-ink">{cycle.eligibility_notes_en}</p>
-      )}
+      {notes && <p className="text-body text-muted-ink">{notes}</p>}
       {cycle.documents_required && cycle.documents_required.length > 0 && (
         <ul className="mt-2 list-inside list-disc text-meta text-muted-ink">
           {cycle.documents_required.map((doc) => (
@@ -149,11 +184,17 @@ function EligibilityNotes({ cycle }: { cycle: PublicExamAdmission }) {
   );
 }
 
-function SelectionNotes({ cycle }: { cycle: PublicExamAdmission }) {
+function SelectionNotes({
+  cycle,
+  dict,
+}: {
+  cycle: PublicExamAdmission;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (!cycle.selection_notes) return null;
   return (
     <div>
-      <SectionHeading>How the merit list is decided</SectionHeading>
+      <SectionHeading>{t(dict, "exam.how_merit_decided")}</SectionHeading>
       <p className="text-body text-muted-ink">{cycle.selection_notes}</p>
     </div>
   );
@@ -161,7 +202,17 @@ function SelectionNotes({ cycle }: { cycle: PublicExamAdmission }) {
 
 // The pattern jsonb is exam/class-specific free-form content — rendered
 // defensively since its shape isn't (and shouldn't be) locked in the schema.
-function ExamPattern({ pattern }: { pattern: unknown }) {
+// No `_hi` variant exists for this content yet (30 Sep 2026 audit), so it
+// always renders in English even on an otherwise-Hindi page — English
+// technical/subject terms staying put inside Hindi copy is the intended
+// code-mixing style here, not a gap; only the section chrome is localised.
+function ExamPattern({
+  pattern,
+  dict,
+}: {
+  pattern: unknown;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (!pattern || typeof pattern !== "object") return null;
   const p = pattern as Record<string, unknown>;
 
@@ -180,10 +231,10 @@ function ExamPattern({ pattern }: { pattern: unknown }) {
       <table className="w-full text-meta">
         <thead>
           <tr className="border-rule border-b text-left text-muted-ink">
-            <th className="py-1 pr-2 font-medium">Subject</th>
-            <th className="py-1 pr-2 font-medium">Questions</th>
-            <th className="py-1 pr-2 font-medium">Marks</th>
-            <th className="py-1 font-medium">Qualifying</th>
+            <th className="py-1 pr-2 font-medium">{t(dict, "exam.subject")}</th>
+            <th className="py-1 pr-2 font-medium">{t(dict, "exam.questions")}</th>
+            <th className="py-1 pr-2 font-medium">{t(dict, "exam.marks")}</th>
+            <th className="py-1 font-medium">{t(dict, "exam.qualifying")}</th>
           </tr>
         </thead>
         <tbody>
@@ -208,9 +259,11 @@ function ExamPattern({ pattern }: { pattern: unknown }) {
 
   return (
     <div>
-      <SectionHeading>Exam pattern</SectionHeading>
+      <SectionHeading>{t(dict, "exam.exam_pattern")}</SectionHeading>
       {typeof p.duration === "string" && (
-        <p className="mb-2 text-meta text-muted-ink">Duration: {p.duration}</p>
+        <p className="mb-2 text-meta text-muted-ink">
+          {t(dict, "exam.duration", { duration: p.duration })}
+        </p>
       )}
       {rows && <RowsTable rows={rows} />}
       {papers && (
@@ -234,26 +287,37 @@ function ExamPattern({ pattern }: { pattern: unknown }) {
         </div>
       )}
       {typeof p.interview_marks === "number" && (
-        <p className="mt-2 text-meta text-muted-ink">Interview: {p.interview_marks} marks</p>
+        <p className="mt-2 text-meta text-muted-ink">
+          {t(dict, "exam.interview_marks", { marks: p.interview_marks })}
+        </p>
       )}
       {tieBreak && (
         <p className="mt-2 text-meta text-muted-ink">
-          Tie-break order:{" "}
-          {tieBreak
-            .filter(isRow)
-            .map((t) => String((t as Record<string, unknown>).subject_en))
-            .join(" → ")}
+          {t(dict, "exam.tie_break_order", {
+            order: tieBreak
+              .filter(isRow)
+              .map((tRow) => String((tRow as Record<string, unknown>).subject_en))
+              .join(" → "),
+          })}
         </p>
       )}
     </div>
   );
 }
 
-function Syllabus({ syllabus }: { syllabus: unknown }) {
+// No `_hi` variant exists for syllabus topic lists yet — same code-mixing
+// rationale as ExamPattern above; only the "Syllabus" heading is localised.
+function Syllabus({
+  syllabus,
+  dict,
+}: {
+  syllabus: unknown;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (!Array.isArray(syllabus) || syllabus.length === 0) return null;
   return (
     <div>
-      <SectionHeading>Syllabus</SectionHeading>
+      <SectionHeading>{t(dict, "exam.syllabus")}</SectionHeading>
       <div className="flex flex-col gap-3">
         {syllabus.map((entry) => {
           if (typeof entry !== "object" || entry === null) return null;
@@ -272,18 +336,28 @@ function Syllabus({ syllabus }: { syllabus: unknown }) {
   );
 }
 
-function ReservationSplits({ cycle }: { cycle: PublicExamAdmission }) {
+function ReservationSplits({
+  cycle,
+  locale,
+  dict,
+}: {
+  cycle: PublicExamAdmission;
+  locale: string;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (cycle.reservation_splits.length === 0) return null;
   return (
     <div>
-      <SectionHeading>Seat reservation</SectionHeading>
+      <SectionHeading>{t(dict, "exam.seat_reservation")}</SectionHeading>
       <ul className="flex flex-col gap-1 text-meta">
         {cycle.reservation_splits.map((split) => (
           <li
             key={`${split.level}-${split.group_label_en}`}
             className="flex justify-between gap-3 border-rule border-b py-1 last:border-b-0"
           >
-            <span className="text-muted-ink">{split.group_label_en}</span>
+            <span className="text-muted-ink">
+              {pick(locale, split.group_label_en, split.group_label_hi)}
+            </span>
             <span className="shrink-0 font-semibold">{split.share_text}</span>
           </li>
         ))}
@@ -292,7 +366,17 @@ function ReservationSplits({ cycle }: { cycle: PublicExamAdmission }) {
   );
 }
 
-function CycleCard({ cycle, now }: { cycle: PublicExamAdmission; now: Date }) {
+function CycleCard({
+  cycle,
+  now,
+  locale,
+  dict,
+}: {
+  cycle: PublicExamAdmission;
+  now: Date;
+  locale: string;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   const margin = deadlineState(
     {
       opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
@@ -320,7 +404,9 @@ function CycleCard({ cycle, now }: { cycle: PublicExamAdmission; now: Date }) {
         />
         <div className="flex flex-col gap-0.5">
           <span className="text-meta text-muted-ink">
-            {cycle.form_mode === "online" ? "Online form" : "Offline form"}
+            {cycle.form_mode === "online"
+              ? t(dict, "exam.online_form")
+              : t(dict, "exam.offline_form")}
             {cycle.registration_fee != null ? ` · ${formatCurrency(cycle.registration_fee)}` : ""}
           </span>
           {cycle.form_url && (
@@ -330,31 +416,32 @@ function CycleCard({ cycle, now }: { cycle: PublicExamAdmission; now: Date }) {
               target="_blank"
               rel="noopener noreferrer nofollow"
             >
-              Application form ↗
+              {t(dict, "exam.application_form")}
             </a>
           )}
           <span className="text-meta text-muted-ink">
-            Verified
+            {t(dict, "exam.verified")}
             {cycle.last_checked_at ? ` · ${istDateLabel(new Date(cycle.last_checked_at))}` : ""}
           </span>
         </div>
       </div>
 
-      <EligibilityNotes cycle={cycle} />
-      <FeeTiers cycle={cycle} />
-      <ReservationSplits cycle={cycle} />
-      <ExamPattern pattern={cycle.pattern} />
-      <SelectionNotes cycle={cycle} />
-      <Syllabus syllabus={cycle.syllabus} />
+      <EligibilityNotes cycle={cycle} locale={locale} dict={dict} />
+      <FeeTiers cycle={cycle} locale={locale} dict={dict} />
+      <ReservationSplits cycle={cycle} locale={locale} dict={dict} />
+      <ExamPattern pattern={cycle.pattern} dict={dict} />
+      <SelectionNotes cycle={cycle} dict={dict} />
+      <Syllabus syllabus={cycle.syllabus} dict={dict} />
 
       {cycle.milestones.length > 0 && (
         <div>
-          <SectionHeading>Full timeline</SectionHeading>
+          <SectionHeading>{t(dict, "exam.full_timeline")}</SectionHeading>
           <ol className="flex flex-col">
             {cycle.milestones.map((milestone) => (
               <MilestoneRow
                 key={`${milestone.label_en}-${milestone.starts_on}`}
                 milestone={milestone}
+                locale={locale}
               />
             ))}
           </ol>
@@ -364,11 +451,19 @@ function CycleCard({ cycle, now }: { cycle: PublicExamAdmission; now: Date }) {
   );
 }
 
-function ApplicationSteps({ steps }: { steps: PublicExamAdmission["application_steps"] }) {
+// No `_hi` variant exists for application-step copy yet — only the section
+// heading is localised (see ExamPattern's comment above for the rationale).
+function ApplicationSteps({
+  steps,
+  dict,
+}: {
+  steps: PublicExamAdmission["application_steps"];
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (steps.length === 0) return null;
   return (
     <section className="mt-8">
-      <h2 className="mb-3 font-display text-card font-semibold">How to apply</h2>
+      <h2 className="mb-3 font-display text-card font-semibold">{t(dict, "exam.how_to_apply")}</h2>
       <ol className="flex flex-col gap-3">
         {steps.map((step, i) => (
           <li key={step.title_en} className="flex gap-3">
@@ -386,21 +481,28 @@ function ApplicationSteps({ steps }: { steps: PublicExamAdmission["application_s
   );
 }
 
-function CorrectionsTable({ corrections }: { corrections: PublicExamCorrection[] }) {
+// No `_hi` variant exists for this fact-check content yet — only the section
+// chrome is localised (see ExamPattern's comment above for the rationale).
+function CorrectionsTable({
+  corrections,
+  dict,
+}: {
+  corrections: PublicExamCorrection[];
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (corrections.length === 0) return null;
   return (
     <section className="mt-8 rounded-md border border-rule bg-amber-50 p-4">
-      <h2 className="mb-1 font-display text-card font-semibold">What other sites get wrong</h2>
-      <p className="mb-3 text-meta text-muted-ink">
-        These details are commonly published incorrectly elsewhere. Here's what the official
-        bulletin actually says.
-      </p>
+      <h2 className="mb-1 font-display text-card font-semibold">
+        {t(dict, "exam.what_others_get_wrong")}
+      </h2>
+      <p className="mb-3 text-meta text-muted-ink">{t(dict, "exam.what_others_get_wrong_desc")}</p>
       <table className="w-full text-meta">
         <thead>
           <tr className="border-rule border-b text-left text-muted-ink">
-            <th className="py-1.5 pr-2 font-medium">Detail</th>
-            <th className="py-1.5 pr-2 font-medium">Official</th>
-            <th className="py-1.5 font-medium">Often published (wrong)</th>
+            <th className="py-1.5 pr-2 font-medium">{t(dict, "exam.detail")}</th>
+            <th className="py-1.5 pr-2 font-medium">{t(dict, "exam.official")}</th>
+            <th className="py-1.5 font-medium">{t(dict, "exam.often_published_wrong")}</th>
           </tr>
         </thead>
         <tbody>
@@ -419,7 +521,13 @@ function CorrectionsTable({ corrections }: { corrections: PublicExamCorrection[]
   );
 }
 
-function ExamCentres({ centres }: { centres: PublicExamCentre[] }) {
+function ExamCentres({
+  centres,
+  dict,
+}: {
+  centres: PublicExamCentre[];
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (centres.length === 0) return null;
   const byState = new Map<string, PublicExamCentre[]>();
   for (const c of centres) {
@@ -430,7 +538,7 @@ function ExamCentres({ centres }: { centres: PublicExamCentre[] }) {
   return (
     <section className="mt-8">
       <h2 className="mb-3 font-display text-card font-semibold">
-        Exam centres ({centres.length} cities)
+        {t(dict, "exam.exam_centres", { count: centres.length })}
       </h2>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {Array.from(byState.entries()).map(([state, list]) => (
@@ -444,11 +552,19 @@ function ExamCentres({ centres }: { centres: PublicExamCentre[] }) {
   );
 }
 
-function ParticipatingSchools({ schools }: { schools: PublicExamParticipatingSchool[] }) {
+function ParticipatingSchools({
+  schools,
+  dict,
+}: {
+  schools: PublicExamParticipatingSchool[];
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (schools.length === 0) return null;
   return (
     <section className="mt-8">
-      <h2 className="mb-3 font-display text-card font-semibold">Participating schools</h2>
+      <h2 className="mb-3 font-display text-card font-semibold">
+        {t(dict, "exam.participating_schools")}
+      </h2>
       <ul className="flex flex-col gap-1">
         {schools.map((school) => (
           <li
@@ -464,26 +580,32 @@ function ParticipatingSchools({ schools }: { schools: PublicExamParticipatingSch
   );
 }
 
-function TrustBanner() {
+function TrustBanner({ dict }: { dict: Awaited<ReturnType<typeof getDictionary>> }) {
   return (
     <div className="mt-6 rounded-md border border-amber-300 bg-amber-50 p-3 text-meta text-amber-900">
-      <strong>Beware of touts and agents.</strong> Admission to these schools is decided only
-      through the official written exam and interview. No individual or agency can guarantee a seat
-      for a fee — report anyone who claims otherwise.
+      {t(dict, "exam.touts_warning")}
     </div>
   );
 }
 
-function ContactBlock({ exam }: { exam: PublicExamAdmission }) {
+function ContactBlock({
+  exam,
+  dict,
+}: {
+  exam: PublicExamAdmission;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
   if (!exam.helpdesk_phone && !exam.helpdesk_email && !exam.info_site_url) return null;
   return (
     <section className="mt-8 rounded-md border border-rule p-4">
-      <h2 className="mb-2 font-display text-card font-semibold">Helpdesk & official links</h2>
+      <h2 className="mb-2 font-display text-card font-semibold">
+        {t(dict, "exam.helpdesk_heading")}
+      </h2>
       <div className="flex flex-col gap-1 text-body">
-        {exam.helpdesk_phone && <p>Phone: {exam.helpdesk_phone}</p>}
+        {exam.helpdesk_phone && <p>{t(dict, "exam.phone", { phone: exam.helpdesk_phone })}</p>}
         {exam.helpdesk_email && (
           <p>
-            Email:{" "}
+            {t(dict, "exam.email")}{" "}
             <a href={`mailto:${exam.helpdesk_email}`} className="font-semibold text-ruled-blue">
               {exam.helpdesk_email}
             </a>
@@ -497,7 +619,7 @@ function ContactBlock({ exam }: { exam: PublicExamAdmission }) {
               target="_blank"
               rel="noopener noreferrer nofollow"
             >
-              Official information bulletin ↗
+              {t(dict, "exam.official_bulletin")}
             </a>
           </p>
         )}
@@ -506,8 +628,20 @@ function ContactBlock({ exam }: { exam: PublicExamAdmission }) {
   );
 }
 
-function WhatsAppShare({ exam }: { exam: PublicExamAdmission }) {
-  const text = `${exam.name_en} ${exam.academic_year} — dates, fees, syllabus & eligibility, verified: ${siteUrl}${examPath("en", exam.slug)}`;
+function WhatsAppShare({
+  exam,
+  locale,
+  dict,
+}: {
+  exam: PublicExamAdmission;
+  locale: string;
+  dict: Awaited<ReturnType<typeof getDictionary>>;
+}) {
+  const text = t(dict, "exam.whatsapp_share_text", {
+    name: pick(locale, exam.name_en, exam.name_hi),
+    year: exam.academic_year,
+    url: `${siteUrl}${examPath(locale, exam.slug)}`,
+  });
   const href = `https://wa.me/?text=${encodeURIComponent(text)}`;
   return (
     <a
@@ -516,7 +650,7 @@ function WhatsAppShare({ exam }: { exam: PublicExamAdmission }) {
       rel="noopener noreferrer"
       className="mt-6 inline-flex items-center gap-2 rounded-md border border-rule px-3 py-1.5 font-semibold text-meta text-ruled-blue"
     >
-      Share on WhatsApp ↗
+      {t(dict, "exam.share_whatsapp")}
     </a>
   );
 }
@@ -603,6 +737,17 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
   const cycles = await getPublicAdmissionsByExamSlug(slug);
   if (cycles.length === 0) notFound();
 
+  // Per-exam Hindi gate, enforced again here (not just in generateMetadata's
+  // hreflang): proxy.ts now passes every /hi/exams/* request through to this
+  // page rather than blanket-redirecting (2026-09-30), so THIS is the one
+  // place standing between an incomplete translation and a visibly
+  // half-English "Hindi" page. Same completeness check as the hreflang tag,
+  // for the same reason — see @/lib/i18n-completeness.
+  if (locale === "hi" && !examHasCompleteHindi(cycles)) {
+    redirect(examPath("en", slug));
+  }
+
+  const dict = await getDictionary(locale);
   const exam = cycles[0];
   const now = new Date();
   const eligibilityCycles = toEligibilityCycles(cycles, now);
@@ -610,6 +755,8 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
   const eventJsonLds = cycles
     .map((cycle) => cycleEventJsonLd(cycle, locale, slug))
     .filter((event): event is NonNullable<typeof event> => event !== null);
+  const examName = pick(locale, exam.name_en, exam.name_hi);
+  const otherName = locale === "hi" ? exam.name_en : exam.name_hi;
 
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
@@ -627,10 +774,10 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
           dangerouslySetInnerHTML={{ __html: JSON.stringify(event) }}
         />
       ))}
-      <h1 className="font-display text-title-m md:text-title-d">{exam.name_en}</h1>
-      {exam.name_hi && <p className="mt-1 text-body text-muted-ink">{exam.name_hi}</p>}
+      <h1 className="font-display text-title-m md:text-title-d">{examName}</h1>
+      {otherName && <p className="mt-1 text-body text-muted-ink">{otherName}</p>}
       <p className="mt-2 text-body text-muted-ink">
-        {exam.conducting_body ?? "Conducted nationally"}
+        {exam.conducting_body ?? t(dict, "exam.conducted_nationally")}
         {exam.official_site && (
           <>
             {" · "}
@@ -640,14 +787,14 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
               target="_blank"
               rel="noopener noreferrer nofollow"
             >
-              Official website ↗
+              {t(dict, "exam.official_website")}
             </a>
           </>
         )}
       </p>
 
-      <TrustBanner />
-      <WhatsAppShare exam={exam} />
+      <TrustBanner dict={dict} />
+      <WhatsAppShare exam={exam} locale={locale} dict={dict} />
 
       {eligibilityCycles.length > 0 && (
         <EligibilityChecker
@@ -655,7 +802,11 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
           cycles={eligibilityCycles}
           helpHref={`${localePrefix(locale)}/admissions/help`}
           shareHref={`https://wa.me/?text=${encodeURIComponent(
-            `Check if your child is eligible for ${exam.name_en} ${exam.academic_year}: ${siteUrl}${examPath(locale, slug)}#${ELIGIBILITY_CHECKER_ID}`,
+            t(dict, "exam.eligibility_share_text", {
+              name: examName,
+              year: exam.academic_year,
+              url: `${siteUrl}${examPath(locale, slug)}#${ELIGIBILITY_CHECKER_ID}`,
+            }),
           )}`}
           className="mt-6"
         />
@@ -663,20 +814,17 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
 
       <div className="mt-6 flex flex-col gap-4">
         {cycles.map((cycle) => (
-          <CycleCard key={cycle.cycle_id} cycle={cycle} now={now} />
+          <CycleCard key={cycle.cycle_id} cycle={cycle} now={now} locale={locale} dict={dict} />
         ))}
       </div>
 
-      <ApplicationSteps steps={exam.application_steps} />
-      <CorrectionsTable corrections={exam.corrections} />
-      <ExamCentres centres={exam.centres} />
-      <ParticipatingSchools schools={exam.participating_schools} />
-      <ContactBlock exam={exam} />
+      <ApplicationSteps steps={exam.application_steps} dict={dict} />
+      <CorrectionsTable corrections={exam.corrections} dict={dict} />
+      <ExamCentres centres={exam.centres} dict={dict} />
+      <ParticipatingSchools schools={exam.participating_schools} dict={dict} />
+      <ContactBlock exam={exam} dict={dict} />
 
-      <p className="mt-6 text-meta text-muted-ink">
-        Every date above is checked against the official notification before publishing — see the
-        timeline for exactly when each stage was verified.
-      </p>
+      <p className="mt-6 text-meta text-muted-ink">{t(dict, "exam.verified_footer_note")}</p>
     </div>
   );
 }

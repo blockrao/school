@@ -52,17 +52,20 @@ describe("routeDecision", () => {
 
   it("redirects /hi pages with a real English equivalent to it, in one hop (never renders a mirror at /hi/)", () => {
     expect(routeDecision("/hi")).toEqual({ type: "redirect", to: "/" });
-    expect(routeDecision("/hi/exams/aissee")).toEqual({
-      type: "redirect",
-      to: "/exams/aissee",
-    });
     expect(routeDecision("/hi/school/dps-jaipur")).toEqual({
       type: "redirect",
       to: "/school/dps-jaipur",
     });
+  });
+
+  it("passes /hi/exams/* through to the app router instead of redirecting (2026-09-30: exams have their own per-page Hindi-completeness gate — see @/lib/i18n-completeness)", () => {
+    expect(routeDecision("/hi/exams/aissee")).toEqual({
+      type: "rewrite",
+      to: "/hi/exams/aissee",
+    });
     expect(routeDecision("/HI/Exams/AISSEE")).toEqual({
-      type: "redirect",
-      to: "/exams/aissee",
+      type: "rewrite",
+      to: "/hi/exams/aissee",
     });
   });
 

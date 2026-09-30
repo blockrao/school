@@ -1,14 +1,17 @@
 import "server-only";
 
-// Hindi-readiness checklist item 1/7 (2026-09-28): one dictionary loader, one
-// t() below it. Only "en" is registered — /hi/ routing exists in the router
-// already (separate thread owns that URL work) but has no real translations
-// yet, so it is deliberately NOT wired in here. Adding a locale later is:
-// drop `locales/hi.json` next to this file, add `hi: () => import(...)` to
-// the map below, done — nothing else in the app should need to change if
-// every user-facing string actually went through t().
+// Hindi-readiness checklist item 1/7 (2026-09-28, "hi" wired 2026-09-30): one
+// dictionary loader, one t() below it. "hi" is a full, hand-translated
+// mirror of every key in locales/en.json (site chrome: nav, footer, bottom
+// nav, common strings, enums) plus the exam-page namespace — see
+// src/app/[locale]/exams/[slug]/page.tsx and @/lib/i18n-completeness for how
+// a given exam additionally gates its own per-field Hindi content before it
+// is allowed to render at a /hi/ URL (proxy.ts only lets /hi/exams/* pass
+// through un-redirected; every other locale root still hard-redirects to
+// English until it gets the same per-page treatment).
 const dictionaries = {
   en: () => import("./locales/en.json").then((mod) => mod.default),
+  hi: () => import("./locales/hi.json").then((mod) => mod.default),
 } as const;
 
 export type Locale = keyof typeof dictionaries;

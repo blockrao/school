@@ -84,18 +84,27 @@ export function routeDecision(pathname: string): RouteDecision {
   const path = pathname.toLowerCase();
   if (path === "/en") return { type: "redirect", to: "/" };
   if (path === "/hi" || path.startsWith("/hi/")) {
-    // No page is translated yet (§6): never RENDER English content at a
-    // /hi/ URL. That's not the same as giving a visitor nothing, though —
-    // Google indexed /hi/exams/aissee and /hi/exams/jnvst before this
-    // policy existed, and real search traffic is landing on those URLs
-    // right now (reported 2026-09-28). A hard 404 there discards that
-    // traffic and the search equity with it. So: an /hi/{X} whose {X} is a
-    // real canonical English path 301s to {X} — a redirect to the real
-    // page, not a mirror rendered at /hi/ — same one-hop-to-canonical rule
-    // §8 already applies everywhere else. Only a /hi/{X} with no valid
-    // English equivalent still 404s via the /en/__untranslated rewrite.
+    // Most roots still have no Hindi content at all (§6): never RENDER
+    // English content at a /hi/ URL for those. Google indexed
+    // /hi/exams/aissee and /hi/exams/jnvst before this policy existed, and
+    // real search traffic is landing on those URLs (reported 2026-09-28), so
+    // a hard 404 there would discard that traffic and the search equity with
+    // it — hence the 301-to-canonical fallback below rather than a 404.
+    //
+    // "exams" is the one root with a real, per-page Hindi-completeness gate
+    // (see @/lib/i18n-completeness + src/app/[locale]/exams/[slug]/page.tsx,
+    // wired 2026-09-30): that page itself checks whether every _hi field it
+    // needs is filled in and either renders in Hindi or redirects to the
+    // English canonical, so the blanket redirect here would be redundant
+    // (and would incorrectly send even fully-translated exams back to
+    // English) — pass those through to the app router instead of
+    // intercepting them. Every other root is unchanged pending the same
+    // per-page treatment.
     const hiRest = path === "/hi" ? "/" : path.slice(3);
     const hiFirst = hiRest.split("/")[1] ?? "";
+    if (hiFirst === "exams") {
+      return { type: "rewrite", to: `/hi${hiRest}` };
+    }
     if (hiRest === "/" || LOCALE_ROOTS.has(hiFirst)) {
       return { type: "redirect", to: hiRest };
     }

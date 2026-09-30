@@ -1,0 +1,145 @@
+{
+  "common": {
+    "brand": "SchoolOye",
+    "search_placeholder": "स्कूल, क्षेत्र या शिक्षक",
+    "search_button": "खोजें",
+    "menu": "मेनू",
+    "close_menu": "मेनू बंद करें",
+    "back_to_home": "होम पर वापस जाएं",
+    "not_yet_published": "अभी प्रकाशित नहीं",
+    "address_not_yet_published": "पता अभी प्रकाशित नहीं"
+  },
+  "nav": {
+    "schools": "स्कूल",
+    "schools_note": "हर स्कूल खोजें और तुलना करें",
+    "admissions": "प्रवेश",
+    "admissions_note": "खुले फॉर्म, अंतिम तिथियां, अलर्ट",
+    "exams": "परीक्षाएं",
+    "exams_note": "प्रवेश परीक्षाएं: पात्रता, तिथियां, शुल्क",
+    "teachers": "शिक्षक",
+    "teachers_note": "प्रोफाइल",
+    "guides": "गाइड",
+    "guides_note": "प्रवेश प्रक्रिया, दस्तावेज़, बोर्ड",
+    "for_schools": "स्कूलों के लिए",
+    "for_schools_note": "अपना पेज क्लेम करें, सूचनाएं पोस्ट करें"
+  },
+  "bottom_nav": {
+    "primary_label": "मुख्य",
+    "home": "होम",
+    "search": "खोजें",
+    "admissions": "प्रवेश",
+    "saved": "सेव किए गए",
+    "account": "खाता"
+  },
+  "footer": {
+    "tagline": "तिथियां हर स्कूल की अपनी प्रकाशित सूचना से ली जाती हैं। प्रायोजित लिस्टिंग हमेशा लेबल की जाती हैं। कोई रैंकिंग या स्टार रेटिंग नहीं।",
+    "explore_heading": "एक्सप्लोर करें",
+    "schools": "स्कूल",
+    "entrance_exams": "प्रवेश परीक्षाएं",
+    "teachers": "शिक्षक",
+    "guides": "गाइड",
+    "compare_schools": "स्कूलों की तुलना करें",
+    "tools_heading": "टूल्स",
+    "check_age_eligibility": "आयु पात्रता जांचें",
+    "whatsapp_alerts": "व्हाट्सएप अलर्ट",
+    "admission_help": "प्रवेश सहायता",
+    "for_schools_heading": "स्कूलों के लिए",
+    "claim_school_free": "अपना स्कूल मुफ्त क्लेम करें",
+    "schools_by_city": "शहर के अनुसार स्कूल",
+    "privacy": "गोपनीयता",
+    "terms": "नियम व शर्तें",
+    "grievance_officer": "शिकायत अधिकारी: {email}",
+    "copyright": "© {year} SchoolOye"
+  },
+  "schools_page": {
+    "heading_city": "{city} में स्कूल",
+    "heading_search": "\"{query}\" के लिए खोज परिणाम",
+    "no_results_title": "कोई स्कूल इस खोज से मेल नहीं खाता",
+    "no_results_description": "कोई अलग स्पेलिंग आज़माएं, या इसके बजाय सभी स्कूल ब्राउज़ करें।",
+    "browse_all": "सभी स्कूल ब्राउज़ करें"
+  },
+  "claim_page": {
+    "title": "अपना स्कूल खोजें",
+    "subtitle": "क्लेम शुरू करने के लिए नाम से खोजें।",
+    "search_placeholder": "स्कूल का नाम",
+    "no_results_title": "कोई स्कूल इस नाम से मेल नहीं खाता",
+    "no_results_description": "कोई अलग स्पेलिंग आज़माएं, या यदि आपका स्कूल अभी सूचीबद्ध नहीं है तो हमसे संपर्क करें।",
+    "browse_all": "सभी स्कूल ब्राउज़ करें"
+  },
+  "school_page": {
+    "location_heading": "स्थान",
+    "location_precision_note": " — अनुमानित क्षेत्र, सटीक पिन नहीं ({precision} सटीकता पर जियोकोडेड)।",
+    "board_heading": "बोर्ड"
+  },
+  "errors": {
+    "not_found_title": "पेज नहीं मिला",
+    "not_found_description": "यह पेज मौजूद नहीं है, या जिस स्कूल या क्षेत्र को आप खोज रहे हैं वह अभी प्रकाशित नहीं हुआ है।",
+    "error_title": "कुछ गड़बड़ हो गई",
+    "error_description": "यह पेज लोड नहीं हो सका। यह आमतौर पर अस्थायी है — कुछ देर बाद फिर कोशिश करें।",
+    "try_again": "फिर कोशिश करें"
+  },
+  "results": {
+    "school_count": {
+      "one": "{count} स्कूल",
+      "other": "{count} स्कूल"
+    }
+  },
+  "enum": {
+    "gender": {
+      "coed": "सह-शिक्षा",
+      "boys": "बालक",
+      "girls": "बालिका"
+    },
+    "management": {
+      "private_unaided": "निजी (गैर-सहायता प्राप्त)",
+      "private_aided": "निजी (सहायता प्राप्त)",
+      "government": "सरकारी",
+      "central_government": "केंद्र सरकार",
+      "local_body": "स्थानीय निकाय",
+      "other": "अन्य"
+    }
+  },
+  "exam": {
+    "conducted_nationally": "राष्ट्रीय स्तर पर आयोजित",
+    "official_website": "आधिकारिक वेबसाइट ↗",
+    "touts_warning": "दलालों और एजेंटों से सावधान रहें। इन स्कूलों में प्रवेश केवल आधिकारिक लिखित परीक्षा और साक्षात्कार से तय होता है। कोई भी व्यक्ति या एजेंसी पैसे लेकर सीट की गारंटी नहीं दे सकता — ऐसा दावा करने वाले की शिकायत करें।",
+    "share_whatsapp": "व्हाट्सएप पर शेयर करें ↗",
+    "eligibility": "पात्रता",
+    "date_of_birth": "जन्म तिथि:",
+    "check_eligibility_cta": "निश्चित नहीं हैं? अपनी पात्रता जांचें ↓",
+    "application_fee": "आवेदन शुल्क",
+    "late_fee": "विलंब शुल्क (विस्तारित अवधि)",
+    "seat_reservation": "सीट आरक्षण",
+    "how_merit_decided": "मेधा सूची कैसे तय होती है",
+    "exam_pattern": "परीक्षा पैटर्न",
+    "duration": "अवधि: {duration}",
+    "subject": "विषय",
+    "questions": "प्रश्न",
+    "marks": "अंक",
+    "qualifying": "उत्तीर्ण मानदंड",
+    "interview_marks": "साक्षात्कार: {marks} अंक",
+    "tie_break_order": "टाई-ब्रेक क्रम: {order}",
+    "syllabus": "पाठ्यक्रम",
+    "full_timeline": "पूरी समयरेखा",
+    "date_tba": "तिथि घोषित होना बाकी",
+    "online_form": "ऑनलाइन फॉर्म",
+    "offline_form": "ऑफलाइन फॉर्म",
+    "application_form": "आवेदन फॉर्म ↗",
+    "verified": "सत्यापित",
+    "how_to_apply": "आवेदन कैसे करें",
+    "what_others_get_wrong": "अन्य साइटें क्या गलत बताती हैं",
+    "what_others_get_wrong_desc": "ये विवरण अक्सर अन्य जगहों पर गलत प्रकाशित होते हैं। आधिकारिक बुलेटिन में वास्तव में यह लिखा है।",
+    "detail": "विवरण",
+    "official": "आधिकारिक",
+    "often_published_wrong": "अक्सर प्रकाशित (गलत)",
+    "exam_centres": "परीक्षा केंद्र ({count} शहर)",
+    "participating_schools": "सम्मिलित स्कूल",
+    "helpdesk_heading": "हेल्पडेस्क और आधिकारिक लिंक",
+    "phone": "फोन: {phone}",
+    "email": "ईमेल:",
+    "official_bulletin": "आधिकारिक सूचना बुलेटिन ↗",
+    "verified_footer_note": "ऊपर दी गई हर तिथि प्रकाशित करने से पहले आधिकारिक सूचना से जांची जाती है — हर चरण कब सत्यापित हुआ, यह समयरेखा में देखें।",
+    "whatsapp_share_text": "{name} {year} — तिथियां, शुल्क, पाठ्यक्रम और पात्रता, सत्यापित: {url}",
+    "eligibility_share_text": "जांचें कि आपका बच्चा {name} {year} के लिए पात्र है या नहीं: {url}"
+  }
+}
