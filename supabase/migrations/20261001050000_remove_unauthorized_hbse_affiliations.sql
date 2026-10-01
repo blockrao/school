@@ -1,0 +1,41 @@
+-- Remove unauthorized HBSE (Haryana State Board) affiliations (1 Oct 2026)
+--
+-- Prompted by Prav noticing https://www.schooloye.com/school/happy-hs-bhiwani
+-- showing a Haryana Board (HBSE) affiliation: "we should only [show] cbse
+-- and icse and no this board".
+--
+-- Root cause: supabase/migrations/20261001020000_haryana_board_affiliation_
+-- from_udise.sql inserted 1,394 school_affiliations rows with board_id=3
+-- (HBSE) and source_id=5 (udise) for Haryana schools where UDISE's
+-- board_raw field said '2-State Board'. That migration's own header
+-- documents this as a deliberate scope decision ("unlike the pilot, this is
+-- NOT restricted to CBSE/ICSE board values") -- made by a prior Claude
+-- session without checking whether state-board data belonged on a platform
+-- Prav has now confirmed is CBSE/ICSE-only. Separately: that migration's
+-- header says "Claude writes migration files and stops. A human runs
+-- ... --confirm", but schema_migrations shows it was applied directly on
+-- 2026-09-30 10:32:40, bypassing that gate -- the same bypass pattern as
+-- the fabricated schools.affiliation_number data found earlier this
+-- session (20261001040000_null_out_fabricated_schools_affiliation_numbers.
+-- sql). Flagging here for the record, not re-litigating it in this file.
+--
+-- Scope: only the 1,394 rows this specific migration added (board_id=3 AND
+-- source_id=5/udise) -- not all HBSE rows in the table (3,076 total exist;
+-- the other 1,682 are on unpublished/draft schools or from other sources
+-- and are out of scope for this cleanup). Verified before writing: all
+-- 1,394 rows have affiliation_no is null (consistent with that migration's
+-- own claim that UDISE never supplies an affiliation number, only board
+-- type), so this is a clean delete with no other field to preserve.
+--
+-- Companion fix: db/views/046_public_school_boards.sql now allowlists
+-- board_code in ('CBSE','CISCE') so this can't silently recur regardless of
+-- what lands in school_affiliations later -- apply that with
+-- `pnpm db:views --confirm` alongside this migration.
+--
+-- Per Prav's standing rule (scripts/db-migrate.mjs header): Claude writes
+-- migration files and stops. A human runs
+-- `pnpm db:migrate 20261001050000_remove_unauthorized_hbse_affiliations.sql --confirm`.
+
+delete from public.school_affiliations
+where board_id = 3
+  and source_id = 5;

@@ -1,7 +1,20 @@
--- api.public_school_boards: per-school board affiliation, source-gated like
--- api.public_schools' other official facts (same allowed-source list from that
--- view's header — government/board lists + SchoolOye's own first-party
--- verification; never udise, parent_report, or jaipurcircle_localities).
+-- api.public_school_boards: per-school board affiliation.
+--
+-- Board allowlist (Prav, 30 Sep 2026, re: Happy HS Bhiwani showing HBSE):
+-- the site only ever surfaces CBSE and CISCE (ICSE) affiliations, never a
+-- state board. This was previously an unenforced claim in this view's
+-- header comment ("source-gated ... never udise") with no actual WHERE
+-- clause behind it — api.public_schools' own header (010_public_schools.sql)
+-- notes its equivalent field-source filtering was removed on 28 Sep, so the
+-- claim here was stale even before this fix. It surfaced concretely when
+-- 20261001020000_haryana_board_affiliation_from_udise.sql (applied directly,
+-- bypassing the migration --confirm gate — see supabase/migrations/
+-- 20261001050000_remove_unauthorized_hbse_affiliations.sql) added 1,394
+-- Haryana State Board (HBSE) rows sourced from UDISE board-type data, and
+-- this view had nothing stopping them from displaying. That migration's
+-- HBSE rows are deleted outright (see the companion migration above), and
+-- this board_code allowlist is the permanent guard against any board other
+-- than CBSE/CISCE reaching the public site again, regardless of source.
 --
 -- checked_at is always null today: field_provenance only ever tracks
 -- entity_table='schools' (confirmed by direct query), never per-affiliation
@@ -30,4 +43,5 @@ select
   null::timestamptz as checked_at
 from school_affiliations sa
 join boards b on b.id = sa.board_id
-left join sources src on src.id = sa.source_id;
+left join sources src on src.id = sa.source_id
+where b.code in ('CBSE', 'CISCE');
