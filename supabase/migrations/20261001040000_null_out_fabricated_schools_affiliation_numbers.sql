@@ -72,10 +72,12 @@
 -- COMPLETED" reports did) would silently launder invented CBSE affiliation
 -- numbers as real data.
 --
--- Fix: null out affiliation_number / board / affiliation_prefix /
--- affiliation_source_url for every row where cbse_affiliation_verified is
--- not true, and set cbse_affiliation_verified = null (not false) so a
--- future genuine attempt isn't misread as "already checked and rejected".
+-- Fix: null out affiliation_number / board / affiliation_source_url for
+-- every row where cbse_affiliation_verified is not true, and set
+-- cbse_affiliation_verified = null (not false) so a future genuine attempt
+-- isn't misread as "already checked and rejected". affiliation_prefix is a
+-- generated column derived from affiliation_number, so it clears itself --
+-- see the note just above the UPDATE statement.
 -- The 10 verified=true rows are left untouched. enriched_at /
 -- enrichment_sources / data_quality_flags are left as-is -- they also cover
 -- legitimate fields (principal_name, address components, school_category)
@@ -90,8 +92,15 @@ update public.schools
 set
   affiliation_number = null,
   board = null,
-  affiliation_prefix = null,
   affiliation_source_url = null,
   cbse_affiliation_verified = null
 where affiliation_number is not null
   and coalesce(cbse_affiliation_verified, false) = false;
+
+-- affiliation_prefix is a generated column (always
+-- substring(affiliation_number::text, 1, 2)), not a plain column -- Postgres
+-- recomputes it automatically from the affiliation_number = null above and
+-- rejects any attempt to set it directly ("column can only be updated to
+-- DEFAULT"). Confirmed via information_schema.columns.generation_expression
+-- after the first --confirm run failed on this; left out of the SET list
+-- above for that reason, not an oversight.
