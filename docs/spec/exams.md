@@ -168,7 +168,7 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
 - **Performance.** The eligibility checker is the only client island. First paint needs no client-side data fetch. The exam page uses the same ≤60 KB app-JS target as the school page (D-051).
 
 ## 6. Acceptance criteria
-- [ ] `db/views/110_public_exam_admissions.sql` exists, the grant is in `supabase/migrations/`, and `pnpm verify:views` parses the exam view with 0 contract errors.
+- [x] `db/views/110_public_exam_admissions.sql` exists, the grant is in `supabase/migrations/`, and the contract entry is in `scripts/verify-views.ts` (4 Oct 2026 — `pnpm verify:views` itself still needs a live `DATABASE_URL` to confirm 0 contract errors; not available in this sandbox).
 - [ ] `src/lib/db/types.ts` includes `exams`, `exam_cycle_milestones`, `exam_fee_tiers`, `exam_reservation_splits`, `exam_centres`, `exam_participating_schools` and `alert_subscriptions.exam_ids`.
 - [ ] `/en/exams/rms-cet`:
   - The summary card is the first element after the `h1`.

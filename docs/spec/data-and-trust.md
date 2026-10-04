@@ -28,8 +28,9 @@ explicit "yes" in chat after seeing the exact SQL. `pnpm verify:views` is always
 **Where SQL lives:** `db/views/*.sql` contain only `CREATE OR REPLACE VIEW` (and, per D-102,
 read-only `api` SQL functions). Every grant, revoke and policy goes in `supabase/migrations/`
 so it is tracked in `schema_migrations`. *Known drift:* `080_public_teachers.sql` and
-`090_public_school_rankings.sql` still contain `GRANT` lines; `api.public_exam_admissions`
-exists in the database but has no file in `db/views/` (see `exams.md`). Fix both before adding views.
+`090_public_school_rankings.sql` still contain `GRANT` lines. Fix before adding views.
+`api.public_exam_admissions` backfilled 4 Oct 2026 as `db/views/110_public_exam_admissions.sql`
+(see `exams.md` §4, §6).
 
 ## 2. Reads
 
