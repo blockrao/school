@@ -16,6 +16,10 @@ function gateSchool(overrides: Partial<GateSchool> = {}): GateSchool {
     pincode: "302001",
     phone: ["9999999999"],
     website: null,
+    email: null,
+    // A secondary school by default so the board requirement is in force;
+    // the elementary-exemption tests override this explicitly.
+    max_class: "c12",
     ...overrides,
   };
 }
@@ -136,5 +140,70 @@ describe("meetsIndexabilityGate", () => {
     expect(meetsIndexabilityGate(gateSchool(), gateBoard({ board_name: "STATE_OTHER" }))).toBe(
       true,
     );
+  });
+
+  // 4 Oct 2026 revisions (Prav): email as a contact channel, blank phones
+  // rejected, and no board required for a known class-8-or-below school.
+
+  it("passes on email alone — email is a contact channel", () => {
+    expect(
+      meetsIndexabilityGate(
+        gateSchool({ phone: null, website: null, email: ["office@example.school"] }),
+        gateBoard(),
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects an email entry with no @ as a contact channel", () => {
+    expect(
+      meetsIndexabilityGate(
+        gateSchool({ phone: null, website: null, email: ["not-an-email"] }),
+        gateBoard(),
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects blank / null phone entries — ['' ] is not a contact channel", () => {
+    expect(meetsIndexabilityGate(gateSchool({ phone: [""], website: null }), gateBoard())).toBe(
+      false,
+    );
+    expect(meetsIndexabilityGate(gateSchool({ phone: [null], website: null }), gateBoard())).toBe(
+      false,
+    );
+  });
+
+  it("accepts an STD-less landline (>= 6 digits) as a phone", () => {
+    expect(
+      meetsIndexabilityGate(gateSchool({ phone: ["2230613"], website: null }), gateBoard()),
+    ).toBe(true);
+  });
+
+  it("rejects a phone entry with fewer than 6 digits", () => {
+    expect(
+      meetsIndexabilityGate(gateSchool({ phone: ["12345"], website: null }), gateBoard()),
+    ).toBe(false);
+  });
+
+  it("does not require a board for a school whose max class is 8 or below", () => {
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "c8" }), null)).toBe(true);
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "c5" }), null)).toBe(true);
+  });
+
+  it("still requires a board at class 9 and above", () => {
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "c9" }), null)).toBe(false);
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "c10" }), null)).toBe(false);
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "c12" }), null)).toBe(false);
+  });
+
+  it("still requires a board when the grade span is unknown — missing data earns no exemption", () => {
+    expect(meetsIndexabilityGate(gateSchool({ max_class: null }), null)).toBe(false);
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "primary" }), null)).toBe(false);
+  });
+
+  it("an elementary school still needs address and a contact channel", () => {
+    expect(meetsIndexabilityGate(gateSchool({ max_class: "c8", pincode: null }), null)).toBe(false);
+    expect(
+      meetsIndexabilityGate(gateSchool({ max_class: "c8", phone: null, website: null }), null),
+    ).toBe(false);
   });
 });

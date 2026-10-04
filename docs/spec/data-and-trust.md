@@ -97,7 +97,7 @@ header comment. Public pages never do this.
 |---|---|---|
 | L0 | Listed only | No page (appears in lists) |
 | L1 | + address, pincode | Renders "Details being verified", `noindex` |
-| L2 | + board, + phone or website (coordinates at pincode/locality precision is enough) | Full page, **indexable** (MVP, D-114) |
+| L2 | + a contact channel (usable phone, website, or email), + a CBSE/CISCE board **if the school teaches class 9 or above** (schools whose known `max_class` is c8 or below have no board exam and are exempt; an unknown grade span is not exempt). Coordinates at pincode/locality precision is enough. Revised 4 Oct 2026 — Prav; implemented in `src/lib/school-metadata.ts` `meetsIndexabilityGate()`, which is the single source for both the page's `noindex` and the sitemap. | Full page, **indexable** (MVP, D-114) |
 | L3 | + a human-verified current-session admissions record (any status, incl. "not announced"); coordinates at pincode/locality precision or better (D-109) | Full page, indexable; the target level for trust and alerts |
 | Suppressed | `schools.status` in hidden / closed / opt-out | Minimal notice, `noindex` (closed → 410) |
 

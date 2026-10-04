@@ -1,35 +1,75 @@
 import type { PublicSchool, PublicSchoolBoard } from "@/contracts";
 
 /**
- * Indexability & Metadata Alignment v1 (29 Sep 2026) — the L2 render/index gate
- * (MVP, D-114; docs/spec/data-and-trust.md §4): name, address + pincode, board,
- * and phone or website. Below this, the page still renders (never 404s — it's
- * a real canonical URL) but `schoolMetadata()` emits `noindex,follow` rather
- * than leaving it indexable by default, so a sparse record can't sit in
- * Google's index while evidence is still being gathered. Government schools
- * follow this same rule — D-114 superseded the earlier government-only L3
- * carve-out (D-092); seo-geo.md previously described that superseded rule and
- * has been corrected alongside this.
+ * Highest class covered by a secondary board exam is 10/12; a school whose
+ * grade span tops out at class 8 or below has no board to be affiliated to.
+ * `max_class` is stored as `c1`..`c12`; anything else (null, malformed) is
+ * "unknown" and deliberately NOT treated as elementary — the exemption below
+ * must be earned by a known grade span, not by missing data.
+ */
+export function isKnownElementaryOnly(maxClass: string | null): boolean {
+  const m = /^c(\d{1,2})$/.exec(maxClass ?? "");
+  return m != null && Number(m[1]) <= 8;
+}
+
+/** A phone entry counts only if it carries at least 6 digits — the data has
+ * `['']` / `[null]` arrays (3,446 published rows as of 4 Oct 2026) that an
+ * "array is non-empty" check wrongly accepted as a contact channel. */
+export function hasUsablePhone(phone: PublicSchool["phone"]): boolean {
+  return (phone ?? []).some((p) => (p ?? "").replace(/\D/g, "").length >= 6);
+}
+
+export function hasUsableEmail(email: PublicSchool["email"]): boolean {
+  return (email ?? []).some((e) => (e ?? "").includes("@"));
+}
+
+/**
+ * The L2 render/index gate (docs/spec/data-and-trust.md §4, D-114, revised
+ * 4 Oct 2026 — Prav): name, address + pincode, a reachable contact channel
+ * (usable phone, website, or email), and — only for schools that teach class
+ * 9 or above — a CBSE/CISCE affiliation. Below this, the page still renders
+ * (never 404s — it's a real canonical URL) but `schoolMetadata()` emits
+ * `noindex,follow` rather than leaving it indexable by default, so a sparse
+ * record can't sit in Google's index while evidence is still being gathered.
+ * `buildCitySitemapResponse()` runs the same function so the sitemap never
+ * lists a URL the page itself marks noindex.
+ *
+ * What changed on 4 Oct and why (numbers from the live DB that day, 6,538
+ * published schools):
+ *  - Board is required only when the school teaches class 9+. 3,142 published
+ *    schools top out at class 8; there is no board exam at that level, so the
+ *    old unconditional board requirement hid every elementary school forever
+ *    (not "until data arrives" — the data cannot exist). Unknown grade span
+ *    still requires a board (see isKnownElementaryOnly).
+ *  - Email counts as a contact channel. 5,226 published schools have one; the
+ *    phone data is largely blank or STD-code-less landlines.
+ *  - Blank phone entries no longer count (bug: 87 pages were indexed with no
+ *    real contact at all).
+ *  Effect: 1,757 → 3,956 indexable pages. The remaining board-blocked set is
+ *  1,396 secondary schools on a state board, excluded by the CBSE/ICSE-only
+ *  display policy (db/views/046_public_school_boards.sql) — a product
+ *  decision, not a data gap.
  *
  * Deliberately field presence, not a completeness score: this pipeline only
  * ever populates these columns from a sourced value (see SourceLine /
  * field_provenance elsewhere on the school page), so presence already implies
  * provenance without a second, heavier per-field evidence join just for the
- * gate. Keep this list in sync with data-and-trust.md §4's L2 row if that
- * table ever changes. Pulled in here rather than left inline in
- * entity-page.tsx for the same reason as schoolPageTitle/
- * buildSchoolMetaDescription above: pure and testable without a DB or a
- * server-only env import in the loop.
+ * gate. Keep this in sync with data-and-trust.md §4's L2 row. Pure and
+ * testable without a DB or a server-only env import in the loop.
  */
 export function meetsIndexabilityGate(
-  school: Pick<PublicSchool, "name_en" | "address" | "pincode" | "phone" | "website">,
+  school: Pick<
+    PublicSchool,
+    "name_en" | "address" | "pincode" | "phone" | "website" | "email" | "max_class"
+  >,
   board: Pick<PublicSchoolBoard, "board_name"> | null,
 ): boolean {
   const hasIdentity = school.name_en != null;
   const hasAddress = Boolean(school.address) && Boolean(school.pincode);
-  const hasBoard = board != null;
-  const hasContactChannel = Boolean((school.phone && school.phone.length > 0) || school.website);
-  return hasIdentity && hasAddress && hasBoard && hasContactChannel;
+  const boardSatisfied = board != null || isKnownElementaryOnly(school.max_class);
+  const hasContactChannel =
+    hasUsablePhone(school.phone) || Boolean(school.website) || hasUsableEmail(school.email);
+  return hasIdentity && hasAddress && boardSatisfied && hasContactChannel;
 }
 
 /**
