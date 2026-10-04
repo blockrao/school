@@ -24,6 +24,7 @@ import {
   publicCityContract,
   publicCorridorContract,
   publicDistrictContract,
+  publicExamAdmissionContract,
   publicFieldEvidenceContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
@@ -78,6 +79,7 @@ const VIEWS: {
   { name: "api.public_teacher_experience", contract: publicTeacherExperienceContract },
   { name: "api.public_teacher_qualifications", contract: publicTeacherQualificationContract },
   { name: "api.public_field_evidence", contract: publicFieldEvidenceContract },
+  { name: "api.public_exam_admissions", contract: publicExamAdmissionContract },
 ];
 
 const RAW_TABLES = [
