@@ -20,12 +20,21 @@ import { publicEnv } from "@/lib/env";
 
 // First path segments of every route under src/app/[locale]/ that has a
 // canonical, unprefixed public form. Anything else is not a public URL (404).
-const LOCALE_ROOTS = new Set([
+// Keep this in step with the directories under src/app/[locale]/ — a route
+// that exists but is missing here is still served, but at EVERY spelling:
+// /en/news/x and /NEWS/x render 200 instead of 301'ing to /news/x, i.e.
+// duplicate URLs for the same page. Found 4 Oct 2026 for news/events/jobs,
+// all three already listed in sitemap-site.xml. src/proxy.test.ts has a
+// test that diffs this set against the filesystem so it can't drift again.
+export const LOCALE_ROOTS: ReadonlySet<string> = new Set([
   "school",
   "schools",
   "teacher",
   "teachers",
   "exams",
+  "events",
+  "news",
+  "jobs",
   "admissions",
   "alerts",
   "compare",

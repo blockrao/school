@@ -12,20 +12,27 @@ import {
   listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
 import { deadlineState } from "@/lib/deadline";
+import { siteUrl } from "@/lib/env.server";
+import { HOME_DESCRIPTION, HOME_TITLE, homeJsonLd } from "@/lib/home-seo";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { cityPath, examPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
-// South West Delhi stays built but unlinked — see CLAUDE.md. Which city renders
-// here is resolved per-request (see getSelectedCityArea): the user's own pick if
-// they've chosen one, otherwise the platform default.
+// Which city the BODY renders is resolved per-request (see
+// getSelectedCityArea): the user's own pick if they've chosen one, otherwise
+// the platform default. The <title>/<meta description> deliberately do NOT
+// follow that: until 4 Oct 2026 they did, so Googlebot (no cookie) saw
+// "Find the right school in Jaipur" as the title of a site whose catalogue is
+// 81% Haryana (5,321 of 6,538 published) and 18% Delhi, with 38 Jaipur
+// schools. A canonical page's title must be stable and describe the whole
+// site, not one visitor's cookie. "Fees" was also dropped from the
+// description for the same reason as buildSchoolMetaDescription(): there is
+// no fee data pipeline, so promising it is a false snippet.
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
-  const area = await getSelectedCityArea();
-  const label = area?.cityName ?? "your city";
   return {
-    title: `Find the right school in ${label} — SchoolOye`,
-    description: `Search and compare schools in ${label}: fees, facilities and admission dates in one place.`,
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     alternates: {
       canonical: localeCanonical(locale),
       languages: localeAlternates(),
@@ -161,6 +168,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   return (
     <div className="mx-auto max-w-(--container-page)">
+      {homeJsonLd(siteUrl).map((node) => (
+        <script
+          key={node["@type"]}
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON.stringify of our own literal
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
+        />
+      ))}
       <div className="flex flex-col gap-4.5 border-b border-rule px-4 py-8 md:px-10 md:py-12">
         <div className="flex flex-col gap-1.5">
           <h1 className="font-display text-title-m md:text-title-d">

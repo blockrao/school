@@ -52,7 +52,11 @@ select
   e.sort_order
 from teacher_experience e
 join teachers t on t.id = e.teacher_id and t.status = 'published' and t.is_listed
-left join schools s on s.id = e.school_id;
+-- Same public-school gate as api.public_teachers above. Found 4 Oct 2026:
+-- this join had no status filter, so an unpublished/hidden school's name
+-- leaked through school_name on any public teacher's experience row — the
+-- exact leak the comment above says was fixed, fixed in one of two places.
+left join schools s on s.id = e.school_id and s.status in ('published', 'closed');
 
 create or replace view api.public_teacher_qualifications as
 select

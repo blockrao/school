@@ -96,3 +96,41 @@ describe("routeDecision", () => {
     });
   });
 });
+
+describe("LOCALE_ROOTS stays in step with src/app/[locale]/", () => {
+  it("lists every public route directory, so no route is served at non-canonical spellings", async () => {
+    const { readdirSync } = await import("node:fs");
+    const { LOCALE_ROOTS } = await import("@/proxy");
+    const localeDir = new URL("./app/[locale]/", import.meta.url);
+    const entries = readdirSync(localeDir, { withFileTypes: true });
+    const dirs: string[] = [];
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      if (e.name.startsWith("_")) continue; // _views and other private folders
+      if (e.name.startsWith("(")) {
+        // Route groups don't appear in the URL; their children do.
+        for (const inner of readdirSync(new URL(`./app/[locale]/${e.name}/`, import.meta.url), {
+          withFileTypes: true,
+        })) {
+          if (inner.isDirectory()) dirs.push(inner.name);
+        }
+        continue;
+      }
+      dirs.push(e.name);
+    }
+    const missing = dirs.filter((d) => !LOCALE_ROOTS.has(d)).sort();
+    expect(missing, `routes missing from LOCALE_ROOTS: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("301s /en/{root} and uppercase for the roots that used to be missing (news, events, jobs)", () => {
+    expect(routeDecision("/en/news/some-post")).toEqual({
+      type: "redirect",
+      to: "/news/some-post",
+    });
+    expect(routeDecision("/NEWS/some-post")).toEqual({ type: "redirect", to: "/news/some-post" });
+    expect(routeDecision("/en/events/x")).toEqual({ type: "redirect", to: "/events/x" });
+    expect(routeDecision("/en/jobs/x")).toEqual({ type: "redirect", to: "/jobs/x" });
+    expect(routeDecision("/hi/news/x")).toEqual({ type: "redirect", to: "/news/x" });
+    expect(routeDecision("/news/some-post")).toEqual({ type: "rewrite", to: "/en/news/some-post" });
+  });
+});
