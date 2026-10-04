@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { PRODUCTION_ORIGIN } from "./site-origin";
 
 const serverEnvSchema = z
   .object({
@@ -42,13 +43,28 @@ export const serverEnv = serverEnvSchema.parse({
 });
 
 /** Absolute canonical origin, for every URL that must be absolute (metadataBase,
- * JSON-LD, sitemap entries, the robots.txt `sitemap` directive). Prefers the
- * real domain (NEXT_PUBLIC_SITE_URL, Production only) so canonical/JSON-LD/
- * sitemap output always points at the production host regardless of which
- * deployment renders the request; falls back to Vercel's own production
- * *.vercel.app domain, then localhost, for Preview/local. */
+ * JSON-LD, sitemap entries, the robots.txt `sitemap` directive).
+ *
+ * Resolution order:
+ *   1. NEXT_PUBLIC_SITE_URL if set (explicit override, any environment);
+ *   2. in Production, PRODUCTION_ORIGIN — the real domain, hard-coded, so a
+ *      missing env var can never again make production point at itself via
+ *      Vercel's internal *.vercel.app alias;
+ *   3. in Preview, Vercel's own *.vercel.app URL (previews are noindex'd by
+ *      robots.ts / next.config.ts, so self-referential is correct there);
+ *   4. localhost for local dev.
+ *
+ * Why (2) exists: found 4 Oct 2026 — production had no NEXT_PUBLIC_SITE_URL,
+ * so every canonical tag, every sitemap <loc>, and robots.txt's `Sitemap:`
+ * line on www.schooloye.com pointed at https://school-gold-psi.vercel.app.
+ * Google was being told the canonical copy of the whole site lived on a
+ * different host, which is a near-total indexing blocker and had nothing to
+ * do with page content or data quality. An env var is one misconfiguration
+ * away from recurring; a production default is not. */
 export const siteUrl = serverEnv.NEXT_PUBLIC_SITE_URL
   ? serverEnv.NEXT_PUBLIC_SITE_URL
-  : serverEnv.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${serverEnv.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000";
+  : serverEnv.VERCEL_ENV === "production"
+    ? PRODUCTION_ORIGIN
+    : serverEnv.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${serverEnv.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000";

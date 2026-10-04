@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PRODUCTION_ORIGIN } from "./src/lib/site-origin";
 
 // Read directly (not via env.server.ts): this file runs in plain Node, outside
 // Next's react-server bundler condition, where the "server-only" import throws.
@@ -69,13 +70,23 @@ const nextConfig: NextConfig = {
   async redirects() {
     // One hostname (D-121 §11). apex <-> www is owned ONLY by Vercel's domain
     // settings (primary domain + redirect); doing it here as well caused a redirect
-    // loop on 28 Sep when the two disagreed. The app only folds the production
-    // *.vercel.app alias onto the canonical host from NEXT_PUBLIC_SITE_URL.
-    const canonicalHost = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://schooloye.com").host;
+    // loop on 28 Sep when the two disagreed. The app only folds Vercel's own
+    // *.vercel.app aliases onto the canonical host.
+    //
+    // Previews are excluded: a Preview deployment IS a *.vercel.app host and
+    // must keep serving itself (it's noindex'd via headers() above). In
+    // Production, every *.vercel.app alias of the deployment — not one
+    // hard-coded name — redirects. Found 4 Oct 2026: this matched only
+    // "school-ten-ivory.vercel.app" while the live production alias was
+    // "school-gold-psi.vercel.app", so that alias served a full, indexable
+    // duplicate of the site (and, with siteUrl mis-resolving, was declared the
+    // canonical copy on every page). Matching the suffix closes the whole class.
+    if (isPreview) return [];
+    const canonicalHost = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? PRODUCTION_ORIGIN).host;
     return [
       {
         source: "/:path*",
-        has: [{ type: "host" as const, value: "school-ten-ivory.vercel.app" }],
+        has: [{ type: "host" as const, value: "(?<alias>.*)\\.vercel\\.app" }],
         destination: `https://${canonicalHost}/:path*`,
         permanent: true,
       },

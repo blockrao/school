@@ -90,7 +90,8 @@ export default async function OpsSchoolDetailPage({ params }: { params: Promise<
                 ` · last changed ${new Date(school.enriched_at).toLocaleDateString("en-IN")}`}
             </p>
             {school.data_quality_flags &&
-              Object.keys(school.data_quality_flags as Record<string, number | null>).length > 0 && (
+              Object.keys(school.data_quality_flags as Record<string, number | null>).length >
+                0 && (
                 <p className="mt-1">
                   Confidence:{" "}
                   {Object.entries(school.data_quality_flags as Record<string, number | null>)

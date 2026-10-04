@@ -51,8 +51,18 @@ type ClosingSoonItem = {
 
 function closingSoonItems(
   locale: string,
-  schoolAdmissions: readonly { schoolId: string; slug: string; nameEn: string; closesOn: string | null }[],
-  exams: readonly { slug: string; nameEn: string; soonestOpensOn: string | null; soonestClosesOn: string | null }[],
+  schoolAdmissions: readonly {
+    schoolId: string;
+    slug: string;
+    nameEn: string;
+    closesOn: string | null;
+  }[],
+  exams: readonly {
+    slug: string;
+    nameEn: string;
+    soonestOpensOn: string | null;
+    soonestClosesOn: string | null;
+  }[],
   now: Date,
   limit: number,
 ): ClosingSoonItem[] {
@@ -73,7 +83,9 @@ function closingSoonItems(
         now,
       );
       return (
-        state.status === "open" || state.status === "closing-soon" || state.status === "deadline-day"
+        state.status === "open" ||
+        state.status === "closing-soon" ||
+        state.status === "deadline-day"
       );
     })
     .map((exam) => ({
@@ -97,7 +109,10 @@ function AdmissionRow({ item, now }: { item: ClosingSoonItem; now: Date }) {
   const pillStatus = admissionPillStatus(state.status);
 
   return (
-    <Link href={item.href} className="flex min-h-17 border-b border-rule-soft hover:bg-margin-paper">
+    <Link
+      href={item.href}
+      className="flex min-h-17 border-b border-rule-soft hover:bg-margin-paper"
+    >
       <div
         className={cn(
           "flex w-18 shrink-0 flex-col justify-center gap-0.5 border-r-2 py-2 pr-1.5 text-meta",
@@ -125,7 +140,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const area = await getSelectedCityArea();
 
   const [schoolsResult, openAdmissions, boards, exams] = await Promise.all([
-    area ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 }) : Promise.resolve({ total: 0 }),
+    area
+      ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 })
+      : Promise.resolve({ total: 0 }),
     area ? listOpenAdmissionsByDistrict(area.districtIds, 4) : Promise.resolve([]),
     area ? listPublicBoards() : Promise.resolve([]),
     listPublicExams(),
