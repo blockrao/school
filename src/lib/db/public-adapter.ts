@@ -29,6 +29,7 @@ import {
   publicBoardContract,
   publicCityContract,
   publicDistrictContract,
+  publicDistrictFilterOptionContract,
   publicEventContract,
   publicExamAdmissionContract,
   publicFeaturedPlacementContract,
@@ -546,28 +547,26 @@ export async function listDistrictFilterOptions(
 ): Promise<PublicDistrictFilterOptions> {
   const api = createApiSchemaClient();
 
-  const { data: schools } = await api
-    .from("public_schools")
-    .select("id, max_class")
+  // One small query against api.public_district_filter_options (a few dozen rows
+  // per district). The previous version fetched every school id in the district
+  // and sent them all in a second query's URL — ~30 KB for the largest district,
+  // and silently truncated at PostgREST's 1,000-row cap past that.
+  const { data } = await api
+    .from("public_district_filter_options")
+    .select("*")
     .in("district_id", districtList(scope));
 
-  const schoolIds = (schools ?? []).map((s) => s.id as string);
-  const maxClasses = [
-    ...new Set((schools ?? []).map((s) => s.max_class as string | null).filter((v) => v != null)),
-  ];
-
-  if (schoolIds.length === 0) return { boards: [], maxClasses };
-
-  const { data: schoolBoards } = await api
-    .from("public_school_boards")
-    .select("*")
-    .in("school_id", schoolIds);
-  const byId = new Map(
-    (schoolBoards ?? [])
-      .map((row) => publicSchoolBoardContract.parse(row))
-      .map((b) => [b.board_id, { id: b.board_id, name_en: b.board_name }]),
-  );
-  return { boards: [...byId.values()], maxClasses };
+  const boards = new Map<number, PublicBoard>();
+  const maxClasses = new Set<string>();
+  for (const row of (data ?? []).map((r) => publicDistrictFilterOptionContract.parse(r))) {
+    if (row.kind === "board") {
+      const id = Number(row.value);
+      boards.set(id, { id, name_en: row.label });
+    } else {
+      maxClasses.add(row.value);
+    }
+  }
+  return { boards: [...boards.values()], maxClasses: [...maxClasses] };
 }
 
 export type PublicBoard = { id: number; name_en: string };
