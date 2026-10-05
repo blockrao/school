@@ -105,8 +105,21 @@ header comment. Public pages never do this.
 `schools.status` is used **only** to suppress; it is not a publish flag. Levels are computed in
 `staging.schools_with_level` for analysis and from `api.public_schools` fields in the app; the
 planned `schools.index_state` column makes the gate explicit (`school-entity-page.md` §11.3).
-Government schools follow the same L2 rule (D-114).
+Government schools follow the same L2 rule (D-114) if they're in the dataset — see the scope note
+below for why almost none are, today.
 Street/rooftop geocode precision is required only for distance features, never for the index gate (D-109).
+
+**Current data scope (Prav, confirmed 5 Oct 2026):** the live dataset is private schools only.
+Of 10,670 schools in the database, only 18 are tagged government/central_government — effectively
+none; the platform is not currently covering government schools as a matter of scope, not as a
+data gap to backfill. Separately (and already covered by the 1 Oct cleanup, `remove_unauthorized_
+hbse_affiliations` + the 5 Oct re-match migration): Haryana-board (HBSE) affiliations are
+deliberately not shown — schools whose only board is HBSE are either held back entirely
+(`status='hidden'`, ~1,678 schools) or, for an inconsistent subset (~1,391 published secondary
+schools with no board shown at all instead of being hidden), may need the same hide treatment —
+flagged as a follow-up, not yet resolved as of this note. Both of these are judgment calls, not
+bugs: noted here so a future audit doesn't re-flag "no government schools" or "no Haryana board"
+as a defect.
 
 ## 5. Owner-run views (why base-table RLS doesn't hide rows)
 
