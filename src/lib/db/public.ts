@@ -46,7 +46,7 @@ export function createApiSchemaClient() {
  * request refetches it. Matches the `revalidate = 900` already declared on the
  * public page routes, so data is never staler than the pages that show it.
  */
-const PUBLIC_READ_REVALIDATE_SECONDS = 900;
+export const PUBLIC_READ_REVALIDATE_SECONDS = 900;
 
 /** Tag on every cached public read; `revalidateTag("public-api")` flushes them all. */
 export const PUBLIC_API_CACHE_TAG = "public-api";

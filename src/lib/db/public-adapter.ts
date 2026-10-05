@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import {
@@ -47,7 +48,11 @@ import {
   publicStateContract,
 } from "@/contracts";
 import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
-import { createApiSchemaClient } from "@/lib/db/public";
+import {
+  createApiSchemaClient,
+  PUBLIC_API_CACHE_TAG,
+  PUBLIC_READ_REVALIDATE_SECONDS,
+} from "@/lib/db/public";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
 import { cityPath, schoolPath } from "@/lib/urls";
@@ -384,7 +389,7 @@ type PublicSchoolFilters = {
  * omitted/empty means no district restriction at all, which callers must not
  * do accidentally (see searchPublicSchoolsSiteWide's own guard).
  */
-async function queryPublicSchools(
+async function queryPublicSchoolsUncached(
   districtIds: number[] | undefined,
   filters: PublicSchoolFilters,
 ): Promise<{ schools: PublicSchool[]; total: number }> {
@@ -448,6 +453,33 @@ async function queryPublicSchools(
     schools: (data ?? []).map((row) => publicSchoolContract.parse(row)),
     total: count ?? 0,
   };
+}
+
+/**
+ * Cross-request cache for the school list. The Data Cache wrapper in
+ * createApiSchemaClient() cannot cover this query: it paginates with
+ * `.range()` + `count: "exact"`, which PostgREST answers with HTTP 206, and
+ * Next only stores 200 responses — so every render re-queried Supabase
+ * (~290 calls per 5 min on 5 Oct 2026, right after the fetch-level cache
+ * shipped). unstable_cache caches the parsed result instead, whatever the
+ * HTTP status. Free-text searches are skipped: their key space is unbounded
+ * (one entry per typed string) and they are rarely repeated.
+ */
+const queryPublicSchoolsCached = unstable_cache(
+  queryPublicSchoolsUncached,
+  ["public-schools-list"],
+  {
+    revalidate: PUBLIC_READ_REVALIDATE_SECONDS,
+    tags: [PUBLIC_API_CACHE_TAG],
+  },
+);
+
+async function queryPublicSchools(
+  districtIds: number[] | undefined,
+  filters: PublicSchoolFilters,
+): Promise<{ schools: PublicSchool[]; total: number }> {
+  if (filters.query) return queryPublicSchoolsUncached(districtIds, filters);
+  return queryPublicSchoolsCached(districtIds, filters);
 }
 
 /** One district id or all of a city's district ids (PublicCityArea.districtIds, D-126). */
