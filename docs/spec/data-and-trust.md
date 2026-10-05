@@ -110,9 +110,13 @@ below for why almost none are, today.
 Street/rooftop geocode precision is required only for distance features, never for the index gate (D-109).
 
 **Current data scope (Prav, confirmed 5 Oct 2026, final):** SchoolOye is a purely commercial
-platform — private schools only. No government schools, no HBSE/state-board schools, ever. Of
-10,670 schools in the database, only 18 are tagged government/central_government — effectively
-none; this is intentional scope, not a data gap to backfill. Haryana-board (HBSE) affiliations are
+platform — private schools only. No government schools, no HBSE/state-board schools, ever. As of
+5 Oct 2026, 74 schools are tagged government/central_government (18 originally tagged, plus 56
+found mistagged `management IS NULL` behind an obvious government name — "Govt ... Sr. Sec.
+School", "Rajkiya Pratibha Vikas Vidyalaya", Haryana's "Model Sanskriti Senior Secondary School"
+program — and corrected by `20261005130000_hide_misclassified_government_schools.sql`, which also
+hid them). Any further unclassified (`management IS NULL`) school with an unmistakably
+government-pattern name should be treated the same way, not re-published as private. Haryana-board (HBSE) affiliations are
 never shown — every school whose only resolvable board is HBSE/State Board is `status='hidden'`
 (~1,678 from the 1 Oct cleanup, `remove_unauthorized_hbse_affiliations`, plus a further 1,391
 published secondary schools closed by `20261005120000_hide_unshown_hbse_secondary_schools.sql`,
