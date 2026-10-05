@@ -44,3 +44,12 @@ export const publicSchoolBoardContract = z.object({
   checked_at: z.string().nullable(),
 });
 export type PublicSchoolBoard = z.infer<typeof publicSchoolBoardContract>;
+
+/** Mirrors db/views/111_public_district_filter_options.sql — api.public_district_filter_options. */
+export const publicDistrictFilterOptionContract = z.object({
+  district_id: z.number(),
+  kind: z.enum(["board", "max_class"]),
+  value: z.string(),
+  label: z.string(),
+});
+export type PublicDistrictFilterOption = z.infer<typeof publicDistrictFilterOptionContract>;
