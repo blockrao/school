@@ -39,6 +39,12 @@ The full SQL for R-01–R-03 and R-08–R-10 is in `school-entity-page.md` §6.1
 the owning spec's §4. When the data session applies an item, mark it here with the date and the
 migration file name, then run `pnpm db:types` and `pnpm verify:views`.
 
+## Ingestion / source-coverage requests (not a schema change — no new columns needed)
+
+| # | Request | Why | Context |
+|---|---|---|---|
+| I-01 | A real contact-info source for Delhi private schools (phone and/or website per school) | 1,109 of 1,179 published Delhi schools (94%) have zero contact channel, so they fail the L2 indexability gate and never appear in the sitemap — by far the single biggest indexability gap on the platform (every other city is 85–98% indexable; Delhi is 6%) | Checked 5 Oct 2026: UDISE+ ingestion in this repo never covered Delhi at all (0 matches for any Delhi school). The only Delhi-specific source today, `delhi_doe` (EduDel's admission-criteria list), has no phone/email/website field in its schema — it was never going to carry this. `saras_archive` matches 144 Delhi schools but only 10 have anything in "website," and all 10 are either the Delhi Directorate of Education's own department homepage (`edudel.nic.in`, not the school's own site) or a literal placeholder (`xyz.com`) — not usable, not promoted. Needs a genuinely new source (e.g. a Delhi school directory that actually carries phone/website per school) — not a column addition or a re-match of data we already have. |
+
 ## Owned by this repo (not the data session)
 
 Views, `api` functions (D-102), grants, RLS, storage policies and audit triggers that go with
