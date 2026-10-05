@@ -109,17 +109,16 @@ Government schools follow the same L2 rule (D-114) if they're in the dataset —
 below for why almost none are, today.
 Street/rooftop geocode precision is required only for distance features, never for the index gate (D-109).
 
-**Current data scope (Prav, confirmed 5 Oct 2026):** the live dataset is private schools only.
-Of 10,670 schools in the database, only 18 are tagged government/central_government — effectively
-none; the platform is not currently covering government schools as a matter of scope, not as a
-data gap to backfill. Separately (and already covered by the 1 Oct cleanup, `remove_unauthorized_
-hbse_affiliations` + the 5 Oct re-match migration): Haryana-board (HBSE) affiliations are
-deliberately not shown — schools whose only board is HBSE are either held back entirely
-(`status='hidden'`, ~1,678 schools) or, for an inconsistent subset (~1,391 published secondary
-schools with no board shown at all instead of being hidden), may need the same hide treatment —
-flagged as a follow-up, not yet resolved as of this note. Both of these are judgment calls, not
-bugs: noted here so a future audit doesn't re-flag "no government schools" or "no Haryana board"
-as a defect.
+**Current data scope (Prav, confirmed 5 Oct 2026, final):** SchoolOye is a purely commercial
+platform — private schools only. No government schools, no HBSE/state-board schools, ever. Of
+10,670 schools in the database, only 18 are tagged government/central_government — effectively
+none; this is intentional scope, not a data gap to backfill. Haryana-board (HBSE) affiliations are
+never shown — every school whose only resolvable board is HBSE/State Board is `status='hidden'`
+(~1,678 from the 1 Oct cleanup, `remove_unauthorized_hbse_affiliations`, plus a further 1,391
+published secondary schools closed by `20261005120000_hide_unshown_hbse_secondary_schools.sql`,
+which fixed the earlier inconsistency where that second group was left published with the board
+field simply blank instead of hidden). This is a permanent policy decision, not a bug — **do not
+re-flag "no government schools" or "no HBSE/state-board schools" in any future audit.**
 
 ## 5. Owner-run views (why base-table RLS doesn't hide rows)
 
