@@ -36,6 +36,42 @@ export function createApiSchemaClient() {
     {
       auth: { persistSession: false },
       db: { schema: "api" },
+      global: { fetch: cachedPublicFetch },
     },
   );
 }
+
+/**
+ * Seconds a public read is served from Next's shared Data Cache before the next
+ * request refetches it. Matches the `revalidate = 900` already declared on the
+ * public page routes, so data is never staler than the pages that show it.
+ */
+const PUBLIC_READ_REVALIDATE_SECONDS = 900;
+
+/** Tag on every cached public read; `revalidateTag("public-api")` flushes them all. */
+export const PUBLIC_API_CACHE_TAG = "public-api";
+
+/**
+ * GET/HEAD reads of the api.* views go through Next's Data Cache, shared
+ * across requests and serverless instances.
+ *
+ * Why: React's cache() (used by listPublicAreas etc.) only memoizes within ONE
+ * request. Pages that read cookies()/searchParams render per request, so every
+ * visit re-ran the same reference queries (areas, boards, featured placements,
+ * the school list) against Supabase. On 4-5 Oct 2026 that was ~355k PostgREST
+ * calls/day from ~4 real users and pushed the project past the free-plan
+ * egress and log-ingestion quotas. Cached here, identical queries hit
+ * Supabase at most once per window instead of once per page view.
+ *
+ * Only safe/idempotent methods are cached; anything else passes through.
+ * The anon key is the only credential on these requests, so the cache never
+ * mixes per-user data.
+ */
+const cachedPublicFetch: typeof fetch = (input, init) => {
+  const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+  if (method !== "GET" && method !== "HEAD") return fetch(input, init);
+  return fetch(input, {
+    ...init,
+    next: { revalidate: PUBLIC_READ_REVALIDATE_SECONDS, tags: [PUBLIC_API_CACHE_TAG] },
+  });
+};
