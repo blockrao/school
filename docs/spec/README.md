@@ -52,7 +52,7 @@ Every Claude Code session building SchoolOye starts here.
 | `urls-and-routing.md` | **Frozen** canonical URL & routing architecture (D-121): entity roots, slugs, redirects, lifecycle, CI invariants | phase 1 done 28 Sep | `/school/{slug}`, `/schools/{state}/{city}/{locality}`, `/exams/{slug}` live; campus views reserved (301); teacher slugs phase 3 |
 | `school-entity-page.md` | School page (Overview, `/admissions`, `/fees`), provenance precedence, parent fee reports, index gate, widget, SEO/AI layer; build milestones M0–M4 | M1 15 Oct · M2 1 Nov · M3 15 Dec | Overview built; tabs, fees, gate, widget not built |
 | `admissions-tracker.md` | City admissions page, status model, age checker, documents, RTE info, alerts + digest, report/request update | 15 Oct | Sign-up + age checker built; sending, city admissions page, reports not built |
-| `exams.md` | Exam hub + exam pages (RMS CET live), exam cycles/milestones, exam alerts | live; fixes by 15 Oct | Page live; view not in repo, no JSON-LD, colour violations |
+| `exams.md` | Exam hub + exam pages (RMS CET live), exam cycles/milestones, exam alerts | live; fixes by 15 Oct | Page live; JSON-LD/breadcrumbs + Hindi (RMS CET only) shipped 30 Sep; view still not in repo, colour violations remain |
 | `discovery.md` | Home/city picker, city + locality pages, search, filters, compare, shortlist, share, guides | 15 Oct | Built, with search and indexing gaps |
 | `school-portal.md` | Claim (v1 live, v2 1 Nov), portal, admissions editor, notices, fee verification, enquiries, widget, sponsored | 1 Nov · sponsored 1 Dec | Claim v1 + portal basics built |
 | `concierge.md` | Application help: packages, orders, intake, document vault, fulfilment, payments | 1 Nov | Parent flow built on mock payments; fulfilment board, school picks, Razorpay not built |
@@ -77,7 +77,8 @@ Verified by reading the code; each spec's §2 has the detail. Fix P0 items befor
 | P1 | Alerts: following a second school replaces the list; class picker lacks Nursery/KG; unsubscribe needs sign-in and withdraws all consents | `admissions-tracker.md` |
 | P1 | City cards pick the earliest last date across all sessions, so a closed cycle can hide an open one | `admissions-tracker.md` |
 | P1 | `api.public_exam_admissions` has no file in `db/views/` and isn't checked by `verify:views`; `types.ts` stale | `exams.md` |
-| P1 | Exam page uses non-token amber/red/white colours (D-050), mixes academic years, lacks JSON-LD/breadcrumbs/freshness | `exams.md` |
+| P1 | Exam page uses non-token amber/red/white colours (D-050), mixes academic years, lacks freshness (`FreshnessLine`/`VerificationChip` unused) | `exams.md` |
+| P1 | Exam page lacks JSON-LD/breadcrumbs | `exams.md` — **fixed** (30 Sep) |
 | P1 | OpenSeat: second save fails on the unique key; schools can't update after ops confirms; every class defaults to "closed"; reject deletes the row | `openseat.md` |
 | P1 | Concierge: uploads over 1 MB fail (Server Action body limit); ops can't open vault files; "approve" marks an application submitted; consent logged against unseen notices; Aadhaar masking unchecked; amount posted from a hidden field; CSP blocks Razorpay | `concierge.md` |
 | P1 | `api.public_teachers` reads raw `schools`, so a teacher can show an unpublished school's name (also in `Person` JSON-LD) | `teachers.md` |
@@ -89,6 +90,7 @@ Verified by reading the code; each spec's §2 has the detail. Fix P0 items befor
 | P2 | Several `/ops` actions ignore database write errors | `ops-console.md` |
 | P1 | JSON-LD `propertyID` said "Schooloy School ID" (`[entitySlug]/page.tsx`), against D-081 — **fixed** (28 Sep) | `school-entity-page.md` |
 | P1 | `localeAlternates()` (`src/lib/seo.ts`) always emits `hi-IN`, against D-086 — **fixed** (28 Sep, D-121: no hreflang until a page is translated) | `urls-and-routing.md` |
+| P1 | Hindi completeness gate computed for the hreflang tag only; routing (`proxy.ts`) redirected every `/hi/*` regardless, and the exam page never rendered any `_hi` column — so `/hi/exams/rms-cet` 301ed to English even once RMS CET's Hindi data was complete — **fixed** (30 Sep, D-127: `exams` carve-out in `proxy.ts` + page renders `_hi` fields + redundant page-level redirect guard) | `exams.md`, `urls-and-routing.md` |
 | P1 | No `cacheTag` anywhere in `src/`, so `/api/revalidate` is a no-op — edits don't refresh cached pages | `school-entity-page.md` §12.4 |
 | P2 | `public-adapter.ts` keeps two unused raw sub-queries (`school_identifiers`, `field_provenance`) against N-10 — **fixed** (28 Sep) | `data-and-trust.md` |
 | P2 | `robots.ts` lists 4 AI crawlers; target list has 7 — **fixed** (28 Sep) | `docs/guidelines/seo-geo.md` |

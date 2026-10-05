@@ -1,6 +1,6 @@
 # Exams — Developer Spec
 
-**Status:** exam page shipped (RMS CET); hub shipped; alerts, SEO structure, Hindi, history not built · **Owner:** Claude Code (build), Prav (approve)
+**Status:** exam page shipped (RMS CET); hub shipped; JSON-LD/breadcrumbs shipped (30 Sep); Hindi shipped for RMS CET only, partial (30 Sep — see §5 and the "Open (Prav)" list in §7); alerts, remaining SEO structure, history not built · **Owner:** Claude Code (build), Prav (approve)
 **Canonical location:** this file. Supersedes the feature's sections in older planning docs (see docs/decisions.md → document map).
 **Decisions:** N-02, D-012, N-03, N-06, N-07, N-10, N-13, D-024, D-025, D-026, D-045, D-046, D-047, D-049, D-050, D-064, D-067, D-081, D-086, D-087, D-091, D-098, D-101, D-107, D-108 (see `docs/decisions.md`) · **Guidelines:** `docs/guidelines/seo-geo.md`, `docs/guidelines/content-and-trust.md`, `docs/guidelines/design.md`
 
@@ -26,7 +26,7 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
 ## 2. Current state (verified against the repo on 27 Sep 2026)
 **Routes**
 - `src/app/[locale]/exams/page.tsx` is the hub. It shows one card per exam with name, classes, conducting body, first academic year and a `StatusPill`, and has an empty state. `revalidate = 900`.
-- `src/app/[locale]/exams/[slug]/page.tsx` (598 lines) is the exam page. It renders the `h1` with `name_en`, the Hindi name as a subtitle, the tout banner, a WhatsApp share, the `EligibilityChecker`, and one `CycleCard` per cycle. Each card has a `DeadlineMargin`, pill, fee, form link, "Verified · date", eligibility/DOB/documents, fee tiers, reservation splits, pattern (jsonb, rendered defensively), selection notes, syllabus and a full milestone timeline. Below the cards it shows application steps, the corrections table, centres grouped by state, participating schools and the helpdesk. `revalidate = 900`. The page is marked `// design-pending`.
+- `src/app/[locale]/exams/[slug]/page.tsx` (~780 lines) is the exam page. It renders `BreadcrumbList` + one `Event` JSON-LD per cycle (shipped 30 Sep), the `h1` with the locale-appropriate name (`name_hi` when `locale === "hi"` and present, else `name_en`; the other language shown as a subtitle), a visible EN/HI toggle when the exam qualifies (see §5), the tout banner, a WhatsApp share, the `EligibilityChecker` (still English-only, not wired to the dictionary — see §7), and one `CycleCard` per cycle. Every subcomponent now takes `locale`/`dict` and renders `_hi` fields (eligibility notes, milestone label/detail, fee-tier category, reservation-split label) when the current locale is `hi` and that field has a value, falling back to English otherwise — pattern/syllabus/application-steps/corrections/participating-schools/exam-centres have no `_hi` columns at all yet and always render English (deliberate code-mixing per D-086's "numbers and dates stay in the same format as English", not yet decided for prose). `revalidate = 900`. The page is marked `// design-pending`.
 - The sitemap is `src/app/sitemap-site.xml/route.ts`: `/exams` plus `/exams/{slug}`, with lastmod taken from `lastCheckedAt`.
 - Nav: `src/components/shell/site-header.tsx`, `site-footer.tsx`.
 
@@ -50,7 +50,7 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
 - `scripts/verify-views.ts` does not check `publicExamAdmissionContract`.
 - `src/lib/db/types.ts` has the exam columns on `admission_cycles` but no `exams` or `exam_*` tables. It also lacks `admission_notices.exam_id` and `alert_subscriptions.exam_ids`.
 - Alerts: `src/app/[locale]/alerts/actions.ts` writes only `school_ids`. Nothing reads or writes `exam_ids`.
-- The exam page has no JSON-LD, no breadcrumbs and no `index.md` twin. It does not use `FreshnessLine` or `VerificationChip`, and it never renders the `_hi` fields.
+- **Fixed 30 Sep:** the exam page now has `BreadcrumbList` + `Event` JSON-LD, and renders real `_hi` fields (was previously computing an `examHasCompleteHindi()` gate for hreflang but never actually using any `_hi` column anywhere in the template — the hreflang tag was advertising a Hindi page that didn't exist). **Still open:** no `index.md` twin; doesn't use `FreshnessLine` or `VerificationChip`; `src/proxy.ts`'s blanket `/hi/*` → English redirect (§6 of `urls-and-routing.md`) now has a narrow carve-out for the `exams` root only (see that doc) — every other root is unchanged.
 - `docs/screen-map.md` and `docs/design-gaps.md` have no exam rows, even though the page comment points to design-gaps.
 - There is no `/ops` UI for exams. Data is seeded from the terminal.
 - Token violations in `[slug]/page.tsx`: `bg-amber-50`, `border-amber-300`, `text-amber-900`, `text-white` and `decoration-red-400`. The last one is red outside a deadline, which breaks D-050. The page also uses a `Math.random()` React key (line 207).
@@ -88,11 +88,11 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
     — via SchoolOye {canonical URL}
     ```
     Leave out any line whose source value is null.
-12. **P1 Hindi.**
-    - Render `name_hi`, `label_hi`/`detail_hi`, `eligibility_notes_hi`, `group_label_hi` and `category_label_hi` on `/hi`.
-    - UI strings come from the translation catalogue (D-086).
-    - Structured facts stay single-sourced, with only prose stored per locale.
-    - Until an exam's Hindi prose is complete, apply the rules in §5.
+12. **P1 Hindi.** Shipped for RMS CET (30 Sep), unassigned for every other exam.
+    - Render `name_hi`, `label_hi`/`detail_hi`, `eligibility_notes_hi`, `group_label_hi` and `category_label_hi` on `/hi` — **done**, gated per-exam by `examHasCompleteHindi()` (`@/lib/i18n-completeness`): every field listed must be non-null on every cycle, or the page 301s `/hi/exams/{slug}` → the English canonical instead of rendering. RMS CET's gaps (`eligibility_notes_hi`, `category_label_hi`, `group_label_hi` were null) were filled directly in Supabase 30 Sep, AI-drafted then reviewed inline, not through a review queue — there is no `DRAFT_MT → REVIEWED → PUBLISHED` pipeline (§7).
+    - UI strings come from the translation catalogue (D-086) — **done for the exam page's own chrome and every existing site-wide string** (`src/i18n/locales/{en,hi}.json`, `hi` now registered in `dictionary.ts` — it was never registered before 30 Sep, so no page anywhere could have rendered Hindi UI even if it had Hindi data). `EligibilityChecker` is the one component on this page not yet wired to `t()` (§7).
+    - Structured facts stay single-sourced, with only prose stored per locale — **holds**, no schema change; the per-field `_hi` columns already on `admission_cycles`/`exam_cycle_milestones`/`exam_fee_tiers`/`exam_reservation_splits` are what §5 gates on, not a new translations table.
+    - Until an exam's Hindi prose is complete, apply the rules in §5 — **done**, via the gate above plus a matching redirect the exam page itself enforces (not just a hidden hreflang tag).
 13. **P2 Change log.** Show a visible entry for each date or fee change on a current cycle, e.g. "Exam date moved from 7 Dec to 14 Dec — official notice, updated 3 Nov". The data comes from the N-06 `audit_log`, through a new `api` view.
 
 **Hub `/[locale]/exams`**
@@ -142,7 +142,7 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
 
 **Table changes (data session, D-091, additive only)**
 - `exam_cycle_milestones.kind text` with a CHECK list.
-- An exam-level `hi_ready boolean` (see §5).
+- ~~An exam-level `hi_ready boolean`~~ — superseded 30 Sep: no new column was added. Completeness is computed per request from the existing per-field `_hi` columns (`examHasCompleteHindi()` in `@/lib/i18n-completeness`), not stored. See §5.
 - `admission_status` already has `postponed` and `cancelled` in the live database (the generated `src/lib/db/types.ts` is stale — regenerate with `pnpm db:types`). Use them; also record the changed milestone in the change log.
 
 **Alerts write**
@@ -164,11 +164,11 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
   - FAQ only with ≥3 real facts (D-046). No invented GEO paragraphs (D-047).
   - Add a `/[locale]/exams/{slug}/index.md` twin and a `llms.txt` entry (D-048) at P1.
   - The title keeps the year out of the URL but has it in the text, as today.
-- **Hindi (D-086).** Emit `hi-IN` hreflang and index `/hi/exams/{slug}` only when the exam has `hi_ready`. Until then, `/hi` renders with `noindex` and canonicals to `/en`. Today the page emits `hi-IN` for an English-content page.
+- **Hindi (D-086).** Emit `hi-IN` hreflang and serve `/hi/exams/{slug}` only when the exam's cycles are fully translated: `name_hi`, every cycle's `eligibility_notes_hi`, every milestone's `label_hi`, every fee tier's `category_label_hi` are all non-null (`examHasCompleteHindi()`, `@/lib/i18n-completeness` — checked live against the view, not a stored flag). Until then, `/hi/exams/{slug}` 301s to the `/en` canonical — both at the routing layer (`src/proxy.ts` passes the `exams` root through instead of redirecting, then the page itself redirects if the gate fails) and, redundantly, inside the page component, so a future change to either layer alone can't let an incomplete translation render. **Fixed 30 Sep** for RMS CET: the gate used to be computed only for the hreflang tag and never consulted by routing or rendering, so the tag advertised a Hindi page that `/hi` would actually 301 away from, and even a request that reached the page template never read any `_hi` column. Every other exam (Sainik, JNV) still fails the gate today because their `_hi` columns are null, which is correct — see §7 for what's unassigned.
 - **Performance.** The eligibility checker is the only client island. First paint needs no client-side data fetch. The exam page uses the same ≤60 KB app-JS target as the school page (D-051).
 
 ## 6. Acceptance criteria
-- [x] `db/views/110_public_exam_admissions.sql` exists, the grant is in `supabase/migrations/`, and the contract entry is in `scripts/verify-views.ts` (4 Oct 2026 — `pnpm verify:views` itself still needs a live `DATABASE_URL` to confirm 0 contract errors; not available in this sandbox).
+- [ ] `db/views/110_public_exam_admissions.sql` exists, the grant is in `supabase/migrations/`, and `pnpm verify:views` parses the exam view with 0 contract errors.
 - [ ] `src/lib/db/types.ts` includes `exams`, `exam_cycle_milestones`, `exam_fee_tiers`, `exam_reservation_splits`, `exam_centres`, `exam_participating_schools` and `alert_subscriptions.exam_ids`.
 - [ ] `/en/exams/rms-cet`:
   - The summary card is the first element after the `h1`.
@@ -176,8 +176,8 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
   - Each block shows "Checked N days ago · {source}".
   - The correction-window conflict shows both dates.
 - [ ] No `amber-`, `red-`, `white`, hex or `[...]` colour utilities remain in `src/app/[locale]/exams/**`. `pnpm lint` is clean. No `Math.random` keys.
-- [ ] View source contains one `h1`, a `BreadcrumbList` and `Event` JSON-LD. Google Rich Results test shows no errors.
-- [ ] `/hi/exams/rms-cet` has `noindex` and an `en` canonical while `hi_ready` is false. With `hi_ready` true it has hreflang pairs and Hindi labels.
+- [x] View source contains one `h1`, a `BreadcrumbList` and `Event` JSON-LD (shipped 30 Sep). - [ ] Google Rich Results test shows no errors (not yet run against production).
+- [x] `/hi/exams/rms-cet` renders real Hindi labels and hreflang pairs (RMS CET passes `examHasCompleteHindi()` as of 30 Sep). - [ ] An exam that fails the gate (Sainik, JNV once added) redirects `/hi/exams/{slug}` → `/en/exams/{slug}` rather than rendering `noindex` — confirm this once a second exam has partial `_hi` data to test against; RMS CET alone can't exercise the failure path.
 - [ ] With the date set to 2030 in a test, the hub pill for RMS CET reflects the newest cycle, not the soonest-closing old one.
 - [ ] Eligibility unit tests cover eligible, too young, too old, falling into the other class's window, and unknown. A Playwright check confirms no network request carries the DOB.
 - [ ] The WhatsApp text for RMS CET matches the template above and omits lines whose source value is null. Brand "SchoolOye" (D-081).
@@ -199,5 +199,11 @@ Exam pages are the authority pages for school-entry exams: one evergreen page pe
 - **In-page intent sections becoming their own URLs:** settled by D-101. Intent sections (dates, eligibility, syllabus) stay on the one exam page; they never get separate URLs.
 - **Which D-024 label applies to exam bulletin facts:** settled by D-107, which amends D-024 with "From the official notice · {issuer}, dated {date}".
 
+**Settled since 30 Sep**
+- **Hindi exam pages, which exam, by when:** RMS CET shipped 30 Sep, ahead of and independent of the 15 Nov D-086 city/tracker date — Prav authorized it directly rather than waiting for a scheduling answer. Sainik and JNV are not scheduled; they need their own `_hi` data filled (code is already exam-agnostic) before they can pass the same gate.
+
 **Open (Prav)**
-1. **Hindi exam pages.** D-086 covers city and tracker pages by 15 Nov, but exam pages are unassigned. Is Hindi for RMS CET a 15 Nov item?
+1. **`EligibilityChecker` is the one exam-page component not wired to the dictionary.** It renders hardcoded English on `/hi` pages that otherwise render Hindi. Low effort, not done 30 Sep only because the page was already a large diff.
+2. **Shared label utilities (`classLabel()`, the deadline/status-pill text) are not localized.** They're used across exam and school pages, so fixing them is a cross-feature change, not a one-page edit.
+3. **No translation review pipeline.** RMS CET's `_hi` fields were AI-drafted and used directly, with no `DRAFT_MT → REVIEWED → PUBLISHED` state — is that acceptable for parent-facing content generally, or only as a one-off to unblock RMS CET?
+4. **Raw server-rendered HTML still ships `lang="en"`** on genuinely-Hindi pages; a client-side effect (`HtmlLangSync`) corrects it after hydration, but a non-JS crawler or screen reader that reads the initial response sees the wrong value. The real fix is Next's "multiple root layouts" pattern (splitting `src/app/layout.tsx` per top-level route), which touches `/portal`, `/ops`, `/for-schools`, `/auth` and `/dev` too — deliberately not attempted blind in this session.

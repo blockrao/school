@@ -78,6 +78,7 @@ A person, not an institution; three rules differ from campus:
 ## 6. Language
 
 - English at root; other languages under `/{lang}/` (BCP-47). A translated URL exists only when the translation exists; no English content is ever rendered at a `/{lang}/` URL. **Implementation note, 28 Sep 2026:** this is served as a 301 to the English canonical when `/{lang}/{X}` has a real English equivalent at `{X}` (not a hard 404) — §8's one-hop-to-canonical rule applies here too, and Google had already indexed `/hi/exams/aissee` and `/hi/exams/jnvst` before this section's policy went live, so a hard 404 there was discarding real search traffic. An `/{lang}/{X}` with no valid English equivalent at all still 404s.
+  *Amended by D-127 (30 Sep 2026):* the `exams` root is a narrow, named exception to "no English content is ever rendered at a `/{lang}/` URL" being enforced by a blanket redirect. `src/proxy.ts` now passes every `/hi/exams/*` request through to the app router instead of 301-ing it, because exam pages can be genuinely, completely Hindi (`examHasCompleteHindi()`, see `exams.md` §5) and the old blanket rule had no way to tell a complete translation from an absent one — it redirected both. The underlying policy is unchanged for every other root (`/school`, `/schools`, etc.): those still 301 to English because no page under them has Hindi content yet. The exam page itself enforces the same completeness gate a second time and redirects to `/en` if it fails, so routing alone passing a request through is not what decides whether Hindi actually renders.
 - Every translated page emits `hreflang` for each available language plus `x-default` → English.
 
 ## 7. Discovery and facets
@@ -157,7 +158,7 @@ Every campus has one stable canonical URL; slugs cannot change accidentally; rel
 | `aliases[]` | `schools.aliases text[]`; alias and retired slugs live in `school_slug_redirects` so a URL is never reused |
 | Merged / created in error | `schools.merged_into` → 301 to survivor |
 | Closed campus | `schools.status = 'closed'` stays public with a banner |
-| English at root, `/hi/` only when translated | Internal route tree stays `src/app/[locale]/…`; `src/proxy.ts` rewrites unprefixed paths to `/en/…` internally, 301s `/en/…` to the unprefixed form, and 404s `/hi/…` until a page is translated |
+| English at root, `/hi/` only when translated | Internal route tree stays `src/app/[locale]/…`; `src/proxy.ts` rewrites unprefixed paths to `/en/…` internally, 301s `/en/…` to the unprefixed form, and redirects `/hi/…` to the English equivalent until a page is translated — **except** `/hi/exams/*`, which `proxy.ts` passes through unconditionally (D-127, 30 Sep 2026); the exam page itself then redirects to `/en` if that exam's Hindi data is incomplete, so the routing layer's pass-through is not by itself a guarantee of Hindi content |
 | Discovery | `/schools/{state}/{city}` uses the district slug as `{city}` (D-116); `/schools/{state}/{city}/{locality}` for localities with published schools. City-states (`states.is_city_state`, Delhi) are one city at `/schools/{state}` (D-126) |
 | Legacy URLs | `/en/…` → one 301 to the unprefixed form. Pre-launch `/{city}/…` and `/school/{uuid}-{slug}` addresses 404 (D-122) |
 
