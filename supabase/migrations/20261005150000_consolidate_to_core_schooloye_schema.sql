@@ -1,110 +1,81 @@
--- Consolidate to core SchoolOye schema — delete audit/history/activity tables (5 Oct 2026).
+-- Clean up scraping & audit overhead (5 Oct 2026).
 --
--- SchoolOye is a school discovery platform. It does not need:
--- - Audit logs (no regulatory requirement for change tracking)
--- - Historical ingestion records (data is already matched and in schools table)
--- - Field-level provenance history (source tracking not operational)
--- - Activity tables: posts, events, jobs, media (content management is separate)
--- - Teacher profiles and affiliations (different product)
--- - Analytics event logs (not operational)
--- - Data quality flag history (internal, not needed for discovery)
+-- Remove logging/tracking junk accumulated from data ingestion:
+-- - audit_log: 63 MB of before/after JSONB snapshots (not needed for SchoolOye)
+-- - source_records: 36 MB of old scraping/import data (data already matched to schools)
+-- - field_provenance: 23 MB of field-level history tracking (operational overhead)
+-- - data_quality_flags, analytics_events, school_name_case_backup, etc.: internal junk
+--
+-- KEEP: school_posts, school_events, school_jobs, teachers (their own features/products)
+-- DELETE: Only the overhead/logs/scraping junk
 --
 -- ACTION: Prav, BEFORE running this migration:
--- 1. Run full database backup: pg_dump -Fc schooloye > backup_pre_consolidation_$(date +%Y%m%d).dump
+-- 1. Run full database backup: pg_dump -Fc schooloye > backup_overhead_cleanup_$(date +%Y%m%d).dump
 -- 2. Verify this is running against production (not test database)
--- 3. Confirm by replying "yes, consolidate" after reviewing what's deleted below
+-- 3. Confirm by replying "yes, run it" after reviewing what's deleted below
 --
 -- WHAT GETS DELETED (irreversible without restore):
 --
--- Audit/Logging (not operational, 100+ MB):
+-- Logging/Audit Overhead (122 MB):
 --   ✗ audit_log (63 MB, 22K rows) — before/after JSONB for every change
---   ✗ source_records (36 MB, 17K rows) — old Sept 23-25 import data, no active queries
---   ✗ field_provenance (23 MB, 84K rows) — historical field-level changes, not used by SchoolOye
---   ✗ data_quality_flags (328 KB) — audit artifact
---   ✗ analytics_events (824 KB) — not operational
+--   ✗ source_records (36 MB, 17K rows) — old Sept 23-25 import scraping data
+--   ✗ field_provenance (23 MB, 84K rows) — historical field-level tracking
 --
--- Activity/Content Tables (not core to discovery):
---   ✗ school_posts (136 KB, 8192 bytes data) — activity feed
---   ✗ school_events (144 KB, 8192 bytes data) — activity feed
---   ✗ school_jobs (120 KB, 8192 bytes data) — job listings (not SchoolOye feature)
---   ✗ school_media (linked to school_posts)
+-- Other Overhead:
+--   ✗ data_quality_flags (328 KB) — internal audit artifact
+--   ✗ analytics_events (824 KB) — event logging junk
+--   ✗ school_name_case_backup (184 KB) — backup table from earlier migration
+--   ✗ admission_notices (168 KB) — empty, replaced by admission_cycles
+--   ✗ correction_requests (if exists) — internal intake, replaced by update_reports
 --
--- Backup/Legacy Tables (obsolete):
---   ✗ school_name_case_backup (184 KB, 1006 rows) — backup table from earlier migration
---   ✗ admission_notices (168 KB, 0 rows) — empty, replaced by admission_cycles (D-087)
---   ✗ correction_requests (not sized yet) — internal intake, replaced by update_reports (X-03)
+-- WHAT STAYS (product features):
 --
--- Teacher-Related (different product, 128+ KB):
---   ✗ teachers (128 KB, 8192 bytes data)
---   ✗ teacher_qualifications (64 KB, 8192 bytes data)
---   ✗ teacher_experience (64 KB, 8192 bytes data)
---   ✗ teacher_claims (TBD size)
---   ✗ school_teacher_affiliations (128 KB, 8192 bytes data)
+-- School Discovery:
+--   ✓ schools (24 MB, 10K rows)
+--   ✓ school_affiliations (1 MB, board info)
+--   ✓ school_identifiers (2.7 MB, UDISE codes)
+--   ✓ school_rankings (96 KB)
+--   ✓ school_claims (user corrections)
 --
--- WHAT STAYS (core SchoolOye schema):
+-- Features (their own tables):
+--   ✓ school_posts, school_events, school_jobs (content/feature tables)
+--   ✓ teachers, teacher_qualifications, teacher_experience, school_teacher_affiliations
+--   ✓ school_media (media storage)
 --
--- School Entity:
---   ✓ schools (24 MB, 10K rows) — school master data
---   ✓ school_affiliations (1 MB, 3.8K rows) — board affiliations (CBSE, CISCE, etc.)
---   ✓ school_identifiers (2.7 MB, 18K rows) — UDISE codes, govt IDs
---   ✓ school_rankings (96 KB, 21 rows)
---   ✓ school_facilities (under schools now)
---   ✓ school_claims (user-generated corrections, operational)
---
--- Admissions & Seats:
---   ✓ admission_cycles (232 KB, 32 rows) — current/upcoming cycles
---   ✓ seat_status (80 KB) — live seat availability
---   ✓ admission_leads (96 KB)
---   ✓ application_orders (80 KB) — concierge
---   ✓ applications (TBD) — concierge
+-- Admissions:
+--   ✓ admission_cycles, seat_status, admission_leads, application_orders, applications
 --
 -- User Actions:
---   ✓ alert_subscriptions (12 cols, operational)
---   ✓ alert_deliveries (10 cols, operational)
---   ✓ shortlists (4 cols, operational)
---   ✓ enquiries (9 cols, operational)
---   ✓ update_reports (9 cols, operational)
---   ✓ ops_tasks (13 cols, operational)
+--   ✓ alert_subscriptions, alert_deliveries, shortlists, enquiries, update_reports, ops_tasks
 --
 -- Reference Data:
---   ✓ localities, cities, districts, states, boards, landmarks, corridors, class_levels
---   ✓ facilities, exam_*, converage-related tables
---   ✓ profiles, consents, children, messages, conversations (user accounts)
+--   ✓ localities, cities, districts, states, boards, exam_*, profiles, consents, etc.
 --
--- ESTIMATED RECOVERY: 100-130 MB
--- RESULTING DATABASE SIZE: ~80-100 MB
+-- ESTIMATED RECOVERY: 120-130 MB
+-- RESULTING DATABASE SIZE: ~150-160 MB (with feature tables intact)
 --
 -- Per D-073, destructive changes need Prav's explicit yes after seeing exact SQL.
 -- This migration was written by Claude and stops here. A human runs it.
 
 -- ============================================================================
--- PHASE 1: DROP TABLES WITH CASCADE (handles foreign keys)
+-- PHASE 1: DROP LOGGING/AUDIT OVERHEAD ONLY
 -- ============================================================================
 
--- Audit & Logging tables
+-- Logging & Audit tables (122 MB of scraping/overhead junk)
 DROP TABLE IF EXISTS public.audit_log CASCADE;
 DROP TABLE IF EXISTS public.source_records CASCADE;
 DROP TABLE IF EXISTS public.field_provenance CASCADE;
+
+-- Other overhead
 DROP TABLE IF EXISTS public.data_quality_flags CASCADE;
 DROP TABLE IF EXISTS public.analytics_events CASCADE;
-
--- Activity tables
-DROP TABLE IF EXISTS public.school_posts CASCADE;
-DROP TABLE IF EXISTS public.school_events CASCADE;
-DROP TABLE IF EXISTS public.school_jobs CASCADE;
-DROP TABLE IF EXISTS public.school_media CASCADE;
-
--- Backup/Legacy tables
 DROP TABLE IF EXISTS public.school_name_case_backup CASCADE;
 DROP TABLE IF EXISTS public.admission_notices CASCADE;
 DROP TABLE IF EXISTS public.correction_requests CASCADE;
 
--- Teacher-related tables (separate product)
-DROP TABLE IF EXISTS public.teacher_claims CASCADE;
-DROP TABLE IF EXISTS public.teacher_experience CASCADE;
-DROP TABLE IF EXISTS public.teacher_qualifications CASCADE;
-DROP TABLE IF EXISTS public.teachers CASCADE;
-DROP TABLE IF EXISTS public.school_teacher_affiliations CASCADE;
+-- Note: Keeping feature tables intact:
+-- ✓ school_posts, school_events, school_jobs, school_media (content features)
+-- ✓ teachers, teacher_qualifications, teacher_experience, school_teacher_affiliations (teacher feature)
 
 -- ============================================================================
 -- PHASE 2: CLEANUP & OPTIMIZE
@@ -121,15 +92,22 @@ VACUUM ANALYZE;
 --
 -- SELECT COUNT(*) FROM information_schema.tables
 -- WHERE table_schema = 'public';
--- Expected: ~20-25 tables (down from 74)
+-- Expected: ~65 tables (down from 74, removed 9 junk tables)
 --
 -- Check database size:
 -- SELECT pg_size_pretty(pg_database_size('schooloye'));
--- Expected: ~80-100 MB (down from 270 MB)
+-- Expected: ~150-160 MB (down from 270 MB, 120-130 MB recovered)
 --
--- Verify core tables still exist:
+-- Verify feature tables still exist:
 -- SELECT tablename FROM pg_tables
 -- WHERE schemaname = 'public'
+-- AND tablename IN ('school_posts', 'school_events', 'school_jobs', 'teachers')
 -- ORDER BY tablename;
--- Should include: schools, school_affiliations, admission_cycles, etc.
+-- All four should be present (not deleted)
+--
+-- Verify junk tables are gone:
+-- SELECT COUNT(*) FROM information_schema.tables
+-- WHERE table_schema = 'public'
+-- AND tablename IN ('audit_log', 'source_records', 'field_provenance', 'data_quality_flags');
+-- Expected: 0
 
