@@ -57,13 +57,18 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  compress: true,
   async headers() {
-    if (!isPreview) return [{ source: "/:path*", headers: securityHeaders }];
+    const cacheHeaders = [
+      { key: "Content-Encoding", value: "gzip" },
+      { key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400" },
+    ];
+    if (!isPreview) return [{ source: "/:path*", headers: [...securityHeaders, ...cacheHeaders] }];
 
     return [
       {
         source: "/:path*",
-        headers: [...securityHeaders, { key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        headers: [...securityHeaders, ...cacheHeaders, { key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
     ];
   },
