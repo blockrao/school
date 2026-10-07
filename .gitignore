@@ -39,3 +39,7 @@ playwright/.cache/
 # third-party data imports — never committed, see docs/DATA_ACCESS.md
 data/imports/
 .vercel
+# Export directories (temporary migration artifacts)
+supabase_final_export_complete/
+supabase_migration_export_clean/
+schooloye_export_focused/
