@@ -57,6 +57,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Compression handled automatically by Vercel
   compress: true,
   async headers() {
     const cacheHeaders = [
