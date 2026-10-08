@@ -92,11 +92,11 @@ export function PrimaryNav({
     // V2 visual foundation (Increment 9): consumed only from SiteHeader, one
     // of the migrated chrome components — v2 tokens throughout.
     <nav className={cn("flex h-full items-stretch gap-0.5", className)}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const active = isActive(pathname, item.href);
         return (
           <Link
-            key={item.href}
+            key={index}
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(

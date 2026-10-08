@@ -86,9 +86,9 @@ export function MobileMenu({
             </div>
 
             <nav className="flex flex-col py-1">
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <Link
-                  key={item.href}
+                  key={index}
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className="flex min-h-15 flex-col justify-center border-l-3 border-transparent px-4 py-1.5 hover:bg-so-sunk focus-visible:outline-so-accent"
