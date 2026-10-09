@@ -39,9 +39,9 @@ export function saveCityCookie(slug: string) {
 /**
  * Which launched city to show: the cookie the user previously chose, if it's
  * still one of the currently-launched `areas` — otherwise the platform default
- * (areas[0], the server's own pick, currently Jaipur). Server and the first
- * client render both use the default; the cookie correction (if any) applies
- * in an effect after mount.
+ * (Jaipur when available, matching getSelectedAreaSlug on the server; otherwise
+ * the first available area). Server and the first client render both use the
+ * same default; the cookie correction (if any) applies in an effect after mount.
  *
  * `pathname` is in the effect's dependency array (fixed 2026-09-28) so every
  * component calling this hook (CityPicker, PrimaryNav, MobileMenu,
@@ -56,7 +56,7 @@ export function saveCityCookie(slug: string) {
  * navigation itself succeeded.
  */
 export function useSelectedCity(areas: CityOption[]): CityOption | undefined {
-  const fallback = areas[0];
+  const fallback = areas.find((area) => area.slug === "jaipur") ?? areas[0];
   const pathname = usePathname();
   const [selectedSlug, setSelectedSlug] = useState<string | undefined>(fallback?.slug);
 
