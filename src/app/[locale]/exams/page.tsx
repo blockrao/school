@@ -37,12 +37,19 @@ export default async function ExamsIndexPage({ params }: PageProps<"/[locale]/ex
   const publishedExams = await listPublicExams();
   // Evergreen guides remain discoverable even when no cycle passes the public
   // verification gate. Cycle data itself still comes only from api.* views.
-  const exams = publishedExams.length > 0 ? publishedExams : EDITORIAL_EXAMS.map((exam) => ({
-    ...exam,
-    soonestOpensOn: null,
-    soonestClosesOn: null,
-    lastCheckedAt: null,
-  }));
+  const editorialExams = EDITORIAL_EXAMS.map((fallback) => {
+    const published = publishedExams.find((exam) => exam.slug === fallback.slug);
+    return published ?? {
+      ...fallback,
+      soonestOpensOn: null,
+      soonestClosesOn: null,
+      lastCheckedAt: null,
+    };
+  });
+  const exams = [
+    ...editorialExams,
+    ...publishedExams.filter((exam) => !EDITORIAL_EXAMS.some((fallback) => fallback.slug === exam.slug)),
+  ];
   const now = new Date();
 
   return (
