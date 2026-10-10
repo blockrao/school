@@ -11,23 +11,17 @@ type Tier = NonNullable<SchoolUpdate["tier"]>;
 type Status = NonNullable<SchoolUpdate["status"]>;
 type Verification = NonNullable<SchoolUpdate["verification"]>;
 type Claim = NonNullable<SchoolUpdate["claim"]>;
-type SourceType = NonNullable<SchoolUpdate["source_type"]>;
 type VerificationStatus = NonNullable<SchoolUpdate["verification_status"]>;
 
-// Mirrors the backfill mapping applied in the
-// add_source_type_and_verification_status_provenance migration. The ops
-// form still edits the single legacy `verification` field (source_verified /
-// ops_verified / school_verified / unverified); until that form is split
-// into two real inputs, every write here keeps source_type +
-// verification_status derived from it so the new columns never go stale.
-const VERIFICATION_TO_PROVENANCE: Record<
-  Verification,
-  { sourceType: SourceType; status: VerificationStatus }
-> = {
-  unverified: { sourceType: "user_submitted", status: "unknown" },
-  source_verified: { sourceType: "official", status: "verified" },
-  ops_verified: { sourceType: "schooloye_verified", status: "verified" },
-  school_verified: { sourceType: "school_reported", status: "verified" },
+// Verification is an assessment of whether a record has been checked;
+// source_type records where the information came from. These are independent
+// dimensions: editing verification must not overwrite source attribution
+// (e.g. official UDISE/state data must not become user_submitted).
+const VERIFICATION_TO_STATUS: Record<Verification, VerificationStatus> = {
+  unverified: "unknown",
+  source_verified: "verified",
+  ops_verified: "verified",
+  school_verified: "verified",
 };
 
 function enumOrNull<T extends string>(value: FormDataEntryValue | null): T | null {
@@ -57,6 +51,7 @@ export async function updateSchool(formData: FormData) {
 
   const establishedYearRaw = String(formData.get("established_year") ?? "").trim();
 
+  const verification = String(formData.get("verification") ?? "unverified") as Verification;
   const patch: SchoolUpdate = {
     name_en: String(formData.get("name_en") ?? "").trim(),
     name_hi: textOrNull(formData.get("name_hi")),
@@ -75,13 +70,10 @@ export async function updateSchool(formData: FormData) {
     about_en: textOrNull(formData.get("about_en")),
     about_hi: textOrNull(formData.get("about_hi")),
     status: String(formData.get("status") ?? "draft") as Status,
-    verification: String(formData.get("verification") ?? "unverified") as Verification,
+    verification,
+    verification_status: VERIFICATION_TO_STATUS[verification],
     claim: String(formData.get("claim") ?? "unclaimed") as Claim,
   };
-
-  const provenance = VERIFICATION_TO_PROVENANCE[patch.verification as Verification];
-  patch.source_type = provenance.sourceType;
-  patch.verification_status = provenance.status;
 
   if (formData.get("markVerifiedNow") === "1") {
     patch.last_verified_at = new Date().toISOString();
