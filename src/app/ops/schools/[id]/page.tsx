@@ -78,6 +78,14 @@ export default async function OpsSchoolDetailPage({ params }: { params: Promise<
             ? identifiers.map((i) => `${i.scheme}: ${i.value}`).join(" · ")
             : "No identifiers on file"}
         </p>
+        <p className="mt-1">
+          Source attribution:{" "}
+          <span className="font-semibold text-ink">{school.source_type ?? "unknown"}</span>
+          {" · "}Verification:{" "}
+          <span className="font-semibold text-ink">{school.verification}</span>
+          {" · "}Verification status:{" "}
+          <span className="font-semibold text-ink">{school.verification_status}</span>
+        </p>
         {/* Enrichment provenance (moved here from the public entity page, 30 Sep
           2026 — per-field confidence scores and source acronyms like "UDISE"
           are actionable for staff deciding whether to trust/re-check a field,
