@@ -8,11 +8,11 @@ on:
 permissions:
   contents: read
 
-# The build needs the public Supabase URL/publishable key (repo secrets of the same
-# names) and any non-empty REVALIDATE_SECRET.
+# CI builds validate environment configuration but must not depend on production
+# secrets. Use valid non-production placeholders when repository secrets are absent.
 env:
-  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://ci-placeholder.supabase.co' }}
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'ci-only-publishable-key-placeholder' }}
   REVALIDATE_SECRET: ci-only-placeholder
   NEXT_PUBLIC_SITE_URL: https://www.schooloye.com
 
