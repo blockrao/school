@@ -7,6 +7,12 @@ import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { classLabel } from "@/lib/text";
 import { localePrefix } from "@/lib/urls";
 
+const EDITORIAL_EXAMS = [
+  { slug: "aissee", nameEn: "AISSEE — Sainik School Entrance Examination", conductingBody: "National Testing Agency / Sainik Schools Society", classCodes: ["6", "9"], academicYears: ["2026–27", "2027–28"] },
+  { slug: "jnvst", nameEn: "JNVST — Jawahar Navodaya Vidyalaya Selection Test", conductingBody: "Navodaya Vidyalaya Samiti", classCodes: ["6", "9"], academicYears: ["2027–28"] },
+  { slug: "rms-cet", nameEn: "RMS CET — Rashtriya Military Schools Common Entrance Test", conductingBody: "National Testing Agency / Ministry of Defence", classCodes: ["6", "9"], academicYears: ["2026"] },
+] as const;
+
 // Same reasoning as exams/[slug]: renders a live open/upcoming/closed status
 // per exam, so keep the revalidate window short rather than caching a stale pill.
 export const revalidate = 900;
@@ -28,7 +34,22 @@ export async function generateMetadata({
 
 export default async function ExamsIndexPage({ params }: PageProps<"/[locale]/exams">) {
   const { locale } = await params;
-  const exams = await listPublicExams();
+  const publishedExams = await listPublicExams();
+  // Evergreen guides remain discoverable even when no cycle passes the public
+  // verification gate. Cycle data itself still comes only from api.* views.
+  const editorialExams = EDITORIAL_EXAMS.map((fallback) => {
+    const published = publishedExams.find((exam) => exam.slug === fallback.slug);
+    return published ?? {
+      ...fallback,
+      soonestOpensOn: null,
+      soonestClosesOn: null,
+      lastCheckedAt: null,
+    };
+  });
+  const exams = [
+    ...editorialExams,
+    ...publishedExams.filter((exam) => !EDITORIAL_EXAMS.some((fallback) => fallback.slug === exam.slug)),
+  ];
   const now = new Date();
 
   return (

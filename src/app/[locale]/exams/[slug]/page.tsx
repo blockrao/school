@@ -26,6 +26,62 @@ import { examPath, homePath, localePrefix } from "@/lib/urls";
 
 const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 
+// Evergreen editorial content is independent of admission-cycle rows: an
+// unverified or absent cycle must not make the exam guide itself disappear.
+const EXAM_GUIDES = {
+  aissee: {
+    title: "AISSEE: Sainik School Admission Guide",
+    description: "A parent-friendly guide to AISSEE, Class VI and IX entry, official notices, eligibility checks and the Sainik School selection process.",
+    heading: "AISSEE: a parent’s guide to Sainik School admission",
+    intro: "The All India Sainik Schools Entrance Examination (AISSEE) is the entrance route for admission to Class VI and Class IX in participating Sainik Schools. The National Testing Agency conducts the examination for the Sainik Schools Society.",
+    checks: ["Confirm the class, age eligibility and date-of-birth conditions in the notification for the exact academic year.", "Read the current information bulletin for the application window, fee, exam pattern, documents and correction-window rules.", "After results, follow official counselling and medical-fitness instructions; qualifying the written test does not itself guarantee admission."],
+    note: "For the 2026–27 cycle, NTA’s official page lists results and counselling-related updates. Do not use last year’s dates or eligibility conditions for a new cycle.",
+    links: [{ label: "Official NTA AISSEE notices", href: "https://exams.nta.nic.in/sainik-school-society/" }],
+  },
+  jnvst: {
+    title: "JNVST: Navodaya Admission Guide",
+    description: "A parent-friendly guide to JNVST, Class VI and IX entry, official eligibility checks and the Navodaya application process.",
+    heading: "JNVST: a parent’s guide to Navodaya admission",
+    intro: "The Jawahar Navodaya Vidyalaya Selection Test (JNVST) is the selection route for admission to Jawahar Navodaya Vidyalayas. Class VI is the main entry point; Class IX admission is generally handled through a separate lateral-entry process where vacancies are available.",
+    checks: ["Use the current NVS prospectus to confirm class-specific eligibility, residence requirements and the permitted date-of-birth range.", "Check whether the notice is for Class VI or Class IX; their schedules and eligibility rules may differ.", "Keep the application confirmation and required certificates, and use only the official NVS admission portal for updates."],
+    note: "A current 2027–28 notification has not been verified in this review. Treat dates and application availability as unannounced until NVS publishes the relevant notice.",
+    links: [{ label: "Official NVS website", href: "https://navodaya.gov.in/" }, { label: "Official admission portal", href: "https://admissions.navodaya.gov.in/" }],
+  },
+  "rms-cet": {
+    title: "RMS CET: Rashtriya Military Schools Guide",
+    description: "A parent-friendly guide to RMS CET, Class VI and IX entry, official application notices and selection stages.",
+    heading: "RMS CET: a parent’s guide to Rashtriya Military Schools",
+    intro: "The Rashtriya Military Schools Common Entrance Test (RMS CET) is the entrance route for eligible candidates seeking admission to Rashtriya Military Schools, including Class VI and Class IX entry. NTA publishes the entrance-test application notice; parents should follow the notice for the applicable session.",
+    checks: ["Read the current NTA bulletin for the exact application deadline, fee, age limits and required documents.", "Check the instructions for both the entrance test and any subsequent selection stages.", "Use the current notice rather than relying on dates copied from an earlier admission year."],
+    note: "NTA has published an RMS CET 2026 online-application notice. Check the live official notice for the current deadline and later updates before submitting an application.",
+    links: [{ label: "Official NTA RMS CET application notice", href: "https://exams.nta.nic.in/rms-cet-2026-online-application/" }, { label: "Rashtriya Military Schools website", href: "https://www.rashtriyamilitaryschools.edu.in/" }],
+  },
+} as const;
+
+function StandaloneExamGuide({ slug }: { slug: keyof typeof EXAM_GUIDES }) {
+  const guide = EXAM_GUIDES[slug];
+  return (
+    <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
+      <p className="text-meta font-semibold uppercase tracking-wide text-muted-ink">Entrance exam guide</p>
+      <h1 className="mt-2 font-display text-title-m md:text-title-d">{guide.heading}</h1>
+      <p className="mt-3 text-body">{guide.intro}</p>
+      <section className="mt-6 rounded-md border border-rule p-4 md:p-6" aria-labelledby="guide-checklist">
+        <h2 id="guide-checklist" className="font-display text-card font-semibold">What parents should check</h2>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-body">
+          {guide.checks.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+        <p className="mt-4 text-body text-muted-ink">{guide.note}</p>
+        <h2 className="mt-5 font-display text-card font-semibold">Official sources</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-body">
+          {guide.links.map((link) => <li key={link.href}><a className="font-semibold text-ruled-blue underline" href={link.href} target="_blank" rel="noopener noreferrer nofollow">{link.label}</a></li>)}
+        </ul>
+      </section>
+      <p className="mt-5 text-meta text-muted-ink">Dates, fees and eligibility can change by academic year. Confirm every detail in the official notice before applying.</p>
+      <p className="mt-4 text-body"><a className="font-semibold text-ruled-blue underline" href="/en/exams">Browse all entrance exam guides</a></p>
+    </div>
+  );
+}
+
 // Shorter revalidate than other static pages: this page renders live
 // deadline countdowns (DeadlineMargin/deadlineState depend on "now" at
 // request time) — see CLAUDE.md's warning against baking a countdown into
@@ -54,7 +110,18 @@ export async function generateMetadata({
 }: PageProps<"/[locale]/exams/[slug]">): Promise<Metadata> {
   const { locale, slug } = await params;
   const cycles = await getPublicAdmissionsByExamSlug(slug);
-  if (cycles.length === 0) return { title: "Not found" };
+  const guide = EXAM_GUIDES[slug as keyof typeof EXAM_GUIDES];
+  if (cycles.length === 0) {
+    if (!guide) return { title: "Not found" };
+    return {
+      title: `${guide.title} | SchoolOye`,
+      description: guide.description,
+      alternates: {
+        canonical: localeCanonical(locale, `/exams/${slug}`),
+        languages: localeAlternates(`/exams/${slug}`),
+      },
+    };
+  }
 
   const exam = cycles[0];
   const title = `${exam.name_en} — Dates, Eligibility & Application ${exam.academic_year} | SchoolOye`;
@@ -735,7 +802,10 @@ function cycleEventJsonLd(cycle: PublicExamAdmission, locale: string, slug: stri
 export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams/[slug]">) {
   const { locale, slug } = await params;
   const cycles = await getPublicAdmissionsByExamSlug(slug);
-  if (cycles.length === 0) notFound();
+  if (cycles.length === 0) {
+    if (slug in EXAM_GUIDES) return <StandaloneExamGuide slug={slug as keyof typeof EXAM_GUIDES} />;
+    notFound();
+  }
 
   // Per-exam Hindi gate, enforced again here (not just in generateMetadata's
   // hreflang): proxy.ts now passes every /hi/exams/* request through to this
