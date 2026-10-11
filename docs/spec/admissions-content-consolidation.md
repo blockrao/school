@@ -115,3 +115,30 @@ This inventory is based on the current application source and production schema 
 - **Target environment:** NOT CONFIRMED. The connected project name alone is insufficient evidence that it is the correct test target or production target. No persistent DDL has been applied.
 - **Next required sequence:** identify an explicitly non-production Supabase target; apply the additive migration there; run `supabase/tests/school_post_admission_metadata.sql`; run portal/profile/news approval-edit-withdrawal checks and canonical/locale route checks; rehearse rollback; then decide whether to merge. Do not merge UI code that reads these fields before its target schema is installed.
 - **Release state:** still draft / not merged. No production data has been deleted or repurposed.
+
+
+## Revised release path — no separate Supabase test environment (2026-10-11)
+
+The project owner confirmed that a separate Supabase test environment is not available. Do not block indefinitely on creating one, and do not create a paid branch without explicit cost approval.
+
+### Preflight performed against the connected active database
+
+- Connected project `Skool` is active and contains 10,670 schools, 3 school posts, and 8 admission cycles. This demonstrates that it is populated; it does **not** by itself prove whether it is production.
+- None of the seven new `admission_*` columns currently exists on `public.school_posts`.
+- Catalog dependency check found no views directly dependent on `api.public_school_news` or `api.public_news` in this database. This is useful evidence, but does not replace checking application/API consumers.
+- The migration is additive: seven columns, check constraints, a partial index, and `CREATE OR REPLACE VIEW` definitions that append projected columns. It does not delete or rewrite rows in `school_posts`, `admission_cycles`, leads, or exam data.
+- SQL regression test writes are transaction-scoped and rolled back; run only after the migration is installed. It checks the school-profile publication gate separately from site-wide listing approval, validation constraints, and withdrawal visibility.
+
+### Controlled release sequence without a test database
+
+1. Finish CI on the latest branch head, including bundle-budget; Gitleaks must pass.
+2. Confirm whether the connected `Skool` project is the intended live database. Project identity cannot be inferred from its name or row counts.
+3. Take/verify a recoverable database backup or provider recovery point and capture current view definitions, grants, and migration state before DDL.
+4. Apply only the additive migration using the managed migration mechanism. Do not bundle unrelated PostGIS, RLS, or legacy admissions cleanup into this release.
+5. Immediately run the SQL contract test, then verify catalog columns/constraints/views and exercise public API reads. If any step fails, stop the rollout and use the documented rollback/recovery plan before deploying dependent application code.
+6. Deploy code only after schema verification; test portal create/edit, school-profile visibility, site-wide listing approval, withdrawal, ordinary news regression, and EN/HI canonical routes.
+7. Keep legacy admission views, grants, cycle data, leads, and exam routes intact until separately audited.
+
+### Current release decision
+
+**Not yet approved for live DDL or merge.** The missing test environment is no longer treated as a blocker by itself; explicit target confirmation and a recoverable backup/recovery point are the remaining safety gates before a controlled live migration. The Vercel preview rate limit remains a separate deployment limitation.
