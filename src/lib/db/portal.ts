@@ -100,6 +100,13 @@ export type PortalPost = {
   title: string;
   body: string;
   source_url: string | null;
+  topic: "general" | "admission_announcement";
+  admission_academic_year: string | null;
+  admission_class_codes: string[];
+  admission_opens_on: string | null;
+  admission_closes_on: string | null;
+  admission_application_url: string | null;
+  admission_notice_url: string | null;
   review: "pending" | "approved" | "edited" | "rejected" | "needs_triage";
   slug: string;
   tier: "organic" | "featured" | "press_release";
@@ -116,7 +123,7 @@ export async function listPostsForSchool(schoolId: string): Promise<PortalPost[]
   const { data } = await supabase
     .from("school_posts")
     .select(
-      "id, kind, title, body, source_url, review, slug, tier, requested_tier, listing_requested_at, listing_review, rejection_reason, withdrawn_at, created_at",
+      "id, kind, title, body, source_url, topic, admission_academic_year, admission_class_codes, admission_opens_on, admission_closes_on, admission_application_url, admission_notice_url, review, slug, tier, requested_tier, listing_requested_at, listing_review, rejection_reason, withdrawn_at, created_at",
     )
     .eq("school_id", schoolId)
     .order("created_at", { ascending: false });
