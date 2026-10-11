@@ -341,7 +341,7 @@ export default async function SchoolsPage({
                   sponsoredNote={<SponsoredWhyDisclosure />}
                   now={now}
                   deadline={deadline}
-                  status={<StatusPill status="unknown">Check school profile for admission updates</StatusPill>}
+                  status={<StatusPill status="not-announced">Admission updates on school profile</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
