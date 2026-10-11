@@ -65,22 +65,22 @@ This inventory is based on the current application source and production schema 
 
 ### Public directory
 
-- `src/app/[locale]/schools/page.tsx` parses the `admissions=open` query parameter, passes `admissionsOpen` into the school query, calls `getAdmissionDeadlinesBySchoolId`, renders the “Admissions open now” checkbox/filter chip, and displays per-school closing dates.
-- The replacement must remove the filter parameter and its query plumbing, the deadline lookup used only for legacy cycles, the filter checkbox/chip, related SEO copy and WhatsApp reminder copy that promises admission-cycle alerts. Preserve unrelated board, grade, comparison, shortlist and city filters.
-- Do not retain a hidden `admissions=open` database query after removing the UI.
+- **Implemented on branch:** removed the `admissions=open` filter from the global school list and state/city/town discovery pages, removed cycle-derived deadline lookups, and replaced misleading open/closing status with a neutral profile-announcement prompt.
+- **Implemented on branch:** removed the homepage's school-cycle query from the exam-window module. That module now reports exam application windows only; school announcements are available on school profiles and `/news`.
+- **Remaining:** verify every directory route and alert workflow for references to `api.public_school_admissions`; do not restore an “open now” claim unless it is derived from published announcement dates with explicit timezone semantics.
 
 ### Canonical school profile
 
-- `src/app/[locale]/_views/entity-page.tsx` currently loads `getPublicAdmissionsBySchoolId`, `getRecentAdmissionUpdatesBySchoolId`, and cycle-based deadlines. It builds eligibility cycles, selects a primary cycle for the decision strip, renders the Admissions and Recent admission updates sections, and exposes a cycle-specific lead form through `submitAdmissionLead`.
-- The new announcement must join the existing school-news/activity projection using a bounded query and canonical post URL. It must not feed old cycle rows into the new announcement card or label an announcement as a verified admission cycle.
-- Remove the cycle-based section, eligibility checker and recent-cycle-update rendering only when the new announcement component is live. Keep general school contact/enquiry paths if they are not admission-cycle-specific.
-- Review school JSON-LD and metadata so removed cycle facts are not still emitted as structured data or claims.
+- **Implemented on branch:** `src/app/[locale]/_views/entity-page.tsx` now derives admission announcements from the existing `getPublicSchoolNewsBySchoolId` result, displays structured session/class/date fields and official application/notice links, and no longer queries school admission cycles or recent cycle updates.
+- **Implemented on branch:** removed the profile's cycle-specific eligibility widget and the legacy cycle-linked lead form. The general school enquiry/contact path remains available.
+- **Regression gate:** run the section-order test, verify the profile and `/news` against a test school, and confirm ordinary news posts continue to render unchanged. The announcement fields will not work against a database until the new migration is applied.
 
 ### Dedicated admissions directory and lead-capture dependency
 
-- `src/app/[locale]/admissions/page.tsx` is currently backed by `listPublicAdmissionCycles` and contains a separate admissions directory, filtering/status logic, and cycle-oriented application tracking.
-- Existing `admission_leads` rows require `admission_cycle_id` and are linked to the old cycle model. They cannot simply be re-pointed to a post ID. Preserve this table and its data until a separate retention/privacy decision is made; do not leave a visible lead form pointing at a removed cycle.
-- The root `/admissions` route should ultimately redirect to `/news`, but `/admissions/help` and exam admission routes must remain untouched.
+- **Implemented on branch:** `src/app/[locale]/admissions/page.tsx` redirects the obsolete school-admissions directory root to `/news`. School-specific `/school/{slug}/admissions` routes redirect through the canonical campus-view redirect.
+- **Implemented on branch:** the cycle-linked `submitAdmissionLead` action was removed from the school-profile actions module. Existing `admission_leads` rows and the lead-management portal remain intact for historical/admin use; no data has been deleted or remapped.
+- **Preserved:** `/admissions/help`, checkout, user order history, exam admission pages, and exam eligibility tools.
+- **Remaining:** audit links, alerts, and analytics for any assumptions that a new school lead must be associated with a current cycle. Do not repurpose `admission_cycle_id` to store a post ID.
 
 ### Production catalog observations
 
