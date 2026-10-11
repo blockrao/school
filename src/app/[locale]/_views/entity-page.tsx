@@ -1373,7 +1373,7 @@ export async function SchoolView({
                             rel="noopener noreferrer nofollow"
                             className="font-semibold text-ruled-blue"
                           >
-                            Apply on official website ↗
+                            Open application link ↗
                           </a>
                         )}
                         {post.admission_notice_url && (
@@ -1383,7 +1383,7 @@ export async function SchoolView({
                             rel="noopener noreferrer nofollow"
                             className="font-semibold text-ruled-blue"
                           >
-                            Read official notice ↗
+                            View notice link ↗
                           </a>
                         )}
                       </div>
