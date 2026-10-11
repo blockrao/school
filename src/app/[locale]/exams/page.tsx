@@ -8,9 +8,27 @@ import { classLabel } from "@/lib/text";
 import { localePrefix } from "@/lib/urls";
 
 const EDITORIAL_EXAMS = [
-  { slug: "aissee", nameEn: "AISSEE — Sainik School Entrance Examination", conductingBody: "National Testing Agency / Sainik Schools Society", classCodes: ["6", "9"], academicYears: ["2026–27", "2027–28"] },
-  { slug: "jnvst", nameEn: "JNVST — Jawahar Navodaya Vidyalaya Selection Test", conductingBody: "Navodaya Vidyalaya Samiti", classCodes: ["6", "9"], academicYears: ["2027–28"] },
-  { slug: "rms-cet", nameEn: "RMS CET — Rashtriya Military Schools Common Entrance Test", conductingBody: "National Testing Agency / Ministry of Defence", classCodes: ["6", "9"], academicYears: ["2026"] },
+  {
+    slug: "aissee",
+    nameEn: "AISSEE — Sainik School Entrance Examination",
+    conductingBody: "National Testing Agency / Sainik Schools Society",
+    classCodes: ["6", "9"],
+    academicYears: ["2026–27", "2027–28"],
+  },
+  {
+    slug: "jnvst",
+    nameEn: "JNVST — Jawahar Navodaya Vidyalaya Selection Test",
+    conductingBody: "Navodaya Vidyalaya Samiti",
+    classCodes: ["6", "9"],
+    academicYears: ["2027–28"],
+  },
+  {
+    slug: "rms-cet",
+    nameEn: "RMS CET — Rashtriya Military Schools Common Entrance Test",
+    conductingBody: "National Testing Agency / Ministry of Defence",
+    classCodes: ["6", "9"],
+    academicYears: ["2026"],
+  },
 ] as const;
 
 // Same reasoning as exams/[slug]: renders a live open/upcoming/closed status
@@ -39,16 +57,20 @@ export default async function ExamsIndexPage({ params }: PageProps<"/[locale]/ex
   // verification gate. Cycle data itself still comes only from api.* views.
   const editorialExams = EDITORIAL_EXAMS.map((fallback) => {
     const published = publishedExams.find((exam) => exam.slug === fallback.slug);
-    return published ?? {
-      ...fallback,
-      soonestOpensOn: null,
-      soonestClosesOn: null,
-      lastCheckedAt: null,
-    };
+    return (
+      published ?? {
+        ...fallback,
+        soonestOpensOn: null,
+        soonestClosesOn: null,
+        lastCheckedAt: null,
+      }
+    );
   });
   const exams = [
     ...editorialExams,
-    ...publishedExams.filter((exam) => !EDITORIAL_EXAMS.some((fallback) => fallback.slug === exam.slug)),
+    ...publishedExams.filter(
+      (exam) => !EDITORIAL_EXAMS.some((fallback) => fallback.slug === exam.slug),
+    ),
   ];
   const now = new Date();
 

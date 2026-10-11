@@ -2478,12 +2478,7 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      // active_cities dropped 30 Sep 2026 (launch gate removal) — it filtered
-      // on cities.is_launch, which was dropped in the same migration
-      // (20260930190000_remove_launch_gate_entirely.sql). Confirmed unused in
-      // app code before dropping.
-    };
+    Views: { [_ in never]: never };
     Functions: {
       approve_application: {
         Args: Record<string, unknown>; // p_application_id uuid
