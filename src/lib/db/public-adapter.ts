@@ -3,7 +3,6 @@ import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import {
-  type PublicAdmissionUpdate,
   type PublicEvent,
   type PublicExamAdmission,
   type PublicExamApplicationStep,
@@ -18,13 +17,11 @@ import {
   type PublicJob,
   type PublicNews,
   type PublicSchool,
-  type PublicSchoolAdmission,
   type PublicSchoolBoard,
   type PublicSchoolEvent,
   type PublicSchoolJob,
   type PublicSchoolNews,
   type PublicSchoolRanking,
-  publicAdmissionUpdateContract,
   publicAreaContract,
   publicBoardContract,
   publicCityContract,
@@ -38,7 +35,6 @@ import {
   publicLocalityContract,
   publicLocalityNeighborContract,
   publicNewsContract,
-  publicSchoolAdmissionContract,
   publicSchoolBoardContract,
   publicSchoolContract,
   publicSchoolEventContract,
@@ -591,55 +587,6 @@ export async function getBoardCategoryLinksForDistrict(
   return links.filter((link) => link.count > 0).sort((a, b) => b.count - a.count);
 }
 
-export type PublicOpenAdmission = {
-  schoolId: string;
-  slug: string;
-  schoolCode: number;
-  nameEn: string;
-  status: string;
-  closesOn: string | null;
-};
-
-/** Published schools in a district with a currently-open, approved admission cycle, soonest deadline first. */
-export async function listOpenAdmissionsByDistrict(
-  scope: DistrictScope,
-  limit = 3,
-): Promise<PublicOpenAdmission[]> {
-  const api = createApiSchemaClient();
-
-  const { data: schools } = await api
-    .from("public_schools")
-    .select("id, slug, school_code, name_en")
-    .in("district_id", districtList(scope));
-
-  const schoolIds = (schools ?? []).map((s) => s.id as string);
-  if (schoolIds.length === 0) return [];
-
-  const { data: cycles } = await api
-    .from("public_school_admissions")
-    .select("school_id, status, closes_on")
-    .in("school_id", schoolIds)
-    .in("status", ["open", "closing_soon"])
-    .order("closes_on", { ascending: true })
-    .limit(limit);
-
-  const bySchoolId = new Map((schools ?? []).map((s) => [s.id as string, s]));
-  return (cycles ?? []).flatMap((cycle) => {
-    const school = bySchoolId.get(cycle.school_id as string);
-    if (!school) return [];
-    return [
-      {
-        schoolId: school.id as string,
-        slug: school.slug as string,
-        schoolCode: school.school_code as number,
-        nameEn: school.name_en as string,
-        status: cycle.status as string,
-        closesOn: cycle.closes_on as string | null,
-      },
-    ];
-  });
-}
-
 /** One board name per school (first affiliation), for list-card meta lines. Empty map entries are omitted, not guessed. */
 export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<string, string>> {
   if (schoolIds.length === 0) return new Map();
@@ -658,75 +605,6 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
     }
   }
   return result;
-}
-
-/**
- * Soonest admission_cycles.closes_on per school, for list-card DeadlineMargin
- * rails, read via api.public_school_admissions rather than the raw table (for
- * the shared api-schema access path, not an approval filter). Under D-119
- * (28 Sep 2026) the view has no verification gate — every cycle of a published
- * school is shown as stored; a stale comment here previously claimed the view
- * only exposed verification IN ('ops_verified','school_verified') cycles, which
- * was true before D-119 suspended that rule and is not true of the live view now.
- */
-export async function getAdmissionDeadlinesBySchoolId(
-  schoolIds: string[],
-): Promise<Map<string, string | null>> {
-  if (schoolIds.length === 0) return new Map();
-
-  const api = createApiSchemaClient();
-  const { data } = await api
-    .from("public_school_admissions")
-    .select("school_id, closes_on")
-    .in("school_id", schoolIds)
-    .order("closes_on", { ascending: true });
-
-  const result = new Map<string, string | null>();
-  for (const row of data ?? []) {
-    const schoolId = row.school_id as string;
-    if (!result.has(schoolId)) {
-      result.set(schoolId, row.closes_on as string | null);
-    }
-  }
-  return result;
-}
-
-/** Every approved admission cycle for one school (any status), soonest-closing first — for the school page's admissions summary. */
-export async function getPublicAdmissionsBySchoolId(
-  schoolId: string,
-): Promise<PublicSchoolAdmission[]> {
-  const api = createApiSchemaClient();
-  const { data } = await api
-    .from("public_school_admissions")
-    .select("*")
-    .eq("school_id", schoolId)
-    .order("closes_on", { ascending: true, nullsFirst: false });
-  return (data ?? []).map((row) => publicSchoolAdmissionContract.parse(row));
-}
-
-/**
- * Sensible initial filtering for the site-wide /admissions discovery page
- * (Activity & Admissions Consolidation, 29 Sep 2026): city, class, and the
- * derived deadline-pill status the rest of the app already uses (open/
- * closing-soon/upcoming/closed/not-announced) — not the raw stored
- * `admission_cycles.status` column, since the verification pass found that
- * column can disagree with the actual dates. Reuses
- * `api.public_school_admissions` unfiltered rather than a new view/model.
- */
-export type PublicAdmissionCycleFilters = {
-  citySlug?: string;
-  classCode?: string;
-};
-
-export async function listPublicAdmissionCycles(
-  filters: PublicAdmissionCycleFilters = {},
-): Promise<PublicSchoolAdmission[]> {
-  const api = createApiSchemaClient();
-  let query = api.from("public_school_admissions").select("*");
-  if (filters.citySlug) query = query.eq("city_slug", filters.citySlug);
-  if (filters.classCode) query = query.eq("class_code", filters.classCode);
-  const { data } = await query.order("closes_on", { ascending: true, nullsFirst: false });
-  return (data ?? []).map((row) => publicSchoolAdmissionContract.parse(row));
 }
 
 /**
@@ -896,27 +774,6 @@ export async function listPublicJobs(filters: PublicJobFilters = {}): Promise<Pu
   if (filters.employmentType) query = query.eq("employment_type", filters.employmentType);
   const { data } = await query.order("created_at", { ascending: false });
   return (data ?? []).map((row) => publicJobContract.parse(row));
-}
-
-/**
- * Recent admission-cycle changes for one school, most recent first — reads only
- * `api.public_admission_updates` (db/views/096_public_admission_updates.sql), which
- * already scopes to admission_cycles-only audit rows with a real change in the
- * allowlisted fields. `limit` defaults to 5 — this is a "recent updates" strip, not a
- * full history browser.
- */
-export async function getRecentAdmissionUpdatesBySchoolId(
-  schoolId: string,
-  limit = 5,
-): Promise<PublicAdmissionUpdate[]> {
-  const api = createApiSchemaClient();
-  const { data } = await api
-    .from("public_admission_updates")
-    .select("*")
-    .eq("school_id", schoolId)
-    .order("occurred_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []).map((row) => publicAdmissionUpdateContract.parse(row));
 }
 
 export type PublicCity = { id: number; name_en: string; slug: string; districtId: number };
