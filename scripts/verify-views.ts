@@ -29,9 +29,11 @@ import {
   publicFieldEvidenceContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
+  publicNewsContract,
   publicSchoolAdmissionContract,
   publicSchoolBoardContract,
   publicSchoolContract,
+  publicSchoolNewsContract,
   publicSeatStatusContract,
   publicStateContract,
   publicTeacherContract,
@@ -82,10 +84,13 @@ const VIEWS: {
   { name: "api.public_teacher_qualifications", contract: publicTeacherQualificationContract },
   { name: "api.public_field_evidence", contract: publicFieldEvidenceContract },
   { name: "api.public_exam_admissions", contract: publicExamAdmissionContract },
+  { name: "api.public_news", contract: publicNewsContract },
+  { name: "api.public_school_news", contract: publicSchoolNewsContract },
 ];
 
 const RAW_TABLES = [
   "schools",
+  "school_posts",
   "field_provenance",
   "source_records",
   "admission_cycles",
