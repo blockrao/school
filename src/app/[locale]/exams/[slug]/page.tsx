@@ -1039,7 +1039,8 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
             </ul>
             <p>
               NTA has published an RMS CET 2026 online-application notice. Check the live official
-              notice for the current deadline and any later updates before submitting an application.
+              notice for the current deadline and any later updates before submitting an
+              application.
             </p>
             <p>
               <a
