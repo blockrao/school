@@ -133,7 +133,7 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
 
         <label className="flex flex-col gap-1.5">
           <span className="text-meta font-semibold text-muted-ink">
-            Official notice URL (optional, HTTPS)
+            Notice URL (optional, HTTPS)
           </span>
           <input
             type="url"
