@@ -21,7 +21,7 @@ Admission test dates that need calendar/event behavior remain events. An announc
 
 ## User experience
 
-- **School page:** admission announcements appear in the existing News/What's happening stream, newest relevant item first, with a visible Admission label, school name, academic year/classes, opening/closing dates when supplied, freshness timestamp, and a clear application/official-notice link when supplied.
+- **School page:** a dedicated Admissions section reads approved school-post announcements and displays title/body, session, classes, supplied opening/closing dates, and official application/notice links. These items are excluded from the general What's happening feed to avoid duplicate cards; ordinary news/events/jobs continue in that feed.
 - **Site-wide discovery:** `/news` contains the same item and uses the same publication/listing approval gate as other school posts. A topic chip/filter may be added to the existing news feed only if it uses indexed, bounded queries and has sufficient inventory; no new `/admissions` feed.
 - **School directory/search:** do not claim “Admissions open now” from legacy cycle rows. The filter is removed until the unified announcement model can derive a trustworthy state from published, current admission announcements. This avoids the current unbounded secondary lookup of all open cycles followed by a school-ID `IN` filter.
 - **Application links:** link to the school's supplied destination or notice; SchoolOye does not imply it operates the application form. Existing lead-capture must not be reused without a separate privacy, consent, retention and authorization review.
