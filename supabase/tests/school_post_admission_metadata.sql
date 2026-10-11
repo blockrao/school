@@ -52,12 +52,25 @@ begin
   select exists (
     select 1 from api.public_news
     where id = test_post
+  ) into visible_global_post;
+
+  if visible_global_post then
+    raise exception 'FAIL: admission post bypassed the site-wide listing-review gate';
+  end if;
+
+  update public.school_posts
+  set listing_review = 'approved', listing_reviewed_at = now()
+  where id = test_post;
+
+  select exists (
+    select 1 from api.public_news
+    where id = test_post
       and topic = 'admission_announcement'
       and admission_application_url = 'https://school.example/apply?session=2026'
   ) into visible_global_post;
 
   if not visible_global_post then
-    raise exception 'FAIL: listed admission post missing from global news projection';
+    raise exception 'FAIL: listed admission post missing from global news projection after approval';
   end if;
 
   caught := false;
@@ -113,7 +126,8 @@ begin
     raise exception 'FAIL: shared admission cycles were modified';
   end if;
 
-  raise notice 'PASS: approved admission post appears in school and global public projections';
+  raise notice 'PASS: school-page publication is independent of site-wide listing approval';
+  raise notice 'PASS: global news visibility begins only after listing approval';
   raise notice 'PASS: invalid dates, academic year, HTTP URL, and class codes are rejected';
   raise notice 'PASS: withdrawn post disappears from both public projections';
   raise notice 'PASS: shared admission_cycles remains untouched';
