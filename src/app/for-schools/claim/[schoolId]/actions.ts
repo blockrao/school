@@ -82,7 +82,7 @@ export async function submitClaim(formData: FormData) {
 
     const matched =
       parsed.data.method === "official_email"
-        ? onRecord.some((e) => e && e.trim().toLowerCase() === typedValue.toLowerCase())
+        ? onRecord.some((e) => e?.trim().toLowerCase() === typedValue.toLowerCase())
         : onRecord.some((p) => p && p.replace(/\D/g, "").endsWith(typedValue.replace(/\D/g, "")));
 
     evidence = { method: parsed.data.method, claimed_value: typedValue, matched };
