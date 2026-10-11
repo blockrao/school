@@ -138,7 +138,6 @@ function TownPageBody({
   neighbors,
   boardNames,
   shortlistedIds,
-  now,
 }: {
   locale: string;
   town: NonNullable<Awaited<ReturnType<typeof getPublicTownAreaBySlug>>>;
@@ -146,7 +145,6 @@ function TownPageBody({
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
   boardNames: Map<string, string>;
   shortlistedIds: Set<string>;
-  now: Date;
 }) {
   const townPath = localityPath(locale, town.stateSlug, town.citySlug, town.townSlug);
 
@@ -374,8 +372,6 @@ export async function PlaceView({
   resolved: ResolvedPlace;
   rawSearchParams: RawSearchParams;
 }) {
-  const now = new Date();
-
   if (resolved.kind === "state") {
     return <StatePageBody locale={locale} state={resolved.state} />;
   }
@@ -401,7 +397,6 @@ export async function PlaceView({
         neighbors={neighbors}
         boardNames={boardNames}
         shortlistedIds={shortlistedIds}
-        now={now}
       />
     );
   }
