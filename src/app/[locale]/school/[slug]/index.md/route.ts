@@ -67,7 +67,9 @@ export async function GET(
           : null,
         post.admission_opens_on ? `Opens ${post.admission_opens_on}` : null,
         post.admission_closes_on ? `Closes ${post.admission_closes_on}` : null,
-        post.admission_application_url ? `Application link: ${post.admission_application_url}` : null,
+        post.admission_application_url
+          ? `Application link: ${post.admission_application_url}`
+          : null,
         post.admission_notice_url ? `Notice link: ${post.admission_notice_url}` : null,
       ].filter((detail): detail is string => detail !== null);
       lines.push(`- ${post.title}${details.length > 0 ? `: ${details.join("; ")}` : ""}`);
