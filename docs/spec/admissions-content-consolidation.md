@@ -57,7 +57,7 @@ Admission test dates that need calendar/event behavior remain events. An announc
 5. The `/admissions` root now redirects to `/news`. Legacy cycle-driven profile cards/lead form, directory filter/deadline lookups, and the home-page school-cycle widget have been removed from the branch. Exam application windows and `/admissions/help` remain separate.
 6. Remove old public views/grants/contracts only after a repo-wide dependency scan, generated-type regeneration, live `pg_depend`/catalog inspection and successful production smoke tests.
 7. Check query plans, response sizes and cache freshness; confirm no route continues to issue reads to the legacy views.
-8. Still outstanding: run full CI, route smoke tests, SEO/canonical checks and rollback rehearsal before go-live. Vercel currently reports a build-rate-limit failure; no successful build or end-to-end verification has been confirmed.
+8. GitHub Actions CI passed on commit `ec88de09f3bf3286ebd7c8d662073e6ced2e6db3`: typecheck, lint, tests, public-adapter check, i18n-string check, production build, and bundle-budget all succeeded; Gitleaks also passed. The Vercel status remains failed with an account build-rate-limit URL, so a hosted preview is not available. Route smoke tests, SEO/canonical checks, database-backed end-to-end verification and rollback rehearsal remain outstanding.
 
 ## Dependency inventory confirmed during implementation review
 
@@ -105,3 +105,13 @@ This inventory is based on the current application source and production schema 
 - Whether `school_posts.kind` should remain the existing `news | press` enum with a separate typed `topic`, or be migrated to a broader content taxonomy. Prefer a separate topic over overloading the current kind.
 - Whether a school may publish an admission announcement immediately on its own page, as organic news currently can, while requiring listing approval for `/news`. Default: follow the established news behavior and never bypass existing publication rules.
 - Whether to keep any legacy cycle records for internal operations/alerts. Decide from actual consumers and retention obligations; do not delete data as a side effect of UI cleanup.
+
+
+## Release checkpoint — 2026-10-11
+
+- **Code CI:** PASS on `ec88de09f3bf3286ebd7c8d662073e6ced2e6db3`. Both the `verify` and `bundle-budget` jobs completed successfully; Gitleaks passed.
+- **Hosted preview:** BLOCKED by the Vercel account build-rate limit. This is not evidence of an application build failure; CI's production build succeeded.
+- **Schema:** NOT INSTALLED. A live catalog check on the connected `Skool` Supabase project confirms none of the seven admission metadata columns are present on `public.school_posts`. The migration has only been exercised transactionally and rolled back.
+- **Target environment:** NOT CONFIRMED. The connected project name alone is insufficient evidence that it is the correct test target or production target. No persistent DDL has been applied.
+- **Next required sequence:** identify an explicitly non-production Supabase target; apply the additive migration there; run `supabase/tests/school_post_admission_metadata.sql`; run portal/profile/news approval-edit-withdrawal checks and canonical/locale route checks; rehearse rollback; then decide whether to merge. Do not merge UI code that reads these fields before its target schema is installed.
+- **Release state:** still draft / not merged. No production data has been deleted or repurposed.
