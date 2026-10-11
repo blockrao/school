@@ -20,15 +20,12 @@ import { t, tEnum } from "@/i18n/t";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { buildCoverage } from "@/lib/coverage";
 import {
-  getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
-  getPublicAdmissionsBySchoolId,
   getPublicFieldEvidenceBySchoolId,
   type getPublicLocalityBySlug,
   getPublicSchoolEventsBySchoolId,
   getPublicSchoolJobsBySchoolId,
   getPublicSchoolNewsBySchoolId,
-  getRecentAdmissionUpdatesBySchoolId,
   getSimilarSchools,
   listLocalityNeighbors,
   listPublicSchoolsByLocality,
@@ -338,7 +335,6 @@ function LocalityPageBody({
   schools,
   neighbors,
   boardNames,
-  admissionDeadlines,
   shortlistedIds,
   now,
 }: {
@@ -348,7 +344,6 @@ function LocalityPageBody({
   schools: Awaited<ReturnType<typeof listPublicSchoolsByLocality>>;
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
   boardNames: Map<string, string>;
-  admissionDeadlines: Map<string, string | null>;
   shortlistedIds: Set<string>;
   now: Date;
 }) {
@@ -438,9 +433,6 @@ function LocalityPageBody({
               const grades = formatGradeRange(school.min_class, school.max_class);
               const meta = board ? `${board} · ${grades}` : grades;
 
-              const closesOn = admissionDeadlines.get(school.id);
-              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-              const pill = deadlineToPill(deadlineState(deadline, now));
 
               return (
                 <SchoolCard
@@ -448,9 +440,7 @@ function LocalityPageBody({
                   href={schoolPath(locale, school.slug)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                  status={<StatusPill status="not-announced">Admission update on school profile</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
@@ -501,16 +491,14 @@ export async function LocalityView({
   locale: string;
   resolved: ResolvedLocality;
 }) {
-  const now = new Date();
   const { city, locality } = resolved;
   const [schools, neighbors] = await Promise.all([
     listPublicSchoolsByLocality(locality.id),
     listLocalityNeighbors(locality.slug),
   ]);
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
+  const [boardNames, shortlistedIds] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
-    getAdmissionDeadlinesBySchoolId(schoolIds),
     getShortlistedSchoolIds(schoolIds),
   ]);
 
@@ -522,7 +510,6 @@ export async function LocalityView({
       schools={schools}
       neighbors={neighbors}
       boardNames={boardNames}
-      admissionDeadlines={admissionDeadlines}
       shortlistedIds={shortlistedIds}
       now={now}
     />
