@@ -66,7 +66,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        headers: [...securityHeaders, ...cacheHeaders, { key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        headers: [
+          ...securityHeaders,
+          ...cacheHeaders,
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
       },
     ];
   },
