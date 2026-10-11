@@ -80,7 +80,10 @@ function googleCalendarUrl(input: {
   details: string;
 }): string {
   const toGCalStamp = (iso: string) =>
-    `${iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "").slice(0, 15)}Z`;
+    `${iso
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "")
+      .slice(0, 15)}Z`;
   const start = toGCalStamp(input.startsAt);
   const end = input.endsAt ? toGCalStamp(input.endsAt) : start;
   const params = new URLSearchParams({
