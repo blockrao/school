@@ -125,17 +125,19 @@ async function verifyContracts(): Promise<boolean> {
       if (!result.success) {
         failures++;
         if (failures === 1) {
-          console.warn(`⚠ ${name}: contract mismatch on at least one row`);
-          console.warn(JSON.stringify(result.error, null, 2));
+          console.error(`✗ ${name}: contract mismatch on at least one row`);
+          console.error(JSON.stringify(result.error, null, 2));
         }
       }
     }
     if (failures > 0) {
-      console.warn(`⚠ ${name}: ${failures}/${rows.length} rows failed contract validation`);
+      console.error(`✗ ${name}: ${failures}/${rows.length} rows failed contract validation`);
+      ok = false;
     } else {
       console.log(`✓ ${name}: ${rows.length} rows match the contract`);
     }
   }
+  return ok;
 }
 
 /**
