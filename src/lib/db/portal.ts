@@ -190,12 +190,12 @@ export async function requestPostListing(postId: string, schoolId: string): Prom
 export async function updatePost(
   postId: string,
   schoolId: string,
-  fields: { title: string; body: string; sourceUrl: string | null },
+  fields: { title: string; body: string; sourceUrl: string | null; topic: "general" | "admission_announcement"; academicYear: string | null; classCodes: string[]; opensOn: string | null; closesOn: string | null; applicationUrl: string | null; noticeUrl: string | null },
 ): Promise<boolean> {
   const supabase = await createSessionClient();
   const { error } = await supabase
     .from("school_posts")
-    .update({ title: fields.title, body: fields.body, source_url: fields.sourceUrl })
+    .update({ title: fields.title, body: fields.body, source_url: fields.sourceUrl, topic: fields.topic, admission_academic_year: fields.academicYear, admission_class_codes: fields.classCodes, admission_opens_on: fields.opensOn, admission_closes_on: fields.closesOn, admission_application_url: fields.applicationUrl, admission_notice_url: fields.noticeUrl })
     .eq("id", postId)
     .eq("school_id", schoolId);
   return !error;
