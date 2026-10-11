@@ -30,7 +30,7 @@ begin
      admission_application_url, admission_notice_url)
   values
     (test_school, 'news', 'QA admission metadata contract test',
-     'Transaction-only contract test.', 'approved', now(), 'approved', now(),
+     'Transaction-only contract test.', 'approved', now(), 'pending', now(),
      'admission_announcement', '2026-27', array['nursery', 'c1', 'c12'],
      date '2026-11-01', date '2027-02-28',
      'https://school.example/apply?session=2026',
