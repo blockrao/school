@@ -1331,7 +1331,14 @@ export async function SchoolView({
                       key={post.id}
                       className="flex flex-col gap-2 rounded-md border border-rule p-4"
                     >
-                      <h3 className="font-semibold">{post.title}</h3>
+                      <h3 className="font-semibold">
+                        <Link href={newsPath(locale, post.post_slug)} className="hover:text-ruled-blue">
+                          {post.title}
+                        </Link>
+                      </h3>
+                      <p className="text-meta text-muted-ink">
+                        Published {new Date(post.published_at).toLocaleDateString("en-IN")}
+                      </p>
                       {post.admission_academic_year && (
                         <p className="text-meta text-muted-ink">
                           Session {post.admission_academic_year}
