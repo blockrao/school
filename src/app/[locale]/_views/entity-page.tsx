@@ -1,28 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
-import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { ClaimCard } from "@/components/ui/claim-card";
 import { CoverageCard } from "@/components/ui/coverage-card";
-import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
-import { ProvenanceChip } from "@/components/ui/provenance-chip";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { ShareButton } from "@/components/ui/share-button";
 import { SourceLine } from "@/components/ui/source-line";
 import { EmptyState } from "@/components/ui/state-message";
-import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
-import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { buildCoverage } from "@/lib/coverage";
 import {
@@ -42,13 +36,10 @@ import {
 import { listPublicSchoolTeam } from "@/lib/db/school-team";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
-import { deadlineState, deadlineToPill } from "@/lib/deadline";
-import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
-import type { EligibilityCycle } from "@/lib/eligibility";
+import { buildDecisionStrip } from "@/lib/decision-strip";
 import { siteUrl } from "@/lib/env.server";
 import { EVENT_STATUS_LABEL } from "@/lib/event-status";
 import { normalizeExternalUrl } from "@/lib/external-url";
-import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
 import { JOB_STATUS_LABEL } from "@/lib/job-status";
@@ -73,7 +64,7 @@ import {
   statePath,
   teacherPath,
 } from "@/lib/urls";
-import { sendEnquiry, submitAdmissionLead } from "./actions";
+import { sendEnquiry } from "./actions";
 import type { ResolvedCity, ResolvedLocality, ResolvedSchool } from "./resolve";
 
 export function localityMetadata(locale: string, resolved: ResolvedLocality): Metadata {
@@ -578,17 +569,14 @@ export async function SchoolView({
   const user = await getSessionUser(supabase);
 
   const [
-    admissions,
     shortlistedIdsSet,
     similarSchoolsRaw,
     team,
     news,
     events,
     jobs,
-    recentAdmissionUpdates,
     fieldEvidence,
   ] = await Promise.all([
-    getPublicAdmissionsBySchoolId(school.id),
     getShortlistedSchoolIds([school.id]),
     // Increment 11 (SDP-21) — locality-first, same-city fallback; see
     // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
@@ -606,9 +594,6 @@ export async function SchoolView({
     // every job posting for this school, regardless of site-wide /jobs listing
     // status (own-page visibility has no ops gate — same pattern as events).
     getPublicSchoolJobsBySchoolId(school.id),
-    // Increment 10 — api.public_admission_updates (db/views/096_public_admission_updates.sql):
-    // already scoped to admission_cycles-only, allowlisted fields, real changes only.
-    getRecentAdmissionUpdatesBySchoolId(school.id),
     // Identity & Search Presence Foundation v1 (29 Sep 2026) — api.public_field_evidence
     // (db/views/106_public_field_evidence.sql): open-licence per-field source attribution.
     getPublicFieldEvidenceBySchoolId(school.id),
@@ -621,6 +606,7 @@ export async function SchoolView({
   // domain's own model/provenance/canonical page is unchanged; this is a
   // display-order projection only (see src/lib/school-activity.ts header).
   const activity = buildSchoolActivityFeed(news, events, jobs, now);
+  const admissionAnnouncements = news.filter((post) => post.topic === "admission_announcement");
 
   // Identity & Search Presence Foundation v1 (29 Sep 2026) — one row per
   // field for lookup by the School facts/Location sections below. A field can
@@ -635,40 +621,8 @@ export async function SchoolView({
     }
   }
 
-  // Increment 10 — eligibility checker input. Mirrors exams/[slug]/page.tsx's
-  // toEligibilityCycles exactly (same shape, same deadlineState/deadlineToPill use);
-  // only cycles that actually carry a dob window render a checkable row. There's no
-  // per-cycle id exposed by api.public_school_admissions (unlike the exams view's
-  // cycle_id) — academic_year+class_code is already this page's de-facto cycle key
-  // (used as the admissions list's own React key above), and is unique within one
-  // school's admissions list.
-  const eligibilityCycles: EligibilityCycle[] = admissions
-    .filter((cycle) => cycle.dob_from && cycle.dob_to)
-    .map((cycle) => {
-      const pill = deadlineToPill(
-        deadlineState(
-          {
-            opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
-            closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
-          },
-          now,
-        ),
-      );
-      return {
-        id: `${cycle.academic_year}-${cycle.class_code}`,
-        label: `${cycle.academic_year} · Class ${cycle.class_code.replace(/^c/, "")}`,
-        dobFrom: cycle.dob_from,
-        dobTo: cycle.dob_to,
-        applyStatus: pill.status,
-        formUrl: cycle.form_url,
-      };
-    });
-
   const enquirySent = rawSearchParams.enquiry_sent === "1";
   const enquiryError = rawSearchParams.enquiry_error === "failed";
-  const applySent = rawSearchParams.apply_sent === "1";
-  const applyErrorCode =
-    typeof rawSearchParams.apply_error === "string" ? rawSearchParams.apply_error : null;
 
   const breadcrumbTrail = city
     ? [
@@ -687,22 +641,6 @@ export async function SchoolView({
           : []),
       ]
     : [];
-
-  // A school can carry more than one live admission_cycles row (e.g. a
-  // closed Nursery cycle alongside a separately-open Class XI cycle — the
-  // DAV Public School Gurugram real-data test). `admissions[0]` picks
-  // whichever sorts first by closes_on, which is not necessarily the one
-  // still actionable; selectPrimaryAdmission prefers an open/upcoming cycle
-  // over a closed one.
-  const primaryAdmission: PublicSchoolAdmission | undefined = selectPrimaryAdmission(admissions);
-
-  // Increment 7: the header used to carry its own admissions-urgency
-  // StatusPill (computed from primaryAdmission's dates via deadlineToPill),
-  // duplicating exactly what the Decision Strip's Admissions slot already
-  // shows. Removed the header's render per the ownership decision — Header
-  // stays compact identity context, Decision Strip is the canonical owner
-  // of "is admissions open right now." The underlying admissions data/query
-  // is unchanged; only this one rendering was removed.
 
   const verifiedAt = school.last_verified_at ? new Date(school.last_verified_at) : null;
   // Two distinct clocks, deliberately never collapsed into one: verifiedAt
@@ -729,7 +667,6 @@ export async function SchoolView({
   const dateModified = latestOf(
     verifiedAt,
     ...PAGE_VISIBLE_EVIDENCE_FIELDS.map((field) => evidenceByField[field]?.created_at),
-    ...recentAdmissionUpdates.map((u) => u.occurred_at),
     ...news.map((n) => n.published_at),
     ...events.map((e) => e.created_at),
     ...jobs.map((j) => j.created_at),
@@ -737,15 +674,7 @@ export async function SchoolView({
   const badge = recordBadge(school.claim, school.verification, verifiedAt);
   const identity = identityBand(school.claim, school.verification);
   const decisionSlots = buildDecisionStrip({
-    admission: primaryAdmission
-      ? {
-          academic_year: primaryAdmission.academic_year,
-          class_code: primaryAdmission.class_code,
-          opens_on: primaryAdmission.opens_on,
-          closes_on: primaryAdmission.closes_on,
-          status: primaryAdmission.status,
-        }
-      : null,
+    admission: null,
     school: {
       min_class: school.min_class,
       max_class: school.max_class,
@@ -756,23 +685,8 @@ export async function SchoolView({
     now,
   });
 
-  // Header CTA copy, keyed off the same admissions pillStatus the Decision
-  // Strip already computes — never a fourth independent read of the cycle.
-  // Deliberately NOT "Alert me when admissions open": there is no
-  // subscription/notification pipeline behind SaveButton, only the real
-  // shortlist toggle (My Schools). The label says what actually happens —
-  // bookmarking the school — while still reflecting admissions urgency in
-  // its wording, so it reads as purposeful rather than a generic "Save".
-  const admissionsSlot = decisionSlots.find((s) => s.id === "admissions");
-  const admissionPillStatus =
-    admissionsSlot?.status === "available" ? admissionsSlot.pillStatus : undefined;
-  const headerCtaLabelSave =
-    admissionPillStatus === "open" || admissionPillStatus === "closing-soon"
-      ? "Track this admission cycle"
-      : admissionPillStatus === "closed"
-        ? "Save for next year's cycle"
-        : "Save to track this school";
-  const headerCtaLabelSaved = "Tracking ✓ — in My Schools";
+  const headerCtaLabelSave = "Save this school";
+  const headerCtaLabelSaved = "Saved ✓ — in My Schools";
 
   const coverageTopics = buildCoverage(decisionSlots, {
     hasIdentity: school.name_en != null,
@@ -1060,11 +974,6 @@ export async function SchoolView({
   const sections: { id: string; label: string; show: boolean }[] = [
     { id: "facts-heading", label: "School facts", show: true },
     { id: "admissions-heading", label: "Admissions", show: true },
-    {
-      id: "admission-updates-heading",
-      label: "Recent updates",
-      show: recentAdmissionUpdates.length > 0,
-    },
     { id: "whats-happening-heading", label: "What's happening", show: activity.length > 0 },
     { id: "location-heading", label: "Location", show: Boolean(school.address || mapPoint) },
     { id: "teachers-heading", label: "Teachers", show: team.length > 0 },
@@ -1435,108 +1344,53 @@ export async function SchoolView({
 
             <section
               aria-labelledby="admissions-heading"
-              className={admissions.length > 0 ? "flex flex-col gap-3" : "flex items-center gap-2"}
+              className="flex flex-col gap-3"
             >
-              <h2
-                id="admissions-heading"
-                className={
-                  admissions.length > 0
-                    ? "font-display text-card font-semibold"
-                    : "text-meta font-semibold text-muted-ink"
-                }
-              >
+              <h2 id="admissions-heading" className="font-display text-card font-semibold">
                 Admissions
               </h2>
-              {admissions.length > 0 ? (
+              {admissionAnnouncements.length > 0 ? (
                 <div className="flex flex-col gap-3">
-                  {admissions.map((cycle) => {
-                    const cycleDeadline = {
-                      opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
-                      closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
-                    };
-                    return (
-                      <div
-                        key={`${cycle.academic_year}-${cycle.class_code}`}
-                        className="flex items-center gap-3 rounded-md border border-rule p-3"
-                      >
-                        <DeadlineMargin
-                          {...cycleDeadline}
-                          now={now}
-                          className="h-20 w-32 shrink-0"
-                        />
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-semibold">
-                            {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
-                          </span>
-                          <span className="text-meta text-muted-ink">
-                            {cycle.form_mode === "online" ? "Online form" : "Offline form"}
-                            {cycle.registration_fee != null
-                              ? ` · ${formatCurrency(cycle.registration_fee)}`
-                              : ""}
-                          </span>
-                          {/* 29 Sep 2026 (Activity & Admissions Consolidation, P0.2):
-                            this is a lead/enquiry capture, not an application, so the
-                            CTA no longer says "Apply" — it says what it actually does.
-                            The school's own form is the one place an application can
-                            actually be submitted, so it's labelled as such and kept as
-                            a fully visible, equally-weighted option (never removed —
-                            some schools have no other process). Clicking through to it
-                            logs "admission_external_click" (see actions.ts). */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <a
-                              href="#apply-heading"
-                              className="font-semibold text-ruled-blue text-meta"
-                            >
-                              Request admission information →
-                            </a>
-                            {cycle.form_url && (
-                              <TrackedApplyLink
-                                href={cycle.form_url}
-                                cycleId={cycle.cycle_id}
-                                schoolId={school.id}
-                                className="text-meta text-muted-ink underline"
-                              >
-                                Apply on school&rsquo;s official website ↗
-                              </TrackedApplyLink>
-                            )}
-                          </div>
-                          {/* Increment 10 — per-cycle ProvenanceChip. `verification`
-                            and `last_checked_at` are already exposed by
-                            api.public_school_admissions (020_public_school_admissions.sql)
-                            — no view change needed for this one. */}
-                          <ProvenanceChip
-                            tier={classifyAdmissionProvenance(cycle.verification)}
-                            checkedAt={cycle.last_checked_at}
-                            className="mt-0.5"
-                          />
-                        </div>
+                  {admissionAnnouncements.map((post) => (
+                    <article key={post.id} className="flex flex-col gap-2 rounded-md border border-rule p-4">
+                      <h3 className="font-semibold">{post.title}</h3>
+                      {post.admission_academic_year && (
+                        <p className="text-meta text-muted-ink">
+                          Session {post.admission_academic_year}
+                        </p>
+                      )}
+                      {post.admission_class_codes.length > 0 && (
+                        <p className="text-meta text-muted-ink">
+                          Classes: {post.admission_class_codes.map((code) => code.replace(/^c/, "")).join(", ")}
+                        </p>
+                      )}
+                      {(post.admission_opens_on || post.admission_closes_on) && (
+                        <p className="text-meta text-muted-ink">
+                          {post.admission_opens_on ? `Opens ${new Date(post.admission_opens_on).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                          {post.admission_opens_on && post.admission_closes_on ? " · " : ""}
+                          {post.admission_closes_on ? `Closes ${new Date(post.admission_closes_on).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                        </p>
+                      )}
+                      <p className="whitespace-pre-wrap text-body">{post.body}</p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2">
+                        {post.admission_application_url && (
+                          <a href={post.admission_application_url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold text-ruled-blue">
+                            Apply on official website ↗
+                          </a>
+                        )}
+                        {post.admission_notice_url && (
+                          <a href={post.admission_notice_url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold text-ruled-blue">
+                            Read official notice ↗
+                          </a>
+                        )}
                       </div>
-                    );
-                  })}
+                    </article>
+                  ))}
                 </div>
               ) : (
-                // Increment 7: compact, inline unavailable state — this used to be a
-                // full-weight section (its own heading + block) for a one-line
-                // null result, the same "looks substantive but says nothing" issue
-                // flagged for empty modules generally. The Decision Strip above
-                // already gives this a proper "Not yet verified" treatment.
-                <span className="text-meta text-slate">· Dates not yet published</span>
-              )}
-              {/* Increment 10 — admissions-deepening. Reuses the exact component/props
-                shape already built and shipped for exams/[slug]/page.tsx unchanged;
-                only the data source (this school's own admissions, filtered to cycles
-                that actually carry a dob window) differs. Renders nothing when no
-                cycle has dob_from/dob_to populated yet (the current production data —
-                see the Increment 10 migration-application log entry). */}
-              {eligibilityCycles.length > 0 && (
-                <EligibilityChecker
-                  cycles={eligibilityCycles}
-                  helpHref={lp(locale, "/admissions/help")}
-                  shareHref={`https://wa.me/?text=${encodeURIComponent(
-                    `Check if your child is eligible for ${name}: ${siteUrl}${canonicalPath}`,
-                  )}`}
-                  className="mt-3"
-                />
+                <p className="text-meta text-muted-ink">
+                  No admission announcement has been published by this school yet.
+                </p>
               )}
             </section>
 
@@ -1548,49 +1402,6 @@ export async function SchoolView({
               same data, two responsive positions rather than one reflowed layout. */}
             {school.claim === "unclaimed" && (
               <ClaimCard schoolId={school.id} schoolName={name} className="md:hidden" />
-            )}
-
-            {/* Increment 10 — "Recent admission updates". Reads only
-              api.public_admission_updates (db/views/096_public_admission_updates.sql),
-              which already excludes school-level audit noise, raw before/after, actor,
-              and no-op rows — nothing further to filter here. Sits directly after
-              Admissions since it's the same subject (this school's admission cycles).
-              Increment 10R: the description line now names every allowlisted field
-              that actually changed (status/opens_on/closes_on/results_on), not just
-              status — a row where only a date changed used to render as a
-              content-free "Admission updated" line with nothing saying what changed. */}
-            {recentAdmissionUpdates.length > 0 && (
-              <section aria-labelledby="admission-updates-heading" className="flex flex-col gap-3">
-                <h2 id="admission-updates-heading" className="font-display text-card font-semibold">
-                  Recent admission updates
-                </h2>
-                <ul className="flex flex-col gap-2">
-                  {recentAdmissionUpdates.map((u) => (
-                    <li
-                      key={u.audit_id}
-                      className="flex flex-col gap-0.5 rounded-md border border-rule p-3"
-                    >
-                      <span className="text-body">
-                        {u.change_type === "created"
-                          ? "Admission cycle added"
-                          : "Admission updated"}
-                        {" — "}
-                        {u.academic_year} · Class {u.class_code.replace(/^c/, "")}
-                      </span>
-                      <span className="text-meta text-muted-ink">
-                        {describeAdmissionUpdateChanges(u)}
-                      </span>
-                      <span className="text-meta text-muted-ink">
-                        {new Date(u.occurred_at).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
             )}
 
             {/* High-leverage change #2 (29 Sep 2026) — "What's happening" replaces
@@ -1851,103 +1662,6 @@ export async function SchoolView({
                 </a>
               </div>
             </section>
-
-            {/* 29 Sep 2026: the admissions-lead-capture CTA. Distinct from "Ask this
-              school" below on purpose — applying is a deliberate, single-recipient
-              disclosure (the parent is choosing to give *this* school their contact
-              details so it can process an application, same as a paper form), not the
-              SDP-04 controlled-intermediary model that keeps contact details private
-              for a general question. See submitAdmissionLead in ./actions.ts and
-              admission_leads (20260929070000_admission_leads.sql). */}
-            {admissions.length > 0 && (
-              <section
-                aria-labelledby="apply-heading"
-                className="flex flex-col gap-2 rounded-md border border-rule p-4"
-              >
-                <h2 id="apply-heading" className="font-display text-card font-semibold">
-                  Request admission information
-                </h2>
-                {applySent ? (
-                  <p className="text-body text-muted-ink">
-                    Your request has been sent to {name}. They have your name and phone number and
-                    will reach out directly.
-                  </p>
-                ) : applyErrorCode === "already_applied" ? (
-                  <p className="text-body text-muted-ink">
-                    You've already sent a request for this class — {name} has your details.
-                  </p>
-                ) : user ? (
-                  <form action={submitAdmissionLead} className="flex flex-col gap-3">
-                    <input type="hidden" name="schoolId" value={school.id} />
-                    <input type="hidden" name="returnPath" value={canonicalPath} />
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-meta font-semibold text-muted-ink">
-                        Class and session
-                      </span>
-                      <select
-                        name="cycleSelection"
-                        required
-                        defaultValue=""
-                        className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
-                      >
-                        <option value="" disabled>
-                          Choose a class
-                        </option>
-                        {admissions.map((cycle) => (
-                          <option
-                            key={cycle.cycle_id}
-                            value={`${cycle.cycle_id}|${cycle.class_code}|${cycle.academic_year}`}
-                          >
-                            {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-meta font-semibold text-muted-ink">
-                        Note for the school (optional)
-                      </span>
-                      <textarea
-                        name="note"
-                        maxLength={1000}
-                        rows={3}
-                        className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
-                      />
-                    </label>
-                    <label className="flex items-start gap-2 text-meta text-muted-ink">
-                      <input type="checkbox" name="consent" required className="mt-0.5" />
-                      <span>
-                        Share my name and phone number with {name} so they can respond to my
-                        request.
-                      </span>
-                    </label>
-                    {applyErrorCode && applyErrorCode !== "already_applied" && (
-                      <FieldError id="apply-error">
-                        {applyErrorCode === "consent_required"
-                          ? "Check the consent box to share your details with the school."
-                          : "Something went wrong sending your request. Please try again."}
-                      </FieldError>
-                    )}
-                    <button
-                      type="submit"
-                      className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
-                    >
-                      Request admission information →
-                    </button>
-                  </form>
-                ) : (
-                  <Link
-                    href={lp(
-                      locale,
-                      `/sign-in?next=${encodeURIComponent(`${canonicalPath}#apply-heading`)}`,
-                    )}
-                    className="w-fit font-semibold text-ruled-blue"
-                  >
-                    Sign in to request information
-                  </Link>
-                )}
-              </section>
-            )}
 
             <section
               aria-labelledby="enquiry-heading"
