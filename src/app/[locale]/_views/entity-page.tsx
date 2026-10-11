@@ -431,7 +431,6 @@ function LocalityPageBody({
               const grades = formatGradeRange(school.min_class, school.max_class);
               const meta = board ? `${board} · ${grades}` : grades;
 
-
               return (
                 <SchoolCard
                   key={school.id}
@@ -439,7 +438,9 @@ function LocalityPageBody({
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
                   deadline={{ closesAt: null }}
-                  status={<StatusPill status="not-announced">Admission update on school profile</StatusPill>}
+                  status={
+                    <StatusPill status="not-announced">Admission update on school profile</StatusPill>
+                  }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
