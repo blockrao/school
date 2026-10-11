@@ -80,10 +80,7 @@ export default async function SchoolsPage({
 }: PageProps<"/[locale]/schools">) {
   const { locale } = await params;
   const rawSearchParams = await searchParams;
-  const now = new Date();
-
-  const { q, boardId, maxClass, page, compareIds, view } =
-    parseParams(rawSearchParams);
+  const { q, boardId, maxClass, page, compareIds, view } = parseParams(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined;
 
   const area = await getSelectedCityArea();
@@ -325,8 +322,6 @@ export default async function SchoolsPage({
               const cityName = rawCityName ? titleCase(rawCityName) : null;
               const meta = [board, grades, cityName].filter(Boolean).join(" · ");
 
-              const deadline = { closesAt: null as Date | null };
-
               const inCompare = compareIds.includes(school.id);
               const toggleHref = compareToggleHref(school.id);
 
@@ -338,9 +333,12 @@ export default async function SchoolsPage({
                   meta={meta}
                   sponsored={sponsoredSchoolIds.has(school.id)}
                   sponsoredNote={<SponsoredWhyDisclosure />}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status="not-announced">Admission updates on school profile</StatusPill>}
+                  deadline={{ closesAt: null }}
+                  status={
+                    <StatusPill status="not-announced">
+                      Admission updates on school profile
+                    </StatusPill>
+                  }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
