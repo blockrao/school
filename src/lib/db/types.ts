@@ -1733,7 +1733,6 @@ export type Database = {
           admission_closes_on?: string | null;
           admission_application_url?: string | null;
           admission_notice_url?: string | null;
-
         };
         Update: {
           id?: string;
