@@ -59,6 +59,47 @@ Admission test dates that need calendar/event behavior remain events. An announc
 7. Check query plans, response sizes and cache freshness; confirm no route continues to issue reads to the legacy views.
 8. Run full CI, route smoke tests, SEO/canonical checks and a rollback rehearsal before go-live.
 
+## Dependency inventory confirmed during implementation review
+
+This inventory is based on the current application source and production schema catalog. It is deliberately explicit because removing only the directory route would leave cycle-dependent code in place.
+
+### Public directory
+
+- `src/app/[locale]/schools/page.tsx` parses the `admissions=open` query parameter, passes `admissionsOpen` into the school query, calls `getAdmissionDeadlinesBySchoolId`, renders the “Admissions open now” checkbox/filter chip, and displays per-school closing dates.
+- The replacement must remove the filter parameter and its query plumbing, the deadline lookup used only for legacy cycles, the filter checkbox/chip, related SEO copy and WhatsApp reminder copy that promises admission-cycle alerts. Preserve unrelated board, grade, comparison, shortlist and city filters.
+- Do not retain a hidden `admissions=open` database query after removing the UI.
+
+### Canonical school profile
+
+- `src/app/[locale]/_views/entity-page.tsx` currently loads `getPublicAdmissionsBySchoolId`, `getRecentAdmissionUpdatesBySchoolId`, and cycle-based deadlines. It builds eligibility cycles, selects a primary cycle for the decision strip, renders the Admissions and Recent admission updates sections, and exposes a cycle-specific lead form through `submitAdmissionLead`.
+- The new announcement must join the existing school-news/activity projection using a bounded query and canonical post URL. It must not feed old cycle rows into the new announcement card or label an announcement as a verified admission cycle.
+- Remove the cycle-based section, eligibility checker and recent-cycle-update rendering only when the new announcement component is live. Keep general school contact/enquiry paths if they are not admission-cycle-specific.
+- Review school JSON-LD and metadata so removed cycle facts are not still emitted as structured data or claims.
+
+### Dedicated admissions directory and lead-capture dependency
+
+- `src/app/[locale]/admissions/page.tsx` is currently backed by `listPublicAdmissionCycles` and contains a separate admissions directory, filtering/status logic, and cycle-oriented application tracking.
+- Existing `admission_leads` rows require `admission_cycle_id` and are linked to the old cycle model. They cannot simply be re-pointed to a post ID. Preserve this table and its data until a separate retention/privacy decision is made; do not leave a visible lead form pointing at a removed cycle.
+- The root `/admissions` route should ultimately redirect to `/news`, but `/admissions/help` and exam admission routes must remain untouched.
+
+### Production catalog observations
+
+- The production API schema currently exposes `api.public_school_admissions`, `api.public_admission_updates`, `api.public_exam_admissions`, and `api.public_school_news`.
+- `public.admission_cycles` contains the legacy school-cycle fields (academic year, class, status, dates, fees, application/notice URLs, eligibility and verification). It also contains `exam_id`, so dropping the table or shared enum/types would risk breaking exam-related behavior.
+- `public.school_posts` already has canonical post identity/slug, author, content review, publish timestamp, listing request/review, rejection reason and withdrawal timestamp. `api.public_school_news` is its current curated projection.
+- `public.admission_leads` is explicitly cycle-linked; `public.admission_notices` is a separate notice-ingestion/review workflow. Neither should be deleted as a side effect of removing the public school-cycle directory.
+
+### Required migration sequence
+
+1. Introduce structured admission topic/metadata on the post model (or a one-to-one table), with database constraints for valid date order and server-side HTTPS URL validation. Make the new public projection return only fields approved for public display.
+2. Regenerate DB types and Zod contracts from the authoritative schema. Add tests for ownership, moderation/listing gates, missing dates, invalid dates/URLs, withdrawn/expired posts and locale rendering.
+3. Add a single post-based admission-announcement read model used by both school profile and `/news`; do not create a second status table or publishing lifecycle.
+4. Migrate the school portal composer only after locating and verifying the actual existing school-post write/moderation actions. Do not assume a composer/action exists based only on the presence of `school_posts`.
+5. Switch school profile and site-wide news rendering, and verify listing approval semantics with a test school.
+6. Remove directory filter/deadline lookups and redirect `/admissions` to `/news`; preserve `/admissions/help` and exam routes.
+7. Run repository-wide reference scans and production catalog dependency checks. Revoke public grants/drop obsolete views only after no live consumers remain and smoke tests pass.
+8. Validate redirect/canonical/sitemap behavior, cache freshness and rollback procedure before release.
+
 ## Explicitly unresolved before schema implementation
 
 - Whether `school_posts.kind` should remain the existing `news | press` enum with a separate typed `topic`, or be migrated to a broader content taxonomy. Prefer a separate topic over overloading the current kind.
