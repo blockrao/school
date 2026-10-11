@@ -379,7 +379,6 @@ type PublicSchoolFilters = {
   query?: string;
   boardId?: number;
   maxClass?: string;
-  admissionsOpen?: boolean;
   page?: number;
   pageSize?: number;
 };
@@ -398,7 +397,6 @@ async function queryPublicSchoolsUncached(
     query: searchQuery,
     boardId,
     maxClass,
-    admissionsOpen,
     page = 1,
     pageSize = 24,
   } = filters;
@@ -431,19 +429,6 @@ async function queryPublicSchoolsUncached(
       .select("*")
       .eq("board_id", boardId);
     const ids = (affiliated ?? []).map((a) => publicSchoolBoardContract.parse(a).school_id);
-    query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
-  }
-
-  if (admissionsOpen) {
-    // api.public_school_admissions, not raw admission_cycles. Per D-119
-    // (28 Sep 2026) this view has no verification gate — a school is public
-    // once schools.status = 'published', and every admission_cycles row for
-    // it is shown as stored, regardless of verification status.
-    const { data: cycles } = await api
-      .from("public_school_admissions")
-      .select("school_id")
-      .in("status", ["open", "closing_soon"]);
-    const ids = (cycles ?? []).map((c) => c.school_id as string);
     query = query.in("id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
   }
 
