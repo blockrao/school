@@ -389,13 +389,7 @@ async function queryPublicSchoolsUncached(
   districtIds: number[] | undefined,
   filters: PublicSchoolFilters,
 ): Promise<{ schools: PublicSchool[]; total: number }> {
-  const {
-    query: searchQuery,
-    boardId,
-    maxClass,
-    page = 1,
-    pageSize = 24,
-  } = filters;
+  const { query: searchQuery, boardId, maxClass, page = 1, pageSize = 24 } = filters;
   const api = createApiSchemaClient();
 
   // Publish gate (D-119, 2026-09-28): api.public_schools itself now filters to
