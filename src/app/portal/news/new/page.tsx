@@ -89,7 +89,7 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
             <option value="lkg">LKG</option>
             <option value="ukg">UKG</option>
             {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={`c${i + 1}`}>
+              <option key={`c${i + 1}`} value={`c${i + 1}`}>
                 Class {i + 1}
               </option>
             ))}
@@ -98,9 +98,7 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5">
-            <span className="text-meta font-semibold text-muted-ink">
-              Opening date (optional)
-            </span>
+            <span className="text-meta font-semibold text-muted-ink">Opening date (optional)</span>
             <input
               type="date"
               name="opensOn"
@@ -108,9 +106,7 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="text-meta font-semibold text-muted-ink">
-              Closing date (optional)
-            </span>
+            <span className="text-meta font-semibold text-muted-ink">Closing date (optional)</span>
             <input
               type="date"
               name="closesOn"
