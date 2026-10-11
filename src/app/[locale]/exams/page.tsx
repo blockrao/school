@@ -68,7 +68,9 @@ export default async function ExamsIndexPage({ params }: PageProps<"/[locale]/ex
   });
   const exams = [
     ...editorialExams,
-    ...publishedExams.filter((exam) => !EDITORIAL_EXAMS.some((fallback) => fallback.slug === exam.slug)),
+    ...publishedExams.filter(
+      (exam) => !EDITORIAL_EXAMS.some((fallback) => fallback.slug === exam.slug),
+    ),
   ];
   const now = new Date();
 
