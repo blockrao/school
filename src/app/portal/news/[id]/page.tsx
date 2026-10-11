@@ -5,6 +5,24 @@ import { FieldError } from "@/components/ui/field-error";
 import { getMySchoolId, getPostForSchool } from "@/lib/db/portal";
 import { updateSchoolPost } from "./actions";
 
+const ADMISSION_CLASS_OPTIONS = [
+  { value: "nursery", label: "Nursery" },
+  { value: "lkg", label: "LKG" },
+  { value: "ukg", label: "UKG" },
+  { value: "c1", label: "Class 1" },
+  { value: "c2", label: "Class 2" },
+  { value: "c3", label: "Class 3" },
+  { value: "c4", label: "Class 4" },
+  { value: "c5", label: "Class 5" },
+  { value: "c6", label: "Class 6" },
+  { value: "c7", label: "Class 7" },
+  { value: "c8", label: "Class 8" },
+  { value: "c9", label: "Class 9" },
+  { value: "c10", label: "Class 10" },
+  { value: "c11", label: "Class 11" },
+  { value: "c12", label: "Class 12" },
+] as const;
+
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -88,12 +106,9 @@ export default async function EditSchoolPostPage({
             disabled={post.listing_review === "pending"}
             className="min-h-24 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
           >
-            <option value="nursery">Nursery</option>
-            <option value="lkg">LKG</option>
-            <option value="ukg">UKG</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={`c${i + 1}`} value={`c${i + 1}`}>
-                Class {i + 1}
+            {ADMISSION_CLASS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
