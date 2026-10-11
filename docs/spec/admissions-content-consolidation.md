@@ -1,6 +1,6 @@
 # School admissions content consolidation
 
-**Status:** proposed implementation contract for go-live
+**Status:** implementation in progress; migration authored but not applied; production and CI verification outstanding
 **Scope:** replace the legacy, cycle-driven public school-admissions discovery flow with the existing school content publication model used by news, jobs and events.
 **Non-goals:** this does not remove exam-admission cycles, exam eligibility, the separate paid `/admissions/help` service, or internal audit/history data.
 
@@ -30,10 +30,10 @@ Admission test dates that need calendar/event behavior remain events. An announc
 ## Data and architecture
 
 - **Confirmed database shape (production catalog):** `public.school_posts` already has canonical `id`, `school_id`, `kind`, `title`, `body`, `source_url`, `review`, `reviewed_by`, `reviewed_at`, `created_by`, `published_at`, `created_at`, `updated_at`, `post_code`, `slug`, `tier`, `requested_tier`, `listing_requested_at`, `listing_review`, `listing_reviewed_by`, `listing_reviewed_at`, `rejection_reason` and `withdrawn_at`. The public projection is `api.public_school_news`, with the school/post identifiers, `kind`, title/body/source URL, published timestamp and listing-review fields. This gives us an existing moderation/listing lifecycle to reuse.
-- **Important schema gap:** the current `school_posts` schema does not include a typed topic, academic year/session, classes, opening date or closing date. Those fields must not be implied from the post body. Before implementing the feature, add a constrained topic and structured metadata (or a one-to-one details table) with validation and an allowlisted `api.public_school_news` projection. Decide whether topic belongs on the post or a typed details table based on migrations and current enum consumers; do not alter the existing `kind` enum blindly.
+- **Implementation state:** `supabase/migrations/20261011160000_school_post_admission_metadata.sql` adds `topic`, academic year/session, class codes, opening/closing dates, and application/notice URLs to `school_posts`, with checks and appended fields in `api.public_school_news` and `api.public_news`. The migration was corrected for malformed/duplicated SQL, but it has **not** been applied to production and must be reviewed/executed before deploying code that expects these columns.
 - **Reuse:** `school_posts`, the current public school-news view and the current site-wide news aggregator; keep one canonical post ID/slug and one publication/listing lifecycle.
 - **Do not add a second publication pipeline:** admission topic uses existing ownership, content review, listing-request/review, withdrawal and canonical slug behavior. Structured admission dates should only affect display/discovery state, not bypass moderation.
-- **Public API contract:** keep the new metadata in curated `api.*` views and Zod contracts; do not expose raw `public.school_posts` or internal moderation fields. Regenerate DB types from the authoritative schema after migration.
+- **Public API contract:** Zod contracts, portal forms/actions, the generated type mirror, school profile, and `/news` rendering have been updated on the feature branch. The DB type file is still a manually maintained mirror because `DATABASE_URL_RO` was unavailable; regenerate from the authoritative schema when credentials are available and verify drift.
 - **Do not expose raw tables:** browser/public reads remain through `api.*` curated views and Zod contracts. School-member writes remain authenticated server actions/RLS. Ops-only moderation remains server-side.
 - **Keep separate:** `admission_cycles`/exam admission data if still used by `api.public_exam_admissions`, exam pages, eligibility tools, or alerts. Do not drop these tables or enum types as part of this consolidation.
 - **Legacy `api.public_school_admissions` and `api.public_admission_updates`:** first remove all public-page, contract, generated-type, navigation, analytics, test and migration references. Then revoke public grants and remove views in a versioned migration only after the new flow is deployed and dependency checks prove no live consumer remains. Keep `admission_cycles`/audit data until a separate retention/migration decision.
@@ -50,14 +50,14 @@ Admission test dates that need calendar/event behavior remain events. An announc
 
 ## Rollout and acceptance gates
 
-1. Inventory all code, SQL views, grants, contracts, generated DB types, actions, tests, links, sitemap/robots rules and analytics that reference the old public school-admissions views.
-2. Ship the new structured admission-topic contract and school portal UI behind an explicit feature flag or disabled until the schema and validation are live.
+1. Initial inventory and cleanup are underway: the public profile, locality/city/town directory, homepage school-cycle widget, old `/admissions` directory route, and shared school-cycle read adapters have been switched off the legacy school-cycle model. Remaining SQL views/grants, alerts, type references, analytics, sitemap/robots and connected flows still require a repo-wide/catalog check.
+2. Apply and verify the schema migration in a non-production database first. The current branch UI is already wired to the new fields, so do not deploy it before the migration is applied; a feature flag has not been added.
 3. Add contract/unit tests for date validation and IST-derived status; integration tests for school ownership, publication gates, listing approval, withdrawal, closed school, missing dates and unsafe URLs.
-4. Verify a test school's announcement from portal submission through school page and `/news`, and verify it is absent from site-wide discovery before listing approval.
-5. Remove the old `/admissions` page and directory/card filters; redirect the old root to `/news`.
+4. Still outstanding: verify a test school's announcement from portal submission through its profile and `/news`, including the listing-approval gate and withdrawal behavior.
+5. The `/admissions` root now redirects to `/news`. Legacy cycle-driven profile cards/lead form, directory filter/deadline lookups, and the home-page school-cycle widget have been removed from the branch. Exam application windows and `/admissions/help` remain separate.
 6. Remove old public views/grants/contracts only after a repo-wide dependency scan, generated-type regeneration, live `pg_depend`/catalog inspection and successful production smoke tests.
 7. Check query plans, response sizes and cache freshness; confirm no route continues to issue reads to the legacy views.
-8. Run full CI, route smoke tests, SEO/canonical checks and a rollback rehearsal before go-live.
+8. Still outstanding: run full CI, route smoke tests, SEO/canonical checks and rollback rehearsal before go-live. Vercel currently reports a build-rate-limit failure; no successful build or end-to-end verification has been confirmed.
 
 ## Dependency inventory confirmed during implementation review
 
