@@ -20,6 +20,13 @@ export const publicSchoolNewsContract = z.object({
   // review_status has 5 values in the DB (also: edited, needs_triage) but this
   // domain only ever sets pending/approved/rejected for listing_review.
   listing_review: z.enum(["pending", "approved", "edited", "rejected", "needs_triage"]).nullable(),
+  topic: z.enum(["general", "admission_announcement"]),
+  admission_academic_year: z.string().nullable(),
+  admission_class_codes: z.array(z.string()),
+  admission_opens_on: z.string().nullable(),
+  admission_closes_on: z.string().nullable(),
+  admission_application_url: z.string().nullable(),
+  admission_notice_url: z.string().nullable(),
 });
 
 export type PublicSchoolNews = z.infer<typeof publicSchoolNewsContract>;
