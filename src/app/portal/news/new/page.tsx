@@ -49,6 +49,36 @@ export default async function NewSchoolPostPage({ searchParams }: PageProps<"/po
         </label>
 
         <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">Topic</span>
+          <select name="topic" defaultValue="general" className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none">
+            <option value="general">General school update</option>
+            <option value="admission_announcement">Admission announcement</option>
+          </select>
+          <span className="text-meta text-muted-ink">Admission details are optional when unknown. Only HTTPS application and official notice links are accepted.</span>
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">Academic year (optional, e.g. 2027-28)</span>
+          <input name="academicYear" pattern="[0-9]{4}-[0-9]{2}" placeholder="2027-28" className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none" />
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">Classes / grades (optional, select one or more)</span>
+          <select name="classCodes" multiple className="min-h-24 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none">
+            <option value="nursery">Nursery</option><option value="lkg">LKG</option><option value="ukg">UKG</option>
+            {Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={`c${i + 1}`}>Class {i + 1}</option>)}
+          </select>
+        </label>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Opening date (optional)</span><input type="date" name="opensOn" className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none" /></label>
+          <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Closing date (optional)</span><input type="date" name="closesOn" className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none" /></label>
+        </div>
+
+        <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Application URL (optional, HTTPS)</span><input type="url" name="applicationUrl" placeholder="https://school.example/apply" className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none" /></label>
+        <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Official notice URL (optional, HTTPS)</span><input type="url" name="noticeUrl" placeholder="https://school.example/admissions-notice.pdf" className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none" /></label>
+
+        <label className="flex flex-col gap-1.5">
           <span className="text-meta font-semibold text-muted-ink">Headline</span>
           <input
             type="text"
