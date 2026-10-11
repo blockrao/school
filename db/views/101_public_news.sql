@@ -30,9 +30,16 @@ select
   sp.post_code,
   sp.slug as post_slug,
   sp.tier,
-  sp.listing_reviewed_at
-from school_posts sp
-join schools s on s.id = sp.school_id
+  sp.listing_reviewed_at,
+  sp.topic,
+  sp.admission_academic_year,
+  sp.admission_class_codes,
+  sp.admission_opens_on,
+  sp.admission_closes_on,
+  sp.admission_application_url,
+  sp.admission_notice_url
+from public.school_posts sp
+join public.schools s on s.id = sp.school_id
 where sp.review = 'approved'
   and sp.published_at is not null
   and sp.listing_review = 'approved'
