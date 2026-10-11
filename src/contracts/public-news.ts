@@ -17,6 +17,13 @@ export const publicNewsContract = z.object({
   post_slug: z.string(),
   tier: postTierContract,
   listing_reviewed_at: z.string().nullable(),
+  topic: z.enum(["general", "admission_announcement"]),
+  admission_academic_year: z.string().nullable(),
+  admission_class_codes: z.array(z.string()),
+  admission_opens_on: z.string().nullable(),
+  admission_closes_on: z.string().nullable(),
+  admission_application_url: z.string().nullable(),
+  admission_notice_url: z.string().nullable(),
 });
 
 export type PublicNews = z.infer<typeof publicNewsContract>;
