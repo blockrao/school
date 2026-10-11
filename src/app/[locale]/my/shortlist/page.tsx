@@ -77,7 +77,7 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
                 meta={meta}
                 deadline={{ closesAt: null }}
                 status={
-                  <StatusPill status="not-announced">Check school profile for admission updates</StatusPill>
+                  <StatusPill status="not-announced">{isHi ? "स्कूल प्रोफ़ाइल में प्रवेश अपडेट देखें" : "Check school profile for admission updates"}</StatusPill>
                 }
                 fee="Not yet published"
                 freshness={<NotYetPublished />}
