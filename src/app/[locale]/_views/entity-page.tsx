@@ -316,7 +316,6 @@ function LocalityPageBody({
   neighbors,
   boardNames,
   shortlistedIds,
-  now,
 }: {
   locale: string;
   city: ResolvedCity;
@@ -325,7 +324,6 @@ function LocalityPageBody({
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
   boardNames: Map<string, string>;
   shortlistedIds: Set<string>;
-  now: Date;
 }) {
   const basePath = cityPath(locale, city.stateSlug, city.citySlug);
   const localityPath = localityHref(locale, city.stateSlug, city.citySlug, locality.slug);
@@ -421,7 +419,9 @@ function LocalityPageBody({
                   meta={meta}
                   deadline={{ closesAt: null }}
                   status={
-                    <StatusPill status="not-announced">Admission update on school profile</StatusPill>
+                    <StatusPill status="not-announced">
+                      Admission update on school profile
+                    </StatusPill>
                   }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
@@ -473,7 +473,6 @@ export async function LocalityView({
   locale: string;
   resolved: ResolvedLocality;
 }) {
-  const now = new Date();
   const { city, locality } = resolved;
   const [schools, neighbors] = await Promise.all([
     listPublicSchoolsByLocality(locality.id),
@@ -494,7 +493,6 @@ export async function LocalityView({
       neighbors={neighbors}
       boardNames={boardNames}
       shortlistedIds={shortlistedIds}
-      now={now}
     />
   );
 }
@@ -538,36 +536,29 @@ export async function SchoolView({
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
 
-  const [
-    shortlistedIdsSet,
-    similarSchoolsRaw,
-    team,
-    news,
-    events,
-    jobs,
-    fieldEvidence,
-  ] = await Promise.all([
-    getShortlistedSchoolIds([school.id]),
-    // Increment 11 (SDP-21) — locality-first, same-city fallback; see
-    // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
-    getSimilarSchools(school),
-    listPublicSchoolTeam(school.id),
-    // Increment 10 — api.public_school_news (db/views/095_public_school_news.sql):
-    // already filtered to review='approved'/published school/published_at not null.
-    getPublicSchoolNewsBySchoolId(school.id),
-    // SEO/GEO follow-up (29 Sep 2026) — api.public_school_events
-    // (db/views/102_public_school_events.sql): every event for this school,
-    // regardless of site-wide /events listing status (own-page visibility has
-    // no ops gate).
-    getPublicSchoolEventsBySchoolId(school.id),
-    // 29 Sep 2026 — api.public_school_jobs (db/views/104_public_school_jobs.sql):
-    // every job posting for this school, regardless of site-wide /jobs listing
-    // status (own-page visibility has no ops gate — same pattern as events).
-    getPublicSchoolJobsBySchoolId(school.id),
-    // Identity & Search Presence Foundation v1 (29 Sep 2026) — api.public_field_evidence
-    // (db/views/106_public_field_evidence.sql): open-licence per-field source attribution.
-    getPublicFieldEvidenceBySchoolId(school.id),
-  ]);
+  const [shortlistedIdsSet, similarSchoolsRaw, team, news, events, jobs, fieldEvidence] =
+    await Promise.all([
+      getShortlistedSchoolIds([school.id]),
+      // Increment 11 (SDP-21) — locality-first, same-city fallback; see
+      // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
+      getSimilarSchools(school),
+      listPublicSchoolTeam(school.id),
+      // Increment 10 — api.public_school_news (db/views/095_public_school_news.sql):
+      // already filtered to review='approved'/published school/published_at not null.
+      getPublicSchoolNewsBySchoolId(school.id),
+      // SEO/GEO follow-up (29 Sep 2026) — api.public_school_events
+      // (db/views/102_public_school_events.sql): every event for this school,
+      // regardless of site-wide /events listing status (own-page visibility has
+      // no ops gate).
+      getPublicSchoolEventsBySchoolId(school.id),
+      // 29 Sep 2026 — api.public_school_jobs (db/views/104_public_school_jobs.sql):
+      // every job posting for this school, regardless of site-wide /jobs listing
+      // status (own-page visibility has no ops gate — same pattern as events).
+      getPublicSchoolJobsBySchoolId(school.id),
+      // Identity & Search Presence Foundation v1 (29 Sep 2026) — api.public_field_evidence
+      // (db/views/106_public_field_evidence.sql): open-licence per-field source attribution.
+      getPublicFieldEvidenceBySchoolId(school.id),
+    ]);
   const similarSchools = similarSchoolsRaw.filter((s) => s.id !== school.id).slice(0, 4);
 
   // High-leverage change #2 (29 Sep 2026) — "What's happening" merges News,
@@ -1317,10 +1308,7 @@ export async function SchoolView({
               </dl>
             </section>
 
-            <section
-              aria-labelledby="admissions-heading"
-              className="flex flex-col gap-3"
-            >
+            <section aria-labelledby="admissions-heading" className="flex flex-col gap-3">
               <h2 id="admissions-heading" className="font-display text-card font-semibold">
                 Admissions
               </h2>
@@ -1332,7 +1320,10 @@ export async function SchoolView({
                       className="flex flex-col gap-2 rounded-md border border-rule p-4"
                     >
                       <h3 className="font-semibold">
-                        <Link href={newsPath(locale, post.post_slug)} className="hover:text-ruled-blue">
+                        <Link
+                          href={newsPath(locale, post.post_slug)}
+                          className="hover:text-ruled-blue"
+                        >
                           {post.title}
                         </Link>
                       </h3>
@@ -1355,19 +1346,25 @@ export async function SchoolView({
                       {(post.admission_opens_on || post.admission_closes_on) && (
                         <p className="text-meta text-muted-ink">
                           {post.admission_opens_on
-                            ? `Opens ${new Date(post.admission_opens_on).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}`
+                            ? `Opens ${new Date(post.admission_opens_on).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}`
                             : ""}
                           {post.admission_opens_on && post.admission_closes_on ? " · " : ""}
                           {post.admission_closes_on
-                            ? `Closes ${new Date(post.admission_closes_on).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}`
+                            ? `Closes ${new Date(post.admission_closes_on).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}`
                             : ""}
                         </p>
                       )}
