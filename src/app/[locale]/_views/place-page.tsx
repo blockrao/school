@@ -224,7 +224,6 @@ function TownPageBody({
               const grades = formatGradeRange(school.min_class, school.max_class);
               const meta = board ? `${board} · ${grades}` : grades;
 
-
               return (
                 <SchoolCard
                   key={school.id}
@@ -233,7 +232,9 @@ function TownPageBody({
                   meta={meta}
                   deadline={{ closesAt: null }}
                   status={
-                    <StatusPill status="not-announced">Admission update on school profile</StatusPill>
+                    <StatusPill status="not-announced">
+                      Admission update on school profile
+                    </StatusPill>
                   }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
@@ -471,7 +472,6 @@ export async function PlaceView({
     return buildHref({ compare: next.join(",") });
   }
 
-
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -610,7 +610,6 @@ export async function PlaceView({
               const grades = formatGradeRange(school.min_class, school.max_class);
               const meta = board ? `${board} · ${grades}` : grades;
 
-
               const inCompare = compareIds.includes(school.id);
               const toggleHref = compareToggleHref(school.id);
 
@@ -624,7 +623,9 @@ export async function PlaceView({
                   sponsoredNote={<SponsoredWhyDisclosure />}
                   deadline={{ closesAt: null }}
                   status={
-                    <StatusPill status="not-announced">Admission update on school profile</StatusPill>
+                    <StatusPill status="not-announced">
+                      Admission update on school profile
+                    </StatusPill>
                   }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
