@@ -14,7 +14,7 @@ import { deadlineState } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { HOME_DESCRIPTION, HOME_TITLE, homeJsonLd } from "@/lib/home-seo";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
-import { cityPath, examPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
+import { cityPath, examPath, localePrefix, schoolsRootPath } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 // Which city the BODY renders is resolved per-request (see
