@@ -212,6 +212,11 @@ function ActivityFeedItem({ item, locale }: { item: SchoolActivityItem; locale: 
               Press
             </span>
           )}
+          {post.topic === "admission_announcement" && (
+            <span className="rounded-full border border-rule px-2 py-0.5 text-meta font-semibold text-ruled-blue">
+              Admission announcement
+            </span>
+          )}
           {post.tier !== "organic" && (
             <span className="rounded-full border border-ruled-blue px-2 py-0.5 text-meta font-semibold text-ruled-blue">
               {post.tier === "featured" ? "Featured" : "Press release"}
@@ -219,6 +224,19 @@ function ActivityFeedItem({ item, locale }: { item: SchoolActivityItem; locale: 
           )}
         </div>
         <p className="text-body text-muted-ink">{post.body}</p>
+        {post.topic === "admission_announcement" && (
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-meta text-muted-ink">
+            {post.admission_academic_year && <span>Session {post.admission_academic_year}</span>}
+            {post.admission_class_codes.length > 0 && <span>Classes: {post.admission_class_codes.map((code) => code.replace(/^c(\d+)$/, "Class $1").toUpperCase() === code ? code : code.replace(/^c(\d+)$/, "Class $1")).join(", ")}</span>}
+            {post.admission_opens_on && <span>Opens: {new Date(post.admission_opens_on).toLocaleDateString("en-IN")}</span>}
+            {post.admission_closes_on && <span>Closes: {new Date(post.admission_closes_on).toLocaleDateString("en-IN")}</span>}
+          </div>
+        )}
+        {(post.topic === "admission_announcement" ? post.admission_application_url ?? post.admission_notice_url : null) && (
+          <a href={(post.admission_application_url ?? post.admission_notice_url)!} target="_blank" rel="noopener noreferrer nofollow" className="mt-1 w-fit text-meta font-semibold text-ruled-blue underline">
+            {post.admission_application_url ? "Application website ↗" : "Official notice ↗"}
+          </a>
+        )}
         <div className="flex items-center gap-2 text-meta text-muted-ink">
           <span>{new Date(post.published_at).toLocaleDateString("en-IN", activityDateFormat)}</span>
           {post.source_url && (
