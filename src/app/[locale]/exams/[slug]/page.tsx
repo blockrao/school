@@ -31,30 +31,65 @@ const ELIGIBILITY_CHECKER_ID = "eligibility-checker";
 const EXAM_GUIDES = {
   aissee: {
     title: "AISSEE: Sainik School Admission Guide",
-    description: "A parent-friendly guide to AISSEE, Class VI and IX entry, official notices, eligibility checks and the Sainik School selection process.",
+    description:
+      "A parent-friendly guide to AISSEE, Class VI and IX entry, official notices, eligibility checks and the Sainik School selection process.",
     heading: "AISSEE: a parent’s guide to Sainik School admission",
-    intro: "The All India Sainik Schools Entrance Examination (AISSEE) is the entrance route for admission to Class VI and Class IX in participating Sainik Schools. The National Testing Agency conducts the examination for the Sainik Schools Society.",
-    checks: ["Confirm the class, age eligibility and date-of-birth conditions in the notification for the exact academic year.", "Read the current information bulletin for the application window, fee, exam pattern, documents and correction-window rules.", "After results, follow official counselling and medical-fitness instructions; qualifying the written test does not itself guarantee admission."],
+    intro:
+      "The All India Sainik Schools Entrance Examination (AISSEE) is the entrance route for admission to Class VI and Class IX in participating Sainik Schools. The National Testing Agency conducts the examination for the Sainik Schools Society.",
+    checks: [
+      "Confirm the class, age eligibility and date-of-birth conditions in the notification for the exact academic year.",
+      "Read the current information bulletin for the application window, fee, exam pattern, documents and correction-window rules.",
+      "After results, follow official counselling and medical-fitness instructions; qualifying the written test does not itself guarantee admission.",
+    ],
     note: "For the 2026–27 cycle, NTA’s official page lists results and counselling-related updates. Do not use last year’s dates or eligibility conditions for a new cycle.",
-    links: [{ label: "Official NTA AISSEE notices", href: "https://exams.nta.nic.in/sainik-school-society/" }],
+    links: [
+      {
+        label: "Official NTA AISSEE notices",
+        href: "https://exams.nta.nic.in/sainik-school-society/",
+      },
+    ],
   },
   jnvst: {
     title: "JNVST: Navodaya Admission Guide",
-    description: "A parent-friendly guide to JNVST, Class VI and IX entry, official eligibility checks and the Navodaya application process.",
+    description:
+      "A parent-friendly guide to JNVST, Class VI and IX entry, official eligibility checks and the Navodaya application process.",
     heading: "JNVST: a parent’s guide to Navodaya admission",
-    intro: "The Jawahar Navodaya Vidyalaya Selection Test (JNVST) is the selection route for admission to Jawahar Navodaya Vidyalayas. Class VI is the main entry point; Class IX admission is generally handled through a separate lateral-entry process where vacancies are available.",
-    checks: ["Use the current NVS prospectus to confirm class-specific eligibility, residence requirements and the permitted date-of-birth range.", "Check whether the notice is for Class VI or Class IX; their schedules and eligibility rules may differ.", "Keep the application confirmation and required certificates, and use only the official NVS admission portal for updates."],
+    intro:
+      "The Jawahar Navodaya Vidyalaya Selection Test (JNVST) is the selection route for admission to Jawahar Navodaya Vidyalayas. Class VI is the main entry point; Class IX admission is generally handled through a separate lateral-entry process where vacancies are available.",
+    checks: [
+      "Use the current NVS prospectus to confirm class-specific eligibility, residence requirements and the permitted date-of-birth range.",
+      "Check whether the notice is for Class VI or Class IX; their schedules and eligibility rules may differ.",
+      "Keep the application confirmation and required certificates, and use only the official NVS admission portal for updates.",
+    ],
     note: "A current 2027–28 notification has not been verified in this review. Treat dates and application availability as unannounced until NVS publishes the relevant notice.",
-    links: [{ label: "Official NVS website", href: "https://navodaya.gov.in/" }, { label: "Official admission portal", href: "https://admissions.navodaya.gov.in/" }],
+    links: [
+      { label: "Official NVS website", href: "https://navodaya.gov.in/" },
+      { label: "Official admission portal", href: "https://admissions.navodaya.gov.in/" },
+    ],
   },
   "rms-cet": {
     title: "RMS CET: Rashtriya Military Schools Guide",
-    description: "A parent-friendly guide to RMS CET, Class VI and IX entry, official application notices and selection stages.",
+    description:
+      "A parent-friendly guide to RMS CET, Class VI and IX entry, official application notices and selection stages.",
     heading: "RMS CET: a parent’s guide to Rashtriya Military Schools",
-    intro: "The Rashtriya Military Schools Common Entrance Test (RMS CET) is the entrance route for eligible candidates seeking admission to Rashtriya Military Schools, including Class VI and Class IX entry. NTA publishes the entrance-test application notice; parents should follow the notice for the applicable session.",
-    checks: ["Read the current NTA bulletin for the exact application deadline, fee, age limits and required documents.", "Check the instructions for both the entrance test and any subsequent selection stages.", "Use the current notice rather than relying on dates copied from an earlier admission year."],
+    intro:
+      "The Rashtriya Military Schools Common Entrance Test (RMS CET) is the entrance route for eligible candidates seeking admission to Rashtriya Military Schools, including Class VI and Class IX entry. NTA publishes the entrance-test application notice; parents should follow the notice for the applicable session.",
+    checks: [
+      "Read the current NTA bulletin for the exact application deadline, fee, age limits and required documents.",
+      "Check the instructions for both the entrance test and any subsequent selection stages.",
+      "Use the current notice rather than relying on dates copied from an earlier admission year.",
+    ],
     note: "NTA has published an RMS CET 2026 online-application notice. Check the live official notice for the current deadline and later updates before submitting an application.",
-    links: [{ label: "Official NTA RMS CET application notice", href: "https://exams.nta.nic.in/rms-cet-2026-online-application/" }, { label: "Rashtriya Military Schools website", href: "https://www.rashtriyamilitaryschools.edu.in/" }],
+    links: [
+      {
+        label: "Official NTA RMS CET application notice",
+        href: "https://exams.nta.nic.in/rms-cet-2026-online-application/",
+      },
+      {
+        label: "Rashtriya Military Schools website",
+        href: "https://www.rashtriyamilitaryschools.edu.in/",
+      },
+    ],
   },
 } as const;
 
@@ -62,22 +97,49 @@ function StandaloneExamGuide({ slug }: { slug: keyof typeof EXAM_GUIDES }) {
   const guide = EXAM_GUIDES[slug];
   return (
     <div className="mx-auto max-w-(--container-read) px-4 py-8 md:px-10 md:py-12">
-      <p className="text-meta font-semibold uppercase tracking-wide text-muted-ink">Entrance exam guide</p>
+      <p className="text-meta font-semibold uppercase tracking-wide text-muted-ink">
+        Entrance exam guide
+      </p>
       <h1 className="mt-2 font-display text-title-m md:text-title-d">{guide.heading}</h1>
       <p className="mt-3 text-body">{guide.intro}</p>
-      <section className="mt-6 rounded-md border border-rule p-4 md:p-6" aria-labelledby="guide-checklist">
-        <h2 id="guide-checklist" className="font-display text-card font-semibold">What parents should check</h2>
+      <section
+        className="mt-6 rounded-md border border-rule p-4 md:p-6"
+        aria-labelledby="guide-checklist"
+      >
+        <h2 id="guide-checklist" className="font-display text-card font-semibold">
+          What parents should check
+        </h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-body">
-          {guide.checks.map((item) => <li key={item}>{item}</li>)}
+          {guide.checks.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
         <p className="mt-4 text-body text-muted-ink">{guide.note}</p>
         <h2 className="mt-5 font-display text-card font-semibold">Official sources</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-body">
-          {guide.links.map((link) => <li key={link.href}><a className="font-semibold text-ruled-blue underline" href={link.href} target="_blank" rel="noopener noreferrer nofollow">{link.label}</a></li>)}
+          {guide.links.map((link) => (
+            <li key={link.href}>
+              <a
+                className="font-semibold text-ruled-blue underline"
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
         </ul>
       </section>
-      <p className="mt-5 text-meta text-muted-ink">Dates, fees and eligibility can change by academic year. Confirm every detail in the official notice before applying.</p>
-      <p className="mt-4 text-body"><a className="font-semibold text-ruled-blue underline" href="/en/exams">Browse all entrance exam guides</a></p>
+      <p className="mt-5 text-meta text-muted-ink">
+        Dates, fees and eligibility can change by academic year. Confirm every detail in the
+        official notice before applying.
+      </p>
+      <p className="mt-4 text-body">
+        <a className="font-semibold text-ruled-blue underline" href="/en/exams">
+          Browse all entrance exam guides
+        </a>
+      </p>
     </div>
   );
 }
@@ -853,46 +915,152 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
         />
       ))}
       <h1 className="font-display text-title-m md:text-title-d">{examName}</h1>
-      <section className="mt-5 rounded-md border border-rule p-4 md:p-6" aria-labelledby="exam-guide-heading">
-        <p className="text-meta font-semibold uppercase tracking-wide text-muted-ink">Parent guide</p>
+      <section
+        className="mt-5 rounded-md border border-rule p-4 md:p-6"
+        aria-labelledby="exam-guide-heading"
+      >
+        <p className="text-meta font-semibold uppercase tracking-wide text-muted-ink">
+          Parent guide
+        </p>
         <h2 id="exam-guide-heading" className="mt-1 font-display text-card font-semibold">
-          {slug === "aissee" ? "AISSEE: a parent’s guide to Sainik School admission" : slug === "jnvst" ? "JNVST: a parent’s guide to Navodaya admission" : "RMS CET: a parent’s guide to Rashtriya Military Schools"}
+          {slug === "aissee"
+            ? "AISSEE: a parent’s guide to Sainik School admission"
+            : slug === "jnvst"
+              ? "JNVST: a parent’s guide to Navodaya admission"
+              : "RMS CET: a parent’s guide to Rashtriya Military Schools"}
         </h2>
         {slug === "aissee" ? (
           <div className="mt-3 flex flex-col gap-3 text-body">
-            <p>The All India Sainik Schools Entrance Examination (AISSEE) is the entrance route for admission to Class VI and Class IX in participating Sainik Schools. The National Testing Agency conducts the examination for the Sainik Schools Society.</p>
+            <p>
+              The All India Sainik Schools Entrance Examination (AISSEE) is the entrance route for
+              admission to Class VI and Class IX in participating Sainik Schools. The National
+              Testing Agency conducts the examination for the Sainik Schools Society.
+            </p>
             <h3 className="font-semibold">What parents should check</h3>
             <ul className="list-disc pl-5">
-              <li>Confirm the class, age eligibility and any date-of-birth conditions in the notification for the exact academic year.</li>
-              <li>Read the current information bulletin for the application window, fee, exam pattern, documents and correction-window rules.</li>
-              <li>After results, follow the official counselling and medical-fitness instructions; qualifying the written test does not itself guarantee admission.</li>
+              <li>
+                Confirm the class, age eligibility and any date-of-birth conditions in the
+                notification for the exact academic year.
+              </li>
+              <li>
+                Read the current information bulletin for the application window, fee, exam pattern,
+                documents and correction-window rules.
+              </li>
+              <li>
+                After results, follow the official counselling and medical-fitness instructions;
+                qualifying the written test does not itself guarantee admission.
+              </li>
             </ul>
-            <p>For the 2026–27 cycle, NTA’s official page lists results and counselling-related updates. Do not use last year’s dates or eligibility conditions for a new cycle.</p>
-            <p><a className="font-semibold text-ruled-blue underline" href="https://exams.nta.nic.in/sainik-school-society/" target="_blank" rel="noopener noreferrer nofollow">Check the official NTA AISSEE notices</a></p>
+            <p>
+              For the 2026–27 cycle, NTA’s official page lists results and counselling-related
+              updates. Do not use last year’s dates or eligibility conditions for a new cycle.
+            </p>
+            <p>
+              <a
+                className="font-semibold text-ruled-blue underline"
+                href="https://exams.nta.nic.in/sainik-school-society/"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                Check the official NTA AISSEE notices
+              </a>
+            </p>
           </div>
         ) : slug === "jnvst" ? (
           <div className="mt-3 flex flex-col gap-3 text-body">
-            <p>The Jawahar Navodaya Vidyalaya Selection Test (JNVST) is the selection route for admission to Jawahar Navodaya Vidyalayas. Class VI is the main entry point; Class IX admission is generally handled through a separate lateral-entry process where vacancies are available.</p>
+            <p>
+              The Jawahar Navodaya Vidyalaya Selection Test (JNVST) is the selection route for
+              admission to Jawahar Navodaya Vidyalayas. Class VI is the main entry point; Class IX
+              admission is generally handled through a separate lateral-entry process where
+              vacancies are available.
+            </p>
             <h3 className="font-semibold">What parents should check</h3>
             <ul className="list-disc pl-5">
-              <li>Use the current NVS prospectus to confirm class-specific eligibility, residence requirements and the permitted date-of-birth range.</li>
-              <li>Check whether the notice is for Class VI or Class IX; their schedules and eligibility rules may differ.</li>
-              <li>Keep the application confirmation and required certificates, and use only the official NVS admission portal for updates.</li>
+              <li>
+                Use the current NVS prospectus to confirm class-specific eligibility, residence
+                requirements and the permitted date-of-birth range.
+              </li>
+              <li>
+                Check whether the notice is for Class VI or Class IX; their schedules and
+                eligibility rules may differ.
+              </li>
+              <li>
+                Keep the application confirmation and required certificates, and use only the
+                official NVS admission portal for updates.
+              </li>
             </ul>
-            <p>We have not confirmed a current 2027–28 notification from the official source in this review. Treat dates and application availability as unannounced until NVS publishes the relevant notice.</p>
-            <p><a className="font-semibold text-ruled-blue underline" href="https://navodaya.gov.in/" target="_blank" rel="noopener noreferrer nofollow">Visit the official Navodaya Vidyalaya Samiti website</a> · <a className="font-semibold text-ruled-blue underline" href="https://admissions.navodaya.gov.in/" target="_blank" rel="noopener noreferrer nofollow">Official admission portal</a></p>
+            <p>
+              We have not confirmed a current 2027–28 notification from the official source in this
+              review. Treat dates and application availability as unannounced until NVS publishes
+              the relevant notice.
+            </p>
+            <p>
+              <a
+                className="font-semibold text-ruled-blue underline"
+                href="https://navodaya.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                Visit the official Navodaya Vidyalaya Samiti website
+              </a>{" "}
+              ·{" "}
+              <a
+                className="font-semibold text-ruled-blue underline"
+                href="https://admissions.navodaya.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                Official admission portal
+              </a>
+            </p>
           </div>
         ) : slug === "rms-cet" ? (
           <div className="mt-3 flex flex-col gap-3 text-body">
-            <p>The Rashtriya Military Schools Common Entrance Test (RMS CET) is the entrance route for eligible candidates seeking admission to Rashtriya Military Schools, including Class VI and Class IX entry. NTA publishes the entrance-test application notice; parents should follow the notice for the applicable session.</p>
+            <p>
+              The Rashtriya Military Schools Common Entrance Test (RMS CET) is the entrance route
+              for eligible candidates seeking admission to Rashtriya Military Schools, including
+              Class VI and Class IX entry. NTA publishes the entrance-test application notice;
+              parents should follow the notice for the applicable session.
+            </p>
             <h3 className="font-semibold">What parents should check</h3>
             <ul className="list-disc pl-5">
-              <li>Read the current NTA bulletin for the exact application deadline, fee, age limits and required documents.</li>
-              <li>Check the instructions for both the entrance test and any subsequent selection stages.</li>
-              <li>Use the current notice rather than relying on dates copied from an earlier admission year.</li>
+              <li>
+                Read the current NTA bulletin for the exact application deadline, fee, age limits
+                and required documents.
+              </li>
+              <li>
+                Check the instructions for both the entrance test and any subsequent selection
+                stages.
+              </li>
+              <li>
+                Use the current notice rather than relying on dates copied from an earlier admission
+                year.
+              </li>
             </ul>
-            <p>NTA has published an RMS CET 2026 online-application notice. Check the live official notice for the current deadline and any later updates before submitting an application.</p>
-            <p><a className="font-semibold text-ruled-blue underline" href="https://exams.nta.nic.in/rms-cet-2026-online-application/" target="_blank" rel="noopener noreferrer nofollow">Read the official NTA RMS CET application notice</a> · <a className="font-semibold text-ruled-blue underline" href="https://www.rashtriyamilitaryschools.edu.in/" target="_blank" rel="noopener noreferrer nofollow">Rashtriya Military Schools website</a></p>
+            <p>
+              NTA has published an RMS CET 2026 online-application notice. Check the live official
+              notice for the current deadline and any later updates before submitting an
+              application.
+            </p>
+            <p>
+              <a
+                className="font-semibold text-ruled-blue underline"
+                href="https://exams.nta.nic.in/rms-cet-2026-online-application/"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                Read the official NTA RMS CET application notice
+              </a>{" "}
+              ·{" "}
+              <a
+                className="font-semibold text-ruled-blue underline"
+                href="https://www.rashtriyamilitaryschools.edu.in/"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                Rashtriya Military Schools website
+              </a>
+            </p>
           </div>
         ) : (
           <p className="mt-3 text-body text-muted-ink">This exam guide is not available.</p>

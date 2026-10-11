@@ -60,15 +60,17 @@ const nextConfig: NextConfig = {
   // Compression handled automatically by Vercel
   compress: true,
   async headers() {
-    const cacheHeaders = [
-      { key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400" },
-    ];
+    const cacheHeaders = [{ key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400" }];
     if (!isPreview) return [{ source: "/:path*", headers: [...securityHeaders, ...cacheHeaders] }];
 
     return [
       {
         source: "/:path*",
-        headers: [...securityHeaders, ...cacheHeaders, { key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        headers: [
+          ...securityHeaders,
+          ...cacheHeaders,
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
       },
     ];
   },

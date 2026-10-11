@@ -81,8 +81,7 @@ export default async function OpsSchoolDetailPage({ params }: { params: Promise<
         <p className="mt-1">
           Source attribution:{" "}
           <span className="font-semibold text-ink">{school.source_type ?? "unknown"}</span>
-          {" · "}Verification:{" "}
-          <span className="font-semibold text-ink">{school.verification}</span>
+          {" · "}Verification: <span className="font-semibold text-ink">{school.verification}</span>
           {" · "}Verification status:{" "}
           <span className="font-semibold text-ink">{school.verification_status}</span>
         </p>
