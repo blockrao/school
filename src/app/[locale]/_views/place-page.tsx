@@ -471,7 +471,6 @@ export async function PlaceView({
     return buildHref({ compare: next.join(",") });
   }
 
-  const alertsHref = `${localePrefix(locale)}/alerts${maxClass ? `?class=${maxClass}` : ""}`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -550,19 +549,9 @@ export async function PlaceView({
         </div>
       )}
 
-      <div className="mt-5 flex flex-col gap-2 rounded-md border border-rule bg-copy-white p-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-body">
-          <span className="font-semibold">Get alerts for this search.</span> We'll message you on
-          WhatsApp when a school here publishes an admission announcement
-          {maxClass ? ` for ${formatGradeRange(null, maxClass)}` : ""}.
-        </p>
-        <Link
-          href={alertsHref}
-          className="flex h-11 shrink-0 items-center justify-center rounded-md border border-ink px-4 font-semibold"
-        >
-          Get alerts
-        </Link>
-      </div>
+      <p className="mt-5 rounded-md border border-rule bg-copy-white p-4 text-body text-muted-ink">
+        School admission announcements are shown on individual school profiles and in the news feed.
+      </p>
 
       <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
         {compareIds.length > 0 && (
