@@ -54,19 +54,106 @@ export default async function EditSchoolPostPage({
 
         <label className="flex flex-col gap-1.5">
           <span className="text-meta font-semibold text-muted-ink">Topic</span>
-          <select name="topic" defaultValue={post.topic} disabled={post.listing_review === "pending"} className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50">
+          <select
+            name="topic"
+            defaultValue={post.topic}
+            disabled={post.listing_review === "pending"}
+            className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+          >
             <option value="general">General school update</option>
             <option value="admission_announcement">Admission announcement</option>
           </select>
         </label>
-        <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Academic year (optional)</span><input name="academicYear" defaultValue={post.admission_academic_year ?? ""} placeholder="2027-28" pattern="[0-9]{4}-[0-9]{2}" disabled={post.listing_review === "pending"} className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50" /></label>
-        <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Classes / grades (optional)</span><select name="classCodes" multiple defaultValue={post.admission_class_codes} disabled={post.listing_review === "pending"} className="min-h-24 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"><option value="nursery">Nursery</option><option value="lkg">LKG</option><option value="ukg">UKG</option>{Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={`c${i + 1}`}>Class {i + 1}</option>)}</select></label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">
+            Academic year (optional)
+          </span>
+          <input
+            name="academicYear"
+            defaultValue={post.admission_academic_year ?? ""}
+            placeholder="2027-28"
+            pattern="[0-9]{4}-[0-9]{2}"
+            disabled={post.listing_review === "pending"}
+            className="h-12 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">
+            Classes / grades (optional)
+          </span>
+          <select
+            name="classCodes"
+            multiple
+            defaultValue={post.admission_class_codes}
+            disabled={post.listing_review === "pending"}
+            className="min-h-24 w-fit rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+          >
+            <option value="nursery">Nursery</option>
+            <option value="lkg">LKG</option>
+            <option value="ukg">UKG</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={`c${i + 1}`}>
+                Class {i + 1}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Opening date (optional)</span><input type="date" name="opensOn" defaultValue={post.admission_opens_on ?? ""} disabled={post.listing_review === "pending"} className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50" /></label>
-          <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Closing date (optional)</span><input type="date" name="closesOn" defaultValue={post.admission_closes_on ?? ""} disabled={post.listing_review === "pending"} className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50" /></label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-meta font-semibold text-muted-ink">
+              Opening date (optional)
+            </span>
+            <input
+              type="date"
+              name="opensOn"
+              defaultValue={post.admission_opens_on ?? ""}
+              disabled={post.listing_review === "pending"}
+              className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-meta font-semibold text-muted-ink">
+              Closing date (optional)
+            </span>
+            <input
+              type="date"
+              name="closesOn"
+              defaultValue={post.admission_closes_on ?? ""}
+              disabled={post.listing_review === "pending"}
+              className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+            />
+          </label>
         </div>
-        <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Application URL (HTTPS, optional)</span><input type="url" name="applicationUrl" defaultValue={post.admission_application_url ?? ""} disabled={post.listing_review === "pending"} className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50" /></label>
-        <label className="flex flex-col gap-1.5"><span className="text-meta font-semibold text-muted-ink">Official notice URL (HTTPS, optional)</span><input type="url" name="noticeUrl" defaultValue={post.admission_notice_url ?? ""} disabled={post.listing_review === "pending"} className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50" /></label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">
+            Application URL (HTTPS, optional)
+          </span>
+          <input
+            type="url"
+            name="applicationUrl"
+            defaultValue={post.admission_application_url ?? ""}
+            disabled={post.listing_review === "pending"}
+            className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-meta font-semibold text-muted-ink">
+            Official notice URL (HTTPS, optional)
+          </span>
+          <input
+            type="url"
+            name="noticeUrl"
+            defaultValue={post.admission_notice_url ?? ""}
+            disabled={post.listing_review === "pending"}
+            className="h-12 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none disabled:opacity-50"
+          />
+        </label>
+
         <label className="flex flex-col gap-1.5">
           <span className="text-meta font-semibold text-muted-ink">Headline</span>
           <input
