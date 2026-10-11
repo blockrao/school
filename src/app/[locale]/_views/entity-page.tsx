@@ -40,7 +40,6 @@ import { normalizeExternalUrl } from "@/lib/external-url";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
 import { JOB_STATUS_LABEL } from "@/lib/job-status";
-import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-activity";
 import { schoolAreaLabel } from "@/lib/school-area-label";
@@ -492,6 +491,7 @@ export async function LocalityView({
   locale: string;
   resolved: ResolvedLocality;
 }) {
+  const now = new Date();
   const { city, locality } = resolved;
   const [schools, neighbors] = await Promise.all([
     listPublicSchoolsByLocality(locality.id),
@@ -1340,7 +1340,10 @@ export async function SchoolView({
               {admissionAnnouncements.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {admissionAnnouncements.map((post) => (
-                    <article key={post.id} className="flex flex-col gap-2 rounded-md border border-rule p-4">
+                    <article
+                      key={post.id}
+                      className="flex flex-col gap-2 rounded-md border border-rule p-4"
+                    >
                       <h3 className="font-semibold">{post.title}</h3>
                       {post.admission_academic_year && (
                         <p className="text-meta text-muted-ink">
@@ -1349,25 +1352,50 @@ export async function SchoolView({
                       )}
                       {post.admission_class_codes.length > 0 && (
                         <p className="text-meta text-muted-ink">
-                          Classes: {post.admission_class_codes.map((code) => code.replace(/^c/, "")).join(", ")}
+                          Classes:{" "}
+                          {post.admission_class_codes
+                            .map((code) => code.replace(/^c/, ""))
+                            .join(", ")}
                         </p>
                       )}
                       {(post.admission_opens_on || post.admission_closes_on) && (
                         <p className="text-meta text-muted-ink">
-                          {post.admission_opens_on ? `Opens ${new Date(post.admission_opens_on).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                          {post.admission_opens_on
+                            ? `Opens ${new Date(post.admission_opens_on).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}`
+                            : ""}
                           {post.admission_opens_on && post.admission_closes_on ? " · " : ""}
-                          {post.admission_closes_on ? `Closes ${new Date(post.admission_closes_on).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                          {post.admission_closes_on
+                            ? `Closes ${new Date(post.admission_closes_on).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}`
+                            : ""}
                         </p>
                       )}
                       <p className="whitespace-pre-wrap text-body">{post.body}</p>
                       <div className="flex flex-wrap gap-x-4 gap-y-2">
                         {post.admission_application_url && (
-                          <a href={post.admission_application_url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold text-ruled-blue">
+                          <a
+                            href={post.admission_application_url}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            className="font-semibold text-ruled-blue"
+                          >
                             Apply on official website ↗
                           </a>
                         )}
                         {post.admission_notice_url && (
-                          <a href={post.admission_notice_url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold text-ruled-blue">
+                          <a
+                            href={post.admission_notice_url}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            className="font-semibold text-ruled-blue"
+                          >
                             Read official notice ↗
                           </a>
                         )}
