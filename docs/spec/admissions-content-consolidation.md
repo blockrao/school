@@ -80,7 +80,7 @@ This inventory is based on the current application source and production schema 
 - **Implemented on branch:** `src/app/[locale]/admissions/page.tsx` redirects the obsolete school-admissions directory root to `/news`. School-specific `/school/{slug}/admissions` routes redirect through the canonical campus-view redirect.
 - **Implemented on branch:** the cycle-linked `submitAdmissionLead` action was removed from the school-profile actions module. Existing `admission_leads` rows and the lead-management portal remain intact for historical/admin use; no data has been deleted or remapped.
 - **Preserved:** `/admissions/help`, checkout, user order history, exam admission pages, and exam eligibility tools.
-- **Remaining:** audit links, alerts, and analytics for any assumptions that a new school lead must be associated with a current cycle. Do not repurpose `admission_cycle_id` to store a post ID.
+- **Remaining:** the standalone `/alerts` page still advertises admission-window notifications, while its persistence model is class/city/school scoped and `alert_deliveries` retains `admission_cycle_id`. Its delivery implementation is not present in this repository. Do not claim announcement-based alert delivery or drop the legacy public views/grants until the actual sender/cron and existing subscriptions are audited. Do not repurpose `admission_cycle_id` to store a post ID.
 
 ### Production catalog observations
 
