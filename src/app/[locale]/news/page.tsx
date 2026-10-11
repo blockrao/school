@@ -97,9 +97,7 @@ export default async function NewsIndexPage({ params }: PageProps<"/[locale]/new
                   (post.admission_application_url || post.admission_notice_url) && (
                     <a
                       href={
-                        post.admission_application_url ??
-                        post.admission_notice_url ??
-                        undefined
+                        post.admission_application_url ?? post.admission_notice_url ?? undefined
                       }
                       target="_blank"
                       rel="noopener noreferrer nofollow"
