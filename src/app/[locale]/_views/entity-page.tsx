@@ -67,7 +67,7 @@ export function localityMetadata(locale: string, resolved: ResolvedLocality): Me
   const { locality, city } = resolved;
   return {
     title: `Schools in ${locality.name}, ${city.cityName} — SchoolOye`,
-    description: `${locality.name}: schools, fees, facilities and admission dates in ${city.cityName}.`,
+    description: `${locality.name}: school profiles and admission announcements in ${city.cityName}.`,
     alternates: {
       canonical: localeCanonical(
         locale,
@@ -130,8 +130,7 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
  * field is real only for schools with a formal verification event (locked
  * rule: never backfilled from provenance timestamps) and is null for most of
  * the corpus. Per-field evidence (UDISE+/SARAS provenance already rendered via
- * SourceLine) and admission-cycle changes (already rendered under "Recent
- * admission updates") are both real, dated, on-page facts and count too.
+ * SourceLine) and published school posts are real, dated, on-page facts and count too.
  * Returns null — omit the property — when nothing dated is known at all,
  * never a fabricated fallback like the build/request time.
  */
@@ -593,7 +592,12 @@ export async function SchoolView({
   // three separate sections a parent has to scan past individually. Each
   // domain's own model/provenance/canonical page is unchanged; this is a
   // display-order projection only (see src/lib/school-activity.ts header).
-  const activity = buildSchoolActivityFeed(news, events, jobs, now);
+  const activity = buildSchoolActivityFeed(
+    news.filter((post) => post.topic !== "admission_announcement"),
+    events,
+    jobs,
+    now,
+  );
   const admissionAnnouncements = news.filter((post) => post.topic === "admission_announcement");
 
   // Identity & Search Presence Foundation v1 (29 Sep 2026) — one row per
