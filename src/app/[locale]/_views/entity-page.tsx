@@ -440,6 +440,7 @@ function LocalityPageBody({
                   href={schoolPath(locale, school.slug)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
+                  deadline={{ closesAt: null }}
                   status={<StatusPill status="not-announced">Admission update on school profile</StatusPill>}
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
