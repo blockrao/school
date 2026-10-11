@@ -143,7 +143,7 @@ export default async function EditSchoolPostPage({
 
         <label className="flex flex-col gap-1.5">
           <span className="text-meta font-semibold text-muted-ink">
-            Official notice URL (HTTPS, optional)
+            Notice URL (HTTPS, optional)
           </span>
           <input
             type="url"
