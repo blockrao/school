@@ -608,12 +608,6 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
 }
 
 /**
- * Approved, published news/press posts for one school, newest first — reads only
- * `api.public_school_news` (db/views/095_public_school_news.sql), which already
- * filters to `review = 'approved'` and a published school; nothing further to filter
- * here.
- */
-/**
  * Open-licence, per-field source attribution for one school (Identity &
  * Search Presence Foundation v1, ID-04, 29 Sep 2026) — db/views/106_public_field_evidence.sql.
  * Keyed by `field` (a `schools` column name: "address", "pincode",
