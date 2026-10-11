@@ -134,7 +134,6 @@ export default async function SchoolsPage({
       q: string;
       board: string;
       grade: string;
-      admissions: string;
       compare: string;
       page: string;
       view: string;
@@ -274,7 +273,7 @@ export default async function SchoolsPage({
         )}
         {filtersActive && (
           <Link
-            href={buildHref({ q: "", board: "", grade: "", admissions: "" })}
+            href={buildHref({ q: "", board: "", grade: "" })}
             className="font-semibold text-ruled-blue"
           >
             Clear all
