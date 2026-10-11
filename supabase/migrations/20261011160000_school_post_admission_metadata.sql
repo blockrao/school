@@ -32,7 +32,27 @@ begin
   end if;
   if not exists (select 1 from pg_constraint where conrelid = 'public.school_posts'::regclass and conname = 'school_posts_admission_class_codes') then
     alter table public.school_posts add constraint school_posts_admission_class_codes
-      check (cardinality(admission_class_codes) <= 30 and array_position(admission_class_codes, null) is null);
+      check (
+        cardinality(admission_class_codes) <= 30
+        and array_position(admission_class_codes, null) is null
+        and admission_class_codes <@ array[
+          'nursery',
+          'lkg',
+          'ukg',
+          'c1',
+          'c2',
+          'c3',
+          'c4',
+          'c5',
+          'c6',
+          'c7',
+          'c8',
+          'c9',
+          'c10',
+          'c11',
+          'c12'
+        ]::text[]
+      );
   end if;
   if not exists (select 1 from pg_constraint where conrelid = 'public.school_posts'::regclass and conname = 'school_posts_admission_urls_https') then
     alter table public.school_posts add constraint school_posts_admission_urls_https
