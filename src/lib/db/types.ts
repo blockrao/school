@@ -1731,6 +1731,13 @@ export type Database = {
           admission_closes_on?: string | null;
           admission_application_url?: string | null;
           admission_notice_url?: string | null;
+          topic?: string;
+          admission_academic_year?: string | null;
+          admission_class_codes?: string[];
+          admission_opens_on?: string | null;
+          admission_closes_on?: string | null;
+          admission_application_url?: string | null;
+          admission_notice_url?: string | null;
         };
         Update: {
           id?: string;
@@ -1756,13 +1763,6 @@ export type Database = {
           listing_reviewed_at?: string | null;
           rejection_reason?: string | null;
           withdrawn_at?: string | null;
-          topic?: string;
-          admission_academic_year?: string | null;
-          admission_class_codes?: string[];
-          admission_opens_on?: string | null;
-          admission_closes_on?: string | null;
-          admission_application_url?: string | null;
-          admission_notice_url?: string | null;
         };
         Relationships: [];
       };
@@ -2499,12 +2499,7 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      // active_cities dropped 30 Sep 2026 (launch gate removal) — it filtered
-      // on cities.is_launch, which was dropped in the same migration
-      // (20260930190000_remove_launch_gate_entirely.sql). Confirmed unused in
-      // app code before dropping.
-    };
+    Views: { [_ in never]: never };
     Functions: {
       approve_application: {
         Args: Record<string, unknown>; // p_application_id uuid
