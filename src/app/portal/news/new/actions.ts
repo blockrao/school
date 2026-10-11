@@ -23,7 +23,11 @@ const postSchema = z.object({
 }).superRefine((value, ctx) => {
   if (value.topic !== "admission_announcement") return;
   if (value.opensOn && value.closesOn && value.closesOn < value.opensOn) {
-    ctx.addIssue({ code: "custom", path: ["closesOn"], message: "Closing date must not precede opening date." });
+    ctx.addIssue({
+      code: "custom",
+      path: ["closesOn"],
+      message: "Closing date must not precede opening date.",
+    });
   }
 });
 
@@ -34,7 +38,9 @@ export async function submitSchoolPost(formData: FormData) {
     kind: formData.get("kind"),
     topic: formData.get("topic") || "general",
     academicYear: formData.get("academicYear") || "",
-    classCodes: formData.getAll("classCodes").filter((v): v is string => typeof v === "string" && v.length > 0),
+    classCodes: formData
+      .getAll("classCodes")
+      .filter((v): v is string => typeof v === "string" && v.length > 0),
     opensOn: formData.get("opensOn") || "",
     closesOn: formData.get("closesOn") || "",
     applicationUrl: formData.get("applicationUrl") || "",
@@ -69,12 +75,18 @@ export async function submitSchoolPost(formData: FormData) {
     body: parsed.data.body,
     source_url: parsed.data.sourceUrl || null,
     topic: parsed.data.topic,
-    admission_academic_year: parsed.data.topic === "admission_announcement" ? parsed.data.academicYear || null : null,
-    admission_class_codes: parsed.data.topic === "admission_announcement" ? parsed.data.classCodes ?? [] : [],
-    admission_opens_on: parsed.data.topic === "admission_announcement" ? parsed.data.opensOn || null : null,
-    admission_closes_on: parsed.data.topic === "admission_announcement" ? parsed.data.closesOn || null : null,
-    admission_application_url: parsed.data.topic === "admission_announcement" ? parsed.data.applicationUrl || null : null,
-    admission_notice_url: parsed.data.topic === "admission_announcement" ? parsed.data.noticeUrl || null : null,
+    admission_academic_year:
+      parsed.data.topic === "admission_announcement" ? parsed.data.academicYear || null : null,
+    admission_class_codes:
+      parsed.data.topic === "admission_announcement" ? parsed.data.classCodes ?? [] : [],
+    admission_opens_on:
+      parsed.data.topic === "admission_announcement" ? parsed.data.opensOn || null : null,
+    admission_closes_on:
+      parsed.data.topic === "admission_announcement" ? parsed.data.closesOn || null : null,
+    admission_application_url:
+      parsed.data.topic === "admission_announcement" ? parsed.data.applicationUrl || null : null,
+    admission_notice_url:
+      parsed.data.topic === "admission_announcement" ? parsed.data.noticeUrl || null : null,
     created_by: user?.id,
     review: "approved",
     published_at: new Date().toISOString(),
