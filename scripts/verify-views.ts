@@ -2,9 +2,9 @@
 /**
  * Read-only verification, safe to run anytime (no --confirm needed):
  *
- * 1. Every row from each api.* view is parsed against its Zod contract in
- *    src/contracts — mismatches are printed but do NOT fail the script (fix and
- *    move on; a contract drift is a bug to fix, not a release blocker).
+ * 1. Every row from each registered api.* view is parsed against its Zod
+ *    contract in src/contracts. Any mismatch fails the script so contract drift
+ *    cannot silently pass the release gate.
  * 2. Security checks DO determine process.exitCode: SET ROLE anon and confirm
  *    anon can read every granted api.* view, cannot read staging.schools_with_level,
  *    and cannot read any raw table directly — no allowlist exceptions.
@@ -29,9 +29,11 @@ import {
   publicFieldEvidenceContract,
   publicLocalityContract,
   publicLocalityNeighborContract,
+  publicNewsContract,
   publicSchoolAdmissionContract,
   publicSchoolBoardContract,
   publicSchoolContract,
+  publicSchoolNewsContract,
   publicSeatStatusContract,
   publicStateContract,
   publicTeacherContract,
@@ -82,10 +84,13 @@ const VIEWS: {
   { name: "api.public_teacher_qualifications", contract: publicTeacherQualificationContract },
   { name: "api.public_field_evidence", contract: publicFieldEvidenceContract },
   { name: "api.public_exam_admissions", contract: publicExamAdmissionContract },
+  { name: "api.public_news", contract: publicNewsContract },
+  { name: "api.public_school_news", contract: publicSchoolNewsContract },
 ];
 
 const RAW_TABLES = [
   "schools",
+  "school_posts",
   "field_provenance",
   "source_records",
   "admission_cycles",
@@ -109,8 +114,9 @@ const RAW_TABLES = [
 
 const client = new pg.Client({ connectionString });
 
-/** Warnings only — does not affect process.exitCode. See file header. */
-async function verifyContracts(): Promise<void> {
+/** Contract mismatches are release-blocking. */
+async function verifyContracts(): Promise<boolean> {
+  let ok = true;
   for (const { name, contract } of VIEWS) {
     const { rows } = await client.query(`select * from ${name}`);
     let failures = 0;
@@ -119,17 +125,19 @@ async function verifyContracts(): Promise<void> {
       if (!result.success) {
         failures++;
         if (failures === 1) {
-          console.warn(`⚠ ${name}: contract mismatch on at least one row`);
-          console.warn(JSON.stringify(result.error, null, 2));
+          console.error(`✗ ${name}: contract mismatch on at least one row`);
+          console.error(JSON.stringify(result.error, null, 2));
         }
       }
     }
     if (failures > 0) {
-      console.warn(`⚠ ${name}: ${failures}/${rows.length} rows failed contract validation`);
+      console.error(`✗ ${name}: ${failures}/${rows.length} rows failed contract validation`);
+      ok = false;
     } else {
       console.log(`✓ ${name}: ${rows.length} rows match the contract`);
     }
   }
+  return ok;
 }
 
 /**
@@ -398,7 +406,8 @@ async function verifyApplicationHelpOwnership(): Promise<boolean> {
 async function main() {
   await client.connect();
 
-  await verifyContracts();
+  console.log("--- contracts: public view schemas ---");
+  const contractsOk = await verifyContracts();
   console.log("\n--- security: anon view/staging access ---");
   const anonViewsOk = await verifyAnonViewAccess();
   console.log("\n--- security: raw tables blocked ---");
@@ -408,8 +417,8 @@ async function main() {
   console.log("\n--- security: application-help ownership + tamper checks ---");
   const ownershipOk = await verifyApplicationHelpOwnership();
 
-  if (!anonViewsOk || !rawTablesOk || !functionAccessOk || !ownershipOk) {
-    console.error("\nverify:views FAILED (security)");
+  if (!contractsOk || !anonViewsOk || !rawTablesOk || !functionAccessOk || !ownershipOk) {
+    console.error("\nverify:views FAILED (contract or security checks)");
     process.exitCode = 1;
   } else {
     console.log("\nverify:views passed (contract warnings, if any, are printed above)");
