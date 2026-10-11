@@ -10,7 +10,7 @@ const httpsUrl = z.string().url().refine((value) => new URL(value).protocol === 
 const postSchema = z.object({
   kind: z.enum(["news", "press"]),
   topic: z.enum(["general", "admission_announcement"]),
-  academicYear: z.string().regex(/^\\d{4}-\\d{2}$/).optional().or(z.literal("")),
+  academicYear: z.string().regex(/^\d{4}-\d{2}$/).optional().or(z.literal("")),
   classCodes: z.array(z.string().trim().min(1).max(30)).max(30).optional(),
   opensOn: z.string().date().optional().or(z.literal("")),
   closesOn: z.string().date().optional().or(z.literal("")),
