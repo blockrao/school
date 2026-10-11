@@ -50,4 +50,3 @@ export async function sendEnquiry(formData: FormData) {
 
   redirect(`${returnPath}?enquiry_sent=1#enquiry-heading`);
 }
-
