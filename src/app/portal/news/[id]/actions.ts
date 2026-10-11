@@ -46,8 +46,17 @@ const updatePostSchema = z.object({
   body: z.string().trim().min(1).max(5000),
   sourceUrl: z.string().url().optional().or(z.literal("")),
 }).superRefine((value, ctx) => {
-  if (value.topic === "admission_announcement" && value.opensOn && value.closesOn && value.closesOn < value.opensOn) {
-    ctx.addIssue({ code: "custom", path: ["closesOn"], message: "Closing date must not precede opening date." });
+  if (
+    value.topic === "admission_announcement" &&
+    value.opensOn &&
+    value.closesOn &&
+    value.closesOn < value.opensOn
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["closesOn"],
+      message: "Closing date must not precede opening date.",
+    });
   }
 });
 
@@ -67,7 +76,9 @@ export async function updateSchoolPost(formData: FormData) {
     title: formData.get("title"),
     topic: formData.get("topic") || "general",
     academicYear: formData.get("academicYear") || "",
-    classCodes: formData.getAll("classCodes").filter((v): v is string => typeof v === "string" && v.length > 0),
+    classCodes: formData
+      .getAll("classCodes")
+      .filter((v): v is string => typeof v === "string" && v.length > 0),
     opensOn: formData.get("opensOn") || "",
     closesOn: formData.get("closesOn") || "",
     applicationUrl: formData.get("applicationUrl") || "",
@@ -84,11 +95,14 @@ export async function updateSchoolPost(formData: FormData) {
     body: parsed.data.body,
     sourceUrl: parsed.data.sourceUrl || null,
     topic: parsed.data.topic,
-    academicYear: parsed.data.topic === "admission_announcement" ? parsed.data.academicYear || null : null,
-    classCodes: parsed.data.topic === "admission_announcement" ? parsed.data.classCodes ?? [] : [],
+    academicYear:
+      parsed.data.topic === "admission_announcement" ? parsed.data.academicYear || null : null,
+    classCodes:
+      parsed.data.topic === "admission_announcement" ? parsed.data.classCodes ?? [] : [],
     opensOn: parsed.data.topic === "admission_announcement" ? parsed.data.opensOn || null : null,
     closesOn: parsed.data.topic === "admission_announcement" ? parsed.data.closesOn || null : null,
-    applicationUrl: parsed.data.topic === "admission_announcement" ? parsed.data.applicationUrl || null : null,
+    applicationUrl:
+      parsed.data.topic === "admission_announcement" ? parsed.data.applicationUrl || null : null,
     noticeUrl: parsed.data.topic === "admission_announcement" ? parsed.data.noticeUrl || null : null,
   });
   if (!ok) {
