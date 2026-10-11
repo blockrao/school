@@ -77,3 +77,6 @@ COMMENT ON TABLE public.school_admission_details IS
   'Structured metadata for admission announcement posts; publication and listing eligibility remain controlled by school_posts and api.public_school_news.';
 COMMENT ON VIEW api.public_school_admission_announcements IS
   'Public admission announcements derived only from the curated public_school_news projection; this view does not publish or approve posts.';
+
+GRANT USAGE ON SCHEMA api TO anon, authenticated;
+GRANT SELECT ON api.public_school_admission_announcements TO anon, authenticated;
