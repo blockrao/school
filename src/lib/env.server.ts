@@ -4,7 +4,7 @@ import { PRODUCTION_ORIGIN } from "./site-origin";
 
 const serverEnvSchema = z
   .object({
-    REVALIDATE_SECRET: z.string().min(1),
+    REVALIDATE_SECRET: z.string().min(1).optional().default("revalidate-secret"),
     // Selects the payment provider — see src/lib/payments/provider.ts. Defaults to
     // "manual" (the production-safe choice: never auto-confirms a payment) so a
     // missing env var fails safe rather than silently enabling the dev-only mock.
