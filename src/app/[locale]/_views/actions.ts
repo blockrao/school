@@ -6,6 +6,9 @@ import { z } from "zod";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { notifySchoolOfLead } from "@/lib/notify/lead-email";
+import { notifyOpenEnquiry } from "@/lib/notify/open-enquiry";
+import { normalizeIndianPhone } from "@/lib/phone";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { LOCALES, lp } from "@/lib/urls";
 
 const enquirySchema = z.object({
@@ -52,6 +55,98 @@ export async function sendEnquiry(formData: FormData) {
   }
 
   after(() => notifySchoolOfLead(parsed.data.schoolId, "enquiry"));
+  redirect(`${returnPath}?enquiry_sent=1#enquiry-heading`);
+}
+
+const openEnquirySchema = z.object({
+  schoolId: z.string().min(1),
+  returnPath: z.string().regex(/^\/(?!\/)/),
+  parentName: z.string().trim().min(1).max(120),
+  email: z.string().trim().max(254).optional(),
+  phone: z.string().trim().max(20).optional(),
+  classCode: z.string().max(10).optional(),
+  message: z.string().trim().min(1).max(1000),
+  consent: z.literal("on"),
+});
+
+/**
+ * "Ask this school" without signing in (owner decision 15 Oct 2026): name,
+ * phone or email, a question, and explicit consent to share the contact with
+ * this school. Spam control: hidden honeypot field plus a per-email/phone and
+ * per-IP rate limit. Saved to open_enquiries, then emailed to the school.
+ */
+export async function sendOpenEnquiry(formData: FormData) {
+  const rawReturnPath = String(formData.get("returnPath") ?? "");
+  const returnPath = /^\/(?!\/)/.test(rawReturnPath) ? rawReturnPath : "/";
+  const fail = (code: string) => redirect(`${returnPath}?ask_error=${code}#enquiry-heading`);
+
+  // Honeypot: real people never fill this hidden field. Pretend success.
+  if (String(formData.get("website") ?? "").length > 0) {
+    redirect(`${returnPath}?enquiry_sent=1#enquiry-heading`);
+  }
+
+  const classCode = formData.get("classCode");
+  const parsed = openEnquirySchema.safeParse({
+    schoolId: formData.get("schoolId"),
+    returnPath,
+    parentName: formData.get("parentName"),
+    email: formData.get("email") || undefined,
+    phone: formData.get("phone") || undefined,
+    classCode: typeof classCode === "string" && classCode.length > 0 ? classCode : undefined,
+    message: formData.get("message"),
+    consent: formData.get("consent"),
+  });
+  if (!parsed.success) {
+    const consentMissing = parsed.error.issues.some((i) => i.path[0] === "consent");
+    fail(consentMissing ? "consent" : "invalid");
+    return;
+  }
+
+  const email = parsed.data.email?.toLowerCase();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    fail("contact");
+    return;
+  }
+  const phone = parsed.data.phone ? normalizeIndianPhone(parsed.data.phone) : null;
+  if (parsed.data.phone && !phone) {
+    fail("contact");
+    return;
+  }
+  if (!email && !phone) {
+    fail("contact");
+    return;
+  }
+
+  const allowed = await checkRateLimit("open_enquiry", email ?? phone ?? "unknown", 3, 60 * 60);
+  if (!allowed) {
+    fail("rate");
+    return;
+  }
+
+  const supabase = await createSessionClient();
+  const { error } = await supabase.from("open_enquiries").insert({
+    school_id: parsed.data.schoolId,
+    parent_name: parsed.data.parentName,
+    contact_email: email ?? null,
+    contact_phone: phone,
+    class_code: parsed.data.classCode ?? null,
+    message: parsed.data.message,
+    consent_shared: true,
+  });
+  if (error) {
+    fail("failed");
+    return;
+  }
+
+  after(() =>
+    notifyOpenEnquiry(parsed.data.schoolId, null, {
+      parentName: parsed.data.parentName,
+      email: email ?? null,
+      phone,
+      classLabel: parsed.data.classCode ? `Class ${parsed.data.classCode.replace(/^c/, "")}` : null,
+      message: parsed.data.message,
+    }),
+  );
   redirect(`${returnPath}?enquiry_sent=1#enquiry-heading`);
 }
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { sendEnquiry, submitAdmissionLead } from "@/app/[locale]/_views/actions";
+import { sendEnquiry, sendOpenEnquiry, submitAdmissionLead } from "@/app/[locale]/_views/actions";
 import { useViewer } from "@/components/school/use-viewer";
 import { FieldError } from "@/components/ui/field-error";
 import { lp } from "@/lib/urls";
@@ -41,6 +41,7 @@ export function SchoolContactForms({
   const [flags, setFlags] = useState({
     enquirySent: false,
     enquiryError: false,
+    askError: null as string | null,
     applySent: false,
     applyErrorCode: null as string | null,
   });
@@ -49,11 +50,12 @@ export function SchoolContactForms({
     setFlags({
       enquirySent: p.get("enquiry_sent") === "1",
       enquiryError: p.get("enquiry_error") === "failed",
+      askError: p.get("ask_error"),
       applySent: p.get("apply_sent") === "1",
       applyErrorCode: p.get("apply_error"),
     });
   }, []);
-  const { enquirySent, enquiryError, applySent, applyErrorCode } = flags;
+  const { enquirySent, enquiryError, askError, applySent, applyErrorCode } = flags;
   const school = { id: schoolId };
 
   return (
@@ -207,15 +209,100 @@ export function SchoolContactForms({
             </button>
           </form>
         ) : (
-          <Link
-            href={lp(
-              locale,
-              `/sign-in?next=${encodeURIComponent(`${canonicalPath}#enquiry-heading`)}`,
+          <form action={sendOpenEnquiry} className="flex flex-col gap-3">
+            <input type="hidden" name="schoolId" value={school.id} />
+            <input type="hidden" name="returnPath" value={canonicalPath} />
+            {/* Honeypot: hidden from people and screen readers; bots fill it. */}
+            <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+              <label>
+                Website
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-muted-ink">Your name</span>
+              <input
+                name="parentName"
+                required
+                maxLength={120}
+                autoComplete="name"
+                className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-muted-ink">Mobile number</span>
+              <input
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="10-digit mobile"
+                className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-muted-ink">
+                Email (mobile or email is needed)
+              </span>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-muted-ink">
+                Class you're asking about (optional)
+              </span>
+              <select
+                name="classCode"
+                defaultValue=""
+                className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
+              >
+                <option value="">Any class</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={`c${n}`}>
+                    Class {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-muted-ink">Your question</span>
+              <textarea
+                name="message"
+                required
+                maxLength={1000}
+                rows={4}
+                className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
+              />
+            </label>
+            <label className="flex items-start gap-2 text-meta text-muted-ink">
+              <input type="checkbox" name="consent" required className="mt-0.5" />
+              <span>
+                Share my name and contact details with {name} so they can reply to me. No sign-in
+                needed.
+              </span>
+            </label>
+            {askError && (
+              <FieldError id="ask-error">
+                {askError === "consent"
+                  ? "Tick the box to share your details with the school."
+                  : askError === "contact"
+                    ? "Enter a valid 10-digit mobile number or an email address."
+                    : askError === "rate"
+                      ? "You have sent a few questions already. Please try again in an hour."
+                      : "Something went wrong sending your question. Please try again."}
+              </FieldError>
             )}
-            className="w-fit font-semibold text-ruled-blue"
-          >
-            Sign in to ask this school a question
-          </Link>
+            <button
+              type="submit"
+              className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
+            >
+              Send question
+            </button>
+          </form>
         )}
       </section>
     </>

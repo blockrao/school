@@ -893,6 +893,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      open_enquiries: {
+        Row: {
+          id: string;
+          school_id: string;
+          parent_name: string;
+          contact_email: string | null;
+          contact_phone: string | null;
+          class_code: string | null;
+          message: string;
+          consent_shared: boolean;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          parent_name: string;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          class_code?: string | null;
+          message: string;
+          consent_shared: boolean;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          parent_name?: string;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          class_code?: string | null;
+          message?: string;
+          consent_shared?: boolean;
+          status?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       events: {
         Row: {
           id: number;

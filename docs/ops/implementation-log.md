@@ -3479,3 +3479,8 @@ either way.
 - Supersedes the earlier "Fees stays deferred" decision: the provenance layer now exists, and fees show only as published, sourced, dated rows. With no rows, the block reads "Not reported".
 - Contract fields for the admissions view are optional (`nullish`) so a deploy before `db:views` cannot repeat the 29 Sep contract-ahead-of-view outage.
 - To apply the views: SQL given to the owner for the editor (create or replace; grants).
+
+## 15 Oct 2026 (night): open "Ask this school" enquiry
+- Owner decision: parent enters name + phone or email and consents to share with the school; school gets question + contact by email and replies directly (no sign-in). Separate from the signed-in `enquiries` flow.
+- New: migration `20261015180000_open_enquiries.sql` (insert-only for the public, read by staff and school members), server action `sendOpenEnquiry` (honeypot, rate limit 3/hour per contact plus per IP, validation), `src/lib/notify/open-enquiry*.ts` (school email + parent confirmation via Resend), form in `school-contact-forms.tsx` replacing the "Sign in to ask" link.
+- Needs: migration applied; RESEND_API_KEY set in Vercel (done by owner); sender domain verified in Resend for NOTIFY_FROM_EMAIL.
