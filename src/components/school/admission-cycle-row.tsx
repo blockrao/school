@@ -2,7 +2,13 @@ import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { StatusPill } from "@/components/ui/badges";
 import { ProvenanceChip } from "@/components/ui/provenance-chip";
 import type { PublicSchoolAdmission } from "@/contracts";
-import { ageRuleText, SELECTION_METHOD_LABEL, seatsText, windowText } from "@/lib/admission-rules";
+import {
+  ageRuleText,
+  classLabel,
+  SELECTION_METHOD_LABEL,
+  seatsText,
+  windowText,
+} from "@/lib/admission-rules";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { factLabel } from "@/lib/fact-label";
 import { classifyAdmissionProvenance } from "@/lib/provenance";
