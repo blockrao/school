@@ -3473,3 +3473,9 @@ either way.
 - Design mockup of the school page (desktop + phone) published to the Design canvas; layout approved by the owner.
 - Added §5.1 to `docs/spec/school-page-content.md`: SEO/GEO/AEO requirements to build with the page.
 - Provenance layer migration written and tested on a scratch Postgres (idempotent; trigger verified): `20261015150000_fact_provenance_layer.sql`. NOT yet applied to production; human runs `pnpm db:migrate 20261015150000_fact_provenance_layer.sql --confirm`.
+
+## 15 Oct 2026 (night): school page rebuild, step 1 - Fees block + provenance labels
+- New: `db/views/112_public_school_fees.sql` (published rows only), admissions view extended (age rule, selection method, prospectus, seats, provenance; published rows only), `src/contracts/public-school-fees.ts`, `getPublicSchoolFeesBySchoolId` (returns [] on any error so the page is safe before the view exists), `src/lib/fact-label.ts` (+tests), `src/components/school/fees-block.tsx` (+tests), wired after Admissions on the school page.
+- Supersedes the earlier "Fees stays deferred" decision: the provenance layer now exists, and fees show only as published, sourced, dated rows. With no rows, the block reads "Not reported".
+- Contract fields for the admissions view are optional (`nullish`) so a deploy before `db:views` cannot repeat the 29 Sep contract-ahead-of-view outage.
+- To apply the views: SQL given to the owner for the editor (create or replace; grants).

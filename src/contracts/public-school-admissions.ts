@@ -34,6 +34,19 @@ export const publicSchoolAdmissionContract = z.object({
   // reuses this view unfiltered rather than a new admissions data model.
   city_slug: z.string().nullable(),
   city_name: z.string().nullable(),
+  // 15 Oct 2026 - appended with the view; optional so a deploy that lands
+  // before `pnpm db:views` still parses (the 29 Sep contract-ahead-of-view
+  // outage must not repeat).
+  age_reference_date: z.string().nullish(),
+  min_age_months: z.number().nullish(),
+  max_age_months: z.number().nullish(),
+  selection_method: z.string().nullish(),
+  prospectus_url: z.string().nullish(),
+  seats_total: z.number().nullish(),
+  seats_rte: z.number().nullish(),
+  source_kind: z.string().nullish(),
+  evidence_url: z.string().nullish(),
+  observed_at: z.string().nullish(),
 });
 
 export type PublicSchoolAdmission = z.infer<typeof publicSchoolAdmissionContract>;

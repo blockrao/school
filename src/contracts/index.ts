@@ -12,6 +12,7 @@ export * from "@/contracts/public-news";
 export * from "@/contracts/public-reference";
 export * from "@/contracts/public-school-admissions";
 export * from "@/contracts/public-school-events";
+export * from "@/contracts/public-school-fees";
 export * from "@/contracts/public-school-jobs";
 export * from "@/contracts/public-school-news";
 export * from "@/contracts/public-school-rankings";

@@ -21,6 +21,7 @@ import {
   type PublicSchoolAdmission,
   type PublicSchoolBoard,
   type PublicSchoolEvent,
+  type PublicSchoolFee,
   type PublicSchoolJob,
   type PublicSchoolNews,
   type PublicSchoolRanking,
@@ -42,6 +43,7 @@ import {
   publicSchoolBoardContract,
   publicSchoolContract,
   publicSchoolEventContract,
+  publicSchoolFeeContract,
   publicSchoolJobContract,
   publicSchoolNewsContract,
   publicSchoolRankingContract,
@@ -718,6 +720,29 @@ export async function getPublicAdmissionsBySchoolId(
     .eq("school_id", schoolId)
     .order("closes_on", { ascending: true, nullsFirst: false });
   return (data ?? []).map((row) => publicSchoolAdmissionContract.parse(row));
+}
+
+/**
+ * Published, provenance-carrying fee rows for one school (api.public_school_fees).
+ * Returns [] on any error, including "view does not exist yet": the Fees block
+ * then shows its honest empty state instead of the page failing.
+ */
+export async function getPublicSchoolFeesBySchoolId(schoolId: string): Promise<PublicSchoolFee[]> {
+  try {
+    const api = createApiSchemaClient();
+    const { data, error } = await api
+      .from("public_school_fees")
+      .select("*")
+      .eq("school_id", schoolId)
+      .order("academic_year", { ascending: false });
+    if (error || !data) return [];
+    return data.flatMap((row) => {
+      const parsed = publicSchoolFeeContract.safeParse(row);
+      return parsed.success ? [parsed.data] : [];
+    });
+  } catch {
+    return [];
+  }
 }
 
 /**

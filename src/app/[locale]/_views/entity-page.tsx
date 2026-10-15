@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
 import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
+import { FeesBlock } from "@/components/school/fees-block";
 import { PageViewBeacon } from "@/components/school/page-view-beacon";
 import { SchoolContactForms } from "@/components/school/school-contact-forms";
 import { SchoolSaveControl } from "@/components/school/school-save-control";
@@ -33,6 +34,7 @@ import {
   getPublicFieldEvidenceBySchoolId,
   type getPublicLocalityBySlug,
   getPublicSchoolEventsBySchoolId,
+  getPublicSchoolFeesBySchoolId,
   getPublicSchoolJobsBySchoolId,
   getPublicSchoolNewsBySchoolId,
   getRecentAdmissionUpdatesBySchoolId,
@@ -549,6 +551,7 @@ export async function SchoolView({
 
   const [
     admissions,
+    fees,
     similarSchoolsRaw,
     team,
     news,
@@ -558,6 +561,7 @@ export async function SchoolView({
     fieldEvidence,
   ] = await Promise.all([
     getPublicAdmissionsBySchoolId(school.id),
+    getPublicSchoolFeesBySchoolId(school.id),
     // Increment 11 (SDP-21) — locality-first, same-city fallback; see
     // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
     getSimilarSchools(school),
@@ -1487,6 +1491,8 @@ export async function SchoolView({
                 />
               )}
             </section>
+
+            <FeesBlock fees={fees} schoolName={name} />
 
             {/* Increment 10R — Claim card, mobile position. Design (C16/D2): "Claim
               card ... after Fees on mobile" — Fees itself stays deferred (Prav's

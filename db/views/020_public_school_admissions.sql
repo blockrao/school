@@ -66,8 +66,22 @@ select
   ac.documents_required,
   ac.id as cycle_id,
   c.slug as city_slug,
-  c.name_en as city_name
+  c.name_en as city_name,
+  -- 15 Oct 2026 (school page rebuild): appended age rule, selection method,
+  -- prospectus, seat counts and provenance. Rows must be review_state =
+  -- 'published' (all existing rows default to it, so nothing disappears).
+  ac.age_reference_date,
+  ac.min_age_months,
+  ac.max_age_months,
+  ac.selection_method,
+  ac.prospectus_url,
+  ac.seats_total,
+  ac.seats_rte,
+  ac.source_kind,
+  ac.evidence_url,
+  ac.observed_at
 from schools s
 join admission_cycles ac on ac.school_id = s.id
 left join cities c on c.id = s.city_id
-where s.status = 'published';
+where s.status = 'published'
+  and ac.review_state = 'published';
