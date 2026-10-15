@@ -3468,3 +3468,7 @@ either way.
 - Locality/town route gained `generateStaticParams` (ISR).
 - Header city follows the city page being viewed (`useSelectedCity`).
 - `/privacy` and `/terms` are `noindex` and out of the sitemap until the legal text is final — remove the `robots` line and restore the sitemap entries when it is.
+
+## 15 Oct 2026 (late): school page mockup + SEO/GEO/AEO section
+- Design mockup of the school page (desktop + phone) published to the Design canvas; layout approved by the owner.
+- Added §5.1 to `docs/spec/school-page-content.md`: SEO/GEO/AEO requirements to build with the page.

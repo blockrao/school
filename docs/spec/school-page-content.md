@@ -76,6 +76,21 @@ Nothing here is destructive.
 - The 20 questions in the parent research map one-to-one to blocks above; the markdown twin (`/index.md`) follows the same block order and carries the snapshot sentence first.
 - Dates: every block shows an "as of", and sitemap `lastmod` comes from the newest accepted fact.
 
+### 5.1 SEO / GEO / AEO requirements for the built page (added 15 Oct 2026, after the mockup)
+
+Already live: canonical + hreflang helpers, Open Graph basics, School JSON-LD by grade span, BreadcrumbList, `dateModified` from real data changes, markdown twin, `llms.txt`, indexability gate.
+
+To build with the page:
+1. **Snapshot sentence** (header one-liner) is generated from data and reused as meta description, OG description and the first line of the markdown twin. Facts only; no board claim the data does not support.
+2. **Structured data per block**, emitted only when the block has accepted rows: fees as `Offer`/price specification only where a school document confirms them (keeps the earlier rule); admission windows per entry class; `dateModified`; `citation` to source documents. Never `aggregateRating`, `Review`, or unverified claims.
+3. **FAQ stays visible plain text** generated from data. No FAQPage markup (rich results are largely retired; the text is what answer engines read).
+4. **OG / Twitter image** generated per school (name, board, admission status). Alt text on all photos; `school_media.alt_text` is required before a photo renders.
+5. **Headings and anchors**: one H1, one H2 per block, stable ids (`#fees`, `#admissions`, ...) so answer engines can deep-link.
+6. **Markdown twin parity**: every block, including "Not reported" states and source/date lines, in the same order as the page.
+7. **Freshness**: a corrected or newly accepted fact revalidates the page and twin on demand (database change 13). Sitemap `lastmod` = newest accepted fact.
+8. **Performance budget**: measure Core Web Vitals on the built page; budget for photos (lazy, sized, modern formats) and the map (click-to-load, no third-party script on first paint).
+9. **Not-yet-enriched pages**: blocks without data render a short honest empty state; the page still passes the indexability gate or stays noindex.
+
 ## 6. Build order
 
 1. Spec sign-off (this) → migrations 1–2 (provenance, fee heads) → UI/UX design task.
