@@ -50,3 +50,12 @@ Pattern used by the directory leaders (Careers360 and Shiksha for schools, Pract
 | Filters / compare | any of the above with `?board= ?grade= ?admissions= ?compare=` | no | noindex, canonical to base |
 
 Old `/schools/{state}/{city}?page=N` URLs keep working and canonicalise to `/all-schools`. Delhi (city-state) stays a single listing page for now.
+
+### Why this shape (research, 15 Oct 2026)
+
+- Google treats keywords in URLs as a very small ranking factor (Mueller: "very small" 2016, "overrated" 2017) and has said folder structure choices are unlikely to make or break a site. Breadcrumbs often replace the URL in results. What matters: one stable canonical URL per page, lowercase, hyphenated, consistent trailing-slash handling, no duplicate paths.
+- Answer engines (ChatGPT, Claude, Perplexity) read page content, structured data and the markdown twin, not URL keywords. A readable, stable URL helps when it is cited as plain text.
+- Competitors put the keyword in a flat slug (`/schools/schools-in-gurgaon`, `/cbse-schools-in-gurgaon`). We use a hierarchy instead. Reasons: the state segment disambiguates same-named cities as the platform goes national, it gives a real state hub (`/schools/haryana`) and clean breadcrumbs, and the exact query phrase ("Schools in Gurugram") lives in the title and H1 where it counts.
+- Decision: keep `/schools/{state}/{city}`. Do not rename; every rename costs redirects and discards signals.
+- Rules that keep it clean: reserved segments (`all-schools`, `*-schools`) cannot be used as locality slugs (checked 15 Oct: none exist); city slugs are unique across areas (checked: 24 areas, no duplicates); filters stay in query strings and canonicalise to the base page.
+- Known inconsistency to resolve: Delhi (city-state) lives at `/schools/delhi`, with no city segment.
