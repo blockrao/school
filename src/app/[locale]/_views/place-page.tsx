@@ -8,6 +8,7 @@ import { CompareTray } from "@/components/ui/compare-tray";
 import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
+import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug } from "@/lib/board-slug";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardCategoryLinksForDistrict,
@@ -36,6 +37,7 @@ import {
   schoolsRootPath,
   statePath,
 } from "@/lib/urls";
+import { CityHighlights } from "./city-highlights";
 
 const PAGE_SIZE = 24;
 
@@ -89,12 +91,14 @@ export async function resolvePlace(citySlug: string) {
 
 export type ResolvedPlace = NonNullable<Awaited<ReturnType<typeof resolvePlace>>>;
 type RawSearchParams = { [key: string]: string | string[] | undefined };
+export type BoardHub = { slug: string; boardId: number; name: string };
 
 /** Metadata for a discovery page (D-121 §7): filters noindex; pagination self-canonical. */
 export function placeMetadata(
   locale: string,
   resolved: ResolvedPlace,
   rawSearchParams: RawSearchParams,
+  boardHub?: BoardHub & { count: number },
 ): Metadata {
   if (resolved.kind === "town") {
     const { town } = resolved;
@@ -123,6 +127,14 @@ export function placeMetadata(
   const { boardId, maxClass, admissionsOpen, page } = parseFilters(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
   const path = cityPath("en", city.stateSlug, city.citySlug);
+
+  if (boardHub) {
+    return {
+      title: `${boardHub.name} schools in ${city.cityName}, ${city.stateName}: grades and admissions — SchoolOye`,
+      description: `${boardHub.count} ${boardHub.name} schools in ${city.cityName}, ${city.stateName}. Each listing shows the school's grades, location and admission status.`,
+      alternates: { canonical: localeCanonical(locale, `${path}/${boardHub.slug}-schools`) },
+    };
+  }
 
   return {
     title: `Schools in ${city.cityName}, ${city.stateName}${page > 1 ? ` (page ${page})` : ""}: boards, grades and admissions — SchoolOye`,
@@ -375,10 +387,13 @@ export async function PlaceView({
   locale,
   resolved,
   rawSearchParams,
+  boardHub,
 }: {
   locale: string;
   resolved: ResolvedPlace;
   rawSearchParams: RawSearchParams;
+  /** Set on /schools/{state}/{city}/{board}-schools: a path-based, indexable board listing. */
+  boardHub?: BoardHub;
 }) {
   const now = new Date();
 
@@ -414,8 +429,12 @@ export async function PlaceView({
 
   const { city } = resolved;
 
-  const { boardId, maxClass, admissionsOpen, page, compareIds } = parseFilters(rawSearchParams);
-  const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
+  const parsed = parseFilters(rawSearchParams);
+  const { maxClass, admissionsOpen, page, compareIds } = parsed;
+  const boardId = boardHub?.boardId ?? parsed.boardId;
+  // A board hub is its own indexable page, not a filtered variant of the city page.
+  const filtersActive =
+    (!boardHub && boardId !== undefined) || maxClass !== undefined || admissionsOpen;
 
   // district-scoped, not city_id-scoped: schools pending /ops locality
   // assignment still belong on the city's "all schools" listing.
@@ -445,7 +464,8 @@ export async function PlaceView({
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const basePath = cityPath(locale, city.stateSlug, city.citySlug);
+  const cityBasePath = cityPath(locale, city.stateSlug, city.citySlug);
+  const basePath = boardHub ? `${cityBasePath}/${boardHub.slug}-schools` : cityBasePath;
 
   function buildHref(
     overrides: Partial<{
@@ -457,7 +477,7 @@ export async function PlaceView({
     }>,
   ) {
     const merged = {
-      board: boardId !== undefined ? String(boardId) : "",
+      board: boardId !== undefined && !boardHub ? String(boardId) : "",
       grade: maxClass ?? "",
       admissions: admissionsOpen ? "open" : "",
       compare: compareIds.join(","),
@@ -513,7 +533,9 @@ export async function PlaceView({
         "@type": "CollectionPage",
         "@id": `${siteUrl}${page > 1 ? `${basePath}?page=${page}` : basePath}`,
         url: `${siteUrl}${page > 1 ? `${basePath}?page=${page}` : basePath}`,
-        name: `Schools in ${city.cityName}, ${city.stateName}`,
+        name: boardHub
+          ? `${boardHub.name} schools in ${city.cityName}, ${city.stateName}`
+          : `Schools in ${city.cityName}, ${city.stateName}`,
         isPartOf: { "@id": `${siteUrl}/#website` },
         inLanguage: "en-IN",
         mainEntity: {
@@ -553,7 +575,9 @@ export async function PlaceView({
         </nav>
       )}
 
-      <h1 className="font-display text-title-m md:text-title-d">{city.cityName} schools</h1>
+      <h1 className="font-display text-title-m md:text-title-d">
+        {boardHub ? `${boardHub.name} schools in ${city.cityName}` : `${city.cityName} schools`}
+      </h1>
       <p className="mt-1 text-body text-muted-ink">
         {total} school{total === 1 ? "" : "s"}
         {filtersActive ? " matching your filters" : ""}
@@ -577,6 +601,8 @@ export async function PlaceView({
         </div>
       )}
 
+      {!filtersActive && !boardHub && page === 1 && <CityHighlights locale={locale} city={city} />}
+
       {categoryLinks.length > 0 && (
         <div className="mt-5">
           <h2 className="text-meta font-semibold text-muted-ink">Browse by category</h2>
@@ -584,7 +610,11 @@ export async function PlaceView({
             {categoryLinks.map(({ board, count }) => (
               <Link
                 key={board.id}
-                href={`${basePath}?board=${board.id}`}
+                href={
+                  count >= BOARD_HUB_MIN_SCHOOLS && !city.isCityState
+                    ? `${cityBasePath}/${boardHubSlug(board.name_en)}-schools`
+                    : `${cityBasePath}?board=${board.id}`
+                }
                 className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
               >
                 {board.name_en} schools

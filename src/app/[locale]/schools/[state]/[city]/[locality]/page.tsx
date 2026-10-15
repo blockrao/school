@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { localityPath } from "@/lib/urls";
+import {
+  BOARD_HUB_MIN_SCHOOLS,
+  boardHubSlug,
+  boardShortName,
+  parseBoardHubSegment,
+} from "@/lib/board-slug";
+import { getBoardCategoryLinksForDistrict, getPublicCityAreaBySlug } from "@/lib/db/public-adapter";
+import { cityPath, localityPath } from "@/lib/urls";
 import { LocalityView, localityMetadata } from "../../../../_views/entity-page";
 import { PlaceView, placeMetadata } from "../../../../_views/place-page";
 import { resolveLocality } from "../../../../_views/resolve";
@@ -12,11 +19,42 @@ export function generateStaticParams() {
   return [];
 }
 
+/**
+ * /schools/{state}/{city}/{board}-schools: a board hub (CBSE, ICSE …), only when the
+ * city has at least BOARD_HUB_MIN_SCHOOLS such schools. Null otherwise, so the
+ * segment falls through to locality resolution.
+ */
+async function resolveBoardHub(_stateSlug: string, citySlug: string, segment: string) {
+  const boardSlug = parseBoardHubSegment(segment);
+  if (!boardSlug) return null;
+  const city = await getPublicCityAreaBySlug(citySlug);
+  if (!city) return null;
+  const links = await getBoardCategoryLinksForDistrict(city.districtIds);
+  const hit = links.find(
+    (l) => boardHubSlug(l.board.name_en) === boardSlug && l.count >= BOARD_HUB_MIN_SCHOOLS,
+  );
+  if (!hit) return null;
+  return {
+    city,
+    hub: {
+      slug: boardSlug,
+      boardId: hit.board.id,
+      name: boardShortName(hit.board.name_en),
+      count: hit.count,
+    },
+  };
+}
+
 /** /schools/{state}/{city}/{locality} — discovery (D-121 §1); towns use the town template. */
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/schools/[state]/[city]/[locality]">): Promise<Metadata> {
   const { locale, state, city, locality } = await params;
+  const board = await resolveBoardHub(state, city, locality);
+  if (board) {
+    if (board.city.stateSlug !== state) return { title: "Redirecting" };
+    return placeMetadata(locale, { kind: "city", city: board.city }, {}, board.hub);
+  }
   const resolved = await resolveLocality(city, locality);
   if (!resolved) return { title: "Not found" };
   if (resolved.kind === "town") {
@@ -31,6 +69,22 @@ export default async function LocalityPage({
   params,
 }: PageProps<"/[locale]/schools/[state]/[city]/[locality]">) {
   const { locale, state, city, locality } = await params;
+  const board = await resolveBoardHub(state, city, locality);
+  if (board) {
+    if (board.city.stateSlug !== state) {
+      permanentRedirect(
+        `${cityPath(locale, board.city.stateSlug, board.city.citySlug)}/${board.hub.slug}-schools`,
+      );
+    }
+    return (
+      <PlaceView
+        locale={locale}
+        resolved={{ kind: "city", city: board.city }}
+        rawSearchParams={{}}
+        boardHub={board.hub}
+      />
+    );
+  }
   const resolved = await resolveLocality(city, locality);
   if (!resolved) notFound();
 

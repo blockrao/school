@@ -1,5 +1,7 @@
 import "server-only";
+import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug } from "@/lib/board-slug";
 import {
+  getBoardCategoryLinksForDistrict,
   getBoardNamesBySchoolId,
   getPublicCityAreaBySlug,
   listPublicLocalitiesByCity,
@@ -157,9 +159,10 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
   // at thousands-of-schools-per-city scale) and only emitting a <url> entry
   // for schools that actually pass it. City/locality aggregate pages are
   // unaffected — they're indexable regardless of any one school's own gate.
-  const [publishedSchools, localities] = await Promise.all([
+  const [publishedSchools, localities, boardLinks] = await Promise.all([
     listAllPublishedSchoolsInDistrict(city.districtIds),
     listPublicLocalitiesByCity(citySlug, 3),
+    getBoardCategoryLinksForDistrict(city.districtIds),
   ]);
   const boardNames = await getBoardNamesBySchoolId(publishedSchools.map((s) => s.id));
   const sitemapEligibleSchools = publishedSchools.filter((school) => {
@@ -173,6 +176,16 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
       cityPath("en", city.stateSlug, city.citySlug),
       maxVerifiedAt(publishedSchools),
     ),
+    // Board hubs (/…/cbse-schools): only with enough schools to be a real page.
+    ...boardLinks
+      .filter((link) => !city.isCityState && link.count >= BOARD_HUB_MIN_SCHOOLS)
+      .map((link) =>
+        urlEntry(
+          siteUrl,
+          `${cityPath("en", city.stateSlug, city.citySlug)}/${boardHubSlug(link.board.name_en)}-schools`,
+          maxVerifiedAt(publishedSchools),
+        ),
+      ),
     ...localities.map((locality) => {
       const localitySchools = publishedSchools.filter((s) => s.locality_id === locality.id);
       return urlEntry(
