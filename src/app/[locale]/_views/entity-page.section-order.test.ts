@@ -31,7 +31,6 @@ describe("SchoolView sticky sub-nav order matches rendered section order", () =>
     expect(navIds).toEqual([
       "facts-heading",
       "admissions-heading",
-      "admission-updates-heading",
       "whats-happening-heading",
       "location-heading",
       "teachers-heading",

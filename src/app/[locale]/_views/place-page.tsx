@@ -9,7 +9,6 @@ import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
-  getAdmissionDeadlinesBySchoolId,
   getBoardCategoryLinksForDistrict,
   getBoardNamesBySchoolId,
   getPublicCityAreaBySlug,
@@ -23,7 +22,6 @@ import {
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
-import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 import { localeCanonical } from "@/lib/seo";
@@ -42,9 +40,6 @@ const PAGE_SIZE = 24;
 function parseFilters(searchParams: { [key: string]: string | string[] | undefined }) {
   const boardParam = Array.isArray(searchParams.board) ? searchParams.board[0] : searchParams.board;
   const gradeParam = Array.isArray(searchParams.grade) ? searchParams.grade[0] : searchParams.grade;
-  const admissionsParam = Array.isArray(searchParams.admissions)
-    ? searchParams.admissions[0]
-    : searchParams.admissions;
   const pageParam = Array.isArray(searchParams.page) ? searchParams.page[0] : searchParams.page;
 
   const compareParam = Array.isArray(searchParams.compare)
@@ -53,11 +48,10 @@ function parseFilters(searchParams: { [key: string]: string | string[] | undefin
 
   const boardId = boardParam ? Number(boardParam) : undefined;
   const maxClass = gradeParam || undefined;
-  const admissionsOpen = admissionsParam === "open";
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
   const compareIds = (compareParam || "").split(",").filter(Boolean);
 
-  return { boardId, maxClass, admissionsOpen, page, compareIds };
+  return { boardId, maxClass, page, compareIds };
 }
 
 /** Matches schools/page.tsx's own compare tray — same URL-param pattern, same limit. */
@@ -100,7 +94,7 @@ export function placeMetadata(
     const { town } = resolved;
     return {
       title: `Schools near ${town.townName}, ${town.stateName} — SchoolOye`,
-      description: `Schools near ${town.townName}: fees, facilities and admission dates.`,
+      description: `Schools near ${town.townName}: school details and admission announcements.`,
       alternates: {
         canonical: localeCanonical(
           locale,
@@ -114,19 +108,19 @@ export function placeMetadata(
     const { state } = resolved;
     return {
       title: `Schools in ${state.stateName} — SchoolOye`,
-      description: `${state.totalSchoolCount} schools across ${state.cities.length} ${state.cities.length === 1 ? "city" : "cities"} in ${state.stateName}: browse by city, fees, facilities and admission dates.`,
+      description: `${state.totalSchoolCount} schools across ${state.cities.length} ${state.cities.length === 1 ? "city" : "cities"} in ${state.stateName}: browse school profiles and admission announcements by city.`,
       alternates: { canonical: localeCanonical(locale, statePath("en", state.stateSlug)) },
     };
   }
 
   const { city } = resolved;
-  const { boardId, maxClass, admissionsOpen, page } = parseFilters(rawSearchParams);
-  const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
+  const { boardId, maxClass, page } = parseFilters(rawSearchParams);
+  const filtersActive = boardId !== undefined || maxClass !== undefined;
   const path = cityPath("en", city.stateSlug, city.citySlug);
 
   return {
     title: `${city.cityName} schools${page > 1 ? ` — page ${page}` : ""} — SchoolOye`,
-    description: `Browse schools in ${city.cityName}, ${city.stateName}: fees, facilities and admission dates.`,
+    description: `Browse schools in ${city.cityName}, ${city.stateName}: school profiles and admission announcements.`,
     alternates: {
       canonical: localeCanonical(
         locale,
@@ -143,18 +137,14 @@ function TownPageBody({
   schools,
   neighbors,
   boardNames,
-  admissionDeadlines,
   shortlistedIds,
-  now,
 }: {
   locale: string;
   town: NonNullable<Awaited<ReturnType<typeof getPublicTownAreaBySlug>>>;
   schools: Awaited<ReturnType<typeof listPublicSchoolsByLocality>>;
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
   boardNames: Map<string, string>;
-  admissionDeadlines: Map<string, string | null>;
   shortlistedIds: Set<string>;
-  now: Date;
 }) {
   const townPath = localityPath(locale, town.stateSlug, town.citySlug, town.townSlug);
 
@@ -234,19 +224,18 @@ function TownPageBody({
               const grades = formatGradeRange(school.min_class, school.max_class);
               const meta = board ? `${board} · ${grades}` : grades;
 
-              const closesOn = admissionDeadlines.get(school.id);
-              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-              const pill = deadlineToPill(deadlineState(deadline, now));
-
               return (
                 <SchoolCard
                   key={school.id}
                   href={schoolPath(locale, school.slug)}
                   name={school.name_en ?? "Name not yet published"}
                   meta={meta}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                  deadline={{ closesAt: null }}
+                  status={
+                    <StatusPill status="not-announced">
+                      Admission update on school profile
+                    </StatusPill>
+                  }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={
@@ -386,8 +375,6 @@ export async function PlaceView({
   resolved: ResolvedPlace;
   rawSearchParams: RawSearchParams;
 }) {
-  const now = new Date();
-
   if (resolved.kind === "state") {
     return <StatePageBody locale={locale} state={resolved.state} />;
   }
@@ -400,9 +387,8 @@ export async function PlaceView({
       listLocalityNeighbors(town.townSlug),
     ]);
     const schoolIds = schools.map((s) => s.id);
-    const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
+    const [boardNames, shortlistedIds] = await Promise.all([
       getBoardNamesBySchoolId(schoolIds),
-      getAdmissionDeadlinesBySchoolId(schoolIds),
       getShortlistedSchoolIds(schoolIds),
     ]);
 
@@ -413,17 +399,15 @@ export async function PlaceView({
         schools={schools}
         neighbors={neighbors}
         boardNames={boardNames}
-        admissionDeadlines={admissionDeadlines}
         shortlistedIds={shortlistedIds}
-        now={now}
       />
     );
   }
 
   const { city } = resolved;
 
-  const { boardId, maxClass, admissionsOpen, page, compareIds } = parseFilters(rawSearchParams);
-  const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
+  const { boardId, maxClass, page, compareIds } = parseFilters(rawSearchParams);
+  const filtersActive = boardId !== undefined || maxClass !== undefined;
 
   // district-scoped, not city_id-scoped: schools pending /ops locality
   // assignment still belong on the city's "all schools" listing.
@@ -432,7 +416,6 @@ export async function PlaceView({
       listPublicSchoolsByDistrict(city.districtIds, {
         boardId,
         maxClass,
-        admissionsOpen,
         page,
         pageSize: PAGE_SIZE,
       }),
@@ -447,9 +430,8 @@ export async function PlaceView({
   const sponsoredSchoolIds = new Set(featuredPlacements.map((p) => p.school_id));
 
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
+  const [boardNames, shortlistedIds] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
-    getAdmissionDeadlinesBySchoolId(schoolIds),
     getShortlistedSchoolIds(schoolIds),
   ]);
 
@@ -460,7 +442,6 @@ export async function PlaceView({
     overrides: Partial<{
       board: string;
       grade: string;
-      admissions: string;
       compare: string;
       page: string;
     }>,
@@ -468,7 +449,6 @@ export async function PlaceView({
     const merged = {
       board: boardId !== undefined ? String(boardId) : "",
       grade: maxClass ?? "",
-      admissions: admissionsOpen ? "open" : "",
       compare: compareIds.join(","),
       page: "",
       ...overrides,
@@ -491,8 +471,6 @@ export async function PlaceView({
     const next = inCompare ? compareIds.filter((id) => id !== schoolId) : [...compareIds, schoolId];
     return buildHref({ compare: next.join(",") });
   }
-
-  const alertsHref = `${localePrefix(locale)}/alerts${maxClass ? `?class=${maxClass}` : ""}`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -571,19 +549,9 @@ export async function PlaceView({
         </div>
       )}
 
-      <div className="mt-5 flex flex-col gap-2 rounded-md border border-rule bg-copy-white p-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-body">
-          <span className="font-semibold">Get alerts for this search.</span> We'll message you on
-          WhatsApp when a school here publishes admission dates or a deadline is coming up
-          {maxClass ? ` for ${formatGradeRange(null, maxClass)}` : ""}.
-        </p>
-        <Link
-          href={alertsHref}
-          className="flex h-11 shrink-0 items-center justify-center rounded-md border border-ink px-4 font-semibold"
-        >
-          Get alerts
-        </Link>
-      </div>
+      <p className="mt-5 rounded-md border border-rule bg-copy-white p-4 text-body text-muted-ink">
+        School admission announcements are shown on individual school profiles and in the news feed.
+      </p>
 
       <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
         {compareIds.length > 0 && (
@@ -621,17 +589,6 @@ export async function PlaceView({
           </select>
         </label>
 
-        <label className="flex h-11 items-center gap-2">
-          <input
-            type="checkbox"
-            name="admissions"
-            value="open"
-            defaultChecked={admissionsOpen}
-            className="h-5 w-5 rounded-sm border-line-blue"
-          />
-          <span className="text-body">Admissions open now</span>
-        </label>
-
         <button
           type="submit"
           className="flex h-11 items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
@@ -653,10 +610,6 @@ export async function PlaceView({
               const grades = formatGradeRange(school.min_class, school.max_class);
               const meta = board ? `${board} · ${grades}` : grades;
 
-              const closesOn = admissionDeadlines.get(school.id);
-              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-              const pill = deadlineToPill(deadlineState(deadline, now));
-
               const inCompare = compareIds.includes(school.id);
               const toggleHref = compareToggleHref(school.id);
 
@@ -668,9 +621,12 @@ export async function PlaceView({
                   meta={meta}
                   sponsored={sponsoredSchoolIds.has(school.id)}
                   sponsoredNote={<SponsoredWhyDisclosure />}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                  deadline={{ closesAt: null }}
+                  status={
+                    <StatusPill status="not-announced">
+                      Admission update on school profile
+                    </StatusPill>
+                  }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={

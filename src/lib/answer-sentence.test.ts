@@ -27,6 +27,13 @@ function newsFixture(overrides: Partial<PublicSchoolNews> = {}): PublicSchoolNew
     tier: "organic",
     listing_requested_at: null,
     listing_review: null,
+    topic: "general",
+    admission_academic_year: null,
+    admission_class_codes: [],
+    admission_opens_on: null,
+    admission_closes_on: null,
+    admission_application_url: null,
+    admission_notice_url: null,
     ...overrides,
   };
 }

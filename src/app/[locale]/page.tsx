@@ -6,7 +6,6 @@ import { deadlineMarginStatusClasses } from "@/components/ui/deadline-margin";
 import { EmptyState } from "@/components/ui/state-message";
 import {
   getSelectedCityArea,
-  listOpenAdmissionsByDistrict,
   listPublicBoards,
   listPublicExams,
   listPublicSchoolsByDistrict,
@@ -15,7 +14,7 @@ import { deadlineState } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { HOME_DESCRIPTION, HOME_TITLE, homeJsonLd } from "@/lib/home-seo";
 import { localeAlternates, localeCanonical } from "@/lib/seo";
-import { cityPath, examPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
+import { cityPath, examPath, localePrefix, schoolsRootPath } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 // Which city the BODY renders is resolved per-request (see
@@ -44,11 +43,9 @@ function admissionPillStatus(status: ReturnType<typeof deadlineState>["status"])
   return status === "closing-soon" || status === "deadline-day" ? "closing-soon" : "open";
 }
 
-// Unifies school admission cycles and national exam cycles into one
-// "Admissions open now" list. Exams are not district-scoped like schools
-// are, so they were previously left out of this module entirely — the
-// homepage could say "no open admission windows" while an exam page was
-// live and closing within days (SchoolOye Live Site Audit, 30 Sep 2026).
+// Exam application windows remain sourced from the exam-admissions model.
+// School admissions are now announced through approved school_posts and are
+// surfaced on school profiles and the /news feed, not inferred from legacy cycles.
 type ClosingSoonItem = {
   key: string;
   href: string;
@@ -58,12 +55,6 @@ type ClosingSoonItem = {
 
 function closingSoonItems(
   locale: string,
-  schoolAdmissions: readonly {
-    schoolId: string;
-    slug: string;
-    nameEn: string;
-    closesOn: string | null;
-  }[],
   exams: readonly {
     slug: string;
     nameEn: string;
@@ -73,13 +64,6 @@ function closingSoonItems(
   now: Date,
   limit: number,
 ): ClosingSoonItem[] {
-  const schoolItems: ClosingSoonItem[] = schoolAdmissions.map((admission) => ({
-    key: `school-${admission.schoolId}`,
-    href: schoolPath(locale, admission.slug),
-    nameEn: admission.nameEn,
-    closesOn: admission.closesOn,
-  }));
-
   const examItems: ClosingSoonItem[] = exams
     .filter((exam) => {
       const state = deadlineState(
@@ -102,7 +86,7 @@ function closingSoonItems(
       closesOn: exam.soonestClosesOn,
     }));
 
-  return [...schoolItems, ...examItems]
+  return examItems
     .sort((a, b) => {
       if (!a.closesOn) return 1;
       if (!b.closesOn) return -1;
@@ -146,15 +130,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   const area = await getSelectedCityArea();
 
-  const [schoolsResult, openAdmissions, boards, exams] = await Promise.all([
+  const [schoolsResult, boards, exams] = await Promise.all([
     area
       ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 })
       : Promise.resolve({ total: 0 }),
-    area ? listOpenAdmissionsByDistrict(area.districtIds, 4) : Promise.resolve([]),
     area ? listPublicBoards() : Promise.resolve([]),
     listPublicExams(),
   ]);
-  const admissionsClosingSoon = closingSoonItems(locale, openAdmissions, exams, now, 4);
+  const admissionsClosingSoon = closingSoonItems(locale, exams, now, 4);
 
   const schoolCount = schoolsResult.total;
   const districtLabel = area?.cityName ?? "your city";
@@ -239,10 +222,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
       <div className="flex flex-col gap-3 px-4 py-6 md:px-10 md:py-9">
         <div className="flex items-baseline justify-between gap-2 border-b border-rule pb-2">
-          <h2 className="font-display text-card md:text-section">Admissions open now</h2>
-          <Link href={districtHref} className="font-semibold text-body">
-            See all {schoolCount}
-          </Link>
+          <h2 className="font-display text-card md:text-section">Exam application windows</h2>
         </div>
 
         {admissionsClosingSoon.length > 0 ? (
@@ -253,10 +233,10 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         ) : (
           <EmptyState
-            title="No open admission windows yet"
-            description="Schools publish their own dates — check back soon, or browse every school in the meantime."
-            nextStepLabel={`Browse all schools in ${districtLabel}`}
-            nextStepHref={districtHref}
+            title="No active exam application windows"
+            description="School admissions are announced on individual school profiles and in the news feed."
+            nextStepLabel="Browse exams"
+            nextStepHref={`${localePrefix(locale)}/exams`}
           />
         )}
       </div>

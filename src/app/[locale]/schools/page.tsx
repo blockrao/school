@@ -10,7 +10,6 @@ import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
-  getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
   getCitiesByDistrictIds,
   getSelectedCityArea,
@@ -21,7 +20,6 @@ import {
   searchPublicSchoolsSiteWide,
 } from "@/lib/db/public-adapter";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
-import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
 import { titleCase } from "@/lib/text";
@@ -45,13 +43,12 @@ function parseParams(searchParams: { [key: string]: string | string[] | undefine
   const boardParam = first(searchParams.board);
   const boardId = boardParam ? Number(boardParam) : undefined;
   const maxClass = first(searchParams.grade) || undefined;
-  const admissionsOpen = first(searchParams.admissions) === "open";
   const pageParam = first(searchParams.page);
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
   const compareIds = (first(searchParams.compare) || "").split(",").filter(Boolean);
   const view = first(searchParams.view) === "map" ? "map" : "list";
 
-  return { q, boardId, maxClass, admissionsOpen, page, compareIds, view };
+  return { q, boardId, maxClass, page, compareIds, view };
 }
 
 export async function generateMetadata({
@@ -83,16 +80,13 @@ export default async function SchoolsPage({
 }: PageProps<"/[locale]/schools">) {
   const { locale } = await params;
   const rawSearchParams = await searchParams;
-  const now = new Date();
-
-  const { q, boardId, maxClass, admissionsOpen, page, compareIds, view } =
-    parseParams(rawSearchParams);
-  const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
+  const { q, boardId, maxClass, page, compareIds, view } = parseParams(rawSearchParams);
+  const filtersActive = boardId !== undefined || maxClass !== undefined;
 
   const area = await getSelectedCityArea();
   const siteWide = Boolean(q);
 
-  const schoolFilters = { query: q, boardId, maxClass, admissionsOpen, page, pageSize: PAGE_SIZE };
+  const schoolFilters = { query: q, boardId, maxClass, page, pageSize: PAGE_SIZE };
 
   const [{ schools, total }, filterOptions, featuredPlacements] = await Promise.all([
     siteWide
@@ -123,9 +117,8 @@ export default async function SchoolsPage({
 
   const schoolIds = schools.map((s) => s.id);
   const districtIds = schools.map((s) => s.district_id).filter((id) => id != null);
-  const [boardNames, admissionDeadlines, shortlistedIds, citiesByDistrict] = await Promise.all([
+  const [boardNames, shortlistedIds, citiesByDistrict] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
-    getAdmissionDeadlinesBySchoolId(schoolIds),
     getShortlistedSchoolIds(schoolIds),
     siteWide ? getCitiesByDistrictIds(districtIds) : Promise.resolve(new Map()),
   ]);
@@ -138,7 +131,6 @@ export default async function SchoolsPage({
       q: string;
       board: string;
       grade: string;
-      admissions: string;
       compare: string;
       page: string;
       view: string;
@@ -148,7 +140,6 @@ export default async function SchoolsPage({
       q: q ?? "",
       board: boardId !== undefined ? String(boardId) : "",
       grade: maxClass ?? "",
-      admissions: admissionsOpen ? "open" : "",
       compare: compareIds.join(","),
       page: "",
       view: view === "map" ? "map" : "",
@@ -179,7 +170,7 @@ export default async function SchoolsPage({
         <div className="mt-4 flex flex-col gap-2 rounded-md border border-rule bg-copy-white p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-body">
             <span className="font-semibold">Get alerts for this search.</span> We'll message you on
-            WhatsApp when a school here publishes admission dates or a deadline is coming up
+            WhatsApp when a school here publishes an admission announcement
             {maxClass ? ` for ${formatGradeRange(null, maxClass)}` : ""}.
           </p>
           <Link
@@ -238,17 +229,6 @@ export default async function SchoolsPage({
           </select>
         </label>
 
-        <label className="flex h-11 items-center gap-2">
-          <input
-            type="checkbox"
-            name="admissions"
-            value="open"
-            defaultChecked={admissionsOpen}
-            className="h-5 w-5 rounded-sm border-line-blue"
-          />
-          <span className="text-body">Admissions open now</span>
-        </label>
-
         <button
           type="submit"
           className="flex h-11 items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
@@ -288,14 +268,9 @@ export default async function SchoolsPage({
             {formatGradeRange(null, maxClass)}
           </RemovableFilterChip>
         )}
-        {admissionsOpen && (
-          <RemovableFilterChip href={buildHref({ admissions: "" })}>
-            Admissions open
-          </RemovableFilterChip>
-        )}
         {filtersActive && (
           <Link
-            href={buildHref({ q: "", board: "", grade: "", admissions: "" })}
+            href={buildHref({ q: "", board: "", grade: "" })}
             className="font-semibold text-ruled-blue"
           >
             Clear all
@@ -347,10 +322,6 @@ export default async function SchoolsPage({
               const cityName = rawCityName ? titleCase(rawCityName) : null;
               const meta = [board, grades, cityName].filter(Boolean).join(" · ");
 
-              const closesOn = admissionDeadlines.get(school.id);
-              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-              const pill = deadlineToPill(deadlineState(deadline, now));
-
               const inCompare = compareIds.includes(school.id);
               const toggleHref = compareToggleHref(school.id);
 
@@ -362,9 +333,12 @@ export default async function SchoolsPage({
                   meta={meta}
                   sponsored={sponsoredSchoolIds.has(school.id)}
                   sponsoredNote={<SponsoredWhyDisclosure />}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                  deadline={{ closesAt: null }}
+                  status={
+                    <StatusPill status="not-announced">
+                      Admission updates on school profile
+                    </StatusPill>
+                  }
                   fee="Not yet published"
                   freshness={<NotYetPublished />}
                   actions={

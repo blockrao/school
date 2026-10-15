@@ -32,11 +32,42 @@ export async function withdrawNewsPost(formData: FormData) {
   redirect("/portal/news?post_withdrawn=1");
 }
 
-const updatePostSchema = z.object({
-  title: z.string().trim().min(1).max(200),
-  body: z.string().trim().min(1).max(5000),
-  sourceUrl: z.string().url().optional().or(z.literal("")),
-});
+const httpsUrl = z
+  .string()
+  .url()
+  .refine((value) => new URL(value).protocol === "https:");
+
+const updatePostSchema = z
+  .object({
+    topic: z.enum(["general", "admission_announcement"]),
+    academicYear: z
+      .string()
+      .regex(/^\d{4}-\d{2}$/)
+      .optional()
+      .or(z.literal("")),
+    classCodes: z.array(z.string().trim().min(1).max(30)).max(30).optional(),
+    opensOn: z.string().date().optional().or(z.literal("")),
+    closesOn: z.string().date().optional().or(z.literal("")),
+    applicationUrl: httpsUrl.optional().or(z.literal("")),
+    noticeUrl: httpsUrl.optional().or(z.literal("")),
+    title: z.string().trim().min(1).max(200),
+    body: z.string().trim().min(1).max(5000),
+    sourceUrl: z.string().url().optional().or(z.literal("")),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.topic === "admission_announcement" &&
+      value.opensOn &&
+      value.closesOn &&
+      value.closesOn < value.opensOn
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["closesOn"],
+        message: "Closing date must not precede opening date.",
+      });
+    }
+  });
 
 /**
  * P1.4: restore edit capability. Content edits are policed server-side by
@@ -52,6 +83,15 @@ export async function updateSchoolPost(formData: FormData) {
 
   const parsed = updatePostSchema.safeParse({
     title: formData.get("title"),
+    topic: formData.get("topic") || "general",
+    academicYear: formData.get("academicYear") || "",
+    classCodes: formData
+      .getAll("classCodes")
+      .filter((v): v is string => typeof v === "string" && v.length > 0),
+    opensOn: formData.get("opensOn") || "",
+    closesOn: formData.get("closesOn") || "",
+    applicationUrl: formData.get("applicationUrl") || "",
+    noticeUrl: formData.get("noticeUrl") || "",
     body: formData.get("body"),
     sourceUrl: formData.get("sourceUrl") || "",
   });
@@ -63,6 +103,17 @@ export async function updateSchoolPost(formData: FormData) {
     title: parsed.data.title,
     body: parsed.data.body,
     sourceUrl: parsed.data.sourceUrl || null,
+    topic: parsed.data.topic,
+    academicYear:
+      parsed.data.topic === "admission_announcement" ? parsed.data.academicYear || null : null,
+    classCodes:
+      parsed.data.topic === "admission_announcement" ? (parsed.data.classCodes ?? []) : [],
+    opensOn: parsed.data.topic === "admission_announcement" ? parsed.data.opensOn || null : null,
+    closesOn: parsed.data.topic === "admission_announcement" ? parsed.data.closesOn || null : null,
+    applicationUrl:
+      parsed.data.topic === "admission_announcement" ? parsed.data.applicationUrl || null : null,
+    noticeUrl:
+      parsed.data.topic === "admission_announcement" ? parsed.data.noticeUrl || null : null,
   });
   if (!ok) {
     // Most likely cause: listing_review = 'pending' (edit-locked while ops

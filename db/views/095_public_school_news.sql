@@ -59,9 +59,16 @@ select
   sp.withdrawn_at,
   s.name_en as school_name,
   s.city_id,
-  sp.listing_reviewed_at
-from school_posts sp
-join schools s on s.id = sp.school_id
+  sp.listing_reviewed_at,
+  sp.topic,
+  sp.admission_academic_year,
+  sp.admission_class_codes,
+  sp.admission_opens_on,
+  sp.admission_closes_on,
+  sp.admission_application_url,
+  sp.admission_notice_url
+from public.school_posts sp
+join public.schools s on s.id = sp.school_id
 where sp.review = 'approved'
   and s.status = 'published'
   and sp.published_at is not null

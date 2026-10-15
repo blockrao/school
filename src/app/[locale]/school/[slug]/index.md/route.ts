@@ -1,4 +1,4 @@
-import { getPublicAdmissionsBySchoolId } from "@/lib/db/public-adapter";
+import { getPublicSchoolNewsBySchoolId } from "@/lib/db/public-adapter";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath } from "@/lib/urls";
@@ -27,7 +27,9 @@ export async function GET(
   const name = school.name_en ?? "Name not yet published";
   const grades = formatGradeRange(school.min_class, school.max_class);
   const affiliationNo = board?.affiliation_no ?? null;
-  const admissions = await getPublicAdmissionsBySchoolId(school.id);
+  const admissions = (await getPublicSchoolNewsBySchoolId(school.id)).filter(
+    (post) => post.topic === "admission_announcement",
+  );
   const canonicalUrl = `${siteUrl}${schoolPath(locale, school.slug)}`;
 
   const lines = [
@@ -57,15 +59,24 @@ export async function GET(
 
   lines.push("", "## Admissions");
   if (admissions.length > 0) {
-    for (const cycle of admissions) {
-      lines.push(
-        `- ${cycle.academic_year}, class ${cycle.class_code.replace(/^c/, "")}: ${
-          cycle.closes_on ? `closes ${cycle.closes_on}` : "dates not announced"
-        }${cycle.form_url ? ` — form: ${cycle.form_url}` : ""}`,
-      );
+    for (const post of admissions) {
+      const details = [
+        post.admission_academic_year ? `Session ${post.admission_academic_year}` : null,
+        post.admission_class_codes.length > 0
+          ? `Classes ${post.admission_class_codes.map((code) => code.replace(/^c/, "")).join(", ")}`
+          : null,
+        post.admission_opens_on ? `Opens ${post.admission_opens_on}` : null,
+        post.admission_closes_on ? `Closes ${post.admission_closes_on}` : null,
+        post.admission_application_url
+          ? `Application link: ${post.admission_application_url}`
+          : null,
+        post.admission_notice_url ? `Notice link: ${post.admission_notice_url}` : null,
+      ].filter((detail): detail is string => detail !== null);
+      lines.push(`- ${post.title}${details.length > 0 ? `: ${details.join("; ")}` : ""}`);
+      if (post.body) lines.push(`  ${post.body.replace(/\s+/g, " ").trim()}`);
     }
   } else {
-    lines.push("- Dates not yet published");
+    lines.push("- No admission announcement has been published yet");
   }
 
   lines.push(

@@ -4,13 +4,8 @@ import { NotYetPublished } from "@/components/ui/freshness-line";
 import { EmptyState } from "@/components/ui/state-message";
 import { getDictionary } from "@/i18n/dictionary";
 import { tEnum } from "@/i18n/t";
-import {
-  getAdmissionDeadlinesBySchoolId,
-  getBoardNamesBySchoolId,
-  listPublicSchoolsByIds,
-} from "@/lib/db/public-adapter";
+import { getBoardNamesBySchoolId, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
-import { istDayMonthLabel } from "@/lib/ist-date";
 
 import { localePrefix, schoolPath } from "@/lib/urls";
 
@@ -22,7 +17,7 @@ function first(value: string | string[] | undefined) {
 
 export const metadata: Metadata = {
   title: "Compare schools — SchoolOye",
-  description: "Compare fees, facilities and admission dates side by side.",
+  description: "Compare grades, facilities and school details side by side.",
   robots: { index: false, follow: true },
 };
 
@@ -43,10 +38,7 @@ export default async function ComparePage({
   });
 
   const schoolIds = orderedSchools.map((s) => s.id);
-  const [boardNames, admissionDeadlines] = await Promise.all([
-    getBoardNamesBySchoolId(schoolIds),
-    getAdmissionDeadlinesBySchoolId(schoolIds),
-  ]);
+  const boardNames = await getBoardNamesBySchoolId(schoolIds);
 
   function hrefFor(school: (typeof orderedSchools)[number]): string {
     return schoolPath(locale, school.slug);
@@ -85,13 +77,12 @@ export default async function ComparePage({
     },
     { label: "Fee range", render: () => <NotYetPublished /> },
     {
-      label: "Admission deadline",
-      render: (s) => {
-        const closesOn = admissionDeadlines.get(s.id);
-        if (!closesOn) return <NotYetPublished />;
-        const { day, month } = istDayMonthLabel(new Date(closesOn));
-        return `${day} ${month}`;
-      },
+      label: "Admission updates",
+      render: (s) => (
+        <Link href={hrefFor(s)} className="font-semibold text-ruled-blue">
+          View school profile
+        </Link>
+      ),
     },
     {
       label: "Website",

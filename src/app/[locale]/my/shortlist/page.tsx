@@ -5,13 +5,8 @@ import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
-import {
-  getAdmissionDeadlinesBySchoolId,
-  getBoardNamesBySchoolId,
-  listPublicSchoolsByIds,
-} from "@/lib/db/public-adapter";
+import { getBoardNamesBySchoolId, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
-import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 
 import { localePrefix, schoolPath } from "@/lib/urls";
@@ -32,8 +27,6 @@ export async function generateMetadata({
 export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/shortlist">) {
   const { locale } = await params;
   const isHi = locale === "hi";
-  const now = new Date();
-
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
 
@@ -57,10 +50,7 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
     return school ? [school] : [];
   });
 
-  const [boardNames, admissionDeadlines] = await Promise.all([
-    getBoardNamesBySchoolId(schoolIds),
-    getAdmissionDeadlinesBySchoolId(schoolIds),
-  ]);
+  const boardNames = await getBoardNamesBySchoolId(schoolIds);
 
   function hrefFor(school: (typeof orderedSchools)[number]): string {
     return schoolPath(locale, school.slug);
@@ -79,19 +69,20 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
             const grades = formatGradeRange(school.min_class, school.max_class);
             const meta = board ? `${board} · ${grades}` : grades;
 
-            const closesOn = admissionDeadlines.get(school.id);
-            const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-            const pill = deadlineToPill(deadlineState(deadline, now));
-
             return (
               <SchoolCard
                 key={school.id}
                 href={hrefFor(school)}
                 name={school.name_en ?? "Name not yet published"}
                 meta={meta}
-                now={now}
-                deadline={deadline}
-                status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                deadline={{ closesAt: null }}
+                status={
+                  <StatusPill status="not-announced">
+                    {isHi
+                      ? "स्कूल प्रोफ़ाइल में प्रवेश अपडेट देखें"
+                      : "Check school profile for admission updates"}
+                  </StatusPill>
+                }
                 fee="Not yet published"
                 freshness={<NotYetPublished />}
                 actions={
