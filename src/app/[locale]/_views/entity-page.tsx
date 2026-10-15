@@ -971,6 +971,11 @@ export async function SchoolView({
     // this comment already warned about — until this fix.)
     name: schoolPageTitle(name, schoolAreaLabel(school.locality_name, city?.cityName)),
     mainEntity: { "@id": schoolNodeId },
+    // Entity graph links (15 Oct 2026 audit): tie the page to the site and its
+    // publisher (ids defined in lib/home-seo.ts) and state the language.
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    publisher: { "@id": `${siteUrl}/#organization` },
+    inLanguage: "en-IN",
     // Structured-data section audit (29 Sep 2026) — was missing entirely, despite
     // seo-geo.md §4 explicitly requiring it. See latestOf()'s header comment for
     // why this is more than just school.last_verified_at. Omitted, not

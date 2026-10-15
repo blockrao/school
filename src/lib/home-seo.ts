@@ -22,6 +22,15 @@ export function homeJsonLd(siteUrl: string) {
     "@id": `${siteUrl}/#organization`,
     name: "SchoolOye",
     url: siteUrl,
+    description:
+      "School discovery and admissions-information directory for India: one page per school with board, grades, location and admission status.",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: "grievance@schooloye.in",
+      areaServed: "IN",
+      availableLanguage: ["en"],
+    },
   };
   const website = {
     "@context": "https://schema.org",
@@ -29,6 +38,7 @@ export function homeJsonLd(siteUrl: string) {
     "@id": `${siteUrl}/#website`,
     name: "SchoolOye",
     url: siteUrl,
+    inLanguage: "en-IN",
     publisher: { "@id": `${siteUrl}/#organization` },
     potentialAction: {
       "@type": "SearchAction",

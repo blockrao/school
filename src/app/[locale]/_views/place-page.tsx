@@ -512,6 +512,32 @@ export async function PlaceView({
         ],
   };
 
+  // CollectionPage + ItemList of the schools on this page, so a crawler or answer
+  // engine reads the listing as a list of schools (each pointing at its canonical
+  // page) rather than inferring it from card markup. Only for the unfiltered
+  // listing: filtered variants are noindex.
+  const listingJsonLd = filtersActive
+    ? null
+    : {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "@id": `${siteUrl}${page > 1 ? `${basePath}?page=${page}` : basePath}`,
+        url: `${siteUrl}${page > 1 ? `${basePath}?page=${page}` : basePath}`,
+        name: `Schools in ${city.cityName}, ${city.stateName}`,
+        isPartOf: { "@id": `${siteUrl}/#website` },
+        inLanguage: "en-IN",
+        mainEntity: {
+          "@type": "ItemList",
+          numberOfItems: total,
+          itemListElement: schools.map((school, i) => ({
+            "@type": "ListItem",
+            position: (page - 1) * PAGE_SIZE + i + 1,
+            url: `${siteUrl}${schoolPath("en", school.slug)}`,
+            name: school.name_en ?? undefined,
+          })),
+        },
+      };
+
   return (
     <div className="mx-auto max-w-(--container-page) px-4 py-6 pb-24 md:px-10 md:py-9 md:pb-9">
       <script
@@ -519,6 +545,13 @@ export async function PlaceView({
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {listingJsonLd && (
+        <script
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(listingJsonLd) }}
+        />
+      )}
 
       {!city.isCityState && (
         <nav aria-label="Breadcrumb" className="mb-3 text-body text-muted-ink">
