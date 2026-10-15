@@ -54,6 +54,7 @@ import {
   PUBLIC_API_CACHE_TAG,
   PUBLIC_READ_REVALIDATE_SECONDS,
 } from "@/lib/db/public";
+import { rankNearest } from "@/lib/nearby";
 import { slugify } from "@/lib/slug";
 import { titleCase } from "@/lib/text";
 import { cityPath, schoolPath } from "@/lib/urls";
@@ -1199,7 +1200,66 @@ export async function getSimilarSchools(school: PublicSchool): Promise<PublicSch
     const byLocality = await listPublicSchoolsByLocality(school.locality_id);
     if (byLocality.length > 0) return byLocality;
   }
+  const byDistance = await listPublicSchoolsNear(school);
+  if (byDistance.length >= 4) return byDistance;
+  // Most records have a pincode but no coordinates yet; the same pincode is
+  // still real geography, unlike "first 8 alphabetically".
+  const byPincode = await listPublicSchoolsByPincode(school);
+  if (byPincode.length >= 4) return byPincode;
   if (school.city_id) return listPublicSchoolsByCity(school.city_id);
+  return [];
+}
+
+/** Other published schools sharing this school's pincode, in a stable per-school order. */
+export async function listPublicSchoolsByPincode(
+  school: PublicSchool,
+  n = 8,
+): Promise<PublicSchool[]> {
+  if (!school.pincode) return [];
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_schools")
+    .select("*")
+    .eq("pincode", school.pincode)
+    .neq("id", school.id)
+    .order("id", { ascending: true })
+    .limit(60);
+  const rows = (data ?? []).map((row) => publicSchoolContract.parse(row));
+  // Rotate by a hash of this school's id so neighbours are spread across the
+  // set instead of every page in the pincode linking to the same first few.
+  if (rows.length <= n) return rows;
+  let h = 0;
+  for (const ch of school.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const start = h % rows.length;
+  return [...rows.slice(start), ...rows.slice(0, start)].slice(0, n);
+}
+
+/**
+ * Published schools closest to `school` by stored coordinates, nearest first.
+ * Looks in a ~6 km box, widening once to ~17 km, so a sparse area still gets
+ * real neighbours. Empty when the school has no coordinates.
+ */
+export async function listPublicSchoolsNear(school: PublicSchool, n = 8): Promise<PublicSchool[]> {
+  if (school.lat == null || school.lng == null) return [];
+  const api = createApiSchemaClient();
+  for (const delta of [0.055, 0.155]) {
+    const { data } = await api
+      .from("public_schools")
+      .select("*")
+      .gte("lat", school.lat - delta)
+      .lte("lat", school.lat + delta)
+      .gte("lng", school.lng - delta)
+      .lte("lng", school.lng + delta)
+      .neq("id", school.id)
+      .limit(200);
+    const near = rankNearest(
+      school,
+      (data ?? []).map((row) => publicSchoolContract.parse(row)),
+      n,
+    );
+    if (near.length >= 4) return near;
+    if (delta > 0.1) return near;
+  }
   return [];
 }
 

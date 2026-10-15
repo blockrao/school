@@ -67,20 +67,10 @@ const nextConfig: NextConfig = {
     // being forced dynamic, a signed-in visitor's data could have been cached at
     // the edge and served to someone else. Page caching is owned by each route's
     // own `revalidate` (ISR); Next sets the right header for those. Only
-    // machine-readable public files and the private API get an explicit rule.
-    const publicFileCache = [
-      {
-        key: "Cache-Control",
-        value: "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-      },
-    ];
+    // the private viewer API gets an explicit rule (sitemaps set their own).
     const privateNoStore = [{ key: "Cache-Control", value: "private, no-store" }];
     const rules = [
       { source: "/:path*", headers: [...securityHeaders] },
-      { source: "/robots.txt", headers: publicFileCache },
-      { source: "/llms.txt", headers: publicFileCache },
-      { source: "/sitemap.xml", headers: publicFileCache },
-      { source: "/sitemap-:name.xml", headers: publicFileCache },
       { source: "/api/viewer", headers: privateNoStore },
     ];
     if (!isPreview) return rules;

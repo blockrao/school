@@ -116,7 +116,11 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
       boardName: board?.board_name ?? null,
       grades,
     }),
-    alternates: { canonical: localeCanonical(locale, schoolPath("en", school.slug)) },
+    alternates: {
+      canonical: localeCanonical(locale, schoolPath("en", school.slug)),
+      // Advertise the markdown twin to answer engines (rel="alternate" type="text/markdown").
+      types: { "text/markdown": `${schoolPath("en", school.slug)}/index.md` },
+    },
     // Indexability & Metadata Alignment v1 (29 Sep 2026) — matches the pattern
     // already used by place-page.tsx/schools/compare: omit `robots` entirely
     // (indexable by default) rather than asserting `index: true`, and only

@@ -4,6 +4,19 @@ import { formatGradeRange } from "@/lib/grades";
 import { schoolPath } from "@/lib/urls";
 import { resolveSchoolSlug } from "../../../_views/resolve";
 
+const MANAGEMENT_LABELS: Record<string, string> = {
+  private_unaided: "Private (unaided)",
+  private_aided: "Private (aided)",
+  government: "Government",
+  central_government: "Central government",
+  local_body: "Local body",
+  other: "Other",
+};
+
+function managementLabel(value: string | null): string {
+  return value ? (MANAGEMENT_LABELS[value] ?? value) : "Not yet published";
+}
+
 /**
  * Markdown twin of the school fact block (docs/guidelines/seo-geo.md §6) — a
  * clean, source-attributed plain-text version of the same facts on the HTML
@@ -38,7 +51,7 @@ export async function GET(
     "## At a glance",
     `- Board: ${board?.board_name ?? "Not yet published"}${affiliationNo ? ` (affiliation no. ${affiliationNo})` : ""}`,
     `- Grades: ${grades}`,
-    `- Management: ${school.management ?? "Not yet published"}`,
+    `- Management: ${managementLabel(school.management)}`,
     `- Gender: ${school.gender ?? "Not yet published"}`,
     `- Medium: ${school.medium && school.medium.length > 0 ? school.medium.join(", ") : "Not yet published"}`,
     `- Established: ${school.established_year ?? "Not yet published"}`,
@@ -48,7 +61,7 @@ export async function GET(
     // exposure just fixed on the HTML page. SchoolOye is a controlled intermediary,
     // not a directory: contact goes through the canonical page's enquiry form.
     `- Contact: via the enquiry form on the canonical page above`,
-    `- Verification: ${school.verification}${school.last_verified_at ? ` (last verified ${school.last_verified_at})` : ""}`,
+    `- Verification: ${school.verification === "unverified" ? "Not yet verified (compiled from public records)" : school.verification}${school.last_verified_at ? `, last verified ${school.last_verified_at}` : ""}`,
   ];
 
   if (school.about_en) {
