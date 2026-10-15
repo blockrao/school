@@ -62,7 +62,9 @@ export function useSelectedCity(areas: CityOption[]): CityOption | undefined {
   const pathArea = pathname.startsWith("/schools/")
     ? areas.find((a) => pathname.split("/").slice(2, 4).includes(a.slug))
     : undefined;
-  const fallback = pathArea ?? areas.find((area) => area.slug === "jaipur") ?? areas[0];
+  // No default city: a visitor who has not picked one sees "Choose city" rather
+  // than a city that may not match the page (platform is multi-city).
+  const fallback = pathArea;
   const [selectedSlug, setSelectedSlug] = useState<string | undefined>(fallback?.slug);
 
   useEffect(() => {

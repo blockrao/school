@@ -5,11 +5,10 @@ import { StatusPill } from "@/components/ui/badges";
 import { deadlineMarginStatusClasses } from "@/components/ui/deadline-margin";
 import { EmptyState } from "@/components/ui/state-message";
 import {
-  getSelectedCityArea,
   listOpenAdmissionsByDistrict,
+  listPublicAreas,
   listPublicBoards,
   listPublicExams,
-  listPublicSchoolsByDistrict,
 } from "@/lib/db/public-adapter";
 import { deadlineState } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
@@ -18,16 +17,18 @@ import { localeAlternates, localeCanonical } from "@/lib/seo";
 import { cityPath, examPath, localePrefix, schoolPath, schoolsRootPath } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
-// Which city the BODY renders is resolved per-request (see
-// getSelectedCityArea): the user's own pick if they've chosen one, otherwise
-// the platform default. The <title>/<meta description> deliberately do NOT
-// follow that: until 4 Oct 2026 they did, so Googlebot (no cookie) saw
-// "Find the right school in Jaipur" as the title of a site whose catalogue is
-// 81% Haryana (5,321 of 6,538 published) and 18% Delhi, with 38 Jaipur
-// schools. A canonical page's title must be stable and describe the whole
-// site, not one visitor's cookie. "Fees" was also dropped from the
-// description for the same reason as buildSchoolMetaDescription(): there is
-// no fee data pipeline, so promising it is a false snippet.
+// The home page is the same for every visitor and edge-cached: a national
+// landing page with every city listed (the pilot city, Gurugram, first). It
+// used to render one visitor-selected city from a cookie, which made it
+// uncacheable and showed crawlers "Jaipur" on a site that is mostly Haryana
+// and Delhi. The header city picker still remembers a visitor's choice
+// client-side. "Fees" stays out of the description: there is no fee data
+// pipeline, so promising it would be a false snippet.
+export const revalidate = 900;
+
+// Pilot city: listed first on the home page while the platform matures there.
+const PILOT_CITY_SLUG = "gurugram";
+
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
   return {
@@ -144,26 +145,26 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   const now = new Date();
 
-  const area = await getSelectedCityArea();
+  const allAreas = (await listPublicAreas()).filter((a) => a.school_count > 0);
+  allAreas.sort(
+    (x, y) =>
+      Number(y.slug === PILOT_CITY_SLUG) - Number(x.slug === PILOT_CITY_SLUG) ||
+      y.school_count - x.school_count,
+  );
+  const cities = allAreas.slice(0, 12);
+  const schoolCount = allAreas.reduce((n, a) => n + a.school_count, 0);
 
-  const [schoolsResult, openAdmissions, boards, exams] = await Promise.all([
-    area
-      ? listPublicSchoolsByDistrict(area.districtIds, { pageSize: 1 })
-      : Promise.resolve({ total: 0 }),
-    area ? listOpenAdmissionsByDistrict(area.districtIds, 4) : Promise.resolve([]),
-    area ? listPublicBoards() : Promise.resolve([]),
+  const [openAdmissions, boards, exams] = await Promise.all([
+    listOpenAdmissionsByDistrict(
+      allAreas.flatMap((a) => a.district_ids),
+      4,
+    ),
+    listPublicBoards(),
     listPublicExams(),
   ]);
   const admissionsClosingSoon = closingSoonItems(locale, openAdmissions, exams, now, 4);
 
-  const schoolCount = schoolsResult.total;
-  const districtLabel = area?.cityName ?? "your city";
-  const districtHref = area
-    ? cityPath(locale, area.stateSlug, area.citySlug)
-    : schoolsRootPath(locale);
-
-  // Category chips reflect real filterable boards, not a fixed design list — the set
-  // grows automatically as more boards get affiliations in this district.
+  const allHref = schoolsRootPath(locale);
   const cbse = boards.find((b) => b.name_en.includes("Central Board"));
 
   return (
@@ -179,11 +180,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       <div className="flex flex-col gap-4.5 border-b border-rule px-4 py-8 md:px-10 md:py-12">
         <div className="flex flex-col gap-1.5">
           <h1 className="font-display text-title-m md:text-title-d">
-            Find the right school in {districtLabel}
+            Find the right school in India
           </h1>
           <p className="text-body text-muted-ink md:text-card">
-            {schoolCount} school{schoolCount === 1 ? "" : "s"} · fees, facilities and admission
-            dates in one place
+            {schoolCount.toLocaleString("en-IN")} schools across {allAreas.length} cities · board,
+            grades, location and admission dates in one place
           </p>
         </div>
 
@@ -218,30 +219,44 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             Search
           </button>
         </Form>
+      </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={districtHref}
-            className="flex min-h-10 items-center rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
-          >
-            All schools
+      <div className="flex flex-col gap-3 px-4 py-6 md:px-10 md:py-9">
+        <div className="flex items-baseline justify-between gap-2 border-b border-rule pb-2">
+          <h2 className="font-display text-card md:text-section">Browse schools by city</h2>
+          <Link href={allHref} className="font-semibold text-body">
+            All cities
           </Link>
-          {cbse && (
-            <Link
-              href={`${districtHref}?board=${cbse.id}`}
-              className="flex min-h-10 items-center rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
-            >
-              CBSE schools
-            </Link>
-          )}
         </div>
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+          {cities.map((a) => (
+            <Link
+              key={a.slug}
+              href={cityPath(locale, a.state_slug, a.slug)}
+              className="flex min-h-15 flex-col justify-center rounded-md border border-line-blue bg-copy-white px-3.5 py-3 hover:border-ruled-blue"
+            >
+              <span className="font-display text-card font-semibold text-ruled-blue">{a.name}</span>
+              <span className="text-body text-muted-ink">
+                {a.school_count.toLocaleString("en-IN")} schools
+              </span>
+            </Link>
+          ))}
+        </div>
+        {cbse && (
+          <Link
+            href={`${allHref}?board=${cbse.id}`}
+            className="flex min-h-10 w-fit items-center rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
+          >
+            CBSE schools
+          </Link>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 px-4 py-6 md:px-10 md:py-9">
         <div className="flex items-baseline justify-between gap-2 border-b border-rule pb-2">
           <h2 className="font-display text-card md:text-section">Admissions open now</h2>
-          <Link href={districtHref} className="font-semibold text-body">
-            See all {schoolCount}
+          <Link href={allHref} className="font-semibold text-body">
+            Browse all schools
           </Link>
         </div>
 
@@ -255,8 +270,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <EmptyState
             title="No open admission windows yet"
             description="Schools publish their own dates — check back soon, or browse every school in the meantime."
-            nextStepLabel={`Browse all schools in ${districtLabel}`}
-            nextStepHref={districtHref}
+            nextStepLabel="Browse all schools"
+            nextStepHref={allHref}
           />
         )}
       </div>

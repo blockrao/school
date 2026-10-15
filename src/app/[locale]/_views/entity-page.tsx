@@ -1204,23 +1204,6 @@ export async function SchoolView({
           </div>
         </div>
 
-        {/* Increment 10 — shortcuts row (design block 3): jump links built from
-          the same `sections` list the sub-nav below uses, so a link only ever
-          appears for a section that actually renders further down the page.
-          Plain anchor links — no client JS, no scroll-position state — since
-          nothing here needs more than the browser's native #id jump. */}
-        <div className="flex flex-wrap gap-2 py-4">
-          {sections.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
-              className="flex min-h-11 items-center gap-2 rounded-md border border-so-line2 bg-so-surface px-3.5 text-meta font-medium text-so-ink hover:border-so-ink3"
-            >
-              {s.label}
-            </a>
-          ))}
-        </div>
-
         {/* Increment 10 — sub-nav (design block 4): a sticky, non-scrollspy
           in-page nav grouping the same real sections. The design's version
           highlights the currently-scrolled-to group and hides on scroll-down
