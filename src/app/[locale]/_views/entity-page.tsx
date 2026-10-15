@@ -1051,7 +1051,7 @@ export async function SchoolView({
 
   return (
     <div className="[container-type:inline-size] bg-so-bg font-so-sans text-so-ink">
-      <div className="mx-auto max-w-(--container-read) px-4 py-6 md:px-10 md:py-9">
+      <div className="mx-auto max-w-(--container-read) px-4 py-6 pb-24 md:px-10 md:py-9 md:pb-9">
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD, no user input
@@ -1841,6 +1841,27 @@ export async function SchoolView({
           recommendation of the school. SchoolOye carries no paid listings.
         </p>
       </div>
+
+      {/* Phone-only action bar. Static anchors (no per-visitor state) so the
+        cached school page stays cacheable; it keeps the two next steps in
+        reach while reading a long page. */}
+      <nav
+        aria-label="School actions"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-so-line bg-so-bg p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden"
+      >
+        <a
+          href="#admissions-heading"
+          className="flex h-11 items-center justify-center rounded-md border border-rule text-meta font-semibold"
+        >
+          Admissions
+        </a>
+        <a
+          href="#enquiry-heading"
+          className="flex h-11 items-center justify-center rounded-md bg-ruled-blue text-meta font-semibold text-copy-white"
+        >
+          Ask this school
+        </a>
+      </nav>
     </div>
   );
 }

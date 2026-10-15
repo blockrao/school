@@ -3484,3 +3484,7 @@ either way.
 - Owner decision: parent enters name + phone or email and consents to share with the school; school gets question + contact by email and replies directly (no sign-in). Separate from the signed-in `enquiries` flow.
 - New: migration `20261015180000_open_enquiries.sql` (insert-only for the public, read by staff and school members), server action `sendOpenEnquiry` (honeypot, rate limit 3/hour per contact plus per IP, validation), `src/lib/notify/open-enquiry*.ts` (school email + parent confirmation via Resend), form in `school-contact-forms.tsx` replacing the "Sign in to ask" link.
 - Needs: migration applied; RESEND_API_KEY set in Vercel (done by owner); sender domain verified in Resend for NOTIFY_FROM_EMAIL.
+
+## 15 Oct 2026, listing cards and mobile action bar
+- School list cards (hub, search, shortlist, nearby): removed the repeated "Not yet published" fee and freshness lines, hid the empty dates column when no dates are known (the status pill still says so), and use short board names (CBSE, ICSE/ISC).
+- School page: phone-only fixed bottom bar with "Admissions" and "Ask this school". Static anchors only, so the page stays cacheable.
