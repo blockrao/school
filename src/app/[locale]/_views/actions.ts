@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { notifySchoolOfLead } from "@/lib/notify/lead-email";
 import { LOCALES, lp } from "@/lib/urls";
 
 const enquirySchema = z.object({
@@ -49,6 +51,7 @@ export async function sendEnquiry(formData: FormData) {
     redirect(`${returnPath}?enquiry_error=failed#enquiry-heading`);
   }
 
+  after(() => notifySchoolOfLead(parsed.data.schoolId, "enquiry"));
   redirect(`${returnPath}?enquiry_sent=1#enquiry-heading`);
 }
 
@@ -138,5 +141,6 @@ export async function submitAdmissionLead(formData: FormData) {
     schoolId: parsed.data.schoolId,
   });
 
+  after(() => notifySchoolOfLead(parsed.data.schoolId, "admission_lead"));
   redirect(`${returnPath}?apply_sent=1#apply-heading`);
 }

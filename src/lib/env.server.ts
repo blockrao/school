@@ -26,6 +26,10 @@ const serverEnvSchema = z
     // just *also* exposed to the client) so `siteUrl` doesn't need to import the
     // public env module for one field.
     NEXT_PUBLIC_SITE_URL: z.string().optional(),
+    // Transactional email (Resend). Optional: with no key, lead notifications
+    // are a silent no-op (src/lib/notify/lead-email.ts).
+    RESEND_API_KEY: z.string().optional(),
+    NOTIFY_FROM_EMAIL: z.string().default("SchoolOye <notifications@schooloye.com>"),
   })
   .refine((env) => !(env.PAYMENT_PROVIDER === "mock" && env.VERCEL_ENV === "production"), {
     message: "PAYMENT_PROVIDER=mock is never allowed when VERCEL_ENV=production.",
@@ -40,6 +44,8 @@ export const serverEnv = serverEnvSchema.parse({
   VERCEL_ENV: process.env.VERCEL_ENV,
   VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  NOTIFY_FROM_EMAIL: process.env.NOTIFY_FROM_EMAIL,
 });
 
 /** Absolute canonical origin, for every URL that must be absolute (metadataBase,
