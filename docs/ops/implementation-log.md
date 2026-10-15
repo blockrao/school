@@ -3453,3 +3453,10 @@ pattern from Increment 11 (SDP-05), not an accidental generic fallback, so it wa
 either way.
 
 183 tests passing (unchanged — both fixes are copy-only, no new logic). Typecheck and lint clean.
+
+## 15 Oct 2026 — Gurugram-first pilot, platform focus
+- Direction (Prav): stop UDISE/SARAS aggregation; data will be supplied separately. Pilot city is Gurugram (375 published pages, 190 with CBSE/ICSE affiliation), Jaipur second once its data is sourced.
+- Production database is Supabase `zaetirunwobymrknyene` ("Skool"); `ybevzpryuvgxclkhdjld` is retired. Spec docs updated; `.env.local` still points at the retired project and needs the new connection strings.
+- Paid admissions-help flow hidden behind `NEXT_PUBLIC_ADMISSIONS_HELP_ENABLED` (default off): route 404s, footer/sitemap/CTA links removed.
+- Schools are now emailed when a parent sends an enquiry or admission application (`src/lib/notify/`). No parent details in the email. Inactive until `RESEND_API_KEY` is set.
+- Migrations written, not applied: `20261015140000_revoke_anon_create_application_order.sql`, `20261015141000_remove_wrong_affiliation_modern_faridabad.sql`. The 29 Sep Gurugram UDISE board migration is marked superseded.

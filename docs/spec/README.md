@@ -38,7 +38,7 @@ Every Claude Code session building SchoolOye starts here.
   no source names in values; trust law; nothing scraped is published without a person.
 - **Stack** (D-070): Next.js 16 App Router, React 19, TypeScript strict, Tailwind v4 + shadcn/ui,
   Supabase Postgres + PostGIS + Auth, Vercel (`bom1`), MapLibre, Zod + Server Actions, Biome,
-  Vitest, Playwright. Database `ybevzpryuvgxclkhdjld` in `ap-south-1` (D-071, D-083).
+  Vitest, Playwright. Database `zaetirunwobymrknyene` in `ap-south-1` (D-071, D-083).
 - **Record → views → surfaces:** every value is an observation with a source
   (`field_provenance`); resolved values live on the entity tables; `api.*` views apply publishing
   rules; pages, `index.md`, JSON-LD, widget, sitemaps and alerts are all generated from views.

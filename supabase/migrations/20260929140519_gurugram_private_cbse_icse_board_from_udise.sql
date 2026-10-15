@@ -1,3 +1,4 @@
+-- SUPERSEDED (15 Oct 2026): UDISE/SARAS aggregation is out of scope; board data will be supplied separately. Do not apply.
 -- Data enrichment pilot: Gurugram, private, CBSE/ICSE board classification
 -- from already-matched UDISE+ data (29 Sep 2026, Prav-requested first pass).
 --

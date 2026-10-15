@@ -13,7 +13,7 @@
 
 **This is a delta spec.** A lot already exists and is not rebuilt here:
 
-- **Database:** Supabase `ybevzpryuvgxclkhdjld`. 10,642 schools; `field_provenance` (85k rows); `sources` with `trust_rank`; `source_records`; `school_identifiers`; `admission_cycles`; `admission_notices` (with AI extraction + review); `fee_items`; `seat_status`; `school_claims`; `school_members`; `ops_tasks`; `update_reports`; `alert_subscriptions`/`alert_deliveries`; `consents`; `school_posts`; `school_slug_history`.
+- **Database:** Supabase `zaetirunwobymrknyene`. 10,642 schools; `field_provenance` (85k rows); `sources` with `trust_rank`; `source_records`; `school_identifiers`; `admission_cycles`; `admission_notices` (with AI extraction + review); `fee_items`; `seat_status`; `school_claims`; `school_members`; `ops_tasks`; `update_reports`; `alert_subscriptions`/`alert_deliveries`; `consents`; `school_posts`; `school_slug_history`.
 - **App** (`blockrao/school`): canonical school page at `/[locale]/[city]/[slug]-[school_code]` (Overview only), `index.md` markdown twin, JSON-LD, `FreshnessLine`/`NotYetPublished` trust components, `/for-schools/claim`, `/portal`, `/ops` queues, alerts, sitemaps, `robots.ts` (currently `SITE_INDEXABLE` off).
 - **Rules** already in `CLAUDE.md` and `docs/spec/data-and-trust.md`: the app reads only `api.*` views; the data repo owns tables; this repo owns views, grants, RLS and publishing rules; no star ratings or paid ranking; "Not yet published" instead of guesses.
 

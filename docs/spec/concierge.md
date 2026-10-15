@@ -172,4 +172,4 @@ The school picker (req. 7) reads `api.public_schools` and the admissions view th
    - whether the concierge counts as an "agent" under state admission rules.
 6. Where the vault lives. The Admissions Platform doc proposes Cloudflare R2. The repo uses a Supabase Storage bucket.
 7. City-specific pricing: which D-095 test price point applies in Jaipur and which in Gurugram (Prav).
-8. D-071 says `DATABASE_URL_PAYMENTS` must move off the discarded project `xpccgcctmnfwbcbhwsqv`. Create the `payments_service` role on `ybevzpryuvgxclkhdjld` before 1 Nov.
+8. D-071 says `DATABASE_URL_PAYMENTS` must move off the discarded project `xpccgcctmnfwbcbhwsqv`. Create the `payments_service` role on `zaetirunwobymrknyene` before 1 Nov.
