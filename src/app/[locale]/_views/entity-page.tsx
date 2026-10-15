@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
-import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
+import { AdmissionCycleRow } from "@/components/school/admission-cycle-row";
 import { FeesBlock } from "@/components/school/fees-block";
 import { PageViewBeacon } from "@/components/school/page-view-beacon";
 import { SchoolContactForms } from "@/components/school/school-contact-forms";
@@ -11,11 +11,8 @@ import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { ClaimCard } from "@/components/ui/claim-card";
 import { CoverageCard } from "@/components/ui/coverage-card";
-import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
-import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
-import { ProvenanceChip } from "@/components/ui/provenance-chip";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { ShareButton } from "@/components/ui/share-button";
@@ -52,11 +49,9 @@ import { siteUrl } from "@/lib/env.server";
 import { EVENT_STATUS_LABEL } from "@/lib/event-status";
 import { normalizeExternalUrl } from "@/lib/external-url";
 import { ADMISSIONS_HELP_ENABLED } from "@/lib/features";
-import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
 import { JOB_STATUS_LABEL } from "@/lib/job-status";
-import { classifyAdmissionProvenance } from "@/lib/provenance";
 import { recordBadge } from "@/lib/record-badge";
 import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-activity";
 import { schoolAreaLabel } from "@/lib/school-area-label";
@@ -1398,70 +1393,14 @@ export async function SchoolView({
               </h2>
               {admissions.length > 0 ? (
                 <div className="flex flex-col gap-3">
-                  {admissions.map((cycle) => {
-                    const cycleDeadline = {
-                      opensAt: cycle.opens_on ? new Date(cycle.opens_on) : null,
-                      closesAt: cycle.closes_on ? new Date(cycle.closes_on) : null,
-                    };
-                    return (
-                      <div
-                        key={`${cycle.academic_year}-${cycle.class_code}`}
-                        className="flex items-center gap-3 rounded-md border border-rule p-3"
-                      >
-                        <DeadlineMargin
-                          {...cycleDeadline}
-                          now={now}
-                          className="h-20 w-32 shrink-0"
-                        />
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-semibold">
-                            {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
-                          </span>
-                          <span className="text-meta text-muted-ink">
-                            {cycle.form_mode === "online" ? "Online form" : "Offline form"}
-                            {cycle.registration_fee != null
-                              ? ` · ${formatCurrency(cycle.registration_fee)}`
-                              : ""}
-                          </span>
-                          {/* 29 Sep 2026 (Activity & Admissions Consolidation, P0.2):
-                            this is a lead/enquiry capture, not an application, so the
-                            CTA no longer says "Apply" — it says what it actually does.
-                            The school's own form is the one place an application can
-                            actually be submitted, so it's labelled as such and kept as
-                            a fully visible, equally-weighted option (never removed —
-                            some schools have no other process). Clicking through to it
-                            logs "admission_external_click" (see actions.ts). */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <a
-                              href="#apply-heading"
-                              className="font-semibold text-ruled-blue text-meta"
-                            >
-                              Request admission information →
-                            </a>
-                            {cycle.form_url && (
-                              <TrackedApplyLink
-                                href={cycle.form_url}
-                                cycleId={cycle.cycle_id}
-                                schoolId={school.id}
-                                className="text-meta text-muted-ink underline"
-                              >
-                                Apply on school&rsquo;s official website ↗
-                              </TrackedApplyLink>
-                            )}
-                          </div>
-                          {/* Increment 10 — per-cycle ProvenanceChip. `verification`
-                            and `last_checked_at` are already exposed by
-                            api.public_school_admissions (020_public_school_admissions.sql)
-                            — no view change needed for this one. */}
-                          <ProvenanceChip
-                            tier={classifyAdmissionProvenance(cycle.verification)}
-                            checkedAt={cycle.last_checked_at}
-                            className="mt-0.5"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {admissions.map((cycle) => (
+                    <AdmissionCycleRow
+                      key={`${cycle.academic_year}-${cycle.class_code}`}
+                      cycle={cycle}
+                      schoolId={school.id}
+                      now={now}
+                    />
+                  ))}
                 </div>
               ) : (
                 // Increment 7: compact, inline unavailable state — this used to be a

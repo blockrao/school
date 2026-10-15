@@ -3488,3 +3488,7 @@ either way.
 ## 15 Oct 2026, listing cards and mobile action bar
 - School list cards (hub, search, shortlist, nearby): removed the repeated "Not yet published" fee and freshness lines, hid the empty dates column when no dates are known (the status pill still says so), and use short board names (CBSE, ICSE/ISC).
 - School page: phone-only fixed bottom bar with "Admissions" and "Ask this school". Static anchors only, so the page stays cacheable.
+
+## 15 Oct 2026, admissions per entry class
+- Admissions block rebuilt as one row per entry class (`AdmissionCycleRow`): status pill, window, age rule with reference date, seats incl. RTE, selection method, form mode, documents, prospectus link, provenance line. Text helpers in `src/lib/admission-rules.ts` (tested).
+- Demo data seeded on production for Global Public School, Gurugram (no email on file, so test enquiries reach nobody): 6 Nursery fee lines and 3 admission rows, all tagged "DEMO DATA - remove before launch" in notes. Remove with: delete from fee_items / admission_cycles where notes or selection_notes like 'DEMO DATA%'.
