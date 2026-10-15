@@ -4,14 +4,20 @@ import { schoolPath } from "@/lib/urls";
 import { SchoolView, schoolMetadata } from "../../_views/entity-page";
 import { resolveSchoolSlug } from "../../_views/resolve";
 
-// Reading searchParams already forces this route to render per-request, but
-// that doesn't cache-bust the underlying Supabase fetch() calls on their
-// own — without an explicit revalidate they're still served from Next's
-// persistent Data Cache, so a freshly-added admission cycle, event, news
-// post or job (all read here for "What's happening"/Admissions) could sit
-// invisible on an already-rendered school page until the next deploy. Same
-// reasoning/window as exams/page.tsx and the events/news/jobs pages.
+// The page is cached and refreshed on this window, so a freshly-added admission
+// cycle, event, news post or job appears within 15 minutes. (It no longer reads
+// searchParams or cookies: per-visitor state loads in the browser, see
+// components/school/.)
 export const revalidate = 900;
+
+// No school is prerendered at build time (there are thousands, and they change),
+// but declaring the segment's params makes Next treat the route as ISR: each
+// page is rendered on first request, then served from cache and refreshed in
+// the background every `revalidate` seconds. Without this the route is marked
+// dynamic and every crawler hit renders from scratch.
+export function generateStaticParams() {
+  return [];
+}
 
 /**
  * Canonical school entity page: /school/{slug} (D-121, docs/spec/urls-and-routing.md).
@@ -27,10 +33,7 @@ export async function generateMetadata({
   return schoolMetadata(locale, result.resolved);
 }
 
-export default async function SchoolPage({
-  params,
-  searchParams,
-}: PageProps<"/[locale]/school/[slug]">) {
+export default async function SchoolPage({ params }: PageProps<"/[locale]/school/[slug]">) {
   const { locale, slug } = await params;
   const result = await resolveSchoolSlug(slug);
   if (!result) notFound();
@@ -47,7 +50,7 @@ export default async function SchoolPage({
           This school has closed. The details below are kept as a record and are no longer updated.
         </p>
       )}
-      <SchoolView locale={locale} resolved={result.resolved} rawSearchParams={await searchParams} />
+      <SchoolView locale={locale} resolved={result.resolved} />
     </>
   );
 }

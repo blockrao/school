@@ -44,9 +44,10 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
+      "img-src 'self' data: blob: https://tiles.openfreemap.org",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://tiles.openfreemap.org",
+      "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -60,18 +61,32 @@ const nextConfig: NextConfig = {
   // Compression handled automatically by Vercel
   compress: true,
   async headers() {
-    const cacheHeaders = [{ key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400" }];
-    if (!isPreview) return [{ source: "/:path*", headers: [...securityHeaders, ...cacheHeaders] }];
-
-    return [
+    // Cache-Control is deliberately NOT applied to "/:path*" any more (15 Oct 2026
+    // SEO audit). The blanket `public, s-maxage=86400` that used to sit here also
+    // matched /api/*, /my, /portal and /ops, so the moment a response stopped
+    // being forced dynamic, a signed-in visitor's data could have been cached at
+    // the edge and served to someone else. Page caching is owned by each route's
+    // own `revalidate` (ISR); Next sets the right header for those. Only
+    // machine-readable public files and the private API get an explicit rule.
+    const publicFileCache = [
       {
-        source: "/:path*",
-        headers: [
-          ...securityHeaders,
-          ...cacheHeaders,
-          { key: "X-Robots-Tag", value: "noindex, nofollow" },
-        ],
+        key: "Cache-Control",
+        value: "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
       },
+    ];
+    const privateNoStore = [{ key: "Cache-Control", value: "private, no-store" }];
+    const rules = [
+      { source: "/:path*", headers: [...securityHeaders] },
+      { source: "/robots.txt", headers: publicFileCache },
+      { source: "/llms.txt", headers: publicFileCache },
+      { source: "/sitemap.xml", headers: publicFileCache },
+      { source: "/sitemap-:name.xml", headers: publicFileCache },
+      { source: "/api/viewer", headers: privateNoStore },
+    ];
+    if (!isPreview) return rules;
+    return [
+      ...rules,
+      { source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];
   },
   async redirects() {

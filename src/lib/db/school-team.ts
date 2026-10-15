@@ -1,4 +1,5 @@
 import "server-only";
+import { createPublicClient } from "@/lib/db/public";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient } from "@/lib/db/session";
 import { schoolPath } from "@/lib/urls";
@@ -139,7 +140,10 @@ export type PublicTeamMember = {
  * doesn't override the teacher's own visibility choice).
  */
 export async function listPublicSchoolTeam(schoolId: string): Promise<PublicTeamMember[]> {
-  const supabase = await createSessionClient();
+  // Anonymous client on purpose: this reads only published, listed teachers on
+  // active affiliations, i.e. public data. A cookie-bound session client here
+  // forced the whole school page to render per request (15 Oct 2026 audit).
+  const supabase = createPublicClient();
   const { data: rows } = await supabase
     .from("school_teacher_affiliations")
     .select("teacher_id")

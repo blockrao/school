@@ -6,7 +6,15 @@ import { type AnalyticsEventType, logAnalyticsEvent } from "@/lib/analytics";
 // exists (P1.8, Activity & Admissions Consolidation). Used by ShareBar via
 // navigator.sendBeacon, which POSTs a Blob with no custom headers, so this
 // route can't require a content-type or an auth header.
-const CLIENT_EVENT_TYPES: readonly AnalyticsEventType[] = ["share", "admission_external_click"];
+const CLIENT_EVENT_TYPES: readonly AnalyticsEventType[] = [
+  "share",
+  "admission_external_click",
+  "page_view",
+];
+
+// Crawlers that run JavaScript still must not count as visitors.
+const BOT_UA =
+  /bot|crawl|spider|slurp|facebookexternalhit|preview|lighthouse|headless|python|curl|wget/i;
 
 interface TrackPayload {
   eventType?: string;
@@ -26,6 +34,10 @@ export async function POST(request: Request) {
     body = JSON.parse(text);
   } catch {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  }
+
+  if (BOT_UA.test(request.headers.get("user-agent") ?? "")) {
+    return NextResponse.json({ ok: true, skipped: "bot" });
   }
 
   if (!CLIENT_EVENT_TYPES.includes(body.eventType as AnalyticsEventType)) {

@@ -3,6 +3,9 @@ import Link from "next/link";
 import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
 import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
+import { PageViewBeacon } from "@/components/school/page-view-beacon";
+import { SchoolContactForms } from "@/components/school/school-contact-forms";
+import { SchoolSaveControl } from "@/components/school/school-save-control";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { StatusPill } from "@/components/ui/badges";
 import { ClaimCard } from "@/components/ui/claim-card";
@@ -22,7 +25,6 @@ import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
 import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
-import { logAnalyticsEvent } from "@/lib/analytics";
 import { buildCoverage } from "@/lib/coverage";
 import {
   getAdmissionDeadlinesBySchoolId,
@@ -39,7 +41,6 @@ import {
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
 import { listPublicSchoolTeam } from "@/lib/db/school-team";
-import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { buildDecisionStrip, selectPrimaryAdmission } from "@/lib/decision-strip";
@@ -73,7 +74,6 @@ import {
   statePath,
   teacherPath,
 } from "@/lib/urls";
-import { sendEnquiry, submitAdmissionLead } from "./actions";
 import type { ResolvedCity, ResolvedLocality, ResolvedSchool } from "./resolve";
 
 export function localityMetadata(locale: string, resolved: ResolvedLocality): Metadata {
@@ -524,11 +524,9 @@ export async function LocalityView({
 export async function SchoolView({
   locale,
   resolved,
-  rawSearchParams,
 }: {
   locale: string;
   resolved: ResolvedSchool;
-  rawSearchParams: { [key: string]: string | string[] | undefined };
 }) {
   const now = new Date();
   const dict = await getDictionary(locale);
@@ -536,32 +534,17 @@ export async function SchoolView({
   const { city, bundle } = resolved;
   const { school, board } = bundle;
 
-  // P1.8 follow-up (29 Sep 2026) — the school entity page is the one page in
-  // this app with real traffic (10,669 schools vs. near-zero real News/
-  // Events/Jobs content), so it's the page that actually validates whether
-  // analytics_events is receiving real rows, not just the fixture-school
-  // regression test. Awaited (matching news/events/jobs' pattern) rather
-  // than fire-and-forget: logAnalyticsEvent never throws, so this can't
-  // fail the page, but an un-awaited insert risks being dropped if the
-  // runtime tears the request down right after the response is sent.
-  await logAnalyticsEvent({
-    eventType: "page_view",
-    entityType: "school",
-    entityId: school.id,
-    schoolId: school.id,
-  });
+  // Page views are recorded by <PageViewBeacon /> from the browser, not here:
+  // a database write during render made this page uncacheable and logged every
+  // crawler fetch as a view (15 Oct 2026 SEO audit).
 
   const affiliationNo = board?.affiliation_no ?? null;
   const name = school.name_en ?? "Name not yet published";
   const grades = formatGradeRange(school.min_class, school.max_class);
   const canonicalPath = schoolPath(locale, school.slug);
 
-  const supabase = await createSessionClient();
-  const user = await getSessionUser(supabase);
-
   const [
     admissions,
-    shortlistedIdsSet,
     similarSchoolsRaw,
     team,
     news,
@@ -571,7 +554,6 @@ export async function SchoolView({
     fieldEvidence,
   ] = await Promise.all([
     getPublicAdmissionsBySchoolId(school.id),
-    getShortlistedSchoolIds([school.id]),
     // Increment 11 (SDP-21) — locality-first, same-city fallback; see
     // getSimilarSchools()/listPublicSchoolsByCity() in public-adapter.ts.
     getSimilarSchools(school),
@@ -645,12 +627,6 @@ export async function SchoolView({
         formUrl: cycle.form_url,
       };
     });
-
-  const enquirySent = rawSearchParams.enquiry_sent === "1";
-  const enquiryError = rawSearchParams.enquiry_error === "failed";
-  const applySent = rawSearchParams.apply_sent === "1";
-  const applyErrorCode =
-    typeof rawSearchParams.apply_error === "string" ? rawSearchParams.apply_error : null;
 
   const breadcrumbTrail = city
     ? [
@@ -1133,15 +1109,13 @@ export async function SchoolView({
               <span className="text-meta text-slate">{identity.description}</span>
             </div>
           </div>
-          <SaveButton
+          <SchoolSaveControl
             schoolId={school.id}
-            saved={shortlistedIdsSet.has(school.id)}
             locale={locale}
             labelSave={headerCtaLabelSave}
             labelSaved={headerCtaLabelSaved}
-            span="w-fit shrink-0 px-4"
-            variant="primary"
           />
+          <PageViewBeacon schoolId={school.id} />
         </div>
 
         <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:gap-4">
@@ -1834,169 +1808,17 @@ export async function SchoolView({
               </div>
             </section>
 
-            {/* 29 Sep 2026: the admissions-lead-capture CTA. Distinct from "Ask this
-              school" below on purpose — applying is a deliberate, single-recipient
-              disclosure (the parent is choosing to give *this* school their contact
-              details so it can process an application, same as a paper form), not the
-              SDP-04 controlled-intermediary model that keeps contact details private
-              for a general question. See submitAdmissionLead in ./actions.ts and
-              admission_leads (20260929070000_admission_leads.sql). */}
-            {admissions.length > 0 && (
-              <section
-                aria-labelledby="apply-heading"
-                className="flex flex-col gap-2 rounded-md border border-rule p-4"
-              >
-                <h2 id="apply-heading" className="font-display text-card font-semibold">
-                  Request admission information
-                </h2>
-                {applySent ? (
-                  <p className="text-body text-muted-ink">
-                    Your request has been sent to {name}. They have your name and phone number and
-                    will reach out directly.
-                  </p>
-                ) : applyErrorCode === "already_applied" ? (
-                  <p className="text-body text-muted-ink">
-                    You've already sent a request for this class — {name} has your details.
-                  </p>
-                ) : user ? (
-                  <form action={submitAdmissionLead} className="flex flex-col gap-3">
-                    <input type="hidden" name="schoolId" value={school.id} />
-                    <input type="hidden" name="returnPath" value={canonicalPath} />
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-meta font-semibold text-muted-ink">
-                        Class and session
-                      </span>
-                      <select
-                        name="cycleSelection"
-                        required
-                        defaultValue=""
-                        className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
-                      >
-                        <option value="" disabled>
-                          Choose a class
-                        </option>
-                        {admissions.map((cycle) => (
-                          <option
-                            key={cycle.cycle_id}
-                            value={`${cycle.cycle_id}|${cycle.class_code}|${cycle.academic_year}`}
-                          >
-                            {cycle.academic_year} · Class {cycle.class_code.replace(/^c/, "")}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-meta font-semibold text-muted-ink">
-                        Note for the school (optional)
-                      </span>
-                      <textarea
-                        name="note"
-                        maxLength={1000}
-                        rows={3}
-                        className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
-                      />
-                    </label>
-                    <label className="flex items-start gap-2 text-meta text-muted-ink">
-                      <input type="checkbox" name="consent" required className="mt-0.5" />
-                      <span>
-                        Share my name and phone number with {name} so they can respond to my
-                        request.
-                      </span>
-                    </label>
-                    {applyErrorCode && applyErrorCode !== "already_applied" && (
-                      <FieldError id="apply-error">
-                        {applyErrorCode === "consent_required"
-                          ? "Check the consent box to share your details with the school."
-                          : "Something went wrong sending your request. Please try again."}
-                      </FieldError>
-                    )}
-                    <button
-                      type="submit"
-                      className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
-                    >
-                      Request admission information →
-                    </button>
-                  </form>
-                ) : (
-                  <Link
-                    href={lp(
-                      locale,
-                      `/sign-in?next=${encodeURIComponent(`${canonicalPath}#apply-heading`)}`,
-                    )}
-                    className="w-fit font-semibold text-ruled-blue"
-                  >
-                    Sign in to request information
-                  </Link>
-                )}
-              </section>
-            )}
-
-            <section
-              aria-labelledby="enquiry-heading"
-              className="flex flex-col gap-2 rounded-md border border-rule p-4"
-            >
-              <h2 id="enquiry-heading" className="font-display text-card font-semibold">
-                Ask this school
-              </h2>
-              {enquirySent ? (
-                <p className="text-body text-muted-ink">
-                  Your question has been sent to the school. They'll get back to you directly.
-                </p>
-              ) : user ? (
-                <form action={sendEnquiry} className="flex flex-col gap-3">
-                  <input type="hidden" name="schoolId" value={school.id} />
-                  <input type="hidden" name="returnPath" value={canonicalPath} />
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-meta font-semibold text-muted-ink">
-                      Class you're asking about (optional)
-                    </span>
-                    <select
-                      name="classCode"
-                      defaultValue=""
-                      className="h-11 rounded-md border border-line-blue-strong bg-copy-white px-3 text-body outline-none"
-                    >
-                      <option value="">Any class</option>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={`c${n}`}>
-                          Class {n}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-meta font-semibold text-muted-ink">Your question</span>
-                    <textarea
-                      name="message"
-                      required
-                      maxLength={1000}
-                      rows={4}
-                      className="rounded-md border border-line-blue-strong bg-copy-white p-3 text-body outline-none"
-                    />
-                  </label>
-                  {enquiryError && (
-                    <FieldError id="enquiry-error">
-                      Something went wrong sending your question. Please try again.
-                    </FieldError>
-                  )}
-                  <button
-                    type="submit"
-                    className="flex h-12 w-fit items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
-                  >
-                    Send question
-                  </button>
-                </form>
-              ) : (
-                <Link
-                  href={lp(
-                    locale,
-                    `/sign-in?next=${encodeURIComponent(`${canonicalPath}#enquiry-heading`)}`,
-                  )}
-                  className="w-fit font-semibold text-ruled-blue"
-                >
-                  Sign in to ask this school a question
-                </Link>
-              )}
-            </section>
+            <SchoolContactForms
+              schoolId={school.id}
+              name={name}
+              canonicalPath={canonicalPath}
+              locale={locale}
+              admissions={admissions.map((c) => ({
+                cycle_id: c.cycle_id,
+                class_code: c.class_code,
+                academic_year: c.academic_year,
+              }))}
+            />
           </aside>
         </div>
 
