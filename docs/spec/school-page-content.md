@@ -91,6 +91,16 @@ To build with the page:
 8. **Performance budget**: measure Core Web Vitals on the built page; budget for photos (lazy, sized, modern formats) and the map (click-to-load, no third-party script on first paint).
 9. **Not-yet-enriched pages**: blocks without data render a short honest empty state; the page still passes the indexability gate or stays noindex.
 
+### 5.2 Provenance model (owner rule, 15 Oct 2026)
+
+Rule: SchoolOye publishes what school admins provide, so **every fact shown carries provenance**: who supplied it, from what evidence, as of when, who reviewed it, and until when it is valid.
+
+- Columns on every fact table: `source_kind` (school_admin | school_document | public_record | ops_entered | compiled), `submitted_by/at`, `evidence_url` / `evidence_document_id`, `observed_at`, `valid_from/to`, `review_state` (draft | pending_review | published | superseded | rejected | expired), `reviewed_by/at`, `next_review_on`. Migration `20261015150000_fact_provenance_layer.sql`.
+- Append-only `fact_revisions` log (trigger-filled, staff-read) so every change is traceable and reversible.
+- The page shows a short label per block from these fields: "Provided by the school, 1 Apr 2026", "From CBSE affiliation list, checked 12 Oct 2026", "Compiled from public records, not verified". Only `review_state = published` reaches the public page (via public views, next migration).
+- Four-tier chip logic in `src/lib/provenance.ts` extends to read `source_kind` and `review_state`.
+- Open decision: do school-admin submissions publish immediately (labelled "Provided by the school") or after SchoolOye review? Both are supported by the state machine; recommendation: immediate for claimed schools with a document attached, review for everything else.
+
 ## 6. Build order
 
 1. Spec sign-off (this) → migrations 1–2 (provenance, fee heads) → UI/UX design task.

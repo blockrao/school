@@ -3472,3 +3472,4 @@ either way.
 ## 15 Oct 2026 (late): school page mockup + SEO/GEO/AEO section
 - Design mockup of the school page (desktop + phone) published to the Design canvas; layout approved by the owner.
 - Added §5.1 to `docs/spec/school-page-content.md`: SEO/GEO/AEO requirements to build with the page.
+- Provenance layer migration written and tested on a scratch Postgres (idempotent; trigger verified): `20261015150000_fact_provenance_layer.sql`. NOT yet applied to production; human runs `pnpm db:migrate 20261015150000_fact_provenance_layer.sql --confirm`.
