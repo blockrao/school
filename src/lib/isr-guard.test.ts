@@ -19,7 +19,6 @@ const FILES = [
   "src/app/[locale]/school/[slug]/page.tsx",
   "src/app/[locale]/_views/entity-page.tsx",
   "src/app/[locale]/_views/resolve.ts",
-  "src/app/[locale]/schools/[state]/[city]/page.tsx",
 ];
 const FORBIDDEN = [
   /from "next\/headers"/,
