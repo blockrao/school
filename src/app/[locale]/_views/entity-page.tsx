@@ -15,7 +15,6 @@ import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DecisionStrip } from "@/components/ui/decision-strip";
 import { FieldError } from "@/components/ui/field-error";
 import { FreshnessLine, NotYetPublished } from "@/components/ui/freshness-line";
-import { PhotoPlaceholder } from "@/components/ui/photo-placeholder";
 import { ProvenanceChip } from "@/components/ui/provenance-chip";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
@@ -25,6 +24,7 @@ import { EmptyState } from "@/components/ui/state-message";
 import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
+import { cleanAddressPart, cleanStreet } from "@/lib/address-clean";
 import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
 import { buildCoverage } from "@/lib/coverage";
 import {
@@ -1131,10 +1131,6 @@ export async function SchoolView({
           <PageViewBeacon schoolId={school.id} />
         </div>
 
-        <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:gap-4">
-          <PhotoPlaceholder className="hidden h-24 w-32 shrink-0 sm:block" label={name} />
-        </div>
-
         <div className="flex flex-col gap-2 border-b border-rule pb-6">
           <h1 className="font-display text-title-m md:text-title-d">
             {name}
@@ -1149,7 +1145,9 @@ export async function SchoolView({
             {[
               board?.board_name,
               grades,
-              tEnum(dict, "management", school.management),
+              school.management && school.management !== "other"
+                ? tEnum(dict, "management", school.management)
+                : null,
               tEnum(dict, "gender", school.gender),
             ]
               .filter(Boolean)
@@ -1613,11 +1611,20 @@ export async function SchoolView({
                         </span>
                       </div>
                       <dl className="grid grid-cols-2 gap-2 text-body text-sm">
-                        {school.address_street && (
+                        {cleanStreet(school.address_street, school.name_en, city?.cityName) && (
                           <>
                             <dt className="font-semibold text-muted-ink">Street</dt>
-                            <dd className="truncate" title={school.address_street}>
-                              {school.address_street}
+                            <dd
+                              className="truncate"
+                              title={
+                                cleanStreet(
+                                  school.address_street,
+                                  school.name_en,
+                                  city?.cityName,
+                                ) ?? undefined
+                              }
+                            >
+                              {cleanStreet(school.address_street, school.name_en, city?.cityName)}
                             </dd>
                           </>
                         )}
@@ -1627,10 +1634,10 @@ export async function SchoolView({
                             <dd>{school.address_area}</dd>
                           </>
                         )}
-                        {school.address_city && (
+                        {cleanAddressPart(school.address_city) && (
                           <>
                             <dt className="font-semibold text-muted-ink">City</dt>
-                            <dd>{school.address_city}</dd>
+                            <dd>{cleanAddressPart(school.address_city)}</dd>
                           </>
                         )}
                         {school.address_district && (
@@ -1719,12 +1726,7 @@ export async function SchoolView({
               coverage/trust -> discovery. It used to sit directly under the
               Decision Strip, ahead of any substantive content, which read
               more like a database-completeness report than a school page. */}
-            <CoverageCard
-              schoolName={name}
-              topics={coverageTopics}
-              schoolId={school.id}
-              isClaimed={school.claim === "claimed"}
-            />
+            <CoverageCard schoolName={name} topics={coverageTopics} />
 
             {similarSchools.length > 0 && (
               <section aria-labelledby="similar-heading" className="flex flex-col gap-3">

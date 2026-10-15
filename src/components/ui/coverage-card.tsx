@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { CoverageTopic } from "@/lib/coverage";
 import { cn } from "@/lib/utils";
 
@@ -31,15 +30,11 @@ import { cn } from "@/lib/utils";
 export function CoverageCard({
   schoolName,
   topics,
-  schoolId,
-  isClaimed,
   variant = "buckets",
   className,
 }: {
   schoolName: string;
   topics: CoverageTopic[];
-  schoolId: string;
-  isClaimed: boolean;
   variant?: "buckets" | "ledger";
   className?: string;
 }) {
@@ -64,7 +59,7 @@ export function CoverageCard({
             >
               <span>{topic.label}</span>
               <span className={topic.status === "known" ? "font-medium text-ink" : "text-slate"}>
-                {topic.status === "known" ? "Known" : "Not yet verified"}
+                {topic.status === "known" ? "Known" : "Not reported"}
               </span>
             </div>
           ))}
@@ -107,11 +102,6 @@ export function CoverageCard({
       )}
 
       <div className="flex flex-wrap items-center gap-4 border-t border-rule pt-3 text-meta">
-        {!isClaimed && (
-          <Link href={`/for-schools/claim/${schoolId}`} className="font-semibold text-ruled-blue">
-            Are you from this school? Claim it free
-          </Link>
-        )}
         <a
           href={`mailto:help@schooloye.in?subject=${encodeURIComponent(`Information about ${schoolName}`)}`}
           className="font-semibold text-ruled-blue"

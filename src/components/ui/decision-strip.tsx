@@ -31,7 +31,7 @@ export function DecisionStrip({ slots, className }: { slots: DecisionSlot[]; cla
               {slot.context && <span className="text-meta text-slate">{slot.context}</span>}
             </>
           ) : (
-            <span className="text-body text-slate">Not yet verified</span>
+            <span className="text-body text-slate">Not reported</span>
           )}
         </div>
       ))}
