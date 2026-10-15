@@ -61,3 +61,9 @@ export function windowText(
   if (closesOn) return `Closes ${dateText(closesOn)}`;
   return null;
 }
+
+/** "Class 6", "Nursery", "UKG". */
+export function classLabel(code: string): string {
+  const c = code.replace(/^c/, "");
+  return /^\d+$/.test(c) ? `Class ${c}` : c.charAt(0).toUpperCase() + c.slice(1);
+}

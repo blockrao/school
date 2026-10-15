@@ -22,6 +22,7 @@ import type { PublicSchoolAdmission } from "@/contracts";
 import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
 import { cleanAddressPart, cleanStreet } from "@/lib/address-clean";
+import { classLabel } from "@/lib/admission-rules";
 import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
 import { boardShortName } from "@/lib/board-slug";
 import { buildCoverage } from "@/lib/coverage";
@@ -1465,7 +1466,7 @@ export async function SchoolView({
                           ? "Admission cycle added"
                           : "Admission updated"}
                         {" — "}
-                        {u.academic_year} · Class {u.class_code.replace(/^c/, "")}
+                        {u.academic_year} · {classLabel(u.class_code)}
                       </span>
                       <span className="text-meta text-muted-ink">
                         {describeAdmissionUpdateChanges(u)}

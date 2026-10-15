@@ -7,11 +7,6 @@ import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { factLabel } from "@/lib/fact-label";
 import { classifyAdmissionProvenance } from "@/lib/provenance";
 
-function classLabel(code: string): string {
-  const c = code.replace(/^c/, "");
-  return /^\d+$/.test(c) ? `Class ${c}` : c.charAt(0).toUpperCase() + c.slice(1);
-}
-
 /** One admissions row per entry class: status, window, rules, and who said so. */
 export function AdmissionCycleRow({
   cycle,

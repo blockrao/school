@@ -130,6 +130,9 @@ export function FeesBlock({ fees, schoolName }: { fees: PublicSchoolFee[]; schoo
               <p className="text-body">
                 <span className="text-muted-ink">First-year total of mandatory fees: </span>
                 <span className="font-semibold">{formatCurrency(total)}</span>
+                {rows.some((r) => r.mandatory === true && r.refundable === true) && (
+                  <span className="text-meta text-muted-ink"> (includes refundable deposits)</span>
+                )}
               </p>
             )}
             {label && (
