@@ -101,6 +101,28 @@ Rule: SchoolOye publishes what school admins provide, so **every fact shown carr
 - Four-tier chip logic in `src/lib/provenance.ts` extends to read `source_kind` and `review_state`.
 - Open decision: do school-admin submissions publish immediately (labelled "Provided by the school") or after SchoolOye review? Both are supported by the state machine; recommendation: immediate for claimed schools with a document attached, review for everything else.
 
+### 5.3 UI/UX review of live competitor and international pages (15 Oct 2026)
+
+Pages read: Edustoke (a Gurugram school page), Careers360 (Gurugram CBSE list), Niche (K-12 list), GreatSchools (profile principles; the school page itself could not be fetched).
+
+What to copy
+- Edustoke: itemised fee table; school's own phone shown without a form (our rule: enquiry form, no phone).
+- Niche: facts on the card itself (enrolment, student-teacher ratio), removable filter chips, a methodology link beside any grade, "Contact school" as a primary action, reviews labelled by who wrote them (later phase).
+- GreatSchools: profile split into programmes/culture and enrolment; a tool that answers "can my child actually attend" (our analogue: commute check and nearby schools); schools register to add their own photos and detail.
+
+What to avoid (seen on live pages)
+- Hero fee with no caveat (Edustoke) - we show first-year total and the basis.
+- Section tabs that promise content and show nothing (Edustoke Admission, Facilities, Reviews) - our sub-nav lists only blocks that have data.
+- Platform's own phone number in the header that parents read as the school's (Edustoke) - never.
+- Ratings with no method, tiny samples (Edustoke 4.1 vs parent 3.6 from 9 votes) - no ratings.
+- Fees with no source or date and implausible values (Careers360 showed 44 rupees for Class 12) - every fee has basis + date, with range sanity checks at import.
+- Filter counts that do not match the list (Careers360) - counts come from the same query as the list.
+- Unexplained verification badges (Niche blue check) - our provenance legend sits at the top of the page.
+- Unlabelled paid placements between results (Careers360, Niche) - none, and any future one is labelled.
+- Contradictory dates and typos (Edustoke "Admision open", last-updated later than copyright year) - generated copy, one date source.
+
+Added to the mockup because of this review: key-facts strip with source under each number, "facts reported on this page: N of M" completeness count, "how to read this page" legend, and a commute check in the location block.
+
 ## 6. Build order
 
 1. Spec sign-off (this) → migrations 1–2 (provenance, fee heads) → UI/UX design task.
