@@ -101,6 +101,9 @@ export async function GET() {
         job.listing_reviewed_at ? new Date(job.listing_reviewed_at) : undefined,
       ),
     ),
+    urlEntry(siteUrl, "/about"),
+    urlEntry(siteUrl, "/methodology"),
+    urlEntry(siteUrl, "/contact"),
     urlEntry(siteUrl, "/privacy"),
     urlEntry(siteUrl, "/terms"),
   ];

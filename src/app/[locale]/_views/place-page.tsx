@@ -26,6 +26,7 @@ import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
+import { paginationWindow } from "@/lib/pagination";
 import { localeCanonical } from "@/lib/seo";
 import {
   cityPath,
@@ -125,8 +126,8 @@ export function placeMetadata(
   const path = cityPath("en", city.stateSlug, city.citySlug);
 
   return {
-    title: `${city.cityName} schools${page > 1 ? ` — page ${page}` : ""} — SchoolOye`,
-    description: `Browse schools in ${city.cityName}, ${city.stateName}: fees, facilities and admission dates.`,
+    title: `Schools in ${city.cityName}, ${city.stateName}${page > 1 ? ` (page ${page})` : ""}: boards, grades and admissions — SchoolOye`,
+    description: `Browse ${city.schoolCount} schools in ${city.cityName}, ${city.stateName}. Each listing shows the school's board, grades, location and admission status.`,
     alternates: {
       canonical: localeCanonical(
         locale,
@@ -684,6 +685,8 @@ export async function PlaceView({
                       {toggleHref ? (
                         <Link
                           href={toggleHref}
+                          rel="nofollow"
+                          prefetch={false}
                           role="checkbox"
                           aria-checked={inCompare}
                           className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
@@ -730,23 +733,44 @@ export async function PlaceView({
       </div>
 
       {total > PAGE_SIZE && (
-        <nav aria-label="Pagination" className="mt-6 flex items-center justify-between">
-          {page > 1 ? (
-            <Link href={pageHref(page - 1)} className="font-semibold text-ruled-blue">
+        <nav
+          aria-label="Pagination"
+          className="mt-6 flex flex-wrap items-center justify-center gap-2"
+        >
+          {page > 1 && (
+            <Link href={pageHref(page - 1)} rel="prev" className="font-semibold text-ruled-blue">
               ← Previous
             </Link>
-          ) : (
-            <span />
           )}
-          <span className="text-body text-muted-ink">
-            Page {page} of {totalPages}
-          </span>
-          {page < totalPages ? (
-            <Link href={pageHref(page + 1)} className="font-semibold text-ruled-blue">
+          {paginationWindow(page, totalPages).map((entry, i) =>
+            entry === "gap" ? (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static ellipsis markers
+              <span key={`gap-${i}`} className="px-1 text-muted-ink">
+                …
+              </span>
+            ) : entry === page ? (
+              <span
+                key={entry}
+                aria-current="page"
+                className="flex h-10 min-w-10 items-center justify-center rounded-md bg-ruled-blue px-2 font-semibold text-copy-white"
+              >
+                {entry}
+              </span>
+            ) : (
+              <Link
+                key={entry}
+                href={pageHref(entry)}
+                aria-label={`Page ${entry}`}
+                className="flex h-10 min-w-10 items-center justify-center rounded-md border border-line-blue px-2 font-semibold text-ruled-blue"
+              >
+                {entry}
+              </Link>
+            ),
+          )}
+          {page < totalPages && (
+            <Link href={pageHref(page + 1)} rel="next" className="font-semibold text-ruled-blue">
               Next →
             </Link>
-          ) : (
-            <span />
           )}
         </nav>
       )}

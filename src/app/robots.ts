@@ -11,7 +11,8 @@ const AI_CRAWLERS = [
   "Perplexity-User",
   "Google-Extended",
 ];
-const DISALLOW = ["/dev", "/my", "/portal", "/ops", "/api"];
+// "/*?*compare=" keeps crawlers out of the per-school compare toggles on listing pages (hundreds of duplicate URLs).
+const DISALLOW = ["/dev", "/my", "/portal", "/ops", "/api", "/*?*compare="];
 
 export default function robots(): MetadataRoute.Robots {
   // Vercel Preview deployments are copies of the site on *.vercel.app; keep them

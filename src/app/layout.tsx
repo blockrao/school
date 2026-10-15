@@ -10,6 +10,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "SchoolOye",
   description: "Find and compare schools in Delhi, Gurugram and Haryana.",
+  // Every page inherits these; Next fills og:title / og:description / og:url from
+  // each page's own title, description and canonical. Without an openGraph object
+  // on the page, the home page and every listing page emitted no og:* tags at all,
+  // so a WhatsApp or LinkedIn share showed a bare URL (15 Oct 2026 audit).
+  openGraph: { siteName: "SchoolOye", locale: "en_IN", type: "website" },
+  twitter: { card: "summary_large_image" },
   // Most page content still only has light-mode colors (globals.css); the V2
   // so-* chrome tokens (SiteHeader/SiteFooter/nav) are the one real dark theme
   // so far, via @media (prefers-color-scheme: dark) — unaffected by this. Without

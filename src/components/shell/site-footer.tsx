@@ -143,6 +143,15 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
         <div className="flex flex-col gap-3 border-t border-so-line pt-5 text-meta text-so-ink3 md:flex-row md:items-center md:justify-between md:gap-6">
           <span>{t(dict, "footer.copyright", { year: 2026 })}</span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
+            {(["about", "methodology", "contact"] as const).map((slug) => (
+              <Link
+                key={slug}
+                href={`${localePrefix(locale)}/${slug}`}
+                className="min-h-8 content-center text-so-ink3 hover:text-so-accent focus-visible:outline-so-accent"
+              >
+                {t(dict, `footer.${slug}`)}
+              </Link>
+            ))}
             <Link
               href={`${localePrefix(locale)}/privacy`}
               className="min-h-8 content-center text-so-ink3 hover:text-so-accent focus-visible:outline-so-accent"

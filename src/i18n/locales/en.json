@@ -49,7 +49,10 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "grievance_officer": "Grievance officer: {email}",
-    "copyright": "© {year} SchoolOye"
+    "copyright": "© {year} SchoolOye",
+    "about": "About",
+    "methodology": "How we verify",
+    "contact": "Contact"
   },
   "schools_page": {
     "heading_city": "Schools in {city}",

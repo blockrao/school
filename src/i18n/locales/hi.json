@@ -49,7 +49,10 @@
     "privacy": "गोपनीयता",
     "terms": "नियम व शर्तें",
     "grievance_officer": "शिकायत अधिकारी: {email}",
-    "copyright": "© {year} SchoolOye"
+    "copyright": "© {year} SchoolOye",
+    "about": "हमारे बारे में",
+    "methodology": "हम कैसे जाँचते हैं",
+    "contact": "संपर्क"
   },
   "schools_page": {
     "heading_city": "{city} में स्कूल",
