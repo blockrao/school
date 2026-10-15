@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
+import { CardSaveButton, ListingViewerProvider } from "@/components/school/listing-save";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
 import { NotYetPublished } from "@/components/ui/freshness-line";
-import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import {
@@ -22,7 +22,6 @@ import {
   listPublicSchoolsByDistrict,
   listPublicSchoolsByLocality,
 } from "@/lib/db/public-adapter";
-import { getShortlistedSchoolIds } from "@/lib/db/shortlist";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { siteUrl } from "@/lib/env.server";
 import { formatGradeRange } from "@/lib/grades";
@@ -145,7 +144,6 @@ function TownPageBody({
   neighbors,
   boardNames,
   admissionDeadlines,
-  shortlistedIds,
   now,
 }: {
   locale: string;
@@ -154,7 +152,6 @@ function TownPageBody({
   neighbors: Awaited<ReturnType<typeof listLocalityNeighbors>>;
   boardNames: Map<string, string>;
   admissionDeadlines: Map<string, string | null>;
-  shortlistedIds: Set<string>;
   now: Date;
 }) {
   const townPath = localityPath(locale, town.stateSlug, town.citySlug, town.townSlug);
@@ -229,38 +226,34 @@ function TownPageBody({
 
       <div className="mt-6">
         {schools.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {schools.map((school) => {
-              const board = boardNames.get(school.id);
-              const grades = formatGradeRange(school.min_class, school.max_class);
-              const meta = board ? `${board} · ${grades}` : grades;
+          <ListingViewerProvider schoolIds={schools.map((s) => s.id)}>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {schools.map((school) => {
+                const board = boardNames.get(school.id);
+                const grades = formatGradeRange(school.min_class, school.max_class);
+                const meta = board ? `${board} · ${grades}` : grades;
 
-              const closesOn = admissionDeadlines.get(school.id);
-              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-              const pill = deadlineToPill(deadlineState(deadline, now));
+                const closesOn = admissionDeadlines.get(school.id);
+                const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
+                const pill = deadlineToPill(deadlineState(deadline, now));
 
-              return (
-                <SchoolCard
-                  key={school.id}
-                  href={schoolPath(locale, school.slug)}
-                  name={school.name_en ?? "Name not yet published"}
-                  meta={meta}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                  fee="Not yet published"
-                  freshness={<NotYetPublished />}
-                  actions={
-                    <SaveButton
-                      schoolId={school.id}
-                      saved={shortlistedIds.has(school.id)}
-                      locale={locale}
-                    />
-                  }
-                />
-              );
-            })}
-          </div>
+                return (
+                  <SchoolCard
+                    key={school.id}
+                    href={schoolPath(locale, school.slug)}
+                    name={school.name_en ?? "Name not yet published"}
+                    meta={meta}
+                    now={now}
+                    deadline={deadline}
+                    status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                    fee="Not yet published"
+                    freshness={<NotYetPublished />}
+                    actions={<CardSaveButton schoolId={school.id} locale={locale} />}
+                  />
+                );
+              })}
+            </div>
+          </ListingViewerProvider>
         ) : (
           <EmptyState
             title="No published schools here yet"
@@ -401,10 +394,9 @@ export async function PlaceView({
       listLocalityNeighbors(town.townSlug),
     ]);
     const schoolIds = schools.map((s) => s.id);
-    const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
+    const [boardNames, admissionDeadlines] = await Promise.all([
       getBoardNamesBySchoolId(schoolIds),
       getAdmissionDeadlinesBySchoolId(schoolIds),
-      getShortlistedSchoolIds(schoolIds),
     ]);
 
     return (
@@ -415,7 +407,6 @@ export async function PlaceView({
         neighbors={neighbors}
         boardNames={boardNames}
         admissionDeadlines={admissionDeadlines}
-        shortlistedIds={shortlistedIds}
         now={now}
       />
     );
@@ -448,10 +439,9 @@ export async function PlaceView({
   const sponsoredSchoolIds = new Set(featuredPlacements.map((p) => p.school_id));
 
   const schoolIds = schools.map((s) => s.id);
-  const [boardNames, admissionDeadlines, shortlistedIds] = await Promise.all([
+  const [boardNames, admissionDeadlines] = await Promise.all([
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
-    getShortlistedSchoolIds(schoolIds),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -681,74 +671,71 @@ export async function PlaceView({
 
       <div className="mt-6">
         {schools.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {schools.map((school) => {
-              const board = boardNames.get(school.id);
-              const grades = formatGradeRange(school.min_class, school.max_class);
-              const meta = board ? `${board} · ${grades}` : grades;
+          <ListingViewerProvider schoolIds={schools.map((s) => s.id)}>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {schools.map((school) => {
+                const board = boardNames.get(school.id);
+                const grades = formatGradeRange(school.min_class, school.max_class);
+                const meta = board ? `${board} · ${grades}` : grades;
 
-              const closesOn = admissionDeadlines.get(school.id);
-              const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
-              const pill = deadlineToPill(deadlineState(deadline, now));
+                const closesOn = admissionDeadlines.get(school.id);
+                const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
+                const pill = deadlineToPill(deadlineState(deadline, now));
 
-              const inCompare = compareIds.includes(school.id);
-              const toggleHref = compareToggleHref(school.id);
+                const inCompare = compareIds.includes(school.id);
+                const toggleHref = compareToggleHref(school.id);
 
-              return (
-                <SchoolCard
-                  key={school.id}
-                  href={schoolPath(locale, school.slug)}
-                  name={school.name_en ?? "Name not yet published"}
-                  meta={meta}
-                  sponsored={sponsoredSchoolIds.has(school.id)}
-                  sponsoredNote={<SponsoredWhyDisclosure />}
-                  now={now}
-                  deadline={deadline}
-                  status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                  fee="Not yet published"
-                  freshness={<NotYetPublished />}
-                  actions={
-                    <>
-                      <SaveButton
-                        schoolId={school.id}
-                        saved={shortlistedIds.has(school.id)}
-                        locale={locale}
-                        span="col-span-1"
-                      />
-                      {toggleHref ? (
-                        <Link
-                          href={toggleHref}
-                          rel="nofollow"
-                          prefetch={false}
-                          role="checkbox"
-                          aria-checked={inCompare}
-                          className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
-                            inCompare
-                              ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
-                              : "border-line-blue text-ink"
-                          }`}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
-                              inCompare ? "bg-ruled-blue" : "bg-copy-white"
+                return (
+                  <SchoolCard
+                    key={school.id}
+                    href={schoolPath(locale, school.slug)}
+                    name={school.name_en ?? "Name not yet published"}
+                    meta={meta}
+                    sponsored={sponsoredSchoolIds.has(school.id)}
+                    sponsoredNote={<SponsoredWhyDisclosure />}
+                    now={now}
+                    deadline={deadline}
+                    status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
+                    fee="Not yet published"
+                    freshness={<NotYetPublished />}
+                    actions={
+                      <>
+                        <CardSaveButton schoolId={school.id} locale={locale} span="col-span-1" />
+                        {toggleHref ? (
+                          <Link
+                            href={toggleHref}
+                            rel="nofollow"
+                            prefetch={false}
+                            role="checkbox"
+                            aria-checked={inCompare}
+                            className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
+                              inCompare
+                                ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
+                                : "border-line-blue text-ink"
                             }`}
                           >
-                            {inCompare && "✓"}
+                            <span
+                              aria-hidden="true"
+                              className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
+                                inCompare ? "bg-ruled-blue" : "bg-copy-white"
+                              }`}
+                            >
+                              {inCompare && "✓"}
+                            </span>
+                            {inCompare ? "Remove" : "Compare"}
+                          </Link>
+                        ) : (
+                          <span className="flex h-11 items-center justify-center text-meta text-muted-ink">
+                            Limit (4)
                           </span>
-                          {inCompare ? "Remove" : "Compare"}
-                        </Link>
-                      ) : (
-                        <span className="flex h-11 items-center justify-center text-meta text-muted-ink">
-                          Limit (4)
-                        </span>
-                      )}
-                    </>
-                  }
-                />
-              );
-            })}
-          </div>
+                        )}
+                      </>
+                    }
+                  />
+                );
+              })}
+            </div>
+          </ListingViewerProvider>
         ) : (
           <EmptyState
             title={

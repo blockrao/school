@@ -29,6 +29,9 @@ import { publicEnv } from "@/lib/env";
 export const LOCALE_ROOTS: ReadonlySet<string> = new Set([
   "school",
   "schools",
+  // Internal dynamic variant of /schools/{state}/{city}; see proxy() below. Not a
+  // public URL: the page 404s unless the proxy's marker header is present.
+  "listing-q",
   "teacher",
   "teachers",
   "exams",
@@ -143,13 +146,29 @@ export async function proxy(request: NextRequest) {
     target.pathname = decision.to;
     return NextResponse.redirect(target, 301);
   }
-  const internalPath = decision.type === "rewrite" ? decision.to : null;
+  let internalPath = decision.type === "rewrite" ? decision.to : null;
+
+  // /schools/{state}/{city}?page=2 | ?board=… | ?compare=… → the dynamic listing
+  // route. The bare URL stays on the edge-cached page, which cannot read
+  // searchParams (that would make it uncacheable). Real rewritten requests carry
+  // a marker header; the internal page 404s without it.
+  const cityListing = internalPath?.match(/^\/en\/schools\/([^/]+)\/([^/]+)$/);
+  const listingQuery =
+    cityListing !== null && cityListing !== undefined && request.nextUrl.search !== "";
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete("x-listing-internal");
+  if (listingQuery && cityListing) {
+    internalPath = `/en/listing-q/${cityListing[1]}/${cityListing[2]}`;
+    requestHeaders.set("x-listing-internal", "1");
+  }
 
   const makeResponse = () => {
-    if (internalPath === null || internalPath === pathname) return NextResponse.next({ request });
+    if (internalPath === null || internalPath === pathname) {
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
     const url = request.nextUrl.clone();
     url.pathname = internalPath;
-    return NextResponse.rewrite(url, { request });
+    return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
   };
 
   const routePath = internalPath ?? pathname;

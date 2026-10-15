@@ -19,6 +19,7 @@ const FILES = [
   "src/app/[locale]/school/[slug]/page.tsx",
   "src/app/[locale]/_views/entity-page.tsx",
   "src/app/[locale]/_views/resolve.ts",
+  "src/app/[locale]/schools/[state]/[city]/page.tsx",
 ];
 const FORBIDDEN = [
   /from "next\/headers"/,
@@ -43,6 +44,23 @@ describe("school page stays statically cacheable", () => {
     const page = read("src/app/[locale]/school/[slug]/page.tsx");
     expect(page).toMatch(/export function generateStaticParams/);
     expect(page).toMatch(/export const revalidate = \d+/);
+  });
+
+  it("the public city page declares ISR and the listing components do not read the session", () => {
+    const page = read("src/app/[locale]/schools/[state]/[city]/page.tsx");
+    expect(page).toMatch(/export function generateStaticParams/);
+    expect(page).toMatch(/export const revalidate = \d+/);
+    for (const f of [
+      "src/app/[locale]/_views/place-page.tsx",
+      "src/app/[locale]/_views/city-route.tsx",
+    ]) {
+      const code = read(f)
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "");
+      expect(code).not.toMatch(
+        /getShortlistedSchoolIds|createSessionClient|getSessionUser|next\/headers/,
+      );
+    }
   });
 
   it("the public team reader uses the anonymous client", () => {

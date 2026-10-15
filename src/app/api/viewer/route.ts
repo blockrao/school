@@ -8,10 +8,16 @@ export const dynamic = "force-dynamic";
 const NO_STORE = { "Cache-Control": "private, no-store" };
 
 export async function GET(request: Request) {
-  const schoolId = new URL(request.url).searchParams.get("school");
+  const params = new URL(request.url).searchParams;
+  const schoolId = params.get("school");
+  const many = (params.get("schools") ?? "").split(",").filter(Boolean).slice(0, 100);
   const supabase = await createSessionClient();
   const user = await getSessionUser(supabase);
   if (!user) return NextResponse.json({ signedIn: false, saved: false }, { headers: NO_STORE });
+  if (many.length > 0) {
+    const savedIds = [...(await getShortlistedSchoolIds(many))];
+    return NextResponse.json({ signedIn: true, savedIds }, { headers: NO_STORE });
+  }
   const saved = schoolId ? (await getShortlistedSchoolIds([schoolId])).has(schoolId) : false;
   return NextResponse.json({ signedIn: true, saved }, { headers: NO_STORE });
 }
