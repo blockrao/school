@@ -56,8 +56,13 @@ export function saveCityCookie(slug: string) {
  * navigation itself succeeded.
  */
 export function useSelectedCity(areas: CityOption[]): CityOption | undefined {
-  const fallback = areas.find((area) => area.slug === "jaipur") ?? areas[0];
   const pathname = usePathname();
+  // A city page (/schools/{state}/{city}[/…]) always shows its own city, whatever
+  // the cookie or default says — a Gurugram page must not read "Jaipur".
+  const pathArea = pathname.startsWith("/schools/")
+    ? areas.find((a) => pathname.split("/").slice(2, 4).includes(a.slug))
+    : undefined;
+  const fallback = pathArea ?? areas.find((area) => area.slug === "jaipur") ?? areas[0];
   const [selectedSlug, setSelectedSlug] = useState<string | undefined>(fallback?.slug);
 
   useEffect(() => {
@@ -67,10 +72,11 @@ export function useSelectedCity(areas: CityOption[]): CityOption | undefined {
     // navigation within the same layout (see the doc comment above).
     void pathname;
     const cookieSlug = readCityCookie();
-    if (cookieSlug && areas.some((a) => a.slug === cookieSlug)) {
+    if (pathArea) setSelectedSlug(pathArea.slug);
+    else if (cookieSlug && areas.some((a) => a.slug === cookieSlug)) {
       setSelectedSlug(cookieSlug);
     }
-  }, [areas, pathname]);
+  }, [areas, pathname, pathArea]);
 
-  return areas.find((a) => a.slug === selectedSlug) ?? fallback;
+  return pathArea ?? areas.find((a) => a.slug === selectedSlug) ?? fallback;
 }
