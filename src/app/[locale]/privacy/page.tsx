@@ -11,6 +11,8 @@ export async function generateMetadata({
   const { locale } = await params;
   return {
     title: "Privacy Notice — SchoolOye",
+    // Placeholder text pending legal review: keep out of the index until final.
+    robots: { index: false, follow: true },
     alternates: {
       canonical: localeCanonical(locale, "/privacy"),
       languages: localeAlternates("/privacy"),

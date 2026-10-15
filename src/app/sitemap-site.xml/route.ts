@@ -104,8 +104,6 @@ export async function GET() {
     urlEntry(siteUrl, "/about"),
     urlEntry(siteUrl, "/methodology"),
     urlEntry(siteUrl, "/contact"),
-    urlEntry(siteUrl, "/privacy"),
-    urlEntry(siteUrl, "/terms"),
   ];
 
   return new Response(urlSetXml(entries), {

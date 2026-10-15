@@ -3460,3 +3460,11 @@ either way.
 - Paid admissions-help flow hidden behind `NEXT_PUBLIC_ADMISSIONS_HELP_ENABLED` (default off): route 404s, footer/sitemap/CTA links removed.
 - Schools are now emailed when a parent sends an enquiry or admission application (`src/lib/notify/`). No parent details in the email. Inactive until `RESEND_API_KEY` is set.
 - Migrations written, not applied: `20261015140000_revoke_anon_create_application_order.sql`, `20261015141000_remove_wrong_affiliation_modern_faridabad.sql`. The 29 Sep Gurugram UDISE board migration is marked superseded.
+
+## 15 Oct 2026 (later) — city listing ISR, header city, legal pages
+
+- `/schools/{state}/{city}` is now edge-cached (ISR). Requests with a query string (`?page=`, `?board=`, `?grade=`, `?admissions=`, `?compare=`) are rewritten by `src/proxy.ts` to the internal dynamic route `listing-q` (404 without the proxy's `x-listing-internal` header). Shared logic in `_views/city-route.tsx`.
+- Saved-school state on listing pages comes from the browser (`ListingViewerProvider` + `/api/viewer?schools=`).
+- Locality/town route gained `generateStaticParams` (ISR).
+- Header city follows the city page being viewed (`useSelectedCity`).
+- `/privacy` and `/terms` are `noindex` and out of the sitemap until the legal text is final — remove the `robots` line and restore the sitemap entries when it is.

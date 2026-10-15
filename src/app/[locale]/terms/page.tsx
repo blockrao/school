@@ -15,6 +15,8 @@ export async function generateMetadata({
   const { locale } = await params;
   return {
     title: "Terms of Service — SchoolOye",
+    // Placeholder text pending legal review: keep out of the index until final.
+    robots: { index: false, follow: true },
     alternates: {
       canonical: localeCanonical(locale, "/terms"),
       languages: localeAlternates("/terms"),

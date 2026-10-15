@@ -8,6 +8,10 @@ import { resolveLocality } from "../../../../_views/resolve";
 // See ../../page.tsx ([state]) for why this is here — same missing-revalidate bug.
 export const revalidate = 900;
 
+export function generateStaticParams() {
+  return [];
+}
+
 /** /schools/{state}/{city}/{locality} — discovery (D-121 §1); towns use the town template. */
 export async function generateMetadata({
   params,
