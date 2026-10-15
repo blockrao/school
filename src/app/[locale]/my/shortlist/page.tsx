@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { StatusPill } from "@/components/ui/badges";
-import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
+import { boardShortName } from "@/lib/board-slug";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardNamesBySchoolId,
@@ -77,7 +77,7 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
           {orderedSchools.map((school) => {
             const board = boardNames.get(school.id);
             const grades = formatGradeRange(school.min_class, school.max_class);
-            const meta = board ? `${board} · ${grades}` : grades;
+            const meta = board ? `${boardShortName(board)} · ${grades}` : grades;
 
             const closesOn = admissionDeadlines.get(school.id);
             const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
@@ -92,8 +92,6 @@ export default async function ShortlistPage({ params }: PageProps<"/[locale]/my/
                 now={now}
                 deadline={deadline}
                 status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                fee="Not yet published"
-                freshness={<NotYetPublished />}
                 actions={
                   <SaveButton schoolId={school.id} saved locale={locale} labelSaved="Remove" />
                 }

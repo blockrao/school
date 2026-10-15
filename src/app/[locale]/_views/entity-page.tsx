@@ -26,6 +26,7 @@ import { getDictionary } from "@/i18n/dictionary";
 import { t, tEnum } from "@/i18n/t";
 import { cleanAddressPart, cleanStreet } from "@/lib/address-clean";
 import { describeAdmissionUpdateChanges } from "@/lib/admission-updates";
+import { boardShortName } from "@/lib/board-slug";
 import { buildCoverage } from "@/lib/coverage";
 import {
   getAdmissionDeadlinesBySchoolId,
@@ -433,7 +434,7 @@ function LocalityPageBody({
             {schools.map((school) => {
               const board = boardNames.get(school.id);
               const grades = formatGradeRange(school.min_class, school.max_class);
-              const meta = board ? `${board} · ${grades}` : grades;
+              const meta = board ? `${boardShortName(board)} · ${grades}` : grades;
 
               const closesOn = admissionDeadlines.get(school.id);
               const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
@@ -448,8 +449,6 @@ function LocalityPageBody({
                   now={now}
                   deadline={deadline}
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                  fee="Not yet published"
-                  freshness={<NotYetPublished />}
                   actions={
                     <SaveButton
                       schoolId={school.id}

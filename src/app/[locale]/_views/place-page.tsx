@@ -5,7 +5,6 @@ import { CardSaveButton, ListingViewerProvider } from "@/components/school/listi
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
-import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug, boardShortName } from "@/lib/board-slug";
@@ -256,7 +255,7 @@ function TownPageBody({
               {schools.map((school) => {
                 const board = boardNames.get(school.id);
                 const grades = formatGradeRange(school.min_class, school.max_class);
-                const meta = board ? `${board} · ${grades}` : grades;
+                const meta = board ? `${boardShortName(board)} · ${grades}` : grades;
 
                 const closesOn = admissionDeadlines.get(school.id);
                 const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
@@ -271,8 +270,6 @@ function TownPageBody({
                     now={now}
                     deadline={deadline}
                     status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                    fee="Not yet published"
-                    freshness={<NotYetPublished />}
                     actions={<CardSaveButton schoolId={school.id} locale={locale} />}
                   />
                 );
@@ -788,7 +785,7 @@ export async function PlaceView({
               {schools.map((school) => {
                 const board = boardNames.get(school.id);
                 const grades = formatGradeRange(school.min_class, school.max_class);
-                const meta = board ? `${board} · ${grades}` : grades;
+                const meta = board ? `${boardShortName(board)} · ${grades}` : grades;
 
                 const closesOn = admissionDeadlines.get(school.id);
                 const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
@@ -808,8 +805,6 @@ export async function PlaceView({
                     now={now}
                     deadline={deadline}
                     status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                    fee="Not yet published"
-                    freshness={<NotYetPublished />}
                     actions={
                       <>
                         <CardSaveButton schoolId={school.id} locale={locale} span="col-span-1" />

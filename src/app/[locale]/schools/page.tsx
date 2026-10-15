@@ -5,7 +5,6 @@ import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
 import { CompareTray } from "@/components/ui/compare-tray";
 import { RemovableFilterChip } from "@/components/ui/filter-chip";
-import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
@@ -365,8 +364,6 @@ export default async function SchoolsPage({
                   now={now}
                   deadline={deadline}
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
-                  fee="Not yet published"
-                  freshness={<NotYetPublished />}
                   actions={
                     <>
                       <SaveButton
