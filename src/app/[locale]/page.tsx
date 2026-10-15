@@ -18,16 +18,13 @@ import { cityPath, examPath, localePrefix, schoolPath, schoolsRootPath } from "@
 import { cn } from "@/lib/utils";
 
 // The home page is the same for every visitor and edge-cached: a national
-// landing page with every city listed (the pilot city, Gurugram, first). It
+// landing page with every city listed (largest first). It
 // used to render one visitor-selected city from a cookie, which made it
 // uncacheable and showed crawlers "Jaipur" on a site that is mostly Haryana
 // and Delhi. The header city picker still remembers a visitor's choice
 // client-side. "Fees" stays out of the description: there is no fee data
 // pipeline, so promising it would be a false snippet.
 export const revalidate = 900;
-
-// Pilot city: listed first on the home page while the platform matures there.
-const PILOT_CITY_SLUG = "gurugram";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
@@ -146,11 +143,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const now = new Date();
 
   const allAreas = (await listPublicAreas()).filter((a) => a.school_count > 0);
-  allAreas.sort(
-    (x, y) =>
-      Number(y.slug === PILOT_CITY_SLUG) - Number(x.slug === PILOT_CITY_SLUG) ||
-      y.school_count - x.school_count,
-  );
+  allAreas.sort((x, y) => y.school_count - x.school_count);
   const cities = allAreas.slice(0, 12);
   const schoolCount = allAreas.reduce((n, a) => n + a.school_count, 0);
 
