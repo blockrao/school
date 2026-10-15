@@ -7,6 +7,7 @@ import type { Application } from "@/lib/db/application-help";
 import { listApplicationsForOrders, listMyChildren, listMyOrders } from "@/lib/db/application-help";
 import { listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
+import { ADMISSIONS_HELP_ENABLED } from "@/lib/features";
 import { formatCurrency } from "@/lib/format";
 import { localePrefix } from "@/lib/urls";
 import { approveApplication } from "./actions";
@@ -92,8 +93,8 @@ export default async function MyAdmissionsPage({ params }: PageProps<"/[locale]/
           <EmptyState
             title="No orders yet"
             description="Get help preparing and submitting school application forms."
-            nextStepLabel="Get help applying"
-            nextStepHref={`${localePrefix(locale)}/admissions/help`}
+            nextStepLabel={ADMISSIONS_HELP_ENABLED ? "Get help applying" : "Browse admissions"}
+            nextStepHref={`${localePrefix(locale)}${ADMISSIONS_HELP_ENABLED ? "/admissions/help" : "/admissions"}`}
           />
         </div>
       ) : (

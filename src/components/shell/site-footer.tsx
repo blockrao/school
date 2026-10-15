@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@/i18n/dictionary";
 import { t } from "@/i18n/t";
 import { listPublicAreas } from "@/lib/db/public-adapter";
+import { ADMISSIONS_HELP_ENABLED } from "@/lib/features";
 import { cityPath, localePrefix } from "@/lib/urls";
 
 /**
@@ -90,12 +91,14 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
             >
               {t(dict, "footer.whatsapp_alerts")}
             </Link>
-            <Link
-              href={`${localePrefix(locale)}/admissions/help`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
-            >
-              {t(dict, "footer.admission_help")}
-            </Link>
+            {ADMISSIONS_HELP_ENABLED && (
+              <Link
+                href={`${localePrefix(locale)}/admissions/help`}
+                className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
+              >
+                {t(dict, "footer.admission_help")}
+              </Link>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">

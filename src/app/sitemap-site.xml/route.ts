@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/public-adapter";
 import { listPublicTeachers } from "@/lib/db/teachers";
 import { siteUrl } from "@/lib/env.server";
+import { ADMISSIONS_HELP_ENABLED } from "@/lib/features";
 import { SITEMAP_CACHE_CONTROL, urlEntry, urlSetXml } from "@/lib/sitemap";
 import {
   admissionsRootPath,
@@ -79,7 +80,7 @@ export async function GET() {
     // individual cycles are rows on each school's own canonical page, not
     // separate URLs here.
     urlEntry(siteUrl, admissionsRootPath("en")),
-    urlEntry(siteUrl, "/admissions/help"),
+    ...(ADMISSIONS_HELP_ENABLED ? [urlEntry(siteUrl, "/admissions/help")] : []),
     urlEntry(siteUrl, eventsRootPath("en")),
     ...events.map((event) =>
       urlEntry(

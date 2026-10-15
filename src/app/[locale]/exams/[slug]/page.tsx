@@ -17,6 +17,7 @@ import { getPublicAdmissionsByExamSlug } from "@/lib/db/public-adapter";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
+import { ADMISSIONS_HELP_ENABLED } from "@/lib/features";
 import { formatCurrency } from "@/lib/format";
 import { examHasCompleteHindi } from "@/lib/i18n-completeness";
 import { istDateLabel } from "@/lib/ist-date";
@@ -1101,7 +1102,7 @@ export default async function ExamHubPage({ params }: PageProps<"/[locale]/exams
         <EligibilityChecker
           id={ELIGIBILITY_CHECKER_ID}
           cycles={eligibilityCycles}
-          helpHref={`${localePrefix(locale)}/admissions/help`}
+          helpHref={ADMISSIONS_HELP_ENABLED ? `${localePrefix(locale)}/admissions/help` : undefined}
           shareHref={`https://wa.me/?text=${encodeURIComponent(
             t(dict, "exam.eligibility_share_text", {
               name: examName,

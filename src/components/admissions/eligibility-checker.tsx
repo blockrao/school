@@ -33,7 +33,8 @@ export function EligibilityChecker({
   id?: string;
   cycles: EligibilityCycle[];
   /** Link to a real, existing help/concierge flow — never a placeholder. */
-  helpHref: string;
+  /** Omit to hide the paid-help links (feature flag off). */
+  helpHref?: string;
   /** WhatsApp share link for the page itself, reused as the "tell a friend" CTA. */
   shareHref: string;
   className?: string;
@@ -171,15 +172,19 @@ export function EligibilityChecker({
             >
               Share this result on WhatsApp ↗
             </a>
-            <span className="text-meta text-muted-ink">·</span>
-            <Link href={helpHref} className="font-semibold text-meta text-ruled-blue">
-              Get help with the application →
-            </Link>
+            {helpHref && (
+              <>
+                <span className="text-meta text-muted-ink">·</span>
+                <Link href={helpHref} className="font-semibold text-meta text-ruled-blue">
+                  Get help with the application →
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      {!hasAnswer && (
+      {!hasAnswer && helpHref && (
         <p className="mt-3 text-meta text-muted-ink">
           Not sure where to start?{" "}
           <Link href={helpHref} className="font-semibold text-ruled-blue">

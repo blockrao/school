@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
 import { EligibilityChecker } from "@/components/admissions/eligibility-checker";
 import { TrackedApplyLink } from "@/components/admissions/tracked-apply-link";
 import { ClaimStatusLink } from "@/components/claim-status-link";
@@ -48,6 +47,7 @@ import type { EligibilityCycle } from "@/lib/eligibility";
 import { siteUrl } from "@/lib/env.server";
 import { EVENT_STATUS_LABEL } from "@/lib/event-status";
 import { normalizeExternalUrl } from "@/lib/external-url";
+import { ADMISSIONS_HELP_ENABLED } from "@/lib/features";
 import { formatCurrency } from "@/lib/format";
 import { formatGradeRange } from "@/lib/grades";
 import { identityBand } from "@/lib/identity-band";
@@ -1513,7 +1513,7 @@ export async function SchoolView({
               {eligibilityCycles.length > 0 && (
                 <EligibilityChecker
                   cycles={eligibilityCycles}
-                  helpHref={lp(locale, "/admissions/help")}
+                  helpHref={ADMISSIONS_HELP_ENABLED ? lp(locale, "/admissions/help") : undefined}
                   shareHref={`https://wa.me/?text=${encodeURIComponent(
                     `Check if your child is eligible for ${name}: ${siteUrl}${canonicalPath}`,
                   )}`}
