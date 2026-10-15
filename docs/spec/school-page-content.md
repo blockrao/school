@@ -64,7 +64,7 @@ To add (additive, data repo, per project rules a human applies them):
 8. `school_documents` (kind [prospectus, affiliation_letter, mandatory_disclosure, fee_circular, calendar, admission_notice, policy], url or storage path, issued_on, valid_to, academic_year, source). The existing `documents` table is private child paperwork and must not be reused.
 9. `school_media`: add `caption`, `alt_text`, `source`, `taken_on` (it already has licence and approval).
 10. `schools` additions: `campus_area_sqm`, `boarding_type`, `medium_official`, `rte_participates`, `session_start_month`, `school_timings` (jsonb), `streams` (text[]), `languages` (text[]).
-11. `school_facilities.available` must be nullable three-state (yes / no / not confirmed); confirm and fix if it is a plain boolean.
+11. `school_facilities.available` is currently `boolean NOT NULL`, so "not confirmed" cannot be stored. Relax it to nullable (yes / no / not confirmed). Checked 15 Oct 2026.
 12. Public views (`api.public_*`) for each new table, publishing only accepted rows.
 13. Not a table: when ops or the school portal changes a published fact, call on-demand revalidation for that school's page, so a correction appears in seconds, not after the 15-minute cache window.
 
