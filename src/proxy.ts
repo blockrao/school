@@ -152,7 +152,7 @@ export async function proxy(request: NextRequest) {
   // route. The bare URL stays on the edge-cached page, which cannot read
   // searchParams (that would make it uncacheable). Real rewritten requests carry
   // a marker header; the internal page 404s without it.
-  const cityListing = internalPath?.match(/^\/en\/schools\/([^/]+)\/([^/]+)$/);
+  const cityListing = internalPath?.match(/^\/en\/schools\/([^/]+)\/([^/]+?)(?:\/all-schools)?$/);
   const listingQuery =
     cityListing !== null && cityListing !== undefined && request.nextUrl.search !== "";
   const requestHeaders = new Headers(request.headers);

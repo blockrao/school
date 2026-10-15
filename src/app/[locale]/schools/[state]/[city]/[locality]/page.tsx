@@ -19,6 +19,9 @@ export function generateStaticParams() {
   return [];
 }
 
+/** /schools/{state}/{city}/all-schools: the full, paginated, filterable listing (the city page itself is the hub). */
+const ALL_SCHOOLS = "all-schools";
+
 /**
  * /schools/{state}/{city}/{board}-schools: a board hub (CBSE, ICSE …), only when the
  * city has at least BOARD_HUB_MIN_SCHOOLS such schools. Null otherwise, so the
@@ -50,6 +53,12 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/schools/[state]/[city]/[locality]">): Promise<Metadata> {
   const { locale, state, city, locality } = await params;
+  if (locality === ALL_SCHOOLS) {
+    const area = await getPublicCityAreaBySlug(city);
+    if (!area || area.isCityState) return { title: "Not found" };
+    if (area.stateSlug !== state) return { title: "Redirecting" };
+    return placeMetadata(locale, { kind: "city", city: area }, {});
+  }
   const board = await resolveBoardHub(state, city, locality);
   if (board) {
     if (board.city.stateSlug !== state) return { title: "Redirecting" };
@@ -69,6 +78,16 @@ export default async function LocalityPage({
   params,
 }: PageProps<"/[locale]/schools/[state]/[city]/[locality]">) {
   const { locale, state, city, locality } = await params;
+  if (locality === ALL_SCHOOLS) {
+    const area = await getPublicCityAreaBySlug(city);
+    if (!area || area.isCityState) notFound();
+    if (area.stateSlug !== state) {
+      permanentRedirect(`${cityPath(locale, area.stateSlug, area.citySlug)}/${ALL_SCHOOLS}`);
+    }
+    return (
+      <PlaceView locale={locale} resolved={{ kind: "city", city: area }} rawSearchParams={{}} />
+    );
+  }
   const board = await resolveBoardHub(state, city, locality);
   if (board) {
     if (board.city.stateSlug !== state) {

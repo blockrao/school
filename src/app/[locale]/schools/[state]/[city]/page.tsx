@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CityRouteView, cityRouteMetadata } from "../../../_views/city-route";
 
-// Edge-cached (ISR) city page: the unfiltered, first-page listing. It never
+// Edge-cached (ISR) city page: the city hub (overview, browse blocks, a short school preview). It never
 // reads searchParams — requests carrying a query string (?page=, ?board=,
 // ?compare= …) are rewritten by src/proxy.ts to the dynamic listing route.
 export const revalidate = 900;
@@ -14,10 +14,12 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/schools/[state]/[city]">): Promise<Metadata> {
   const { locale, state, city } = await params;
-  return cityRouteMetadata(locale, state, city, {});
+  return cityRouteMetadata(locale, state, city, {}, "hub");
 }
 
 export default async function CityPage({ params }: PageProps<"/[locale]/schools/[state]/[city]">) {
   const { locale, state, city } = await params;
-  return <CityRouteView locale={locale} state={state} citySlug={city} searchParams={{}} />;
+  return (
+    <CityRouteView locale={locale} state={state} citySlug={city} searchParams={{}} view="hub" />
+  );
 }

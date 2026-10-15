@@ -35,3 +35,18 @@ Reference: Careers360's Gurgaon page (hub + `/schools/cbse-schools-in-gurgaon`, 
 1. Board and grade sub-hubs + sitemap rule + browse blocks on the hub (data exists today).
 2. Admissions/FAQ block, nearby cities.
 3. Locality, type and medium facets as the data arrives.
+
+## URL taxonomy (decided 15 Oct 2026)
+
+Pattern used by the directory leaders (Careers360 and Shiksha for schools, Practo/Justdial for local services, Zillow for homes): the city page is the hub, categories-in-city are separate indexable pages, and each entity has one flat URL.
+
+| Page | URL | Cached | Indexed |
+|---|---|---|---|
+| City hub | `/schools/{state}/{city}` | yes | yes |
+| Full listing | `/schools/{state}/{city}/all-schools` (+`?page=N`) | page 1 yes | yes, self-canonical per page |
+| Board hub | `/schools/{state}/{city}/{cbse|icse|…}-schools` | yes | yes, 5+ schools |
+| Locality | `/schools/{state}/{city}/{locality}` | yes | yes |
+| School | `/school/{slug}` | yes | yes |
+| Filters / compare | any of the above with `?board= ?grade= ?admissions= ?compare=` | no | noindex, canonical to base |
+
+Old `/schools/{state}/{city}?page=N` URLs keep working and canonicalise to `/all-schools`. Delhi (city-state) stays a single listing page for now.

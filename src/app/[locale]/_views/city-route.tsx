@@ -32,6 +32,7 @@ export async function cityRouteMetadata(
   state: string,
   citySlug: string,
   searchParams: SearchParams,
+  view: "hub" | "list" = "list",
 ): Promise<Metadata> {
   const loaded = await load(state, citySlug);
   if (!loaded) return { title: "Not found" };
@@ -41,7 +42,7 @@ export async function cityRouteMetadata(
       : localityMetadata(locale, loaded.locality.resolved);
   }
   if (loaded.wrongState) return { title: "Redirecting" };
-  return placeMetadata(locale, { kind: "city", city: loaded.city }, searchParams);
+  return placeMetadata(locale, { kind: "city", city: loaded.city }, searchParams, undefined, view);
 }
 
 export async function CityRouteView({
@@ -49,11 +50,13 @@ export async function CityRouteView({
   state,
   citySlug,
   searchParams,
+  view = "list",
 }: {
   locale: string;
   state: string;
   citySlug: string;
   searchParams: SearchParams;
+  view?: "hub" | "list";
 }) {
   const loaded = await load(state, citySlug);
   if (!loaded) notFound();
@@ -72,6 +75,7 @@ export async function CityRouteView({
       locale={locale}
       resolved={{ kind: "city", city: loaded.city }}
       rawSearchParams={searchParams}
+      view={view}
     />
   );
 }

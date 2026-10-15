@@ -8,7 +8,7 @@ import { CompareTray } from "@/components/ui/compare-tray";
 import { NotYetPublished } from "@/components/ui/freshness-line";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
-import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug } from "@/lib/board-slug";
+import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug, boardShortName } from "@/lib/board-slug";
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardCategoryLinksForDistrict,
@@ -40,6 +40,7 @@ import {
 import { CityHighlights } from "./city-highlights";
 
 const PAGE_SIZE = 24;
+const HUB_PREVIEW_SIZE = 6;
 
 function parseFilters(searchParams: { [key: string]: string | string[] | undefined }) {
   const boardParam = Array.isArray(searchParams.board) ? searchParams.board[0] : searchParams.board;
@@ -91,6 +92,7 @@ export async function resolvePlace(citySlug: string) {
 
 export type ResolvedPlace = NonNullable<Awaited<ReturnType<typeof resolvePlace>>>;
 type RawSearchParams = { [key: string]: string | string[] | undefined };
+export type PlaceView = "hub" | "list";
 export type BoardHub = { slug: string; boardId: number; name: string };
 
 /** Metadata for a discovery page (D-121 §7): filters noindex; pagination self-canonical. */
@@ -99,6 +101,7 @@ export function placeMetadata(
   resolved: ResolvedPlace,
   rawSearchParams: RawSearchParams,
   boardHub?: BoardHub & { count: number },
+  view: "hub" | "list" = "list",
 ): Metadata {
   if (resolved.kind === "town") {
     const { town } = resolved;
@@ -136,13 +139,23 @@ export function placeMetadata(
     };
   }
 
+  const isHubMeta = view === "hub" && !city.isCityState;
+  const listPath = city.isCityState ? path : `${path}/all-schools`;
+  if (isHubMeta) {
+    return {
+      title: `Schools in ${city.cityName}, ${city.stateName}: boards, areas and admissions — SchoolOye`,
+      description: `Browse ${city.schoolCount} schools in ${city.cityName}, ${city.stateName} by board, area and admission status. Each listing shows the school's board, grades, location and how to contact it.`,
+      alternates: { canonical: localeCanonical(locale, path) },
+    };
+  }
+
   return {
     title: `Schools in ${city.cityName}, ${city.stateName}${page > 1 ? ` (page ${page})` : ""}: boards, grades and admissions — SchoolOye`,
     description: `Browse ${city.schoolCount} schools in ${city.cityName}, ${city.stateName}. Each listing shows the school's board, grades, location and admission status.`,
     alternates: {
       canonical: localeCanonical(
         locale,
-        !filtersActive && page > 1 ? `${path}?page=${page}` : path,
+        !filtersActive && page > 1 ? `${listPath}?page=${page}` : listPath,
       ),
     },
     robots: filtersActive ? { index: false, follow: true } : undefined,
@@ -388,10 +401,13 @@ export async function PlaceView({
   resolved,
   rawSearchParams,
   boardHub,
+  view = "list",
 }: {
   locale: string;
   resolved: ResolvedPlace;
   rawSearchParams: RawSearchParams;
+  /** "hub" = the city's overview page (previews, browse blocks); "list" = the full filterable listing. */
+  view?: "hub" | "list";
   /** Set on /schools/{state}/{city}/{board}-schools: a path-based, indexable board listing. */
   boardHub?: BoardHub;
 }) {
@@ -429,6 +445,8 @@ export async function PlaceView({
 
   const { city } = resolved;
 
+  const isHub = view === "hub" && !boardHub && !city.isCityState;
+  const pageSize = isHub ? HUB_PREVIEW_SIZE : PAGE_SIZE;
   const parsed = parseFilters(rawSearchParams);
   const { maxClass, admissionsOpen, page, compareIds } = parsed;
   const boardId = boardHub?.boardId ?? parsed.boardId;
@@ -445,7 +463,7 @@ export async function PlaceView({
         maxClass,
         admissionsOpen,
         page,
-        pageSize: PAGE_SIZE,
+        pageSize,
       }),
       listDistrictFilterOptions(city.districtIds),
       listPublicLocalitiesByCity(city.citySlug),
@@ -463,9 +481,10 @@ export async function PlaceView({
     getAdmissionDeadlinesBySchoolId(schoolIds),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const cityBasePath = cityPath(locale, city.stateSlug, city.citySlug);
-  const basePath = boardHub ? `${cityBasePath}/${boardHub.slug}-schools` : cityBasePath;
+  const allSchoolsPath = city.isCityState ? cityBasePath : `${cityBasePath}/all-schools`;
+  const basePath = boardHub ? `${cityBasePath}/${boardHub.slug}-schools` : allSchoolsPath;
 
   function buildHref(
     overrides: Partial<{
@@ -543,7 +562,7 @@ export async function PlaceView({
           numberOfItems: total,
           itemListElement: schools.map((school, i) => ({
             "@type": "ListItem",
-            position: (page - 1) * PAGE_SIZE + i + 1,
+            position: (page - 1) * pageSize + i + 1,
             url: `${siteUrl}${schoolPath("en", school.slug)}`,
             name: school.name_en ?? undefined,
           })),
@@ -576,12 +595,64 @@ export async function PlaceView({
       )}
 
       <h1 className="font-display text-title-m md:text-title-d">
-        {boardHub ? `${boardHub.name} schools in ${city.cityName}` : `${city.cityName} schools`}
+        {boardHub
+          ? `${boardHub.name} schools in ${city.cityName}`
+          : isHub
+            ? `Schools in ${city.cityName}`
+            : city.isCityState
+              ? `${city.cityName} schools`
+              : `All schools in ${city.cityName}`}
       </h1>
       <p className="mt-1 text-body text-muted-ink">
         {total} school{total === 1 ? "" : "s"}
         {filtersActive ? " matching your filters" : ""}
       </p>
+
+      {isHub && (
+        <>
+          <p className="mt-3 max-w-(--container-read) text-body">
+            SchoolOye lists {total.toLocaleString("en-IN")} schools in {city.cityName},{" "}
+            {city.stateName}. Each school has one page with its board, grades, location and
+            admission status, and facts we have not confirmed are marked as such.
+          </p>
+          <div className="mt-5 grid gap-2.5 sm:grid-cols-2 md:grid-cols-4">
+            <Link
+              href={allSchoolsPath}
+              className="flex min-h-15 flex-col justify-center rounded-md border border-ruled-blue bg-copy-white px-3.5 py-3 hover:bg-pill-results-bg"
+            >
+              <span className="font-display text-card font-semibold text-ruled-blue">
+                All schools
+              </span>
+              <span className="text-body text-muted-ink">
+                {total.toLocaleString("en-IN")} in {city.cityName}
+              </span>
+            </Link>
+            <Link
+              href={`${allSchoolsPath}?admissions=open`}
+              rel="nofollow"
+              className="flex min-h-15 flex-col justify-center rounded-md border border-line-blue bg-copy-white px-3.5 py-3 hover:border-ruled-blue"
+            >
+              <span className="font-display text-card font-semibold text-ruled-blue">
+                Admissions open
+              </span>
+              <span className="text-body text-muted-ink">Schools with an open window</span>
+            </Link>
+            {filterOptions.maxClasses.slice(0, 2).map((code) => (
+              <Link
+                key={code}
+                href={`${allSchoolsPath}?grade=${code}`}
+                rel="nofollow"
+                className="flex min-h-15 flex-col justify-center rounded-md border border-line-blue bg-copy-white px-3.5 py-3 hover:border-ruled-blue"
+              >
+                <span className="font-display text-card font-semibold text-ruled-blue">
+                  {formatGradeRange(null, code)}
+                </span>
+                <span className="text-body text-muted-ink">Filter by grades</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       {localities.length > 0 && (
         <div className="mt-5">
@@ -601,7 +672,7 @@ export async function PlaceView({
         </div>
       )}
 
-      {!filtersActive && !boardHub && page === 1 && <CityHighlights locale={locale} city={city} />}
+      {isHub && <CityHighlights locale={locale} city={city} />}
 
       {categoryLinks.length > 0 && (
         <div className="mt-5">
@@ -613,11 +684,11 @@ export async function PlaceView({
                 href={
                   count >= BOARD_HUB_MIN_SCHOOLS && !city.isCityState
                     ? `${cityBasePath}/${boardHubSlug(board.name_en)}-schools`
-                    : `${cityBasePath}?board=${board.id}`
+                    : `${allSchoolsPath}?board=${board.id}`
                 }
                 className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
               >
-                {board.name_en} schools
+                {boardShortName(board.name_en)} schools
                 <span className="text-meta text-muted-ink">({count})</span>
               </Link>
             ))}
@@ -639,65 +710,76 @@ export async function PlaceView({
         </Link>
       </div>
 
-      <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
-        {compareIds.length > 0 && (
-          <input type="hidden" name="compare" value={compareIds.join(",")} />
-        )}
-        <label className="flex flex-col gap-1">
-          <span className="text-meta font-semibold text-muted-ink">Board</span>
-          <select
-            name="board"
-            defaultValue={boardId ?? ""}
-            className="h-11 min-w-36 rounded-md border border-line-blue bg-copy-white px-2.5 text-body"
+      {!isHub && (
+        <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
+          {compareIds.length > 0 && (
+            <input type="hidden" name="compare" value={compareIds.join(",")} />
+          )}
+          <label className="flex flex-col gap-1">
+            <span className="text-meta font-semibold text-muted-ink">Board</span>
+            <select
+              name="board"
+              defaultValue={boardId ?? ""}
+              className="h-11 min-w-36 rounded-md border border-line-blue bg-copy-white px-2.5 text-body"
+            >
+              <option value="">Any board</option>
+              {filterOptions.boards.map((board) => (
+                <option key={board.id} value={board.id}>
+                  {board.name_en}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="text-meta font-semibold text-muted-ink">Grades</span>
+            <select
+              name="grade"
+              defaultValue={maxClass ?? ""}
+              className="h-11 min-w-36 rounded-md border border-line-blue bg-copy-white px-2.5 text-body"
+            >
+              <option value="">Any grades</option>
+              {filterOptions.maxClasses.map((code) => (
+                <option key={code} value={code}>
+                  {formatGradeRange(null, code)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex h-11 items-center gap-2">
+            <input
+              type="checkbox"
+              name="admissions"
+              value="open"
+              defaultChecked={admissionsOpen}
+              className="h-5 w-5 rounded-sm border-line-blue"
+            />
+            <span className="text-body">Admissions open now</span>
+          </label>
+
+          <button
+            type="submit"
+            className="flex h-11 items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
           >
-            <option value="">Any board</option>
-            {filterOptions.boards.map((board) => (
-              <option key={board.id} value={board.id}>
-                {board.name_en}
-              </option>
-            ))}
-          </select>
-        </label>
+            Apply filters
+          </button>
+          {filtersActive && (
+            <Link href={basePath} className="flex h-11 items-center font-semibold text-ruled-blue">
+              Clear filters
+            </Link>
+          )}
+        </Form>
+      )}
 
-        <label className="flex flex-col gap-1">
-          <span className="text-meta font-semibold text-muted-ink">Grades</span>
-          <select
-            name="grade"
-            defaultValue={maxClass ?? ""}
-            className="h-11 min-w-36 rounded-md border border-line-blue bg-copy-white px-2.5 text-body"
-          >
-            <option value="">Any grades</option>
-            {filterOptions.maxClasses.map((code) => (
-              <option key={code} value={code}>
-                {formatGradeRange(null, code)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex h-11 items-center gap-2">
-          <input
-            type="checkbox"
-            name="admissions"
-            value="open"
-            defaultChecked={admissionsOpen}
-            className="h-5 w-5 rounded-sm border-line-blue"
-          />
-          <span className="text-body">Admissions open now</span>
-        </label>
-
-        <button
-          type="submit"
-          className="flex h-11 items-center rounded-md bg-ruled-blue px-5 font-semibold text-copy-white"
-        >
-          Apply filters
-        </button>
-        {filtersActive && (
-          <Link href={basePath} className="flex h-11 items-center font-semibold text-ruled-blue">
-            Clear filters
+      {isHub && (
+        <div className="mt-8 flex items-baseline justify-between gap-2 border-b border-rule pb-2">
+          <h2 className="font-display text-card md:text-section">Schools in {city.cityName}</h2>
+          <Link href={allSchoolsPath} className="font-semibold text-body text-ruled-blue">
+            See all {total.toLocaleString("en-IN")} schools →
           </Link>
-        )}
-      </Form>
+        </div>
+      )}
 
       <div className="mt-6">
         {schools.length > 0 ? (
@@ -782,7 +864,18 @@ export async function PlaceView({
         )}
       </div>
 
-      {total > PAGE_SIZE && (
+      {isHub && total > pageSize && (
+        <div className="mt-6 flex justify-center">
+          <Link
+            href={allSchoolsPath}
+            className="flex h-11 items-center rounded-md bg-ruled-blue px-6 font-semibold text-copy-white"
+          >
+            See all {total.toLocaleString("en-IN")} schools in {city.cityName}
+          </Link>
+        </div>
+      )}
+
+      {!isHub && total > PAGE_SIZE && (
         <nav
           aria-label="Pagination"
           className="mt-6 flex flex-wrap items-center justify-center gap-2"

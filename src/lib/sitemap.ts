@@ -176,6 +176,15 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
       cityPath("en", city.stateSlug, city.citySlug),
       maxVerifiedAt(publishedSchools),
     ),
+    ...(city.isCityState
+      ? []
+      : [
+          urlEntry(
+            siteUrl,
+            `${cityPath("en", city.stateSlug, city.citySlug)}/all-schools`,
+            maxVerifiedAt(publishedSchools),
+          ),
+        ]),
     // Board hubs (/…/cbse-schools): only with enough schools to be a real page.
     ...boardLinks
       .filter((link) => !city.isCityState && link.count >= BOARD_HUB_MIN_SCHOOLS)
