@@ -75,7 +75,16 @@ select
   -- Builds trust by making enrichment visible and auditable.
   s.enriched_at,
   s.enrichment_sources,
-  s.data_quality_flags
+  s.data_quality_flags,
+  -- School Profile Enrichment (16 Oct 2026): board, fees, ratings, facilities, school type
+  s.board_affiliation,
+  s.admission_url,
+  s.annual_fee,
+  s.rating,
+  s.review_count,
+  s.facilities,
+  s.school_type,
+  s.curriculum_details
 from schools s
 left join localities l on l.id = s.locality_id
 left join districts d on d.id = s.district_id
