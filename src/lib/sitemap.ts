@@ -9,7 +9,6 @@ import {
   type PublicSchool,
 } from "@/lib/db/public-adapter";
 import { siteUrl } from "@/lib/env.server";
-import { meetsIndexabilityGate } from "@/lib/school-metadata";
 import { cityPath, localityPath, schoolPath } from "@/lib/urls";
 
 /**
@@ -147,28 +146,16 @@ export async function buildCitySitemapResponse(citySlug: string): Promise<Respon
     return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
 
-  // "indexableSchools" here used to mean only "published" (api.public_schools'
-  // own filter) — every published school got its own <url> entry regardless
-  // of whether the page itself was actually indexable. Found 29 Sep 2026,
-  // same session as the entity page's meetsIndexabilityGate() (D-114): once
-  // that gate started emitting `noindex,follow` for sparse schools, this
-  // sitemap kept submitting those same URLs anyway — "Submitted URL marked
-  // 'noindex'" in Search Console, and a direct contradiction of this repo's
-  // own D-121 §10 rule ("only indexable URLs"). Fixed by re-running the same
-  // gate here (bulk board lookup, not a per-school join, so this stays cheap
-  // at thousands-of-schools-per-city scale) and only emitting a <url> entry
-  // for schools that actually pass it. City/locality aggregate pages are
-  // unaffected — they're indexable regardless of any one school's own gate.
+  // All published schools are now included in sitemap (16 Oct 2026).
+  // Previously, schools were filtered by meetsIndexabilityGate() to exclude sparse records.
+  // This filter was removed to expose all canonical school URLs to search engines immediately.
+  // City/locality aggregate pages remain unaffected.
   const [publishedSchools, localities, boardLinks] = await Promise.all([
     listAllPublishedSchoolsInDistrict(city.districtIds),
     listPublicLocalitiesByCity(citySlug, 3),
     getBoardCategoryLinksForDistrict(city.districtIds),
   ]);
-  const boardNames = await getBoardNamesBySchoolId(publishedSchools.map((s) => s.id));
-  const sitemapEligibleSchools = publishedSchools.filter((school) => {
-    const boardName = boardNames.get(school.id);
-    return meetsIndexabilityGate(school, boardName != null ? { board_name: boardName } : null);
-  });
+  const sitemapEligibleSchools = publishedSchools;
 
   const entries = [
     urlEntry(

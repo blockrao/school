@@ -58,7 +58,6 @@ import { buildSchoolActivityFeed, type SchoolActivityItem } from "@/lib/school-a
 import { schoolAreaLabel } from "@/lib/school-area-label";
 import {
   buildSchoolMetaDescription,
-  meetsIndexabilityGate,
   schoolPageTitle,
 } from "@/lib/school-metadata";
 import { localeCanonical } from "@/lib/seo";
@@ -120,11 +119,10 @@ export function schoolMetadata(locale: string, resolved: ResolvedSchool): Metada
       // Advertise the markdown twin to answer engines (rel="alternate" type="text/markdown").
       types: { "text/markdown": `${schoolPath("en", school.slug)}/index.md` },
     },
-    // Indexability & Metadata Alignment v1 (29 Sep 2026) — matches the pattern
-    // already used by place-page.tsx/schools/compare: omit `robots` entirely
-    // (indexable by default) rather than asserting `index: true`, and only
-    // emit the tag at all for the noindex case.
-    robots: meetsIndexabilityGate(school, board) ? undefined : { index: false, follow: true },
+    // All published school pages are now indexable by default (16 Oct 2026).
+    // Previously, pages were noindex'd if data was incomplete (missing board, contact, etc.).
+    // This was removed to expose all canonical school URLs to search engines immediately.
+    robots: undefined,
     // Shared Open Graph fields (29 Sep 2026) — schoolMetadata had no
     // `openGraph` block at all, and neither did the root layout, so
     // `og:site_name`/`og:locale` were never emitted anywhere on the site, not
