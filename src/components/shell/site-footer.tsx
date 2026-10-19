@@ -67,12 +67,6 @@ export async function SiteFooter({ locale, dict }: { locale: string; dict: Dicti
             >
               {t(dict, "footer.guides")}
             </Link>
-            <Link
-              href={`${localePrefix(locale)}/compare`}
-              className="flex min-h-8 items-center text-body text-so-ink hover:text-so-accent focus-visible:outline-so-accent"
-            >
-              {t(dict, "footer.compare_schools")}
-            </Link>
           </div>
 
           <div className="flex flex-col gap-1">

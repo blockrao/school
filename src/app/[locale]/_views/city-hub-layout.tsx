@@ -154,7 +154,7 @@ export function CityHubLayout({
             ))}
           </div>
           <p className="pt-2 text-meta text-muted-ink">
-            Can't find your area? <Link href={`${cityPath(locale, city.stateSlug, city.citySlug)}/all-schools`} className="font-semibold text-ruled-blue">See all schools →</Link>
+            Can't find your area? <Link href={`${cityPath(locale, city.stateSlug, city.citySlug)}?page=1`} className="font-semibold text-ruled-blue">See all schools →</Link>
           </p>
         </section>
       )}
@@ -169,7 +169,7 @@ export function CityHubLayout({
               Top-rated schools
             </h2>
             <Link
-              href={`${cityPath(locale, city.stateSlug, city.citySlug)}/all-schools`}
+              href={`${cityPath(locale, city.stateSlug, city.citySlug)}?page=1`}
               className="text-body font-semibold text-ruled-blue"
             >
               See all →
@@ -270,7 +270,7 @@ export function CityHubLayout({
           ============================================================================ */}
       <div className="flex gap-2">
         <Link
-          href={`${cityPath(locale, city.stateSlug, city.citySlug)}/all-schools`}
+          href={`${cityPath(locale, city.stateSlug, city.citySlug)}?page=1`}
           className="inline-flex h-12 items-center rounded-md bg-ruled-blue px-6 font-semibold text-white transition hover:bg-blue-700"
         >
           See all schools ({city.schoolCount})

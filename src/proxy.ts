@@ -40,7 +40,6 @@ export const LOCALE_ROOTS: ReadonlySet<string> = new Set([
   "jobs",
   "admissions",
   "alerts",
-  "compare",
   "guides",
   "tools",
   "privacy",

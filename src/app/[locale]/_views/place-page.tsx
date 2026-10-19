@@ -4,7 +4,6 @@ import Link from "next/link";
 import { CardSaveButton, ListingViewerProvider } from "@/components/school/listing-save";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
-import { CompareTray } from "@/components/ui/compare-tray";
 import { SchoolCard } from "@/components/ui/school-card";
 import { EmptyState } from "@/components/ui/state-message";
 import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug, boardShortName } from "@/lib/board-slug";
@@ -50,21 +49,13 @@ function parseFilters(searchParams: { [key: string]: string | string[] | undefin
     : searchParams.admissions;
   const pageParam = Array.isArray(searchParams.page) ? searchParams.page[0] : searchParams.page;
 
-  const compareParam = Array.isArray(searchParams.compare)
-    ? searchParams.compare[0]
-    : searchParams.compare;
-
   const boardId = boardParam ? Number(boardParam) : undefined;
   const maxClass = gradeParam || undefined;
   const admissionsOpen = admissionsParam === "open";
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
-  const compareIds = (compareParam || "").split(",").filter(Boolean);
 
-  return { boardId, maxClass, admissionsOpen, page, compareIds };
+  return { boardId, maxClass, admissionsOpen, page };
 }
-
-/** Matches schools/page.tsx's own compare tray — same URL-param pattern, same limit. */
-const COMPARE_LIMIT = 4;
 
 /**
  * Resolves the `[city]` segment four ways, in order: a real city, a town
@@ -140,7 +131,7 @@ export function placeMetadata(
   }
 
   const isHubMeta = view === "hub" && !city.isCityState;
-  const listPath = city.isCityState ? path : `${path}/all-schools`;
+  const listPath = path;
   if (isHubMeta) {
     return {
       title: `Schools in ${city.cityName}, ${city.stateName}: boards, areas and admissions — SchoolOye`,
@@ -446,7 +437,7 @@ export async function PlaceView({
   const isHub = view === "hub" && !boardHub && !city.isCityState;
   const pageSize = isHub ? HUB_PREVIEW_SIZE : PAGE_SIZE;
   const parsed = parseFilters(rawSearchParams);
-  const { maxClass, admissionsOpen, page, compareIds } = parsed;
+  const { maxClass, admissionsOpen, page } = parsed;
   const boardId = boardHub?.boardId ?? parsed.boardId;
   // A board hub is its own indexable page, not a filtered variant of the city page.
   const filtersActive =
@@ -550,15 +541,13 @@ export async function PlaceView({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const cityBasePath = cityPath(locale, city.stateSlug, city.citySlug);
-  const allSchoolsPath = city.isCityState ? cityBasePath : `${cityBasePath}/all-schools`;
-  const basePath = boardHub ? `${cityBasePath}/${boardHub.slug}-schools` : allSchoolsPath;
+  const basePath = boardHub ? `${cityBasePath}/${boardHub.slug}-schools` : cityBasePath;
 
   function buildHref(
     overrides: Partial<{
       board: string;
       grade: string;
       admissions: string;
-      compare: string;
       page: string;
     }>,
   ) {
@@ -566,7 +555,6 @@ export async function PlaceView({
       board: boardId !== undefined && !boardHub ? String(boardId) : "",
       grade: maxClass ?? "",
       admissions: admissionsOpen ? "open" : "",
-      compare: compareIds.join(","),
       page: "",
       ...overrides,
     };
@@ -580,13 +568,6 @@ export async function PlaceView({
 
   function pageHref(targetPage: number) {
     return buildHref({ page: targetPage > 1 ? String(targetPage) : "" });
-  }
-
-  function compareToggleHref(schoolId: string): string | null {
-    const inCompare = compareIds.includes(schoolId);
-    if (!inCompare && compareIds.length >= COMPARE_LIMIT) return null;
-    const next = inCompare ? compareIds.filter((id) => id !== schoolId) : [...compareIds, schoolId];
-    return buildHref({ compare: next.join(",") });
   }
 
   const alertsHref = `${localePrefix(locale)}/alerts${maxClass ? `?class=${maxClass}` : ""}`;
@@ -684,7 +665,7 @@ export async function PlaceView({
           </p>
           <div className="mt-5 grid gap-2.5 sm:grid-cols-2 md:grid-cols-4">
             <Link
-              href={allSchoolsPath}
+              href={basePath}
               className="flex min-h-15 flex-col justify-center rounded-md border border-ruled-blue bg-copy-white px-3.5 py-3 hover:bg-pill-results-bg"
             >
               <span className="font-display text-card font-semibold text-ruled-blue">
@@ -695,7 +676,7 @@ export async function PlaceView({
               </span>
             </Link>
             <Link
-              href={`${allSchoolsPath}?admissions=open`}
+              href={`${basePath}?admissions=open`}
               rel="nofollow"
               className="flex min-h-15 flex-col justify-center rounded-md border border-line-blue bg-copy-white px-3.5 py-3 hover:border-ruled-blue"
             >
@@ -707,7 +688,7 @@ export async function PlaceView({
             {filterOptions.maxClasses.slice(0, 2).map((code) => (
               <Link
                 key={code}
-                href={`${allSchoolsPath}?grade=${code}`}
+                href={`${basePath}?grade=${code}`}
                 rel="nofollow"
                 className="flex min-h-15 flex-col justify-center rounded-md border border-line-blue bg-copy-white px-3.5 py-3 hover:border-ruled-blue"
               >
@@ -751,7 +732,7 @@ export async function PlaceView({
                 href={
                   count >= BOARD_HUB_MIN_SCHOOLS && !city.isCityState
                     ? `${cityBasePath}/${boardHubSlug(board.name_en)}-schools`
-                    : `${allSchoolsPath}?board=${board.id}`
+                    : `${basePath}?board=${board.id}`
                 }
                 className="flex min-h-9 items-center gap-1.5 rounded-md border border-rule bg-copy-white px-3 text-body font-medium hover:border-ruled-blue"
               >
@@ -779,9 +760,6 @@ export async function PlaceView({
 
       {!isHub && (
         <Form action={basePath} className="mt-5 flex flex-wrap items-end gap-3">
-          {compareIds.length > 0 && (
-            <input type="hidden" name="compare" value={compareIds.join(",")} />
-          )}
           <label className="flex flex-col gap-1">
             <span className="text-meta font-semibold text-muted-ink">Board</span>
             <select
@@ -842,7 +820,7 @@ export async function PlaceView({
       {isHub && (
         <div className="mt-8 flex items-baseline justify-between gap-2 border-b border-rule pb-2">
           <h2 className="font-display text-card md:text-section">Schools in {city.cityName}</h2>
-          <Link href={allSchoolsPath} className="font-semibold text-body text-ruled-blue">
+          <Link href={basePath} className="font-semibold text-body text-ruled-blue">
             See all {total.toLocaleString("en-IN")} schools →
           </Link>
         </div>
@@ -861,9 +839,6 @@ export async function PlaceView({
                 const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
                 const pill = deadlineToPill(deadlineState(deadline, now));
 
-                const inCompare = compareIds.includes(school.id);
-                const toggleHref = compareToggleHref(school.id);
-
                 return (
                   <SchoolCard
                     key={school.id}
@@ -876,37 +851,7 @@ export async function PlaceView({
                     deadline={deadline}
                     status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
                     actions={
-                      <>
-                        <CardSaveButton schoolId={school.id} locale={locale} span="col-span-1" />
-                        {toggleHref ? (
-                          <Link
-                            href={toggleHref}
-                            rel="nofollow"
-                            prefetch={false}
-                            role="checkbox"
-                            aria-checked={inCompare}
-                            className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
-                              inCompare
-                                ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
-                                : "border-line-blue text-ink"
-                            }`}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
-                                inCompare ? "bg-ruled-blue" : "bg-copy-white"
-                              }`}
-                            >
-                              {inCompare && "✓"}
-                            </span>
-                            {inCompare ? "Remove" : "Compare"}
-                          </Link>
-                        ) : (
-                          <span className="flex h-11 items-center justify-center text-meta text-muted-ink">
-                            Limit (4)
-                          </span>
-                        )}
-                      </>
+                      <CardSaveButton schoolId={school.id} locale={locale} span="col-span-1" />
                     }
                   />
                 );
@@ -932,7 +877,7 @@ export async function PlaceView({
       {isHub && total > pageSize && (
         <div className="mt-6 flex justify-center">
           <Link
-            href={allSchoolsPath}
+            href={basePath}
             className="flex h-11 items-center rounded-md bg-ruled-blue px-6 font-semibold text-copy-white"
           >
             See all {total.toLocaleString("en-IN")} schools in {city.cityName}
@@ -983,16 +928,6 @@ export async function PlaceView({
         </nav>
       )}
 
-      {compareIds.length >= 2 && (
-        <div className="fixed inset-x-0 bottom-16 z-40 p-3 md:bottom-3 md:left-1/2 md:right-auto md:w-fit md:-translate-x-1/2">
-          <CompareTray
-            selectedCount={compareIds.length}
-            totalCount={COMPARE_LIMIT}
-            clearHref={buildHref({ compare: "" })}
-            compareHref={`${localePrefix(locale)}/compare?ids=${compareIds.join(",")}`}
-          />
-        </div>
-      )}
     </div>
   );
 }
