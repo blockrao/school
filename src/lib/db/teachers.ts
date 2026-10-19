@@ -66,7 +66,7 @@ export async function listPublicTeacherExperience(
 ): Promise<PublicTeacherExperience[]> {
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("public_teacher_experience")
+    .from("teacher_experience")
     .select("*")
     .eq("teacher_id", teacherId)
     .order("sort_order", { ascending: true })
@@ -79,7 +79,7 @@ export async function listPublicTeacherQualifications(
 ): Promise<PublicTeacherQualification[]> {
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("public_teacher_qualifications")
+    .from("teacher_qualifications")
     .select("*")
     .eq("teacher_id", teacherId);
   return (data ?? []).map((row) => publicTeacherQualificationContract.parse(row));
