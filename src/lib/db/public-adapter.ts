@@ -480,14 +480,32 @@ async function queryPublicSchoolsUncached(
  * HTTP status. Free-text searches are skipped: their key space is unbounded
  * (one entry per typed string) and they are rarely repeated.
  */
-const queryPublicSchoolsCached = unstable_cache(
-  queryPublicSchoolsUncached,
-  ["public-schools-list"],
-  {
-    revalidate: PUBLIC_READ_REVALIDATE_SECONDS,
-    tags: [PUBLIC_API_CACHE_TAG],
-  },
-);
+function queryPublicSchoolsCached(
+  districtIds: number[] | undefined,
+  filters: PublicSchoolFilters,
+): Promise<{ schools: PublicSchool[]; total: number }> {
+  // Generate cache key that includes districtIds to avoid serving wrong city's schools
+  const cacheKey = [
+    "public-schools-list",
+    districtIds ? districtIds.sort().join(",") : "all",
+    filters.boardId?.toString() ?? "any-board",
+    filters.maxClass ?? "any-class",
+    filters.admissionsOpen ? "admissions-open" : "any-admissions",
+    filters.page?.toString() ?? "1",
+    filters.pageSize?.toString() ?? "24",
+  ];
+
+  const cachedQuery = unstable_cache(
+    () => queryPublicSchoolsUncached(districtIds, filters),
+    cacheKey,
+    {
+      revalidate: PUBLIC_READ_REVALIDATE_SECONDS,
+      tags: [PUBLIC_API_CACHE_TAG],
+    },
+  );
+
+  return cachedQuery();
+}
 
 async function queryPublicSchools(
   districtIds: number[] | undefined,
