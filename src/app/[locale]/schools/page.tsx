@@ -3,6 +3,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { AreaMapLazy } from "@/components/ui/area-map-lazy";
 import { SponsoredWhyDisclosure, StatusPill } from "@/components/ui/badges";
+import { CompareTray } from "@/components/ui/compare-tray";
 import { RemovableFilterChip } from "@/components/ui/filter-chip";
 import { SaveButton } from "@/components/ui/save-button";
 import { SchoolCard } from "@/components/ui/school-card";
@@ -32,6 +33,7 @@ import { localePrefix, schoolPath } from "@/lib/urls";
 // wants that school, not just the subset of it that happens to be in whatever
 // city they last picked.
 const PAGE_SIZE = 24;
+const COMPARE_LIMIT = 4;
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -45,9 +47,10 @@ function parseParams(searchParams: { [key: string]: string | string[] | undefine
   const admissionsOpen = first(searchParams.admissions) === "open";
   const pageParam = first(searchParams.page);
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
+  const compareIds = (first(searchParams.compare) || "").split(",").filter(Boolean);
   const view = first(searchParams.view) === "map" ? "map" : "list";
 
-  return { q, boardId, maxClass, admissionsOpen, page, view };
+  return { q, boardId, maxClass, admissionsOpen, page, compareIds, view };
 }
 
 export async function generateMetadata({
@@ -81,7 +84,7 @@ export default async function SchoolsPage({
   const rawSearchParams = await searchParams;
   const now = new Date();
 
-  const { q, boardId, maxClass, admissionsOpen, page, view } =
+  const { q, boardId, maxClass, admissionsOpen, page, compareIds, view } =
     parseParams(rawSearchParams);
   const filtersActive = boardId !== undefined || maxClass !== undefined || admissionsOpen;
 
@@ -135,6 +138,7 @@ export default async function SchoolsPage({
       board: string;
       grade: string;
       admissions: string;
+      compare: string;
       page: string;
       view: string;
     }>,
@@ -144,6 +148,7 @@ export default async function SchoolsPage({
       board: boardId !== undefined ? String(boardId) : "",
       grade: maxClass ?? "",
       admissions: admissionsOpen ? "open" : "",
+      compare: compareIds.join(","),
       page: "",
       view: view === "map" ? "map" : "",
       ...overrides,
@@ -154,6 +159,13 @@ export default async function SchoolsPage({
     }
     const query = qs.toString();
     return query ? `${basePath}?${query}` : basePath;
+  }
+
+  function compareToggleHref(schoolId: string): string | null {
+    const inCompare = compareIds.includes(schoolId);
+    if (!inCompare && compareIds.length >= COMPARE_LIMIT) return null;
+    const next = inCompare ? compareIds.filter((id) => id !== schoolId) : [...compareIds, schoolId];
+    return buildHref({ compare: next.join(",") });
   }
 
   return (
@@ -179,6 +191,9 @@ export default async function SchoolsPage({
       )}
 
       <Form action={basePath} className="mt-4 flex flex-wrap items-end gap-3">
+        {compareIds.length > 0 && (
+          <input type="hidden" name="compare" value={compareIds.join(",")} />
+        )}
         <label className="flex min-w-48 flex-1 flex-col gap-1">
           <span className="text-meta font-semibold text-muted-ink">Search</span>
           <input
@@ -335,6 +350,9 @@ export default async function SchoolsPage({
               const deadline = { closesAt: closesOn ? new Date(closesOn) : null };
               const pill = deadlineToPill(deadlineState(deadline, now));
 
+              const inCompare = compareIds.includes(school.id);
+              const toggleHref = compareToggleHref(school.id);
+
               return (
                 <SchoolCard
                   key={school.id}
@@ -347,12 +365,40 @@ export default async function SchoolsPage({
                   deadline={deadline}
                   status={<StatusPill status={pill.status}>{pill.label}</StatusPill>}
                   actions={
-                    <SaveButton
-                      schoolId={school.id}
-                      saved={shortlistedIds.has(school.id)}
-                      locale={locale}
-                      span="col-span-1"
-                    />
+                    <>
+                      <SaveButton
+                        schoolId={school.id}
+                        saved={shortlistedIds.has(school.id)}
+                        locale={locale}
+                        span="col-span-1"
+                      />
+                      {toggleHref ? (
+                        <Link
+                          href={toggleHref}
+                          role="checkbox"
+                          aria-checked={inCompare}
+                          className={`flex h-11 items-center justify-center gap-2 rounded-md border font-semibold ${
+                            inCompare
+                              ? "border-ruled-blue bg-pill-results-bg text-ruled-blue"
+                              : "border-line-blue text-ink"
+                          }`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`flex h-4.5 w-4.5 items-center justify-center rounded-xs border-2 border-ruled-blue text-copy-white ${
+                              inCompare ? "bg-ruled-blue" : "bg-copy-white"
+                            }`}
+                          >
+                            {inCompare && "✓"}
+                          </span>
+                          {inCompare ? "Remove" : "Compare"}
+                        </Link>
+                      ) : (
+                        <span className="flex h-11 items-center justify-center text-meta text-muted-ink">
+                          Limit (4)
+                        </span>
+                      )}
+                    </>
                   }
                 />
               );
@@ -400,6 +446,16 @@ export default async function SchoolsPage({
         </nav>
       )}
 
+      {compareIds.length >= 2 && (
+        <div className="fixed inset-x-0 bottom-16 z-40 p-3 md:bottom-3 md:left-1/2 md:right-auto md:w-fit md:-translate-x-1/2">
+          <CompareTray
+            selectedCount={compareIds.length}
+            totalCount={COMPARE_LIMIT}
+            clearHref={buildHref({ compare: "" })}
+            compareHref={`${localePrefix(locale)}/compare?ids=${compareIds.join(",")}`}
+          />
+        </div>
+      )}
     </div>
   );
 }

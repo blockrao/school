@@ -279,6 +279,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               href: `${localePrefix(locale)}/tools/age-eligibility`,
             },
             {
+              title: "Compare schools",
+              description: "Fees, facilities and dates side by side",
+              href: `${localePrefix(locale)}/compare`,
+            },
+            {
               title: "Get WhatsApp alerts",
               description: "When forms open and before they close",
               href: `${localePrefix(locale)}/alerts`,
