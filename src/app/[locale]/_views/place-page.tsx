@@ -517,12 +517,16 @@ export async function PlaceView({
       }))
       .sort((a, b) => b.schoolCount - a.schoolCount);
 
-    // Localities: group schools by locality and count
+    // Localities: use the full-city school count from public_localities. Recounting
+    // `schools` here would only see the 6-school preview page and undercount.
     const localitiesBySlug = localities.reduce(
-      (acc, loc) => {
-        const count = schools.filter((s) => s.locality_id === loc.id).length;
-        return acc.set(loc.slug, { id: loc.id, name: loc.name, slug: loc.slug, schoolCount: count });
-      },
+      (acc, loc) =>
+        acc.set(loc.slug, {
+          id: loc.id,
+          name: loc.name,
+          slug: loc.slug,
+          schoolCount: loc.schoolCount,
+        }),
       new Map<string, { id: number; name: string; slug: string; schoolCount: number }>()
     );
 
