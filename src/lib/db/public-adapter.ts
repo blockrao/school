@@ -467,7 +467,7 @@ async function queryPublicSchoolsUncached(
   }
 
   const from = (page - 1) * pageSize;
-  const { data, count } = await query.range(from, from + pageSize - 1);
+  const { data, count } = await query.limit(pageSize).range(from, from + pageSize - 1);
 
   return {
     schools: (data ?? []).map((row) => publicSchoolContract.parse(row)),
