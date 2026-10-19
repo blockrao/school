@@ -1189,12 +1189,6 @@ export async function SchoolView({
             <ShareButton title={name} />
           </div>
           <div className="flex flex-wrap items-center gap-4 text-meta">
-            <Link
-              href={lp(locale, `/compare?ids=${school.id}`)}
-              className="font-semibold text-ruled-blue"
-            >
-              Compare
-            </Link>
             <ClaimStatusLink schoolId={school.id} isClaimed={school.claim === "claimed"} />
           </div>
         </div>

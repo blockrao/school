@@ -27,9 +27,8 @@ import {
  * registered in sitemap.xml's index alongside the city sitemaps.
  *
  * Deliberately excludes pages that are real routes but not indexable:
- * /schools and /compare both set `robots: { index: false }` themselves (the
- * city page is the indexable entry point for search; compare has nothing to
- * show without a query string), and /alerts requires sign-in and redirects
+ * /schools sets `robots: { index: false }` (the city page is the indexable
+ * entry point for search), and /alerts requires sign-in and redirects
  * anonymous visitors — none of those belong in a sitemap.
  */
 export async function GET() {
