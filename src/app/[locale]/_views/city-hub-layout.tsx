@@ -23,8 +23,8 @@ import {
   listPublicSchoolsByDistrict,
   getBoardNamesBySchoolId,
   getAdmissionDeadlinesBySchoolId,
-  boardShortName,
 } from "@/lib/db/public-adapter";
+import { boardShortName } from "@/lib/board-slug";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath, localityPath, cityPath } from "@/lib/urls";
