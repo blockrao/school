@@ -426,10 +426,14 @@ async function queryPublicSchoolsUncached(
   let query = api.from("schools").select("*", { count: "exact" });
 
   if (districtIds !== undefined) {
-    query = query.in(
-      "district_id",
-      districtIds.length > 0 ? districtIds : [-1], // no launched districts → no results, never "every district"
-    );
+    if (districtIds.length === 0) {
+      // no launched districts → no results, never "every district"
+      query = query.eq("district_id", -1);
+    } else if (districtIds.length === 1) {
+      query = query.eq("district_id", districtIds[0]);
+    } else {
+      query = query.in("district_id", districtIds);
+    }
   }
 
   if (searchQuery) {
