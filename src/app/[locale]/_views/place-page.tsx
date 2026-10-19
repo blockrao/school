@@ -10,6 +10,7 @@ import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug, boardShortName } from "@/lib/board
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardCategoryLinksForDistrict,
+  getCityGradeBandCounts,
   getBoardNamesBySchoolId,
   getPublicCityAreaBySlug,
   getPublicStateAreaBySlug,
@@ -532,17 +533,21 @@ export async function PlaceView({
 
     // Exact count of schools with open admissions across the whole city. The
     // `schools` array above is only one preview page, so counting it would undercount.
-    const { total: openAdmissionsCount } = await listPublicSchoolsByDistrict(city.districtIds, {
-      admissionsOpen: true,
-      page: 1,
-      pageSize: 1,
-    });
+    const [{ total: openAdmissionsCount }, gradeBands] = await Promise.all([
+      listPublicSchoolsByDistrict(city.districtIds, {
+        admissionsOpen: true,
+        page: 1,
+        pageSize: 1,
+      }),
+      getCityGradeBandCounts(city.districtIds),
+    ]);
 
     return (
       <CityHubLayout
         locale={locale}
         city={city}
         openAdmissionsCount={openAdmissionsCount}
+        gradeBands={gradeBands}
         featuredSchools={featuredSchools}
         activeAdmissions={activeAdmissions}
         localities={Array.from(localitiesBySlug.values()).sort((a, b) => b.schoolCount - a.schoolCount)}

@@ -72,8 +72,10 @@ export function buildCityIntro({
   areaCount,
   boardGroups,
   openAdmissionsCount,
+  gradeBands,
 }: {
   cityName: string;
+  gradeBands?: { endsByClass5: number; endsByClass8: number; endsByClass10: number; endsByClass12: number };
   schoolCount: number;
   areaCount: number;
   boardGroups: Array<{ boardName: string; schoolCount: number }>;
@@ -95,6 +97,16 @@ export function buildCityIntro({
     );
   }
 
+  if (gradeBands) {
+    const known =
+      gradeBands.endsByClass5 + gradeBands.endsByClass8 + gradeBands.endsByClass10 + gradeBands.endsByClass12;
+    if (known > 0) {
+      sentences.push(
+        `Of the ${known} with a published class range, ${gradeBands.endsByClass5} end at Class 5 or below, ${gradeBands.endsByClass8} at Class 8, ${gradeBands.endsByClass10} at Class 10 and ${gradeBands.endsByClass12} at Class 12.`
+      );
+    }
+  }
+
   if (openAdmissionsCount > 0) {
     sentences.push(
       `${openAdmissionsCount} ${openAdmissionsCount === 1 ? "school has" : "schools have"} admissions open right now.`
@@ -108,6 +120,7 @@ type CityHubLayoutProps = {
   locale: string;
   city: PublicCityArea;
   openAdmissionsCount: number;
+  gradeBands: { endsByClass5: number; endsByClass8: number; endsByClass10: number; endsByClass12: number };
   featuredSchools: Array<{
     id: string;
     name_en: string | null;
@@ -149,6 +162,7 @@ export function CityHubLayout({
   locale,
   city,
   openAdmissionsCount,
+  gradeBands,
   featuredSchools,
   activeAdmissions,
   localities,
@@ -161,6 +175,7 @@ export function CityHubLayout({
     areaCount: localities.length,
     boardGroups,
     openAdmissionsCount,
+    gradeBands,
   });
   return (
     <div className="mx-auto max-w-(--container-page) space-y-8 px-4 py-6 md:px-10 md:py-9">
@@ -218,7 +233,7 @@ export function CityHubLayout({
         <section className="space-y-3">
           <div className="flex items-baseline justify-between">
             <h2 className="font-display text-card md:text-section font-semibold">
-              Top-rated schools
+              Featured schools
             </h2>
             <Link
               href={`${cityPath(locale, city.stateSlug, city.citySlug)}?page=1`}

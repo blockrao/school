@@ -541,6 +541,35 @@ function districtList(scope: DistrictScope): number[] {
 }
 
 /** Published schools in a city (one or more districts), for city listings. Newest first. */
+/**
+ * Exact counts of published schools in a city by the highest class they teach,
+ * grouped into four bands. Uses max_class only: min_class is null for nearly every
+ * school, so a starting class is never inferred. Schools with no max_class are
+ * left out of every band.
+ */
+export async function getCityGradeBandCounts(
+  scope: DistrictScope,
+): Promise<{ endsByClass5: number; endsByClass8: number; endsByClass10: number; endsByClass12: number }> {
+  const districtIds = districtList(scope);
+  const api = createApiSchemaClient();
+  const countFor = async (codes: string[]) => {
+    if (districtIds.length === 0) return 0;
+    let query = api.from("public_schools").select("id", { count: "exact", head: true }).in("max_class", codes);
+    query = districtIds.length === 1
+      ? query.eq("district_id", districtIds[0])
+      : query.in("district_id", districtIds);
+    const { count } = await query;
+    return count ?? 0;
+  };
+  const [endsByClass5, endsByClass8, endsByClass10, endsByClass12] = await Promise.all([
+    countFor(["c1", "c2", "c3", "c4", "c5"]),
+    countFor(["c6", "c7", "c8"]),
+    countFor(["c9", "c10"]),
+    countFor(["c11", "c12"]),
+  ]);
+  return { endsByClass5, endsByClass8, endsByClass10, endsByClass12 };
+}
+
 export async function listPublicSchoolsByDistrict(
   scope: DistrictScope,
   filters: PublicSchoolFilters = {},
