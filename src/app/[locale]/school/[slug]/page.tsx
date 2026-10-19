@@ -4,11 +4,12 @@ import { schoolPath } from "@/lib/urls";
 import { SchoolView, schoolMetadata } from "../../_views/entity-page";
 import { resolveSchoolSlug } from "../../_views/resolve";
 
-// The page is cached and refreshed on this window, so a freshly-added admission
-// cycle, event, news post or job appears within 15 minutes. (It no longer reads
-// searchParams or cookies: per-visitor state loads in the browser, see
-// components/school/.)
-export const revalidate = 900;
+// The page is cached and refreshed on this window. Extended from 900s to 3600s
+// (19 Oct 2026) to reduce ISR revalidation spike load during cache misses.
+// New admissions/events/jobs appear within 1 hour instead of 15 minutes.
+// Selective invalidation via revalidateTag('school-details') on data changes
+// will be added next phase for faster updates without time-based expiry.
+export const revalidate = 3600;
 
 // No school is prerendered at build time (there are thousands, and they change),
 // but declaring the segment's params makes Next treat the route as ISR: each
