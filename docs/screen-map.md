@@ -26,8 +26,7 @@ minimal version from `src/components/ui` tokens, tracked in `docs/design-gaps.md
 | 4 | City List | `/[locale]/[city]/admissions` | ISR per city | pending | Indexable. Empty state designed |
 | 5 | Delhi Nursery Hub | `/[locale]/delhi/nursery-admission` | ISR | pending | High-intent seasonal SEO page |
 | 6 | Age Checker | `/[locale]/tools/age-eligibility` | static + client island | designed+built | Deliberate deviation from the design's fabricated verdict — see top-of-file comment. Hindi variant done |
-| 7 | Compare Schools | `/[locale]/compare?ids=` | dynamic, noindex | designed+built | |
-| 8 | Seats Available Now | `/[locale]/[city]/seats-available` + block on school page | ISR, short revalidate | pending | OpenSeat |
+| 7 | Seats Available Now | `/[locale]/[city]/seats-available` + block on school page | ISR, short revalidate | pending | OpenSeat |
 | 9 | WhatsApp Alerts | `/[locale]/alerts` | client flow | designed+built | Steps 5a/5b (phone entry, OTP verify) factored into the shared `/sign-in` gate instead of embedded here — see top-of-file comment. Consent recorded in `consents`, subscription in `alert_subscriptions`. Step 5e's per-toggle delivery timing has no backing column, not built. WhatsApp sending is backend, out of frontend scope |
 | — | Sign-in (phone OTP) | `/[locale]/sign-in` | dynamic, noindex | designed+built | Adapted from WhatsApp Alerts steps 5a/5b as a standalone, reusable gate for Alerts/Shortlist/Enquiry via `?next=` |
 | 10 | Application Help | `/[locale]/admissions/help` → `/my/admissions` | auth, dynamic | designed+built | Concierge + Document Vault. `/my/*` noindex. Payments behind a provider interface (mock/manual now, razorpay later) — see docs/ops/data-retention.md and the child-select addition in docs/design-gaps.md |

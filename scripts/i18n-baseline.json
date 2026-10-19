@@ -7,7 +7,6 @@
   "src/app/[locale]/admissions/help/package/page.tsx",
   "src/app/[locale]/admissions/page.tsx",
   "src/app/[locale]/alerts/page.tsx",
-  "src/app/[locale]/compare/page.tsx",
   "src/app/[locale]/events/[slug]/page.tsx",
   "src/app/[locale]/events/page.tsx",
   "src/app/[locale]/exams/[slug]/page.tsx",

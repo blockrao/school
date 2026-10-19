@@ -147,7 +147,7 @@ export async function proxy(request: NextRequest) {
   }
   let internalPath = decision.type === "rewrite" ? decision.to : null;
 
-  // /schools/{state}/{city}?page=2 | ?board=… | ?compare=… → the dynamic listing
+  // /schools/{state}/{city}?page=2 | ?board=… → the dynamic listing
   // route. The bare URL stays on the edge-cached page, which cannot read
   // searchParams (that would make it uncacheable). Real rewritten requests carry
   // a marker header; the internal page 404s without it.

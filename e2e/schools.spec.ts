@@ -27,18 +27,6 @@ test("meta robots is noindex (search results are dynamic, not the canonical list
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
 
-test("compare tray reads selection from the URL, not client state", async ({ page }) => {
-  await page.goto("/en/schools?compare=aaa,bbb");
-  await expect(page.getByText("2 of 4 selected")).toBeVisible();
-
-  const compareLink = page.getByRole("link", { name: "Compare", exact: true });
-  await expect(compareLink).toHaveAttribute("href", "/en/compare?ids=aaa,bbb");
-});
-
-test("compare tray is hidden with fewer than 2 selected", async ({ page }) => {
-  await page.goto("/en/schools?compare=aaa");
-  await expect(page.getByText("selected")).toBeHidden();
-});
 
 test("axe: search results page has no serious/critical violations", async ({ page }) => {
   await page.goto("/en/schools");

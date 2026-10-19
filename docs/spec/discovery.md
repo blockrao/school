@@ -58,11 +58,7 @@ first, then `[slug]-[school_code]`)
 - `listPublicSchoolsByDistrict`: `ilike '%q%'` on `name_en` only. No typo tolerance, no Hindi,
   no locality match.
 - The grade filter is `max_class = x`, which is wrong: it should mean "teaches class x".
-- List/Map toggle, compare tray (client island), `noindex`.
-
-**Compare** `src/app/[locale]/compare/page.tsx?ids=` (≤ 4, `noindex`)
-- Rows: board, grades, management, gender, medium, fee range (**hard-coded "Not yet
-  published"**), admission deadline, website.
+- List/Map toggle, `noindex`.
 
 **Shortlist** `src/app/[locale]/my/shortlist/*` with `SaveButton`
 - **Requires sign-in.** An anonymous Save redirects to `/sign-in`.
