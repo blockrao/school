@@ -104,31 +104,35 @@ export type PublicSchoolBundle = {
   facts: PublicSchoolFact[];
 };
 
-async function getPublicSchoolBundle(
-  column: "id" | "slug",
-  value: string | number,
-): Promise<PublicSchoolBundle | null> {
-  const api = createApiSchemaClient();
-  const { data: schoolRow, error } = await api
-    .from("public_schools")
-    .select("*")
-    .eq(column, value)
-    .maybeSingle();
-  if (error || !schoolRow) return null;
-  const school = publicSchoolContract.parse(schoolRow);
-  const { data: boardRow } = await api
-    .from("public_school_boards")
-    .select("*")
-    .eq("school_id", school.id)
-    .limit(1)
-    .maybeSingle();
-  return {
-    school,
-    board: boardRow ? publicSchoolBoardContract.parse(boardRow) : null,
-    identifiers: [],
-    facts: [],
-  };
-}
+const getPublicSchoolBundle = unstable_cache(
+  async (
+    column: "id" | "slug",
+    value: string | number,
+  ): Promise<PublicSchoolBundle | null> => {
+    const api = createApiSchemaClient();
+    const { data: schoolRow, error } = await api
+      .from("public_schools")
+      .select("*")
+      .eq(column, value)
+      .maybeSingle();
+    if (error || !schoolRow) return null;
+    const school = publicSchoolContract.parse(schoolRow);
+    const { data: boardRow } = await api
+      .from("public_school_boards")
+      .select("*")
+      .eq("school_id", school.id)
+      .limit(1)
+      .maybeSingle();
+    return {
+      school,
+      board: boardRow ? publicSchoolBoardContract.parse(boardRow) : null,
+      identifiers: [],
+      facts: [],
+    };
+  },
+  [`school_bundle`],
+  { revalidate: 3600, tags: [`schools`] }, // Revalidate every hour or when schools tag is invalidated
+);
 
 /** Overview page data for one school by its internal UUID. Null if not public. */
 export async function getPublicSchoolByIdSlug(id: string): Promise<PublicSchoolBundle | null> {
@@ -1000,22 +1004,26 @@ export async function getPublicCityByDistrictId(districtId: number): Promise<Pub
 }
 
 /** Batch lookup for multiple city IDs — replaces N+1 pattern in /my/page.tsx. */
-export async function listPublicCitiesById(cityIds: number[]): Promise<Map<number, PublicCity>> {
-  if (cityIds.length === 0) return new Map();
+export const listPublicCitiesById = unstable_cache(
+  async (cityIds: number[]): Promise<Map<number, PublicCity>> => {
+    if (cityIds.length === 0) return new Map();
 
-  const api = createApiSchemaClient();
-  const { data } = await api
-    .from("public_cities")
-    .select("id, name_en, slug, district_id")
-    .in("id", cityIds);
+    const api = createApiSchemaClient();
+    const { data } = await api
+      .from("public_cities")
+      .select("id, name_en, slug, district_id")
+      .in("id", cityIds);
 
-  const result = new Map<number, PublicCity>();
-  for (const row of data ?? []) {
-    const city = toPublicCity(publicCityContract.parse(row));
-    result.set(city.id, city);
-  }
-  return result;
-}
+    const result = new Map<number, PublicCity>();
+    for (const row of data ?? []) {
+      const city = toPublicCity(publicCityContract.parse(row));
+      result.set(city.id, city);
+    }
+    return result;
+  },
+  [`cities_batch`],
+  { revalidate: 86400, tags: [`cities`] }, // Cache for 24 hours, invalidate on city changes
+);
 
 /** City row by numeric id — used where a caller already has a city_id (e.g. an alert
  * subscription's own city_id) and needs its display name, without assuming which city
