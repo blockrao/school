@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 // and Delhi. The header city picker still remembers a visitor's choice
 // client-side. "Fees" stays out of the description: there is no fee data
 // pipeline, so promising it would be a false snippet.
-export const revalidate = 900;
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;

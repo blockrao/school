@@ -4,7 +4,7 @@ import { CityRouteView, cityRouteMetadata } from "../../../_views/city-route";
 // Edge-cached (ISR) city page: the city hub (overview, browse blocks, a short school preview). It never
 // reads searchParams — requests carrying a query string (?page=, ?board=,
 // ?compare= …) are rewritten by src/proxy.ts to the dynamic listing route.
-export const revalidate = 900;
+export const revalidate = 60;
 
 export function generateStaticParams() {
   return [];

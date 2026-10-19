@@ -10,7 +10,7 @@ import { PlaceView, placeMetadata, type ResolvedPlace } from "../../_views/place
 // indefinitely — reproduced live on /schools/rajasthan/jaipur showing a stale "103
 // schools" well after published count had dropped to 38. Same 900s window as the
 // other publish-gated listing pages.
-export const revalidate = 900;
+export const revalidate = 60;
 
 /**
  * /schools/{state} — the state's list of cities (D-121 §1), or, for a city-state
