@@ -15,7 +15,7 @@ export async function notifySchoolOfLead(schoolId: string, kind: LeadKind): Prom
     if (!apiKey) return;
     const api = createApiSchemaClient();
     const { data } = await api
-      .from("public_schools")
+      .from("schools")
       .select("name_en, email")
       .eq("id", schoolId)
       .maybeSingle();

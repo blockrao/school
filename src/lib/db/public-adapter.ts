@@ -111,7 +111,7 @@ const getPublicSchoolBundle = unstable_cache(
   ): Promise<PublicSchoolBundle | null> => {
     const api = createApiSchemaClient();
     const { data: schoolRow, error } = await api
-      .from("public_schools")
+      .from("schools")
       .select("*")
       .eq(column, value)
       .maybeSingle();
@@ -189,7 +189,7 @@ export async function getCitiesByDistrictIds(
   const uniqueIds = [...new Set(districtIds)];
   if (uniqueIds.length === 0) return new Map();
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_cities").select("*").in("district_id", uniqueIds);
+  const { data } = await api.from("cities").select("*").in("district_id", uniqueIds);
   const result = new Map<number, PublicCity>();
   for (const row of data ?? []) {
     const city = toPublicCity(publicCityContract.parse(row));
@@ -222,7 +222,7 @@ export type PublicState = { id: number; name_en: string; code: string };
 
 export async function getPublicStateById(id: number): Promise<PublicState | null> {
   const api = createApiSchemaClient();
-  const { data, error } = await api.from("public_states").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await api.from("states").select("*").eq("id", id).maybeSingle();
   return error || !data ? null : publicStateContract.parse(data);
 }
 
@@ -233,7 +233,7 @@ export async function getPublicStateById(id: number): Promise<PublicState | null
 export const getPublicStateBySlug = unstable_cache(
   async (slug: string): Promise<PublicState | null> => {
     const api = createApiSchemaClient();
-    const { data } = await api.from("public_states").select("*");
+    const { data } = await api.from("states").select("*");
     const states = (data ?? []).map((row) => publicStateContract.parse(row));
     return states.find((s) => slugify(s.name_en) === slug) ?? null;
   },
@@ -422,7 +422,7 @@ async function queryPublicSchoolsUncached(
   // schools.status = 'published' (010_public_schools.sql) with every column
   // shown as stored — no per-field source/provenance gating here anymore, so
   // this query doesn't need its own null checks on top of the view.
-  let query = api.from("public_schools").select("*", { count: "exact" });
+  let query = api.from("schools").select("*", { count: "exact" });
 
   if (districtIds !== undefined) {
     query = query.in(
@@ -565,7 +565,7 @@ export async function listLaunchedDistrictIds(): Promise<number[]> {
 export async function countRenderableSchoolsByDistrict(scope: DistrictScope): Promise<number> {
   const api = createApiSchemaClient();
   const { count } = await api
-    .from("public_schools")
+    .from("schools")
     .select("id", { count: "exact", head: true })
     .in("district_id", districtList(scope));
   return count ?? 0;
@@ -659,7 +659,7 @@ export async function listOpenAdmissionsByDistrict(
   const api = createApiSchemaClient();
 
   const { data: schools } = await api
-    .from("public_schools")
+    .from("schools")
     .select("id, slug, school_code, name_en")
     .in("district_id", districtList(scope));
 
@@ -1006,7 +1006,7 @@ function toPublicCity(row: {
 
 export async function getPublicCityBySlug(slug: string): Promise<PublicCity | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_cities").select("id, name_en, slug, district_id").eq("slug", slug).maybeSingle();
+  const { data } = await api.from("cities").select("id, name_en, slug, district_id").eq("slug", slug).maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 
@@ -1014,7 +1014,7 @@ export async function getPublicCityBySlug(slug: string): Promise<PublicCity | nu
 export async function getPublicCityByDistrictId(districtId: number): Promise<PublicCity | null> {
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("public_cities")
+    .from("cities")
     .select("id, name_en, slug, district_id")
     .eq("district_id", districtId)
     .maybeSingle();
@@ -1028,7 +1028,7 @@ export const listPublicCitiesById = unstable_cache(
 
     const api = createApiSchemaClient();
     const { data } = await api
-      .from("public_cities")
+      .from("cities")
       .select("id, name_en, slug, district_id")
       .in("id", cityIds);
 
@@ -1048,7 +1048,7 @@ export const listPublicCitiesById = unstable_cache(
  * that is. */
 export async function getPublicCityById(id: number): Promise<PublicCity | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_cities").select("*").eq("id", id).maybeSingle();
+  const { data } = await api.from("cities").select("*").eq("id", id).maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 
@@ -1125,7 +1125,7 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
 
   // Query 2: Get city (depends on locality.city_slug)
   const { data: cityRow } = await api
-    .from("public_cities")
+    .from("cities")
     .select("*")
     .eq("slug", locality.city_slug)
     .maybeSingle();
@@ -1253,7 +1253,7 @@ export async function listPublicLocalitiesByCity(
  */
 export async function listPublicSchoolsByLocality(localityId: number): Promise<PublicSchool[]> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_schools").select("*").eq("locality_id", localityId);
+  const { data } = await api.from("schools").select("*").eq("locality_id", localityId);
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
@@ -1271,7 +1271,7 @@ export async function listPublicSchoolsByLocality(localityId: number): Promise<P
 export async function listPublicSchoolsByCity(cityId: number, limit = 8): Promise<PublicSchool[]> {
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("public_schools")
+    .from("schools")
     .select("*")
     .eq("city_id", cityId)
     .order("name_en", { ascending: true })
@@ -1331,7 +1331,7 @@ export async function listPublicSchoolsByPincode(
   if (!school.pincode) return [];
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("public_schools")
+    .from("schools")
     .select("*")
     .eq("pincode", school.pincode)
     .neq("id", school.id)
@@ -1357,7 +1357,7 @@ export async function listPublicSchoolsNear(school: PublicSchool, n = 8): Promis
   const api = createApiSchemaClient();
   for (const delta of [0.055, 0.155]) {
     const { data } = await api
-      .from("public_schools")
+      .from("schools")
       .select("*")
       .gte("lat", school.lat - delta)
       .lte("lat", school.lat + delta)
@@ -1386,7 +1386,7 @@ export async function listPublicSchoolsNear(school: PublicSchool, n = 8): Promis
 export async function listPublicSchoolsByIds(ids: string[]): Promise<PublicSchool[]> {
   if (ids.length === 0) return [];
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_schools").select("*").in("id", ids);
+  const { data } = await api.from("schools").select("*").in("id", ids);
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
 
@@ -1403,7 +1403,7 @@ export async function searchPublicSchoolsByName(
   if (!query.trim()) return [];
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("public_schools")
+    .from("schools")
     .select("*")
     .ilike("name_en", `%${query.trim()}%`)
     .limit(limit);

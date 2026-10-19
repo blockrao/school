@@ -33,7 +33,7 @@ export async function notifyOpenEnquiry(
     if (!apiKey) return;
     const api = createApiSchemaClient();
     const { data } = await api
-      .from("public_schools")
+      .from("schools")
       .select("name_en, email, slug")
       .eq("id", schoolId)
       .maybeSingle();
