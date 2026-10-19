@@ -101,14 +101,15 @@ export function buildCityIntro({
     const known =
       gradeBands.endsByClass5 + gradeBands.endsByClass8 + gradeBands.endsByClass10 + gradeBands.endsByClass12;
     if (known > 0) {
-      const parts = [
-        [gradeBands.endsByClass5, "end at Class 5 or below"],
-        [gradeBands.endsByClass8, "end at Class 8"],
-        [gradeBands.endsByClass10, "end at Class 10"],
-        [gradeBands.endsByClass12, "end at Class 12"],
-      ]
-        .filter(([count]) => count > 0)
-        .map(([count, label]) => `${count} ${label}`);
+      const bands: Array<{ count: number; label: string }> = [
+        { count: gradeBands.endsByClass5, label: "end at Class 5 or below" },
+        { count: gradeBands.endsByClass8, label: "end at Class 8" },
+        { count: gradeBands.endsByClass10, label: "end at Class 10" },
+        { count: gradeBands.endsByClass12, label: "end at Class 12" },
+      ];
+      const parts = bands
+        .filter((band) => band.count > 0)
+        .map((band) => `${band.count} ${band.label}`);
       sentences.push(
         `Of the ${known} with a published class range, ${parts.join(", ")}.`
       );
