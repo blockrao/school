@@ -118,7 +118,7 @@ const getPublicSchoolBundle = unstable_cache(
     if (error || !schoolRow) return null;
     const school = publicSchoolContract.parse(schoolRow);
     const { data: boardRow } = await api
-      .from("school_boards")
+      .from("public_school_boards")
       .select("*")
       .eq("school_id", school.id)
       .limit(1)
@@ -456,7 +456,7 @@ async function queryPublicSchoolsUncached(
 
   if (boardId) {
     const { data: affiliated } = await api
-      .from("school_boards")
+      .from("public_school_boards")
       .select("*")
       .eq("board_id", boardId);
     const ids = (affiliated ?? []).map((a) => publicSchoolBoardContract.parse(a).school_id);
@@ -469,7 +469,7 @@ async function queryPublicSchoolsUncached(
     // once schools.status = 'published', and every admission_cycles row for
     // it is shown as stored, regardless of verification status.
     const { data: cycles } = await api
-      .from("school_admissions")
+      .from("public_school_admissions")
       .select("school_id")
       .in("status", ["open", "closing_soon"]);
     const ids = (cycles ?? []).map((c) => c.school_id as string);
@@ -606,7 +606,7 @@ export async function listDistrictFilterOptions(
   // and sent them all in a second query's URL — ~30 KB for the largest district,
   // and silently truncated at PostgREST's 1,000-row cap past that.
   const { data } = await api
-    .from("district_filter_options")
+    .from("public_district_filter_options")
     .select("*")
     .in("district_id", districtList(scope));
 
@@ -689,7 +689,7 @@ export async function listOpenAdmissionsByDistrict(
   if (schoolIds.length === 0) return [];
 
   const { data: cycles } = await api
-    .from("school_admissions")
+    .from("public_school_admissions")
     .select("school_id, status, closes_on")
     .in("school_id", schoolIds)
     .in("status", ["open", "closing_soon"])
@@ -719,7 +719,7 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
 
   const api = createApiSchemaClient();
   const { data: schoolBoardRows } = await api
-    .from("school_boards")
+    .from("public_school_boards")
     .select("school_id, board_name")
     .in("school_id", schoolIds);
   const schoolBoards = (schoolBoardRows ?? []).map((row) => publicSchoolBoardContract.parse(row));
@@ -749,7 +749,7 @@ export async function getAdmissionDeadlinesBySchoolId(
 
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("school_admissions")
+    .from("public_school_admissions")
     .select("school_id, closes_on")
     .in("school_id", schoolIds)
     .order("closes_on", { ascending: true });
@@ -770,7 +770,7 @@ export async function getPublicAdmissionsBySchoolId(
 ): Promise<PublicSchoolAdmission[]> {
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("school_admissions")
+    .from("public_school_admissions")
     .select("*")
     .eq("school_id", schoolId)
     .order("closes_on", { ascending: true, nullsFirst: false });
@@ -818,7 +818,7 @@ export async function listPublicAdmissionCycles(
   filters: PublicAdmissionCycleFilters = {},
 ): Promise<PublicSchoolAdmission[]> {
   const api = createApiSchemaClient();
-  let query = api.from("school_admissions").select("*");
+  let query = api.from("public_school_admissions").select("*");
   if (filters.citySlug) query = query.eq("city_slug", filters.citySlug);
   if (filters.classCode) query = query.eq("class_code", filters.classCode);
   const { data } = await query.order("closes_on", { ascending: true, nullsFirst: false });
@@ -1183,7 +1183,7 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
 
   // Query 1: Get locality (must run first to extract IDs for other queries)
   const { data: localityRow } = await api
-    .from("localities")
+    .from("public_localities")
     .select("*")
     .eq("slug", townSlug)
     .maybeSingle();
@@ -1285,7 +1285,7 @@ export async function getPublicLocalityBySlug(
 ): Promise<PublicLocality | null> {
   const api = createApiSchemaClient();
   const { data } = await api
-    .from("localities")
+    .from("public_localities")
     .select("*")
     .eq("city_slug", citySlug)
     .eq("slug", localitySlug)
@@ -1303,7 +1303,7 @@ export async function listPublicLocalitiesByCity(
   minSchools = 3,
 ): Promise<PublicLocality[]> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("localities").select("*").eq("city_slug", citySlug);
+  const { data } = await api.from("public_localities").select("*").eq("city_slug", citySlug);
   if (!data || data.length === 0) return [];
 
   return data
@@ -1537,7 +1537,7 @@ export async function listActiveFeaturedPlacementsByCity(
   opts?: { classCode?: string; placement?: string },
 ): Promise<PublicFeaturedPlacement[]> {
   const api = createApiSchemaClient();
-  let query = api.from("featured_placements").select("*").eq("city_slug", citySlug);
+  let query = api.from("public_featured_placements").select("*").eq("city_slug", citySlug);
   if (opts?.placement) query = query.eq("placement", opts.placement);
   const { data } = await query;
   const rows = (data ?? []).map((row) => publicFeaturedPlacementContract.parse(row));
