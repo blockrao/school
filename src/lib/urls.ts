@@ -170,7 +170,6 @@ export const SCHOOL_RESERVED_SLUGS = [
   "teachers",
   "new",
   "search",
-  "compare",
   "edit",
   "claim",
   "index",

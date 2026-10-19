@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { ApplicationStatusRow } from "@/components/ui/application-status-row";
 import { SeatPill, SessionTag, SponsoredTag, StatusPill } from "@/components/ui/badges";
 import { Button, TextLink } from "@/components/ui/button";
-import { CompareTable } from "@/components/ui/compare-table";
-import { CompareTray } from "@/components/ui/compare-tray";
 import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
 import { DeadlineMargin } from "@/components/ui/deadline-margin";
 import { DocumentChecklistItem } from "@/components/ui/document-checklist-item";
@@ -251,21 +249,6 @@ export default function ComponentsGalleryPage() {
         <MapPin variant="open">Open</MapPin>
         <MapPin variant="upcoming">Opens 1 Nov</MapPin>
         <MapPin variant="not-announced">Not announced</MapPin>
-      </Section>
-
-      <Section title="Compare tray and table">
-        <CompareTray
-          selectedCount={3}
-          totalCount={4}
-          clearHref="/compare?clear=1"
-          compareHref="/compare"
-        />
-        <CompareTable
-          rows={[
-            { label: "Registration fee", values: ["₹1,000", <NotYetPublished key="fee" />] },
-            { label: "Admission", values: ["Closing soon · 4 days", "Open · 15 days left"] },
-          ]}
-        />
       </Section>
 
       <Section title="Share sheet">
