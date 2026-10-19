@@ -720,7 +720,7 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
   const api = createApiSchemaClient();
   const { data: schoolBoardRows } = await api
     .from("public_school_boards")
-    .select("school_id, board_name")
+    .select("*")
     .in("school_id", schoolIds);
   const schoolBoards = (schoolBoardRows ?? []).map((row) => publicSchoolBoardContract.parse(row));
 
