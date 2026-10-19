@@ -526,10 +526,19 @@ export async function PlaceView({
       new Map<string, { id: number; name: string; slug: string; schoolCount: number }>()
     );
 
+    // Exact count of schools with open admissions across the whole city. The
+    // `schools` array above is only one preview page, so counting it would undercount.
+    const { total: openAdmissionsCount } = await listPublicSchoolsByDistrict(city.districtIds, {
+      admissionsOpen: true,
+      page: 1,
+      pageSize: 1,
+    });
+
     return (
       <CityHubLayout
         locale={locale}
         city={city}
+        openAdmissionsCount={openAdmissionsCount}
         featuredSchools={featuredSchools}
         activeAdmissions={activeAdmissions}
         localities={Array.from(localitiesBySlug.values()).sort((a, b) => b.schoolCount - a.schoolCount)}

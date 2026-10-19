@@ -61,9 +61,53 @@ function LocalityCard({
   );
 }
 
+/**
+ * Builds the hub intro from real counts only. Every number here must come from
+ * a full-city query (not a page slice), so the text never contradicts the lists
+ * on the page. Returns null when there is nothing honest to say.
+ */
+export function buildCityIntro({
+  cityName,
+  schoolCount,
+  areaCount,
+  boardGroups,
+  openAdmissionsCount,
+}: {
+  cityName: string;
+  schoolCount: number;
+  areaCount: number;
+  boardGroups: Array<{ boardName: string; schoolCount: number }>;
+  openAdmissionsCount: number;
+}): string | null {
+  if (schoolCount <= 0) return null;
+
+  const sentences: string[] = [];
+  const areaPart =
+    areaCount > 0 ? `, spread across ${areaCount} ${areaCount === 1 ? "area" : "areas"}` : "";
+  sentences.push(
+    `${cityName} has ${schoolCount} ${schoolCount === 1 ? "school" : "schools"} listed on SchoolOye${areaPart}.`
+  );
+
+  if (boardGroups.length > 0) {
+    const top = [...boardGroups].sort((a, b) => b.schoolCount - a.schoolCount)[0];
+    sentences.push(
+      `${boardGroups.length} ${boardGroups.length === 1 ? "board is" : "boards are"} represented, most commonly ${top.boardName} (${top.schoolCount} ${top.schoolCount === 1 ? "school" : "schools"}).`
+    );
+  }
+
+  if (openAdmissionsCount > 0) {
+    sentences.push(
+      `${openAdmissionsCount} ${openAdmissionsCount === 1 ? "school has" : "schools have"} admissions open right now.`
+    );
+  }
+
+  return sentences.join(" ");
+}
+
 type CityHubLayoutProps = {
   locale: string;
   city: PublicCityArea;
+  openAdmissionsCount: number;
   featuredSchools: Array<{
     id: string;
     name_en: string | null;
@@ -104,12 +148,20 @@ type CityHubLayoutProps = {
 export function CityHubLayout({
   locale,
   city,
+  openAdmissionsCount,
   featuredSchools,
   activeAdmissions,
   localities,
   boardGroups,
   now,
 }: CityHubLayoutProps) {
+  const intro = buildCityIntro({
+    cityName: city.cityName,
+    schoolCount: city.schoolCount,
+    areaCount: localities.length,
+    boardGroups,
+    openAdmissionsCount,
+  });
   return (
     <div className="mx-auto max-w-(--container-page) space-y-8 px-4 py-6 md:px-10 md:py-9">
       {/* ============================================================================
@@ -120,8 +172,8 @@ export function CityHubLayout({
           Schools in {city.cityName}
         </h1>
         <p className="text-body text-muted-ink">
-          {city.schoolCount} school{city.schoolCount === 1 ? "" : "s"} across {localities.length}{" "}
-          {localities.length === 1 ? "area" : "areas"}
+          {intro ??
+            `${city.schoolCount} school${city.schoolCount === 1 ? "" : "s"} across ${localities.length} ${localities.length === 1 ? "area" : "areas"}`}
         </p>
       </section>
 
