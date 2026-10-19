@@ -24,7 +24,7 @@ import {
   getBoardNamesBySchoolId,
   getAdmissionDeadlinesBySchoolId,
 } from "@/lib/db/public-adapter";
-import { boardShortName } from "@/lib/board-slug";
+import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug } from "@/lib/board-slug";
 import { deadlineState, deadlineToPill } from "@/lib/deadline";
 import { formatGradeRange } from "@/lib/grades";
 import { schoolPath, localityPath, cityPath } from "@/lib/urls";
@@ -175,9 +175,12 @@ export function CityHubLayout({
   featuredSchools,
   activeAdmissions,
   localities,
-  boardGroups,
+  boardGroups: allBoardGroups,
   now,
 }: CityHubLayoutProps) {
+  // Only boards with enough schools have a board hub page (see BOARD_HUB_MIN_SCHOOLS);
+  // linking any smaller board would lead to a 404.
+  const boardGroups = allBoardGroups.filter((b) => b.schoolCount >= BOARD_HUB_MIN_SCHOOLS);
   const intro = buildCityIntro({
     cityName: city.cityName,
     schoolCount: city.schoolCount,
@@ -327,7 +330,7 @@ export function CityHubLayout({
             {boardGroups.map((board) => (
               <Link
                 key={board.boardId}
-                href={`${cityPath(locale, city.stateSlug, city.citySlug)}/${boardShortName(board.boardName).toLowerCase()}-schools`}
+                href={`${cityPath(locale, city.stateSlug, city.citySlug)}/${boardHubSlug(board.boardName)}-schools`}
                 className="flex flex-col gap-2 rounded-md border border-rule bg-copy-white p-4 transition hover:border-ruled-blue hover:bg-sky-50"
               >
                 <h3 className="text-body font-semibold text-ink">{board.boardName}</h3>
