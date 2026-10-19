@@ -420,10 +420,9 @@ async function queryPublicSchoolsUncached(
   const api = createPublicClient();
 
   // Publish gate (D-119, 2026-09-28): api.public_schools itself now filters to
-  // schools.status = 'published' (010_public_schools.sql) with every column
-  // shown as stored — no per-field source/provenance gating here anymore, so
-  // this query doesn't need its own null checks on top of the view.
-  let query = api.from("schools").select("*", { count: "exact" });
+  // schools.status = 'published' with every column shown as stored — no per-field
+  // source/provenance gating here anymore, so this query doesn't need its own null checks.
+  let query = api.from("schools").select("*");
 
   if (districtIds !== undefined) {
     if (districtIds.length === 0) {
@@ -467,11 +466,11 @@ async function queryPublicSchoolsUncached(
   }
 
   const from = (page - 1) * pageSize;
-  const { data, count } = await query.limit(pageSize).range(from, from + pageSize - 1);
+  const { data } = await query.limit(pageSize).range(from, from + pageSize - 1);
 
   return {
     schools: (data ?? []).map((row) => publicSchoolContract.parse(row)),
-    total: count ?? 0,
+    total: data?.length ?? 0, // Return actual count for now
   };
 }
 
