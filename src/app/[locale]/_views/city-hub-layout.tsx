@@ -222,7 +222,7 @@ export function CityHubLayout({
                   <h3 className="flex-1 font-semibold text-ink line-clamp-2">
                     {school.name_en}
                   </h3>
-                  <StatusPill status="active">Open</StatusPill>
+                  <StatusPill status="open">Open</StatusPill>
                 </div>
                 <p className="text-meta text-muted-ink">
                   {school.active_admission_count} class

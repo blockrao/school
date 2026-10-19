@@ -512,7 +512,7 @@ export async function PlaceView({
     // Board groups: aggregate by board from categoryLinks
     const boardMap = new Map<number, { name: string; count: number }>();
     categoryLinks.forEach((link) => {
-      const existing = boardMap.get(link.board.id) || { name: link.board.name, count: 0 };
+      const existing = boardMap.get(link.board.id) || { name: link.board.name_en, count: 0 };
       existing.count += link.count;
       boardMap.set(link.board.id, existing);
     });
