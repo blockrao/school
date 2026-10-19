@@ -565,10 +565,17 @@ export async function listLaunchedDistrictIds(): Promise<number[]> {
  */
 export async function countRenderableSchoolsByDistrict(scope: DistrictScope): Promise<number> {
   const api = createPublicClient();
-  const { count } = await api
-    .from("schools")
-    .select("id", { count: "exact", head: true })
-    .in("district_id", districtList(scope));
+  const districtIds = districtList(scope);
+
+  let query = api.from("schools").select("id", { count: "exact", head: true });
+
+  if (districtIds.length === 1) {
+    query = query.eq("district_id", districtIds[0]);
+  } else {
+    query = query.in("district_id", districtIds);
+  }
+
+  const { count } = await query;
   return count ?? 0;
 }
 
