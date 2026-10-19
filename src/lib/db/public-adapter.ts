@@ -502,8 +502,9 @@ function queryPublicSchoolsCached(
   filters: PublicSchoolFilters,
 ): Promise<{ schools: PublicSchool[]; total: number }> {
   // Generate cache key that includes districtIds to avoid serving wrong city's schools
+  // "v2": cached entries from before the exact-count fix held total = page length.
   const cacheKey = [
-    "public-schools-list",
+    "public-schools-list-v2",
     districtIds ? districtIds.sort().join(",") : "all",
     filters.boardId?.toString() ?? "any-board",
     filters.maxClass ?? "any-class",
