@@ -276,8 +276,20 @@ export type PublicArea = {
 export const listPublicAreas = cache(async (): Promise<PublicArea[]> => {
   const api = createApiSchemaClient();
   const { data, error } = await api.from("public_areas").select("*");
-  if (error || !data) return [];
-  return data.map((row) => publicAreaContract.parse(row));
+  if (error) {
+    console.error("[listPublicAreas] Error fetching areas:", error);
+    return [];
+  }
+  if (!data) {
+    console.warn("[listPublicAreas] No data returned");
+    return [];
+  }
+  try {
+    return data.map((row) => publicAreaContract.parse(row));
+  } catch (e) {
+    console.error("[listPublicAreas] Contract validation failed:", e);
+    return [];
+  }
 });
 
 export async function getPublicAreaBySlug(slug: string): Promise<PublicArea | null> {
