@@ -4,18 +4,10 @@ import { schoolPath } from "@/lib/urls";
 import { SchoolView, schoolMetadata } from "../../_views/entity-page";
 import { resolveSchoolSlug } from "../../_views/resolve";
 
-// The page is cached and refreshed on this window. Extended from 900s to 3600s
-// (19 Oct 2026) to reduce ISR revalidation spike load during cache misses.
-// New admissions/events/jobs appear within 1 hour instead of 15 minutes.
-// Selective invalidation via revalidateTag('school-details') on data changes
-// will be added next phase for faster updates without time-based expiry.
-export const revalidate = 3600;
+// Dynamic page: render on-demand instead of trying to pre-render at build time.
+// This avoids build-time database access issues and lets pages render with live data.
+export const dynamic = "force-dynamic";
 
-// No school is prerendered at build time (there are thousands, and they change),
-// but declaring the segment's params makes Next treat the route as ISR: each
-// page is rendered on first request, then served from cache and refreshed in
-// the background every `revalidate` seconds. Without this the route is marked
-// dynamic and every crawler hit renders from scratch.
 export function generateStaticParams() {
   return [];
 }

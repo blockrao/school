@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { CityRouteView, cityRouteMetadata } from "../../../_views/city-route";
 
-// Edge-cached (ISR) city page: the city hub (overview, browse blocks, a short school preview). It never
-// reads searchParams — requests carrying a query string (?page=, ?board=,
-// ?compare= …) are rewritten by src/proxy.ts to the dynamic listing route.
-export const revalidate = 60;
+// Dynamic page: render on-demand instead of trying to pre-render at build time.
+// This avoids build-time database access issues and lets pages render with live data.
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return [];

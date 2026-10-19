@@ -12,8 +12,9 @@ import { LocalityView, localityMetadata } from "../../../../_views/entity-page";
 import { PlaceView, placeMetadata } from "../../../../_views/place-page";
 import { resolveLocality } from "../../../../_views/resolve";
 
-// See ../../page.tsx ([state]) for why this is here — same missing-revalidate bug.
-export const revalidate = 900;
+// Dynamic page: render on-demand instead of trying to pre-render at build time.
+// This avoids build-time database access issues and lets pages render with live data.
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return [];
