@@ -433,7 +433,7 @@ async function queryPublicSchoolsUncached(
   // Publish gate (D-119, 2026-09-28): api.public_schools itself now filters to
   // schools.status = 'published' with every column shown as stored — no per-field
   // source/provenance gating here anymore, so this query doesn't need its own null checks.
-  let query = api.from("public_schools").select("*");
+  let query = api.from("public_schools").select("*", { count: "exact" });
 
   if (districtIds !== undefined) {
     if (districtIds.length === 0) {
@@ -477,11 +477,13 @@ async function queryPublicSchoolsUncached(
   }
 
   const from = (page - 1) * pageSize;
-  const { data } = await query.limit(pageSize).range(from, from + pageSize - 1);
+  const { data, count } = await query.range(from, from + pageSize - 1);
 
   return {
     schools: (data ?? []).map((row) => publicSchoolContract.parse(row)),
-    total: data?.length ?? 0, // Return actual count for now
+    // Exact matching-row count, not this page's length: the page length is at
+    // most pageSize, so using it hid pagination and the hub's "See all" link.
+    total: count ?? data?.length ?? 0,
   };
 }
 
@@ -1354,40 +1356,20 @@ export async function listPublicSchoolsByCity(cityId: number, limit = 8): Promis
  * the fallback order.
  */
 export async function getSimilarSchools(school: PublicSchool): Promise<PublicSchool[]> {
-  // 19 Oct 2026: Single optimized query (get_similar_schools function)
-  // replaces sequential fallback. Locality > distance > pincode > city,
-  // all in one roundtrip via PostGIS ST_DWithin.
-  // Latency improvement: -200-400ms per entity page load.
-  const api = createApiSchemaClient();
-  const { data, error } = await api
-    .rpc("get_similar_schools", {
-      p_school_id: school.id,
-      p_locality_id: school.locality_id,
-      p_lat: school.lat,
-      p_lng: school.lng,
-      p_pincode: school.pincode,
-      p_city_id: school.city_id,
-      p_limit: 8,
-    })
-    .limit(8);
-
-  if (error) {
-    console.error("getSimilarSchools RPC error:", error);
-    // Fallback: empty list on error (safer than sequential queries)
-    return [];
+  // Sequential lookup, restored (19 Oct 2026). The previous single-call version
+  // used the get_similar_schools RPC, which is not deployed in the api schema
+  // on the live database, so every school page logged PGRST202 and showed no
+  // nearby schools, which also removed the internal links between school pages.
+  if (school.locality_id) {
+    const byLocality = await listPublicSchoolsByLocality(school.locality_id);
+    if (byLocality.length > 0) return byLocality;
   }
-
-  // Parse results: filter to at least 4 matches if available
-  const schools = (data ?? []).map((row: any) =>
-    publicSchoolContract.parse({
-      ...row,
-      // RPC returns only the fields we selected; backfill required contract fields
-      // that are null/missing. Client-side rendering handles gracefully.
-    }),
-  );
-
-  // Return at least the matches we have; prefer locality, then distance-sorted
-  return schools.length > 0 ? schools : [];
+  const byDistance = await listPublicSchoolsNear(school);
+  if (byDistance.length >= 4) return byDistance;
+  const byPincode = await listPublicSchoolsByPincode(school);
+  if (byPincode.length >= 4) return byPincode;
+  if (school.city_id) return listPublicSchoolsByCity(school.city_id);
+  return [];
 }
 
 /** Other published schools sharing this school's pincode, in a stable per-school order. */
