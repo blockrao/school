@@ -486,38 +486,45 @@ export async function PlaceView({
     // Prepare data for hub layout
     const now = new Date();
 
-    // Featured schools: top-rated (rating > 0)
-    const featuredSchools = schools
-      .filter((s) => s.rating !== null && s.rating > 0)
-      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-      .slice(0, 6);
+    // Featured schools: just show first 6 for now (no rating data yet)
+    const featuredSchools = schools.slice(0, 6).map((s) => ({
+      id: s.id,
+      name_en: s.name_en,
+      slug: s.slug,
+      min_class: s.min_class,
+      max_class: s.max_class,
+      rating: null,
+      review_count: null,
+    }));
 
     // Active admissions: schools with active_admission_count > 0
     const activeAdmissions = schools
-      .filter((s) => s.active_admission_count > 0)
-      .sort((a, b) => b.active_admission_count - a.active_admission_count)
-      .slice(0, 6);
+      .filter((s) => s.active_admission_count && s.active_admission_count > 0)
+      .sort((a, b) => (b.active_admission_count ?? 0) - (a.active_admission_count ?? 0))
+      .slice(0, 6)
+      .map((s) => ({
+        id: s.id,
+        name_en: s.name_en,
+        slug: s.slug,
+        active_admission_count: s.active_admission_count ?? 0,
+      }));
 
-    // Board groups: group schools by board and count
-    const boardGroups = Array.from(
-      categoryLinks.reduce(
-        (acc, link) => {
-          const existing = acc.get(link.boardId) || {
-            boardId: link.boardId,
-            boardName: link.boardName,
-            schoolCount: 0,
-            exampleSchools: []
-          };
-          existing.schoolCount += link.schoolCount;
-          if (existing.exampleSchools.length < 3) {
-            const schoolsForBoard = schools.filter((s) => boardNames.get(s.id) === link.boardName);
-            existing.exampleSchools.push(...schoolsForBoard.slice(0, 3 - existing.exampleSchools.length).map((s) => s.name_en ?? ""));
-          }
-          return acc.set(link.boardId, existing);
-        },
-        new Map<number, { boardId: number; boardName: string; schoolCount: number; exampleSchools: string[] }>()
-      ).values()
-    ).sort((a, b) => b.schoolCount - a.schoolCount);
+    // Board groups: aggregate by board from categoryLinks
+    const boardMap = new Map<number, { name: string; count: number }>();
+    categoryLinks.forEach((link) => {
+      const existing = boardMap.get(link.board.id) || { name: link.board.name, count: 0 };
+      existing.count += link.count;
+      boardMap.set(link.board.id, existing);
+    });
+
+    const boardGroups = Array.from(boardMap.entries())
+      .map(([boardId, board]) => ({
+        boardId,
+        boardName: board.name,
+        schoolCount: board.count,
+        exampleSchools: [],
+      }))
+      .sort((a, b) => b.schoolCount - a.schoolCount);
 
     // Localities: group schools by locality and count
     const localitiesBySlug = localities.reduce(

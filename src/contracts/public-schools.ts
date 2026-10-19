@@ -86,6 +86,12 @@ export const publicSchoolContract = z.object({
    * quality value, threw for every one of them — the second half of the 500s on
    * /school/[slug] and /schools alongside the enriched_at fix above (found 30 Sep 2026). */
   data_quality_flags: z.record(z.string(), z.number().nullable()).nullable().optional(),
+  /** Active admission cycles count — denormalized from admission_cycles table (Week 1 optimization). */
+  active_admission_count: z.number().nullable().optional(),
+  /** Average rating from school reviews (0-5 scale). */
+  rating: z.number().nullable().optional(),
+  /** Number of reviews for the school. */
+  review_count: z.number().nullable().optional(),
 });
 
 /** Mirrors db/views/015_public_school_redirects.sql — api.public_school_redirects. */
