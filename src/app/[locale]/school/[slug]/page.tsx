@@ -4,9 +4,10 @@ import { schoolPath } from "@/lib/urls";
 import { SchoolView, schoolMetadata } from "../../_views/entity-page";
 import { resolveSchoolSlug } from "../../_views/resolve";
 
-// Dynamic page: render on-demand instead of trying to pre-render at build time.
-// This avoids build-time database access issues and lets pages render with live data.
-export const dynamic = "force-dynamic";
+// Rendered on demand (no build-time prerender: generateStaticParams is empty) and
+// cached for 15 minutes, matching PUBLIC_READ_REVALIDATE_SECONDS. Previously
+// force-dynamic meant every crawler visit re-ran the database queries.
+export const revalidate = 900;
 
 export function generateStaticParams() {
   return [];
