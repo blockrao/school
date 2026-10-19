@@ -7,13 +7,13 @@ import {
   publicTeacherExperienceContract,
   publicTeacherQualificationContract,
 } from "@/contracts";
-import { createApiSchemaClient } from "@/lib/db/public";
+import { createPublicClient } from "@/lib/db/public";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 
 export async function listPublicTeachers(
   filters: { subject?: string } = {},
 ): Promise<PublicTeacher[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("teachers").select("*");
   if (filters.subject) query = query.eq("subject", filters.subject);
   const { data } = await query.order("full_name", { ascending: true });
@@ -26,7 +26,7 @@ export async function searchPublicTeachersByName(
   limit = 10,
 ): Promise<PublicTeacher[]> {
   if (!query.trim()) return [];
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("teachers")
     .select("*")
@@ -36,7 +36,7 @@ export async function searchPublicTeachersByName(
 }
 
 export async function listPublicTeacherSubjects(): Promise<string[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("teachers").select("subject");
   const subjects = new Set(
     (data ?? []).map((row) => row.subject as string | null).filter((s): s is string => !!s),
@@ -46,7 +46,7 @@ export async function listPublicTeacherSubjects(): Promise<string[]> {
 
 /** Canonical resolver for /teacher/{name}-{teacher_code} (D-125). */
 export async function getPublicTeacherByCode(code: number): Promise<PublicTeacher | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("teachers")
     .select("*")
@@ -56,7 +56,7 @@ export async function getPublicTeacherByCode(code: number): Promise<PublicTeache
 }
 
 export async function getPublicTeacherById(id: string): Promise<PublicTeacher | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("teachers").select("*").eq("id", id).maybeSingle();
   return data ? publicTeacherContract.parse(data) : null;
 }
@@ -64,7 +64,7 @@ export async function getPublicTeacherById(id: string): Promise<PublicTeacher | 
 export async function listPublicTeacherExperience(
   teacherId: string,
 ): Promise<PublicTeacherExperience[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("teacher_experience")
     .select("*")
@@ -77,7 +77,7 @@ export async function listPublicTeacherExperience(
 export async function listPublicTeacherQualifications(
   teacherId: string,
 ): Promise<PublicTeacherQualification[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("teacher_qualifications")
     .select("*")

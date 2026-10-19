@@ -53,6 +53,7 @@ import {
 import { CITY_COOKIE_NAME } from "@/lib/city-cookie";
 import {
   createApiSchemaClient,
+  createPublicClient,
   PUBLIC_API_CACHE_TAG,
   PUBLIC_READ_REVALIDATE_SECONDS,
 } from "@/lib/db/public";
@@ -109,7 +110,7 @@ const getPublicSchoolBundle = unstable_cache(
     column: "id" | "slug",
     value: string | number,
   ): Promise<PublicSchoolBundle | null> => {
-    const api = createApiSchemaClient();
+    const api = createPublicClient();
     const { data: schoolRow, error } = await api
       .from("schools")
       .select("*")
@@ -153,7 +154,7 @@ export async function getSchoolRedirectSlug(key: {
   code?: number;
   id?: string;
 }): Promise<string | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("school_redirects").select("*").limit(1);
   if (key.slug) query = query.eq("from_slug", key.slug);
   else if (key.code !== undefined) query = query.eq("from_code", key.code);
@@ -188,7 +189,7 @@ export async function getCitiesByDistrictIds(
 ): Promise<Map<number, PublicCity>> {
   const uniqueIds = [...new Set(districtIds)];
   if (uniqueIds.length === 0) return new Map();
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("cities").select("*").in("district_id", uniqueIds);
   const result = new Map<number, PublicCity>();
   for (const row of data ?? []) {
@@ -202,7 +203,7 @@ export type PublicDistrict = { id: number; name_en: string; slug: string; state_
 
 /** District row by slug — internal use only (launch-flag gating, legacy-URL redirect). District never appears in the UI. */
 export async function getPublicDistrictBySlug(slug: string): Promise<PublicDistrict | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data, error } = await api
     .from("districts")
     .select("*")
@@ -213,7 +214,7 @@ export async function getPublicDistrictBySlug(slug: string): Promise<PublicDistr
 
 /** District row by id — internal use only, same as getPublicDistrictBySlug. */
 export async function getPublicDistrictById(id: number): Promise<PublicDistrict | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data, error } = await api.from("districts").select("*").eq("id", id).maybeSingle();
   return error || !data ? null : publicDistrictContract.parse(data);
 }
@@ -221,7 +222,7 @@ export async function getPublicDistrictById(id: number): Promise<PublicDistrict 
 export type PublicState = { id: number; name_en: string; code: string };
 
 export async function getPublicStateById(id: number): Promise<PublicState | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data, error } = await api.from("states").select("*").eq("id", id).maybeSingle();
   return error || !data ? null : publicStateContract.parse(data);
 }
@@ -232,7 +233,7 @@ export async function getPublicStateById(id: number): Promise<PublicState | null
  */
 export const getPublicStateBySlug = unstable_cache(
   async (slug: string): Promise<PublicState | null> => {
-    const api = createApiSchemaClient();
+    const api = createPublicClient();
     const { data } = await api.from("states").select("*");
     const states = (data ?? []).map((row) => publicStateContract.parse(row));
     return states.find((s) => slugify(s.name_en) === slug) ?? null;
@@ -274,7 +275,7 @@ export type PublicArea = {
  * cities), so there's no correctness cost to reusing it across a request.
  */
 export const listPublicAreas = cache(async (): Promise<PublicArea[]> => {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data, error } = await api.from("areas").select("*");
   if (error || !data) return [];
   return data.map((row) => publicAreaContract.parse(row));
@@ -416,7 +417,7 @@ async function queryPublicSchoolsUncached(
     page = 1,
     pageSize = 24,
   } = filters;
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
 
   // Publish gate (D-119, 2026-09-28): api.public_schools itself now filters to
   // schools.status = 'published' (010_public_schools.sql) with every column
@@ -563,7 +564,7 @@ export async function listLaunchedDistrictIds(): Promise<number[]> {
  * is a plain count with the same district filter as listPublicSchoolsByDistrict.
  */
 export async function countRenderableSchoolsByDistrict(scope: DistrictScope): Promise<number> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { count } = await api
     .from("schools")
     .select("id", { count: "exact", head: true })
@@ -577,7 +578,7 @@ export type PublicDistrictFilterOptions = { boards: PublicBoard[]; maxClasses: s
 export async function listDistrictFilterOptions(
   scope: DistrictScope,
 ): Promise<PublicDistrictFilterOptions> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
 
   // One small query against api.public_district_filter_options (a few dozen rows
   // per district). The previous version fetched every school id in the district
@@ -604,7 +605,7 @@ export async function listDistrictFilterOptions(
 export type PublicBoard = { id: number; name_en: string };
 
 export async function listPublicBoards(): Promise<PublicBoard[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("boards").select("*");
   return (data ?? []).map((row) => publicBoardContract.parse(row));
 }
@@ -656,7 +657,7 @@ export async function listOpenAdmissionsByDistrict(
   scope: DistrictScope,
   limit = 3,
 ): Promise<PublicOpenAdmission[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
 
   const { data: schools } = await api
     .from("schools")
@@ -695,7 +696,7 @@ export async function listOpenAdmissionsByDistrict(
 export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<string, string>> {
   if (schoolIds.length === 0) return new Map();
 
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data: schoolBoardRows } = await api
     .from("school_boards")
     .select("school_id, board_name")
@@ -725,7 +726,7 @@ export async function getAdmissionDeadlinesBySchoolId(
 ): Promise<Map<string, string | null>> {
   if (schoolIds.length === 0) return new Map();
 
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_admissions")
     .select("school_id, closes_on")
@@ -746,7 +747,7 @@ export async function getAdmissionDeadlinesBySchoolId(
 export async function getPublicAdmissionsBySchoolId(
   schoolId: string,
 ): Promise<PublicSchoolAdmission[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_admissions")
     .select("*")
@@ -762,7 +763,7 @@ export async function getPublicAdmissionsBySchoolId(
  */
 export async function getPublicSchoolFeesBySchoolId(schoolId: string): Promise<PublicSchoolFee[]> {
   try {
-    const api = createApiSchemaClient();
+    const api = createPublicClient();
     const { data, error } = await api
       .from("school_fees")
       .select("*")
@@ -795,7 +796,7 @@ export type PublicAdmissionCycleFilters = {
 export async function listPublicAdmissionCycles(
   filters: PublicAdmissionCycleFilters = {},
 ): Promise<PublicSchoolAdmission[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("school_admissions").select("*");
   if (filters.citySlug) query = query.eq("city_slug", filters.citySlug);
   if (filters.classCode) query = query.eq("class_code", filters.classCode);
@@ -822,13 +823,13 @@ export async function listPublicAdmissionCycles(
 export async function getPublicFieldEvidenceBySchoolId(
   schoolId: string,
 ): Promise<PublicFieldEvidence[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("field_evidence").select("*").eq("school_id", schoolId);
   return (data ?? []).map((row) => publicFieldEvidenceContract.parse(row));
 }
 
 export async function getPublicSchoolNewsBySchoolId(schoolId: string): Promise<PublicSchoolNews[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_news")
     .select("*")
@@ -846,7 +847,7 @@ export async function getPublicSchoolNewsBySchoolId(schoolId: string): Promise<P
 export async function getPublicSchoolEventsBySchoolId(
   schoolId: string,
 ): Promise<PublicSchoolEvent[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_events")
     .select("*")
@@ -868,7 +869,7 @@ export async function getPublicSchoolEventsBySchoolId(
  * there for this reason), so parsing is unchanged.
  */
 export async function getPublicEventByCode(code: number): Promise<PublicEvent | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_events")
     .select("*")
@@ -881,7 +882,7 @@ export type PublicEventFilters = { cityId?: number; eventType?: string };
 
 /** Site-wide /events aggregator (db/views/103_public_events.sql) — approved listings only. */
 export async function listPublicEvents(filters: PublicEventFilters = {}): Promise<PublicEvent[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("events").select("*");
   if (filters.cityId) query = query.eq("city_id", filters.cityId);
   if (filters.eventType) query = query.eq("event_type", filters.eventType);
@@ -903,7 +904,7 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
  * (appended there for this reason), so parsing is unchanged.
  */
 export async function getPublicNewsByCode(code: number): Promise<PublicNews | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_news")
     .select("*")
@@ -916,7 +917,7 @@ export type PublicNewsFilters = { cityId?: number; tier?: string };
 
 /** Site-wide /news aggregator (db/views/101_public_news.sql) — approved listings only. */
 export async function listPublicNews(filters: PublicNewsFilters = {}): Promise<PublicNews[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("news").select("*");
   if (filters.cityId) query = query.eq("city_id", filters.cityId);
   if (filters.tier) query = query.eq("tier", filters.tier);
@@ -931,7 +932,7 @@ export async function listPublicNews(filters: PublicNewsFilters = {}): Promise<P
  * ops gate — see the migration's header comment).
  */
 export async function getPublicSchoolJobsBySchoolId(schoolId: string): Promise<PublicSchoolJob[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_jobs")
     .select("*")
@@ -951,7 +952,7 @@ export async function getPublicSchoolJobsBySchoolId(schoolId: string): Promise<P
  * expects (appended there for this reason), so parsing is unchanged.
  */
 export async function getPublicJobByCode(code: number): Promise<PublicJob | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_jobs")
     .select("*")
@@ -964,7 +965,7 @@ export type PublicJobFilters = { cityId?: number; employmentType?: string };
 
 /** Site-wide /jobs aggregator (db/views/105_public_jobs.sql) — approved listings only. */
 export async function listPublicJobs(filters: PublicJobFilters = {}): Promise<PublicJob[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("jobs").select("*");
   if (filters.cityId) query = query.eq("city_id", filters.cityId);
   if (filters.employmentType) query = query.eq("employment_type", filters.employmentType);
@@ -983,7 +984,7 @@ export async function getRecentAdmissionUpdatesBySchoolId(
   schoolId: string,
   limit = 5,
 ): Promise<PublicAdmissionUpdate[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("admission_updates")
     .select("*")
@@ -1005,14 +1006,14 @@ function toPublicCity(row: {
 }
 
 export async function getPublicCityBySlug(slug: string): Promise<PublicCity | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("cities").select("id, name_en, slug, district_id").eq("slug", slug).maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 
 /** The city inside a district — internal use only (legacy district-slug redirect resolution). District never appears in the UI. */
 export async function getPublicCityByDistrictId(districtId: number): Promise<PublicCity | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("cities")
     .select("id, name_en, slug, district_id")
@@ -1026,7 +1027,7 @@ export const listPublicCitiesById = unstable_cache(
   async (cityIds: number[]): Promise<Map<number, PublicCity>> => {
     if (cityIds.length === 0) return new Map();
 
-    const api = createApiSchemaClient();
+    const api = createPublicClient();
     const { data } = await api
       .from("cities")
       .select("id, name_en, slug, district_id")
@@ -1047,7 +1048,7 @@ export const listPublicCitiesById = unstable_cache(
  * subscription's own city_id) and needs its display name, without assuming which city
  * that is. */
 export async function getPublicCityById(id: number): Promise<PublicCity | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("cities").select("*").eq("id", id).maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
@@ -1112,7 +1113,7 @@ export type PublicTownArea = {
 export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicTownArea | null> {
   if (!TOWN_LOCALITY_SLUGS.has(townSlug)) return null;
 
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
 
   // Query 1: Get locality (must run first to extract IDs for other queries)
   const { data: localityRow } = await api
@@ -1216,7 +1217,7 @@ export async function getPublicLocalityBySlug(
   citySlug: string,
   localitySlug: string,
 ): Promise<PublicLocality | null> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("localities")
     .select("*")
@@ -1235,7 +1236,7 @@ export async function listPublicLocalitiesByCity(
   citySlug: string,
   minSchools = 3,
 ): Promise<PublicLocality[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("localities").select("*").eq("city_slug", citySlug);
   if (!data || data.length === 0) return [];
 
@@ -1252,7 +1253,7 @@ export async function listPublicLocalitiesByCity(
  * filter, not just a locality match.
  */
 export async function listPublicSchoolsByLocality(localityId: number): Promise<PublicSchool[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("schools").select("*").eq("locality_id", localityId);
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
@@ -1269,7 +1270,7 @@ export async function listPublicSchoolsByLocality(localityId: number): Promise<P
  * alone has 983 published schools).
  */
 export async function listPublicSchoolsByCity(cityId: number, limit = 8): Promise<PublicSchool[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("schools")
     .select("*")
@@ -1291,7 +1292,7 @@ export async function getSimilarSchools(school: PublicSchool): Promise<PublicSch
   // replaces sequential fallback. Locality > distance > pincode > city,
   // all in one roundtrip via PostGIS ST_DWithin.
   // Latency improvement: -200-400ms per entity page load.
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data, error } = await api
     .rpc("get_similar_schools", {
       p_school_id: school.id,
@@ -1329,7 +1330,7 @@ export async function listPublicSchoolsByPincode(
   n = 8,
 ): Promise<PublicSchool[]> {
   if (!school.pincode) return [];
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("schools")
     .select("*")
@@ -1354,7 +1355,7 @@ export async function listPublicSchoolsByPincode(
  */
 export async function listPublicSchoolsNear(school: PublicSchool, n = 8): Promise<PublicSchool[]> {
   if (school.lat == null || school.lng == null) return [];
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   for (const delta of [0.055, 0.155]) {
     const { data } = await api
       .from("schools")
@@ -1385,7 +1386,7 @@ export async function listPublicSchoolsNear(school: PublicSchool, n = 8): Promis
  */
 export async function listPublicSchoolsByIds(ids: string[]): Promise<PublicSchool[]> {
   if (ids.length === 0) return [];
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api.from("schools").select("*").in("id", ids);
   return (data ?? []).map((row) => publicSchoolContract.parse(row));
 }
@@ -1401,7 +1402,7 @@ export async function searchPublicSchoolsByName(
   limit = 10,
 ): Promise<PublicSchool[]> {
   if (!query.trim()) return [];
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("schools")
     .select("*")
@@ -1416,7 +1417,7 @@ export type PublicLocalityNeighbor = { slug: string; name: string; method: "sour
 export async function listLocalityNeighbors(
   localitySlug: string,
 ): Promise<PublicLocalityNeighbor[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("locality_neighbors")
     .select("*")
@@ -1439,7 +1440,7 @@ export type { PublicSchoolRanking };
  * drops out of trust or gets un-published simply disappears from here too.
  */
 export async function listSchoolRankings(citySlug: string): Promise<PublicSchoolRanking[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("school_rankings")
     .select("*")
@@ -1469,7 +1470,7 @@ export async function listActiveFeaturedPlacementsByCity(
   citySlug: string,
   opts?: { classCode?: string; placement?: string },
 ): Promise<PublicFeaturedPlacement[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   let query = api.from("featured_placements").select("*").eq("city_slug", citySlug);
   if (opts?.placement) query = query.eq("placement", opts.placement);
   const { data } = await query;
@@ -1501,7 +1502,7 @@ export type {
 export async function getPublicAdmissionsByExamSlug(
   examSlug: string,
 ): Promise<PublicExamAdmission[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   // Newest academic_year first ("2027-28" sorts correctly against "2026-27"
   // as plain text since both are the same YYYY-YY shape) so a freshly added
   // cycle — even one with no closes_on yet, e.g. status "not_announced" —
@@ -1537,7 +1538,7 @@ export type PublicExamSummary = {
  * exam is the one whose open/close dates the card shows.
  */
 export async function listPublicExams(): Promise<PublicExamSummary[]> {
-  const api = createApiSchemaClient();
+  const api = createPublicClient();
   const { data } = await api
     .from("exam_admissions")
     .select(
