@@ -1074,18 +1074,63 @@ export type PublicCityArea = {
  * this function. schoolCount = published schools in the city.
  */
 export async function getPublicCityAreaBySlug(citySlug: string): Promise<PublicCityArea | null> {
+  // Try loading from areas table first (if it exists)
   const area = await getPublicAreaBySlug(citySlug);
-  if (!area) return null;
+  if (area) {
+    return {
+      citySlug: area.slug,
+      cityName: titleCase(area.name),
+      districtId: area.district_id,
+      districtIds: area.district_ids,
+      isCityState: area.is_city_state,
+      stateSlug: area.state_slug,
+      stateName: area.state,
+      schoolCount: area.school_count,
+      isLaunch: area.is_launch,
+    };
+  }
+
+  // Fallback: load directly from cities table if areas table is missing/empty
+  const publicDb = createPublicClient();
+
+  const { data: cityData } = await publicDb
+    .from("cities")
+    .select("id, slug, name_en, district_id")
+    .eq("slug", citySlug)
+    .maybeSingle();
+
+  if (!cityData) return null;
+
+  // Load district info to get state
+  const { data: districtData } = await publicDb
+    .from("districts")
+    .select("id, state_id, slug")
+    .eq("id", cityData.district_id)
+    .maybeSingle();
+
+  if (!districtData) return null;
+
+  // Load state info
+  const { data: stateData } = await publicDb
+    .from("states")
+    .select("slug, name_en")
+    .eq("id", districtData.state_id)
+    .maybeSingle();
+
+  if (!stateData) return null;
+
+  const schoolCount = await countRenderableSchoolsByDistrict(cityData.district_id);
+
   return {
-    citySlug: area.slug,
-    cityName: titleCase(area.name),
-    districtId: area.district_id,
-    districtIds: area.district_ids,
-    isCityState: area.is_city_state,
-    stateSlug: area.state_slug,
-    stateName: area.state,
-    schoolCount: area.school_count,
-    isLaunch: area.is_launch,
+    citySlug: cityData.slug,
+    cityName: titleCase(cityData.name_en),
+    districtId: cityData.district_id,
+    districtIds: [cityData.district_id],
+    isCityState: false,
+    stateSlug: stateData.slug,
+    stateName: stateData.name_en,
+    schoolCount,
+    isLaunch: true,
   };
 }
 
