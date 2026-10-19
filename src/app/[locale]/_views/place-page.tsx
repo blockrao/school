@@ -37,6 +37,7 @@ import {
   statePath,
 } from "@/lib/urls";
 import { CityHighlights } from "./city-highlights";
+import { CityHubLayout } from "./city-hub-layout";
 
 const PAGE_SIZE = 24;
 const HUB_PREVIEW_SIZE = 6;
@@ -477,6 +478,68 @@ export async function PlaceView({
     getBoardNamesBySchoolId(schoolIds),
     getAdmissionDeadlinesBySchoolId(schoolIds),
   ]);
+
+  // ============================================================================
+  // CITY HUB VIEW: Return early with hub layout instead of full listing
+  // ============================================================================
+  if (isHub) {
+    // Prepare data for hub layout
+    const now = new Date();
+
+    // Featured schools: top-rated (rating > 0)
+    const featuredSchools = schools
+      .filter((s) => s.rating !== null && s.rating > 0)
+      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+      .slice(0, 6);
+
+    // Active admissions: schools with active_admission_count > 0
+    const activeAdmissions = schools
+      .filter((s) => s.active_admission_count > 0)
+      .sort((a, b) => b.active_admission_count - a.active_admission_count)
+      .slice(0, 6);
+
+    // Board groups: group schools by board and count
+    const boardGroups = Array.from(
+      categoryLinks.reduce(
+        (acc, link) => {
+          const existing = acc.get(link.boardId) || {
+            boardId: link.boardId,
+            boardName: link.boardName,
+            schoolCount: 0,
+            exampleSchools: []
+          };
+          existing.schoolCount += link.schoolCount;
+          if (existing.exampleSchools.length < 3) {
+            const schoolsForBoard = schools.filter((s) => boardNames.get(s.id) === link.boardName);
+            existing.exampleSchools.push(...schoolsForBoard.slice(0, 3 - existing.exampleSchools.length).map((s) => s.name_en ?? ""));
+          }
+          return acc.set(link.boardId, existing);
+        },
+        new Map<number, { boardId: number; boardName: string; schoolCount: number; exampleSchools: string[] }>()
+      ).values()
+    ).sort((a, b) => b.schoolCount - a.schoolCount);
+
+    // Localities: group schools by locality and count
+    const localitiesBySlug = localities.reduce(
+      (acc, loc) => {
+        const count = schools.filter((s) => s.locality_id === loc.id).length;
+        return acc.set(loc.slug, { id: loc.id, name: loc.name, slug: loc.slug, schoolCount: count });
+      },
+      new Map<string, { id: number; name: string; slug: string; schoolCount: number }>()
+    );
+
+    return (
+      <CityHubLayout
+        locale={locale}
+        city={city}
+        featuredSchools={featuredSchools}
+        activeAdmissions={activeAdmissions}
+        localities={Array.from(localitiesBySlug.values()).sort((a, b) => b.schoolCount - a.schoolCount)}
+        boardGroups={boardGroups}
+        now={now}
+      />
+    );
+  }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const cityBasePath = cityPath(locale, city.stateSlug, city.citySlug);
