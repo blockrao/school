@@ -101,8 +101,16 @@ export function buildCityIntro({
     const known =
       gradeBands.endsByClass5 + gradeBands.endsByClass8 + gradeBands.endsByClass10 + gradeBands.endsByClass12;
     if (known > 0) {
+      const parts = [
+        [gradeBands.endsByClass5, "end at Class 5 or below"],
+        [gradeBands.endsByClass8, "end at Class 8"],
+        [gradeBands.endsByClass10, "end at Class 10"],
+        [gradeBands.endsByClass12, "end at Class 12"],
+      ]
+        .filter(([count]) => count > 0)
+        .map(([count, label]) => `${count} ${label}`);
       sentences.push(
-        `Of the ${known} with a published class range, ${gradeBands.endsByClass5} end at Class 5 or below, ${gradeBands.endsByClass8} at Class 8, ${gradeBands.endsByClass10} at Class 10 and ${gradeBands.endsByClass12} at Class 12.`
+        `Of the ${known} with a published class range, ${parts.join(", ")}.`
       );
     }
   }
