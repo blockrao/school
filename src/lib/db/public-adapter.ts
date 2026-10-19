@@ -676,7 +676,7 @@ export async function getBoardNamesBySchoolId(schoolIds: string[]): Promise<Map<
   const api = createApiSchemaClient();
   const { data: schoolBoardRows } = await api
     .from("public_school_boards")
-    .select("*")
+    .select("school_id, board_name")
     .in("school_id", schoolIds);
   const schoolBoards = (schoolBoardRows ?? []).map((row) => publicSchoolBoardContract.parse(row));
 
@@ -984,7 +984,7 @@ function toPublicCity(row: {
 
 export async function getPublicCityBySlug(slug: string): Promise<PublicCity | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_cities").select("*").eq("slug", slug).maybeSingle();
+  const { data } = await api.from("public_cities").select("id, name_en, slug, district_id").eq("slug", slug).maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 
@@ -993,10 +993,28 @@ export async function getPublicCityByDistrictId(districtId: number): Promise<Pub
   const api = createApiSchemaClient();
   const { data } = await api
     .from("public_cities")
-    .select("*")
+    .select("id, name_en, slug, district_id")
     .eq("district_id", districtId)
     .maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
+}
+
+/** Batch lookup for multiple city IDs — replaces N+1 pattern in /my/page.tsx. */
+export async function listPublicCitiesById(cityIds: number[]): Promise<Map<number, PublicCity>> {
+  if (cityIds.length === 0) return new Map();
+
+  const api = createApiSchemaClient();
+  const { data } = await api
+    .from("public_cities")
+    .select("id, name_en, slug, district_id")
+    .in("id", cityIds);
+
+  const result = new Map<number, PublicCity>();
+  for (const row of data ?? []) {
+    const city = toPublicCity(publicCityContract.parse(row));
+    result.set(city.id, city);
+  }
+  return result;
 }
 
 /** City row by numeric id — used where a caller already has a city_id (e.g. an alert

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getPublicCityById, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
+import { listPublicCitiesById, listPublicSchoolsByIds } from "@/lib/db/public-adapter";
 import { createSessionClient, getSessionUser } from "@/lib/db/session";
 import { formatIndianPhone } from "@/lib/phone";
 import { localePrefix } from "@/lib/urls";
@@ -90,13 +90,13 @@ export default async function MyAccountPage({ params }: PageProps<"/[locale]/my"
   // in a different city than the one they're browsing now) — resolve each one's real
   // city rather than assuming the visitor's current city applies to every row.
   const distinctCityIds = [...new Set((subscriptions ?? []).map((s) => s.city_id))];
-  const [schools, cityRows] = await Promise.all([
+  const [schools, cityMap] = await Promise.all([
     allSchoolIds.length > 0 ? listPublicSchoolsByIds(allSchoolIds) : Promise.resolve([]),
-    Promise.all(distinctCityIds.map((id) => getPublicCityById(id))),
+    listPublicCitiesById(distinctCityIds),
   ]);
   const schoolNameById = new Map(schools.map((s) => [s.id, s.name_en ?? "Unnamed school"]));
   const cityNameById = new Map(
-    cityRows.filter((c): c is NonNullable<typeof c> => c !== null).map((c) => [c.id, c.name_en]),
+    Array.from(cityMap.values()).map((c) => [c.id, c.name_en]),
   );
 
   return (
