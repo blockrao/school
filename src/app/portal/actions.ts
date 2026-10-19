@@ -36,12 +36,14 @@ export async function updateSeatStatus(formData: FormData) {
   const supabase = await createSessionClient();
   const classLevels = await listClassLevels();
 
+  // Collect all rows to insert instead of looping and inserting one-by-one
+  const rowsToInsert: any[] = [];
   for (const level of classLevels) {
     const status = formData.get(`status_${level.code}`);
     if (!isSeatStatus(status)) continue;
     const rangeLabel = formData.get(`count_${level.code}`);
 
-    await supabase.from("seat_status").insert({
+    rowsToInsert.push({
       school_id: schoolId,
       academic_year: academicYear,
       class_code: level.code,
@@ -50,6 +52,11 @@ export async function updateSeatStatus(formData: FormData) {
       confidence: "reported",
       reported_via: "school_portal",
     });
+  }
+
+  // Batch insert all rows in a single query (instead of 12 separate INSERTs)
+  if (rowsToInsert.length > 0) {
+    await supabase.from("seat_status").insert(rowsToInsert);
   }
 
   redirect("/portal");

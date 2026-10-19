@@ -222,13 +222,20 @@ export async function getPublicStateById(id: number): Promise<PublicState | null
   return error || !data ? null : publicStateContract.parse(data);
 }
 
-/** No slug column on states — there are only a handful of rows, so slugify and match in JS. */
-export async function getPublicStateBySlug(slug: string): Promise<PublicState | null> {
-  const api = createApiSchemaClient();
-  const { data } = await api.from("public_states").select("*");
-  const states = (data ?? []).map((row) => publicStateContract.parse(row));
-  return states.find((s) => slugify(s.name_en) === slug) ?? null;
-}
+/**
+ * No slug column on states — there are only a handful of rows, so slugify and match in JS.
+ * Cached for 24 hours since states never change and are loaded on every page.
+ */
+export const getPublicStateBySlug = unstable_cache(
+  async (slug: string): Promise<PublicState | null> => {
+    const api = createApiSchemaClient();
+    const { data } = await api.from("public_states").select("*");
+    const states = (data ?? []).map((row) => publicStateContract.parse(row));
+    return states.find((s) => slugify(s.name_en) === slug) ?? null;
+  },
+  ["public_states_by_slug"],
+  { revalidate: 86400 }, // Cache for 24 hours
+);
 
 /**
  * Real Jaipur-district towns added by supabase/seeds/jaipur_school_assignment.sql
@@ -597,6 +604,9 @@ export async function getBoardCategoryLinksForDistrict(
   scope: DistrictScope,
 ): Promise<PublicBoardCategoryLink[]> {
   const { boards } = await listDistrictFilterOptions(scope);
+
+  // Parallelize board count queries instead of sequential
+  // Fetch counts for all boards in parallel using Promise.all()
   const links = await Promise.all(
     boards.map(async (board) => {
       const { total } = await listPublicSchoolsByDistrict(scope, {
@@ -606,6 +616,7 @@ export async function getBoardCategoryLinksForDistrict(
       return { board, count: total };
     }),
   );
+
   return links.filter((link) => link.count > 0).sort((a, b) => b.count - a.count);
 }
 
@@ -1059,6 +1070,7 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
 
   const api = createApiSchemaClient();
 
+  // Query 1: Get locality (must run first to extract IDs for other queries)
   const { data: localityRow } = await api
     .from("public_localities")
     .select("*")
@@ -1067,9 +1079,16 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
   if (!localityRow) return null;
   const locality = publicLocalityContract.parse(localityRow);
 
-  const city = await getPublicCityBySlug(locality.city_slug);
-  if (!city) return null;
+  // Query 2: Get city (depends on locality.city_slug)
+  const { data: cityRow } = await api
+    .from("public_cities")
+    .select("*")
+    .eq("slug", locality.city_slug)
+    .maybeSingle();
+  if (!cityRow) return null;
+  const city = toPublicCity(publicCityContract.parse(cityRow));
 
+  // Query 3: Get district (depends on city.districtId)
   const { data: districtRow } = await api
     .from("public_districts")
     .select("*")
@@ -1077,10 +1096,13 @@ export async function getPublicTownAreaBySlug(townSlug: string): Promise<PublicT
     .maybeSingle();
   if (!districtRow) return null;
   const district = publicDistrictContract.parse(districtRow);
-  const state = await getPublicStateById(district.state_id);
-  if (!state) return null;
 
-  const area = await getPublicAreaBySlug(district.slug);
+  // Queries 4 & 5: Parallelize state and area (both need district only, no inter-dependency)
+  const [state, area] = await Promise.all([
+    getPublicStateById(district.state_id),
+    getPublicAreaBySlug(district.slug),
+  ]);
+  if (!state) return null;
 
   return {
     townSlug: locality.slug,
@@ -1245,7 +1267,7 @@ export async function getSimilarSchools(school: PublicSchool): Promise<PublicSch
   }
 
   // Parse results: filter to at least 4 matches if available
-  const schools = (data ?? []).map((row) =>
+  const schools = (data ?? []).map((row: any) =>
     publicSchoolContract.parse({
       ...row,
       // RPC returns only the fields we selected; backfill required contract fields
