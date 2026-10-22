@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { CityRouteView, cityRouteMetadata } from "../../../_views/city-route";
 
-// Dynamic page: render on-demand instead of trying to pre-render at build time.
-// This avoids build-time database access issues and lets pages render with live data.
-export const dynamic = "force-dynamic";
+// Rendered on demand and cached for 15 minutes. Previously force-dynamic meant every
+// crawler hit re-ran the database queries.
+export const revalidate = 900;
 
 export function generateStaticParams() {
   return [];
