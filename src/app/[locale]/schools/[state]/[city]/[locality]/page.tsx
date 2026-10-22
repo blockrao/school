@@ -14,7 +14,7 @@ import { resolveLocality } from "../../../../_views/resolve";
 
 // Rendered on demand and cached for 15 minutes. Previously force-dynamic meant every
 // crawler hit re-ran the database queries.
-export const revalidate = 900;
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return [];
