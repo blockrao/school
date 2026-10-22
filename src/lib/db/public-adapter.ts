@@ -105,10 +105,7 @@ export type PublicSchoolBundle = {
 };
 
 const getPublicSchoolBundle = unstable_cache(
-  async (
-    column: "id" | "slug",
-    value: string | number,
-  ): Promise<PublicSchoolBundle | null> => {
+  async (column: "id" | "slug", value: string | number): Promise<PublicSchoolBundle | null> => {
     const api = createApiSchemaClient();
     const { data: schoolRow, error } = await api
       .from("public_schools")
@@ -547,17 +544,24 @@ function districtList(scope: DistrictScope): number[] {
  * school, so a starting class is never inferred. Schools with no max_class are
  * left out of every band.
  */
-export async function getCityGradeBandCounts(
-  scope: DistrictScope,
-): Promise<{ endsByClass5: number; endsByClass8: number; endsByClass10: number; endsByClass12: number }> {
+export async function getCityGradeBandCounts(scope: DistrictScope): Promise<{
+  endsByClass5: number;
+  endsByClass8: number;
+  endsByClass10: number;
+  endsByClass12: number;
+}> {
   const districtIds = districtList(scope);
   const api = createApiSchemaClient();
   const countFor = async (codes: string[]) => {
     if (districtIds.length === 0) return 0;
-    let query = api.from("public_schools").select("id", { count: "exact", head: true }).in("max_class", codes);
-    query = districtIds.length === 1
-      ? query.eq("district_id", districtIds[0])
-      : query.in("district_id", districtIds);
+    let query = api
+      .from("public_schools")
+      .select("id", { count: "exact", head: true })
+      .in("max_class", codes);
+    query =
+      districtIds.length === 1
+        ? query.eq("district_id", districtIds[0])
+        : query.in("district_id", districtIds);
     const { count } = await query;
     return count ?? 0;
   };
@@ -923,11 +927,7 @@ export async function getPublicSchoolEventsBySchoolId(
  */
 export async function getPublicEventByCode(code: number): Promise<PublicEvent | null> {
   const api = createApiSchemaClient();
-  const { data } = await api
-    .from("school_events")
-    .select("*")
-    .eq("event_code", code)
-    .maybeSingle();
+  const { data } = await api.from("school_events").select("*").eq("event_code", code).maybeSingle();
   return data ? publicEventContract.parse(data) : null;
 }
 
@@ -958,11 +958,7 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
  */
 export async function getPublicNewsByCode(code: number): Promise<PublicNews | null> {
   const api = createApiSchemaClient();
-  const { data } = await api
-    .from("school_news")
-    .select("*")
-    .eq("post_code", code)
-    .maybeSingle();
+  const { data } = await api.from("school_news").select("*").eq("post_code", code).maybeSingle();
   return data ? publicNewsContract.parse(data) : null;
 }
 
@@ -1006,11 +1002,7 @@ export async function getPublicSchoolJobsBySchoolId(schoolId: string): Promise<P
  */
 export async function getPublicJobByCode(code: number): Promise<PublicJob | null> {
   const api = createApiSchemaClient();
-  const { data } = await api
-    .from("school_jobs")
-    .select("*")
-    .eq("job_code", code)
-    .maybeSingle();
+  const { data } = await api.from("school_jobs").select("*").eq("job_code", code).maybeSingle();
   return data ? publicJobContract.parse(data) : null;
 }
 
@@ -1060,7 +1052,11 @@ function toPublicCity(row: {
 
 export async function getPublicCityBySlug(slug: string): Promise<PublicCity | null> {
   const api = createApiSchemaClient();
-  const { data } = await api.from("public_cities").select("id, name_en, slug, district_id").eq("slug", slug).maybeSingle();
+  const { data } = await api
+    .from("public_cities")
+    .select("id, name_en, slug, district_id")
+    .eq("slug", slug)
+    .maybeSingle();
   return data ? toPublicCity(publicCityContract.parse(data)) : null;
 }
 

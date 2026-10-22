@@ -13,21 +13,11 @@
  */
 
 import Link from "next/link";
-import { useMemo } from "react";
-import { SchoolCard } from "@/components/ui/school-card";
 import { StatusPill } from "@/components/ui/badges";
-import { EmptyState } from "@/components/ui/state-message";
-import {
-  type PublicCityArea,
-  listPublicLocalitiesByCity,
-  listPublicSchoolsByDistrict,
-  getBoardNamesBySchoolId,
-  getAdmissionDeadlinesBySchoolId,
-} from "@/lib/db/public-adapter";
 import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug } from "@/lib/board-slug";
-import { deadlineState, deadlineToPill } from "@/lib/deadline";
+import type { PublicCityArea } from "@/lib/db/public-adapter";
 import { formatGradeRange } from "@/lib/grades";
-import { schoolPath, localityPath, cityPath } from "@/lib/urls";
+import { cityPath, localityPath, schoolPath } from "@/lib/urls";
 
 type LocalityCardProps = {
   locale: string;
@@ -75,7 +65,12 @@ export function buildCityIntro({
   gradeBands,
 }: {
   cityName: string;
-  gradeBands?: { endsByClass5: number; endsByClass8: number; endsByClass10: number; endsByClass12: number };
+  gradeBands?: {
+    endsByClass5: number;
+    endsByClass8: number;
+    endsByClass10: number;
+    endsByClass12: number;
+  };
   schoolCount: number;
   areaCount: number;
   boardGroups: Array<{ boardName: string; schoolCount: number }>;
@@ -87,19 +82,22 @@ export function buildCityIntro({
   const areaPart =
     areaCount > 0 ? `, spread across ${areaCount} ${areaCount === 1 ? "area" : "areas"}` : "";
   sentences.push(
-    `${cityName} has ${schoolCount} ${schoolCount === 1 ? "school" : "schools"} listed on SchoolOye${areaPart}.`
+    `${cityName} has ${schoolCount} ${schoolCount === 1 ? "school" : "schools"} listed on SchoolOye${areaPart}.`,
   );
 
   if (boardGroups.length > 0) {
     const top = [...boardGroups].sort((a, b) => b.schoolCount - a.schoolCount)[0];
     sentences.push(
-      `${boardGroups.length} ${boardGroups.length === 1 ? "board is" : "boards are"} represented, most commonly ${top.boardName} (${top.schoolCount} ${top.schoolCount === 1 ? "school" : "schools"}).`
+      `${boardGroups.length} ${boardGroups.length === 1 ? "board is" : "boards are"} represented, most commonly ${top.boardName} (${top.schoolCount} ${top.schoolCount === 1 ? "school" : "schools"}).`,
     );
   }
 
   if (gradeBands) {
     const known =
-      gradeBands.endsByClass5 + gradeBands.endsByClass8 + gradeBands.endsByClass10 + gradeBands.endsByClass12;
+      gradeBands.endsByClass5 +
+      gradeBands.endsByClass8 +
+      gradeBands.endsByClass10 +
+      gradeBands.endsByClass12;
     if (known > 0) {
       const bands: Array<{ count: number; label: string }> = [
         { count: gradeBands.endsByClass5, label: "end at Class 5 or below" },
@@ -110,15 +108,13 @@ export function buildCityIntro({
       const parts = bands
         .filter((band) => band.count > 0)
         .map((band) => `${band.count} ${band.label}`);
-      sentences.push(
-        `Of the ${known} with a published class range, ${parts.join(", ")}.`
-      );
+      sentences.push(`Of the ${known} with a published class range, ${parts.join(", ")}.`);
     }
   }
 
   if (openAdmissionsCount > 0) {
     sentences.push(
-      `${openAdmissionsCount} ${openAdmissionsCount === 1 ? "school has" : "schools have"} admissions open right now.`
+      `${openAdmissionsCount} ${openAdmissionsCount === 1 ? "school has" : "schools have"} admissions open right now.`,
     );
   }
 
@@ -129,7 +125,12 @@ type CityHubLayoutProps = {
   locale: string;
   city: PublicCityArea;
   openAdmissionsCount: number;
-  gradeBands: { endsByClass5: number; endsByClass8: number; endsByClass10: number; endsByClass12: number };
+  gradeBands: {
+    endsByClass5: number;
+    endsByClass8: number;
+    endsByClass10: number;
+    endsByClass12: number;
+  };
   featuredSchools: Array<{
     id: string;
     name_en: string | null;
@@ -176,7 +177,6 @@ export function CityHubLayout({
   activeAdmissions,
   localities,
   boardGroups: allBoardGroups,
-  now,
 }: CityHubLayoutProps) {
   // Only boards with enough schools have a board hub page (see BOARD_HUB_MIN_SCHOOLS);
   // linking any smaller board would lead to a 404.
@@ -195,9 +195,7 @@ export function CityHubLayout({
           HERO SECTION
           ============================================================================ */}
       <section className="space-y-2">
-        <h1 className="font-display text-title-m md:text-title-d">
-          Schools in {city.cityName}
-        </h1>
+        <h1 className="font-display text-title-m md:text-title-d">Schools in {city.cityName}</h1>
         <p className="text-body text-muted-ink">
           {intro ??
             `${city.schoolCount} school${city.schoolCount === 1 ? "" : "s"} across ${localities.length} ${localities.length === 1 ? "area" : "areas"}`}
@@ -214,9 +212,7 @@ export function CityHubLayout({
       {localities.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-display text-card md:text-section font-semibold">
-              Browse by area
-            </h2>
+            <h2 className="font-display text-card md:text-section font-semibold">Browse by area</h2>
             <p className="text-body text-muted-ink">{localities.length} areas</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -233,7 +229,13 @@ export function CityHubLayout({
             ))}
           </div>
           <p className="pt-2 text-meta text-muted-ink">
-            Can't find your area? <Link href={`${cityPath(locale, city.stateSlug, city.citySlug)}?page=1`} className="font-semibold text-ruled-blue">See all schools →</Link>
+            Can't find your area?{" "}
+            <Link
+              href={`${cityPath(locale, city.stateSlug, city.citySlug)}?page=1`}
+              className="font-semibold text-ruled-blue"
+            >
+              See all schools →
+            </Link>
           </p>
         </section>
       )}
@@ -298,9 +300,7 @@ export function CityHubLayout({
                 className="flex flex-col gap-2 rounded-md border border-green-200 bg-green-50 p-4 transition hover:border-green-400 hover:shadow-sm"
               >
                 <div className="flex items-start justify-between">
-                  <h3 className="flex-1 font-semibold text-ink line-clamp-2">
-                    {school.name_en}
-                  </h3>
+                  <h3 className="flex-1 font-semibold text-ink line-clamp-2">{school.name_en}</h3>
                   <StatusPill status="open">Open</StatusPill>
                 </div>
                 <p className="text-meta text-muted-ink">

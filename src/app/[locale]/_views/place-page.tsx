@@ -10,8 +10,8 @@ import { BOARD_HUB_MIN_SCHOOLS, boardHubSlug, boardShortName } from "@/lib/board
 import {
   getAdmissionDeadlinesBySchoolId,
   getBoardCategoryLinksForDistrict,
-  getCityGradeBandCounts,
   getBoardNamesBySchoolId,
+  getCityGradeBandCounts,
   getPublicCityAreaBySlug,
   getPublicStateAreaBySlug,
   getPublicTownAreaBySlug,
@@ -528,7 +528,7 @@ export async function PlaceView({
           slug: loc.slug,
           schoolCount: loc.schoolCount,
         }),
-      new Map<string, { id: number; name: string; slug: string; schoolCount: number }>()
+      new Map<string, { id: number; name: string; slug: string; schoolCount: number }>(),
     );
 
     // Exact count of schools with open admissions across the whole city. The
@@ -550,7 +550,9 @@ export async function PlaceView({
         gradeBands={gradeBands}
         featuredSchools={featuredSchools}
         activeAdmissions={activeAdmissions}
-        localities={Array.from(localitiesBySlug.values()).sort((a, b) => b.schoolCount - a.schoolCount)}
+        localities={Array.from(localitiesBySlug.values()).sort(
+          (a, b) => b.schoolCount - a.schoolCount,
+        )}
         boardGroups={boardGroups}
         now={now}
       />
@@ -946,7 +948,6 @@ export async function PlaceView({
           )}
         </nav>
       )}
-
     </div>
   );
 }
